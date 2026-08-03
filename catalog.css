@@ -1,0 +1,1431 @@
+/* ============================================================
+   AUTOHAUS — THE CATALOG SYSTEM  (v41)
+
+   The layout system measured off JamesEdition (see SPEC-JAMESEDITION.md),
+   rebuilt in AutoHaus material. Every geometric number below is theirs.
+   Every colour, radius and typeface is ours.
+
+   What is copied — the UX:
+     · one card atom used on the landing page, in the catalog and in
+       "you might also like", so it is learned once
+     · price first, then `year make model`, then provenance
+     · filters as a horizontal pill row, not a sidebar, so results begin
+       near the top of the page; depth lives in a drawer behind one
+       filled pill
+     · dependent controls stay hidden until they can work
+     · the photograph's aspect never changes — only the column count
+     · card typography never shrinks
+     · count and sort together, right-aligned, above the grid
+     · nothing moves on hover except the photograph's own controls
+
+   What is NOT copied — the brand:
+     · their 100px pills            -> our radius 0
+     · their #fff paper catalog     -> our dark stage
+     · their teal #006C75           -> our gold #c9a25a
+     · their Heldane + Inter        -> Exo 2
+     · their 0.8px #E0E0E0 hairline -> our rgba hairlines
+
+   The one deliberate disagreement: JamesEdition rounds everything to a
+   100px pill. AutoHaus has had radius 0 since v34 because Bentley does,
+   and the brief says take the patterns, not the paint. A pill and a
+   square chip are the same control; only one of them is theirs.
+   ============================================================ */
+
+:root{
+  /* style.css defines --line-d only inside body:not(.ah) — the light detail
+     page — so on the dark pages `1px solid var(--line-d)` resolved to an
+     invalid colour and the card border vanished entirely. Declared here at
+     the root; the light theme's own value still wins on that page because
+     body:not(.ah) outranks :root. */
+  --line-d:rgba(255,255,255,.14);
+
+  /* geometry — measured, theirs */
+  --cat-ratio: 1.634;            /* 412 / 252 — the card photograph */
+  --cat-card-min: 300px;         /* below this the grid drops a column */
+  --cat-gap-row: 30px;
+  --cat-gap-col: 23px;
+  --cat-pill-h: 34px;
+  --cat-pill-gap: 6px;
+  --cat-pad: 12px;               /* card description block */
+  --cat-inset: 16px;             /* card text inset (theirs 17px) */
+  --cat-rail-w: 380px;
+  --cat-field-h: 48px;
+  --cat-sec-gap: 100px;          /* their landing section rhythm */
+}
+
+/* ============================================================
+   1. THE CARD ATOM
+   ============================================================ */
+.lc{
+  position:relative;display:flex;flex-direction:column;
+  border:1px solid var(--line-d);background:transparent;
+  border-radius:0;box-shadow:none;
+  /* --ui-dur / --ui-ease, shared with .btn and every pill on the site. This
+     was 80ms linear, chosen so a colour change would read as a response
+     rather than an animation — but buttons had no transition at all, so the
+     two sat side by side disagreeing. One token now answers for both. */
+  transition:border-color var(--ui-dur) var(--ui-ease),
+             background-color var(--t-in) var(--e-mass),
+             box-shadow var(--t-move) var(--e-mass);
+}
+.lc__link{display:flex;flex-direction:column;flex:1;min-width:0;color:inherit;text-decoration:none}
+
+/* --- the photograph --- */
+.lc__pic{
+  position:relative;width:100%;aspect-ratio:var(--cat-ratio);
+  background:#111;overflow:hidden;flex:none;
+}
+.lc__pic img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  /* The one thing that moves. Long and heavily damped — a photograph this
+     size settling over 800ms reads as weight; the same move in 200ms reads as
+     a web component. The scale is small on purpose: at 1.06 a 412px frame
+     gives up 12px on each side, which the crop can afford everywhere. */
+  transform-origin:50% 50%;
+  transition:transform var(--t-mass) var(--e-mass);
+}
+
+/* THE PHOTOGRAPH CARRIES NOTHING.
+   `.lc__badge` was a wedge stickered into the top-left corner saying
+   "Доставъчен пробег" / "Нерегистриран" / "Класика". It landed on some cards
+   and not others, so a grid of eighty read as unevenly finished; it is the
+   visual language of a marketplace listing rather than of a collection; and
+   every fact it stated is already on the card — 500 км IS delivery mileage —
+   or on the dossier, where it can be explained instead of asserted. See
+   catalog.js for the renderer. */
+
+/* ---- THE HOVER -------------------------------------------------------
+   What was here before: a "1 / 24" counter pinned bottom-right, a pair of
+   44x80 stepper arrows and a white "24 кадъра" pill, all appearing at once.
+   Three things arriving on hover, two of them about the SIZE OF THE PHOTO
+   SET — which is not a question anyone browsing a grid is asking — and the
+   arrows drawn as white strokes on a 34%-black gradient, which over a sunlit
+   bonnet is nothing at all. (They were doubly invisible: their <use> pointed
+   at a symbol two of the four pages never defined. See catalog.js.)
+
+   One idea replaces all three: the card is a doorway, so hovering it should
+   say where the door goes and give the photograph a little life. Three layers
+   move together on the same curve — the frame breathes, a wash lifts under
+   the label so it can be read over any photograph, and the label itself rises
+   into place. Nothing else on the card reacts, which is the part that reads
+   as expensive. */
+.lc__cue{
+  position:absolute;left:var(--cat-inset);bottom:14px;z-index:3;
+  display:inline-flex;align-items:center;gap:12px;
+  color:#fff;font-size:12px;line-height:16px;font-weight:600;
+  letter-spacing:1.1px;text-transform:uppercase;white-space:nowrap;
+  pointer-events:none;opacity:0;transform:translateY(10px);
+  transition:opacity var(--t-in) var(--e-mass),transform var(--t-move) var(--e-mass);
+}
+.lc__cue svg{
+  width:26px;height:8px;flex:none;
+  stroke:currentColor;stroke-width:1.4;fill:none;
+  /* the rule draws itself as the label arrives */
+  stroke-dasharray:30;stroke-dashoffset:30;
+  transition:stroke-dashoffset var(--t-move) var(--e-mass) .08s;
+}
+/* the wash the cue is read against — on the photo, never on the text block,
+   and it stops well short of the badge in the opposite corner */
+.lc__pic::after{
+  content:"";position:absolute;inset:auto 0 0 0;height:52%;z-index:2;
+  background:linear-gradient(transparent,rgba(0,0,0,.66));
+  opacity:0;transition:opacity var(--t-in) var(--e-mass);pointer-events:none;
+}
+@media(hover:hover) and (min-width:768px){
+  .lc:hover .lc__pic img,.lc:focus-within .lc__pic img{transform:scale(1.06)}
+  .lc:hover .lc__pic::after,.lc:focus-within .lc__pic::after{opacity:1}
+  .lc:hover .lc__cue,.lc:focus-within .lc__cue{opacity:1;transform:none}
+  .lc:hover .lc__cue svg,.lc:focus-within .lc__cue svg{stroke-dashoffset:0}
+}
+/* the frame itself: the hairline warms to the brand and the whole card lifts
+   its ground a shade. No shadow and no radius — this system has neither. */
+@media(hover:hover) and (min-width:768px){
+  .lc:hover,.lc:focus-within{border-color:var(--primary);background-color:rgba(255,255,255,.04)}
+  /* A 4% white wash is a lift on a dark grid and a HOLE on a white card: it
+     replaces the card's own #fff, so the section's paper shows through and the
+     card appears to go grey on hover. Both light variants restate their
+     ground — .pale is the landing page and the catalog layer, .lc--paper is
+     the dossier's "you might also like". */
+  .pale .lc:hover,.pale .lc:focus-within,
+  .lc--paper:hover,.lc--paper:focus-within{background-color:#fff}
+  /* and it leaves the paper. One wide, soft, offset shadow — ambient
+     occlusion under a raised object, not a drop shadow under a web card.
+     Light surfaces only: on the dark grid the same shadow is invisible, and
+     the 4% wash above is what does the lifting there. */
+  .pale .lc:hover,.pale .lc:focus-within,
+  .lc--paper:hover,.lc--paper:focus-within{box-shadow:var(--lift-1)}
+  /* and the hairline has to be restated with them: `.pale .lc` sets
+     border-color at the same specificity as `.lc:hover` but later in the
+     file, so on the landing page the gold never landed. */
+  .pale .lc:hover,.pale .lc:focus-within{border-color:var(--primary)}
+}
+@media(prefers-reduced-motion:reduce){
+  .lc__pic img,.lc__cue,.lc__cue svg,.lc__pic::after{transition:none}
+  .lc:hover .lc__pic img,.lc:focus-within .lc__pic img{transform:none}
+}
+
+/* --- the text block: price, vehicle, place --- */
+.lc__body{
+  padding:var(--cat-pad) var(--cat-inset);
+  display:flex;flex-direction:column;gap:2px;flex:1;
+  /* the concierge action is absolutely placed in this block's right edge,
+     so the three text lines must stop short of it */
+  padding-right:104px;
+  min-width:0;                 /* lets the nowrap lines actually ellipsis */
+}
+.lc,.lc__link{min-width:0}
+.lc__price{
+  font-size:16px;line-height:24px;font-weight:600;
+  color:var(--white);font-variant-numeric:tabular-nums;
+}
+.lc__price--ask{font-weight:400;color:rgba(255,255,255,.82)}
+.lc__name{
+  font-size:14px;line-height:22px;font-weight:400;color:var(--white);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.lc__meta{
+  font-size:14px;line-height:22px;font-weight:400;color:rgba(255,255,255,.6);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* their card carries a "Contact" action in the text block. Ours carries the
+   concierge, which is the same idea with our positioning. */
+.lc__act{
+  position:absolute;right:var(--cat-inset);bottom:var(--cat-pad);
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;line-height:22px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--primary);
+  transition:color var(--ui-dur) var(--ui-ease);
+}
+.lc__act:hover{color:var(--primary-hover)}
+.lc__act svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none}
+
+/* light-surface variant, for the detail page's "you might also like" */
+.lc--paper{border-color:var(--line);background:#fff}
+.lc--paper .lc__price{color:var(--ink)}
+.lc--paper .lc__price--ask{color:var(--ink-2)}
+.lc--paper .lc__name{color:var(--ink)}
+.lc--paper .lc__meta{color:var(--ink-3)}
+
+/* ============================================================
+   2. THE GRID
+   3 columns at their measured gaps, collapsing by available width
+   rather than by device — the card has a minimum it reads well at.
+   ============================================================ */
+.cgrid{
+  display:grid;
+  /* minmax(0,1fr), never a bare 1fr. A bare 1fr is minmax(auto,1fr), so the
+     card's min-content width sets the floor — and .lc__name / .lc__meta are
+     white-space:nowrap, which makes that floor as wide as the longest model
+     name. At one column that pushed the track 46px past a 393px viewport. */
+  grid-template-columns:minmax(0,1fr);
+  gap:20px var(--cat-gap-col);            /* their mobile row gap is 20 */
+}
+@media(min-width:600px){
+  .cgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--cat-gap-row) var(--cat-gap-col)}
+}
+@media(min-width:1024px){
+  .cgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(min-width:1600px){
+  .cgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+/* ---- reserving the space JS is about to fill ----
+   The grid ships empty and collection.js fills it once the deferred scripts
+   run, so the browser painted a zero-height grid and then dropped ~1500px of
+   cards into it. Measured CLS 0.46 at 1440, almost all of it a single 0.443
+   shift as the teaser below was shoved off the screen.
+
+   `:empty` is exactly the right hook — it holds only for the frames before the
+   first card lands and stops applying the instant one does. The reserve does
+   not have to equal the final height; it has to put whatever FOLLOWS the grid
+   below the fold, so that everything which moves afterwards moves where nobody
+   is looking. */
+.cgrid:empty{min-height:120vh}
+/* same story, smaller: the pill row is built by JS too, and an unreserved 34px
+   row shifted the results under it on a phone */
+.fbar2:empty{min-height:var(--cat-pill-h)}
+
+/* ============================================================
+   3. THE FILTER RAIL  (v51)
+
+   What was here: one gold "Филтри" pill, four marque pills out of fourteen,
+   and everything else behind a 400px drawer whose chips rendered white on
+   paper — invisible, literally. A buyer who wanted an Audi could not see
+   that Audi existed, and a buyer who opened the drawer to find out could
+   not read it.
+
+   What is here now: eight NAMED CONTROLS in one row. Each states its own
+   question when empty and its own answer when set, which is the trick that
+   keeps eight of them inside ~720px — narrower than the four pills they
+   replace. Nothing is hidden behind a count; every filter this collection
+   can answer is a word on the screen before anything is clicked.
+
+   The control is the concierge room's option card at bar scale: hairline
+   box, a gold rule drawing down the leading edge when it carries a value,
+   a lit top edge under the pointer. Same grammar, one third the size.
+   ============================================================ */
+.fbar2{
+  display:flex;align-items:center;gap:6px;
+  padding-block:10px;
+  overflow-x:auto;overscroll-behavior-x:contain;
+  scrollbar-width:none;-ms-overflow-style:none;
+  scroll-padding-inline:var(--margin);
+}
+.fbar2::-webkit-scrollbar{display:none}
+
+/* Seven of these have to share 704px at 768 — measured at 747 before the
+   padding was tightened, i.e. 43px into a scroll. They fit now, and the row
+   only scrolls once controls start carrying values, which is exactly when a
+   reader has a reason to look along it. */
+.fsel{
+  position:relative;flex:none;
+  display:inline-flex;align-items:center;gap:8px;
+  height:var(--cat-pill-h);padding:0 10px 0 12px;
+  background-color:transparent;border:1px solid var(--line-d);border-radius:0;
+  color:var(--white);font-family:inherit;
+  font-size:13px;line-height:20px;font-weight:600;letter-spacing:.06em;
+  white-space:nowrap;cursor:pointer;
+  transition:color var(--ui-dur) var(--ui-ease),
+             background-color var(--ui-dur) var(--ui-ease),
+             border-color var(--ui-dur) var(--ui-ease);
+}
+/* the gold rule that says "this one carries a value" — the concierge's
+   .opt::before, at bar scale */
+.fsel::before{
+  content:"";position:absolute;inset-block:-1px;inset-inline-start:-1px;width:2px;
+  background:var(--primary);transform:scaleY(0);transform-origin:50% 0;
+  transition:transform var(--t-in) var(--e-move);
+}
+.fsel::after{
+  content:"";position:absolute;inset:0 0 auto 0;height:1px;
+  background:var(--edge-lit);opacity:0;
+  transition:opacity var(--ui-dur) var(--ui-ease);
+}
+.fsel:hover:not(:disabled){background-color:rgba(255,255,255,.09);border-color:rgba(255,255,255,.34)}
+.fsel:hover::after,.fsel:focus-visible::after{opacity:1}
+.fsel__t{overflow:hidden;text-overflow:ellipsis;max-width:22ch}
+.fsel__c{
+  width:11px;height:8px;flex:none;stroke:currentColor;stroke-width:1.6;fill:none;
+  opacity:.5;transition:transform var(--t-in) var(--e-move),opacity var(--ui-dur) var(--ui-ease);
+}
+.fsel:hover .fsel__c{opacity:.9}
+.fsel.is-set{border-color:rgba(201,162,90,.6);color:var(--white)}
+.fsel.is-set::before{transform:scaleY(1)}
+.fsel.is-set .fsel__c{opacity:.9}
+.fsel.is-open{border-color:var(--primary);background-color:rgba(201,162,90,.1)}
+.fsel.is-open .fsel__c{transform:rotate(180deg);opacity:1}
+.fsel:disabled{opacity:.32;pointer-events:none}
+
+/* "Изчисти" is a way out, not a filter — it reads as text with a rule under
+   it rather than as a ninth thing to choose */
+.fsel--clear{
+  border-color:transparent;padding-inline:8px;
+  color:rgba(255,255,255,.6);font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;font-size:11px;
+}
+.fsel--clear::before,.fsel--clear::after{content:none}
+.fsel--clear:hover:not(:disabled){background-color:transparent;color:var(--white);border-color:transparent;text-decoration:underline;text-underline-offset:5px}
+
+/* the phone's single control */
+.fsel--all{padding-inline:14px 16px;border-color:var(--primary);background-color:rgba(201,162,90,.12)}
+.fsel__f{width:15px;height:15px;flex:none;stroke:var(--primary);stroke-width:1.5;fill:none}
+.fsel__n{
+  min-width:19px;height:19px;padding-inline:5px;display:grid;place-items:center;
+  background:var(--primary);color:var(--primary-ink);
+  font-size:11px;line-height:1;font-variant-numeric:tabular-nums;
+}
+
+/* The row is a horizontal scroller, which makes it a clip boundary: a panel
+   rendered inside it would be cut off at the first edge it reached. The
+   panels live in this wrapper — a sibling of the scroller — and are
+   positioned against it. */
+.fbar2-wrap{position:relative;min-width:0}
+
+/* ---- the panel a control opens ---- */
+.fpop{
+  position:absolute;z-index:60;
+  width:max-content;min-width:250px;
+  max-width:min(340px,calc(100vw - var(--margin) * 2));
+  background:#0b0b0b;border:1px solid rgba(255,255,255,.16);
+  box-shadow:var(--lift-2);
+  animation:fpop-in var(--t-in) var(--e-enter) backwards;
+}
+@keyframes fpop-in{0%{opacity:0;transform:translateY(-7px)}100%{opacity:1;transform:none}}
+.fpop[hidden]{display:none!important}
+.fpop__h{
+  padding:13px 16px 11px;border-bottom:1px solid rgba(255,255,255,.12);
+  font-size:10px;line-height:14px;font-weight:600;letter-spacing:1.2px;
+  text-transform:uppercase;color:rgba(255,255,255,.5);
+}
+.fpop__b{padding:14px 16px}
+.fpop__f{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 16px;border-top:1px solid rgba(255,255,255,.12);
+}
+.fpop__reset{
+  background:none;border:0;padding:0;cursor:pointer;font-family:inherit;
+  font-size:10px;line-height:16px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:rgba(255,255,255,.5);
+  transition:color var(--ui-dur) var(--ui-ease);
+}
+.fpop__reset:hover{color:var(--white);text-decoration:underline;text-underline-offset:4px}
+.fpop__n{
+  font-size:11px;line-height:16px;font-weight:600;letter-spacing:.06em;
+  color:var(--primary);font-variant-numeric:tabular-nums;
+}
+.fpop__none{font-size:13px;color:rgba(255,255,255,.5)}
+
+/* ---- an option row: name, count, and a tick when it is the answer ---- */
+/* Fourteen marques do not fit a dropdown, so the list scrolls — and a list
+   that simply stops mid-row reads as a clipping fault rather than as "there
+   is more". The last 26px fade out, which is the whole affordance. */
+.fopts{
+  display:grid;gap:1px;max-height:min(46vh,320px);overflow-y:auto;
+  margin:-4px -6px;padding:4px 6px;
+  scrollbar-width:none;-ms-overflow-style:none;
+  -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);
+  mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);
+}
+.fopts::-webkit-scrollbar{display:none}
+.fopts.is-end{-webkit-mask-image:none;mask-image:none}
+.fopt{
+  display:grid;grid-template-columns:1fr auto 16px;align-items:center;gap:10px;
+  width:100%;min-height:36px;padding:6px 8px;
+  background:none;border:0;border-radius:0;cursor:pointer;text-align:start;
+  color:var(--white);font-family:inherit;
+  font-size:14px;line-height:20px;font-weight:300;letter-spacing:.01em;
+  transition:background-color var(--ui-dur) var(--ui-ease),color var(--ui-dur) var(--ui-ease);
+}
+.fopt:hover:not(:disabled){background-color:rgba(255,255,255,.08)}
+.fopt:disabled{opacity:.3;pointer-events:none}
+.fopt__n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fopt__c{
+  font-size:11px;line-height:16px;font-weight:600;letter-spacing:.06em;
+  color:rgba(255,255,255,.38);font-variant-numeric:tabular-nums;
+}
+.fopt__k{
+  width:14px;height:14px;stroke:var(--primary);stroke-width:2;fill:none;
+  opacity:0;transform:scale(.5);
+  transition:opacity var(--t-tap) var(--e-ui),transform var(--t-ui) var(--e-enter);
+}
+.fopt.is-on{color:var(--primary)}
+.fopt.is-on .fopt__c{color:rgba(201,162,90,.7)}
+.fopt.is-on .fopt__k{opacity:1;transform:none}
+
+/* ---- a range: readout, dual slider, two fields ---- */
+.frng__read{
+  font-size:16px;line-height:24px;font-weight:300;color:var(--white);
+  font-variant-numeric:tabular-nums;margin-bottom:14px;
+}
+.frng__read b{font-weight:400}
+.frng__read em{font-style:normal;font-size:12px;color:rgba(255,255,255,.5);letter-spacing:.06em}
+.frng__track{position:relative;height:22px;margin-bottom:16px}
+.frng__track::before{
+  content:"";position:absolute;left:0;right:0;top:10px;height:2px;
+  background:rgba(255,255,255,.18);
+}
+.frng__fill{position:absolute;top:10px;height:2px;background:var(--primary)}
+.frng__track input[type=range]{
+  position:absolute;left:0;top:0;width:100%;height:22px;margin:0;
+  -webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;
+}
+.frng__track input[type=range]::-webkit-slider-runnable-track{height:2px;background:transparent}
+.frng__track input[type=range]::-moz-range-track{height:2px;background:transparent}
+/* the handle is the house shape: a square, not a dot */
+.frng__track input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;margin-top:-6px;
+  background:var(--primary);border:0;pointer-events:auto;cursor:grab;
+  box-shadow:0 0 0 3px rgba(11,14,15,.9);
+}
+.frng__track input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;background:var(--primary);border:0;border-radius:0;
+  pointer-events:auto;cursor:grab;box-shadow:0 0 0 3px rgba(11,14,15,.9);
+}
+.frng__track input[type=range]:active::-webkit-slider-thumb{cursor:grabbing}
+.frng__io{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.frng__io label{display:block;min-width:0}
+.frng__io span{
+  display:block;margin-bottom:5px;
+  font-size:10px;line-height:14px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:rgba(255,255,255,.4);
+}
+.frng__io input{
+  width:100%;height:var(--cat-field-h);padding:0 10px;
+  background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:0;
+  color:var(--white);font-family:inherit;font-size:14px;line-height:20px;
+  font-variant-numeric:tabular-nums;-webkit-appearance:none;appearance:none;
+  transition:border-color var(--ui-dur) var(--ui-ease);
+}
+.frng__io input::placeholder{color:rgba(255,255,255,.28)}
+.frng__io input:hover{border-color:rgba(255,255,255,.36)}
+.frng__io input:focus{outline:none;border-color:var(--primary)}
+
+/* ============================================================
+   4. RESULTS HEADER — count and sort, right-aligned, plain text
+   ============================================================ */
+/* `flex-wrap:wrap` let this row break wherever it liked, and on a 390 phone
+   it liked breaking INSIDE the count: "87 / автомобила / в наличност" stacked
+   into three lines beside the sort, which reads as a layout fault rather than
+   as a label. The row is one line at every width now — the count holds
+   together, the sort keeps the end, and the count gives up its tail before
+   either of them gives up the line. */
+.chead{
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:16px;flex-wrap:nowrap;padding-block:16px;
+}
+.chead__count{
+  font-size:14px;line-height:22px;color:rgba(255,255,255,.72);
+  font-variant-numeric:tabular-nums;
+  min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.chead__sort{flex:none}
+.chead__count b{color:var(--white);font-weight:600}
+.chead__sort{display:inline-flex;align-items:center;gap:8px}
+.chead__sort > span{
+  font-size:14px;line-height:22px;color:rgba(255,255,255,.5);
+}
+/* their sort is an unbordered inline text select. Ours matches — a select
+   with a border here would compete with the pill row above it.
+
+   text-align:end is load-bearing, not cosmetic. A <select> sizes itself to its
+   LONGEST option, so with "Препоръчани" chosen the box was still as wide as
+   "Най-нови постъпления" and the caret sat ~80px adrift of the word it belongs
+   to — the control read as two unrelated marks. Aligning to the end pins the
+   value against the caret whatever is selected. */
+.sortplain{
+  -webkit-appearance:none;appearance:none;background:transparent;border:0;
+  padding:0 18px 0 0;color:var(--white);font-family:inherit;text-align:end;
+  font-size:14px;line-height:22px;font-weight:600;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),
+                   linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:right 6px center,right 1px center;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+.sortplain option{background:#14100c;color:var(--white)}
+
+/* ============================================================
+   5. THE FILTER SHEET — the rail, stacked, for a phone
+
+   The drawer this replaces slid in from the left as a 400px column and
+   rendered its chips with the dark theme's white-on-transparent `.chip` over
+   paper: fourteen marque names in white on white. Nothing about it could be
+   read, and it held the only copy of ten of the fourteen marques.
+
+   A sheet, not a drawer: it comes up from the bottom edge, which is where a
+   thumb is, and it stops short of the top so the room is still visibly
+   behind it. Its body is the SAME panelBody() the dropdown uses, so there is
+   one description of every filter on the site.
+   ============================================================ */
+.fsheet{
+  position:fixed;inset:0;z-index:2000;
+  visibility:hidden;
+  transition:visibility 0s linear var(--t-in);
+}
+.fsheet.is-open{visibility:visible;transition:visibility 0s}
+.fsheet__scrim{
+  position:absolute;inset:0;background:rgba(0,0,0,.5);
+  opacity:0;transition:opacity var(--t-in) var(--e-exit);
+}
+.fsheet.is-open .fsheet__scrim{opacity:1;transition:opacity var(--t-move) var(--e-mass)}
+.fsheet__panel{
+  position:absolute;inset:auto 0 0 0;max-height:88svh;max-height:88vh;
+  display:flex;flex-direction:column;
+  background:var(--paper,#f7f6f2);
+  box-shadow:0 -24px 60px rgba(0,0,0,.34);
+  transform:translateY(100%);
+  transition:transform var(--t-in) var(--e-exit);
+}
+.fsheet.is-open .fsheet__panel{transform:none;transition:transform var(--t-move) var(--e-mass)}
+.fsheet__bar{
+  flex:none;position:relative;display:flex;align-items:center;justify-content:space-between;
+  min-height:54px;padding-inline:var(--margin);
+  border-bottom:1px solid var(--line-d);
+}
+/* the grab rail — it is a sheet, and a sheet says so */
+.fsheet__bar::before{
+  content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  width:38px;height:3px;background:var(--line-2,rgba(255,255,255,.28));
+}
+.fsheet__title{
+  font-size:11px;line-height:16px;font-weight:600;letter-spacing:1.2px;
+  text-transform:uppercase;color:rgba(255,255,255,.5);
+}
+.fsheet__x{
+  width:44px;height:44px;margin-inline-end:-12px;display:grid;place-items:center;
+  background:transparent;border:0;color:var(--white);cursor:pointer;
+}
+.fsheet__x svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.6;fill:none}
+.fsheet__body{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding:4px var(--margin) 8px;
+}
+.fsheet__foot{
+  flex:none;display:flex;align-items:center;gap:12px;
+  padding:12px var(--margin);
+  border-top:1px solid var(--line-d);
+  padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+}
+.fsheet__foot .btn{flex:1;justify-content:center}
+
+.fgrp{padding-block:20px;border-bottom:1px solid var(--line-d)}
+.fgrp:last-child{border-bottom:0}
+.fgrp__h{
+  font-size:11px;line-height:16px;font-weight:600;letter-spacing:1.2px;
+  text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:12px;
+}
+/* in the sheet a list is a wrapping run of names, not a scrolling column —
+   there is no dropdown to keep short here, and a phone reads a run faster
+   than it scrolls a box inside a box */
+.fgrp .fopts{
+  display:flex;flex-wrap:wrap;gap:8px;max-height:none;overflow:visible;
+  margin:0;padding:0;
+  -webkit-mask-image:none;mask-image:none;      /* nothing is clipped here */
+}
+.fgrp .fopt{
+  width:auto;grid-template-columns:auto auto;gap:8px;
+  min-height:var(--cat-pill-h);padding:0 13px;
+  border:1px solid var(--line-d);
+  font-size:13px;font-weight:600;letter-spacing:.06em;
+}
+.fgrp .fopt__k{display:none}
+.fgrp .fopt.is-on{
+  background:var(--primary);border-color:var(--primary);color:var(--primary-ink);
+}
+.fgrp .fopt.is-on .fopt__c{color:rgba(11,14,15,.55)}
+
+/* ============================================================
+   6. THE DISCOVERY SLIDER — their "Popular Makes"
+   8 across on a desktop; a scroll-snap rail on a phone.
+   ============================================================ */
+.mrow{
+  display:grid;grid-auto-flow:column;grid-auto-columns:minmax(140px,1fr);
+  gap:24px;overflow-x:auto;overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity;scrollbar-width:none;padding-bottom:4px;
+}
+.mrow::-webkit-scrollbar{display:none}
+@media(min-width:1024px){
+  .mrow{grid-auto-flow:row;grid-template-columns:repeat(7,1fr);overflow:visible}
+}
+.mtile{scroll-snap-align:start;display:flex;flex-direction:column;gap:12px;color:inherit}
+.mtile__pic{
+  position:relative;aspect-ratio:1.31;overflow:hidden;background:#111;   /* theirs: 140x107 */
+  border:1px solid var(--line-d);
+}
+.mtile__pic img{width:100%;height:100%;object-fit:cover;display:block}
+.mtile__name{
+  font-size:14px;line-height:20px;font-weight:600;color:var(--white);
+}
+.mtile__n{
+  font-size:11px;line-height:11px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;color:rgba(255,255,255,.5);
+}
+.mtile:hover .mtile__pic{border-color:var(--primary)}
+
+/* section head: title left, "view all" right — theirs is plain text */
+.csec{padding-block:var(--sp-m)}
+@media(min-width:1024px){.csec{padding-block:64px}}
+.csec__head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:16px;margin-bottom:24px;
+}
+.csec__h{
+  font-size:var(--fs-h4);line-height:var(--lh-h4);font-weight:200;
+  letter-spacing:normal;color:var(--white);
+}
+.csec__all{
+  flex:none;font-size:13px;line-height:24px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--primary);
+}
+.csec__all:hover{color:var(--primary-hover)}
+.csec__sub{
+  font-size:var(--fs-body);line-height:var(--lh-body);
+  color:rgba(255,255,255,.66);max-width:62ch;margin-bottom:24px;
+}
+
+/* ============================================================
+   7. THE EXPANDING CATALOG LAYER
+   The preview grid and this layer share .cgrid and .lc exactly, so the
+   cards do not change size or style as it opens — which is what makes
+   the expansion read as the same room getting bigger rather than a
+   new page arriving.
+   ============================================================ */
+.cat{
+  position:fixed;inset:0;z-index:1200;
+  visibility:hidden;pointer-events:none;
+}
+.cat.is-open{visibility:visible;pointer-events:auto}
+.cat__scrim{
+  position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 50% 0%,rgba(0,0,0,.42),rgba(0,0,0,.72));
+  opacity:0;transition:opacity var(--t-in) var(--e-exit);
+}
+.cat.is-open .cat__scrim{opacity:1;transition:opacity var(--t-move) var(--e-mass)}
+.cat__panel{
+  /* Grid, not flex column, so the tools can OVERLAY the results instead of
+     sitting above them. As a flex row the tools were part of the body's
+     height equation: condensing them resized the scroll container 31 times
+     during the 340ms morph, which moves the scrollable extent under an active
+     wheel gesture. Frame times stayed clean and it still felt like lag,
+     because the surface you are scrolling keeps changing size beneath you.
+     Overlaid, the body's box never moves and the results simply scroll under
+     the bar — the same model the collection page uses, for the same reason. */
+  position:absolute;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr);
+  background:linear-gradient(var(--page-top),var(--page-bottom));
+  /* the expansion: the layer grows from the preview's own scale.
+     .985 is small enough to read as growth and large enough that no
+     text reflows visibly on the way. */
+  transform:scale(.985);opacity:0;
+  transition:transform var(--t-in) var(--e-exit),opacity var(--t-tap) var(--e-exit);
+  will-change:transform,opacity;
+}
+.cat.is-open .cat__panel{transform:none;opacity:1}
+.cat__bar{
+  flex:none;display:flex;align-items:stretch;
+  gap:0;padding:0 var(--margin) 0 0;
+  min-height:calc(var(--plate-h) + env(safe-area-inset-top,0px));
+  padding-top:env(safe-area-inset-top,0px);
+  border-bottom:1px solid var(--line-d);
+}
+/* the plate's corner, restated — same shear, same material, same mark size */
+/* THE MARK'S WEDGE.
+   It was padded to the page margin on the left and cut + 20 on the right,
+   which on the plate is right — there the wedge holds a trigger, the mark AND
+   the switch, so the mark sits in the middle of a long shape. Here it holds
+   the mark alone, and the same padding left it adrift in a wedge far wider
+   than it needed, reading as a logo parked in a black rectangle rather than
+   as a mark set in a corner.
+   The wedge now hugs the mark: the page margin on the left so it lines up with
+   the search field and the grid below it, and only the cut plus a hair on the
+   right. What the eye gets is the mark at the head of the diagonal. */
+.cat__id{
+  position:relative;flex:none;display:flex;align-items:center;
+  padding-inline:var(--margin) calc(var(--plate-cut) + 10px);
+  margin-inline-end:clamp(16px,2vw,32px);
+  /* NOT a flat black slab. The wedge is the first thing seen on entering the
+     collection and it was a rectangle of pure #060606 — correct, and dead. It
+     carries the showroom itself now: the building at dusk, held right down so
+     it is a texture rather than a picture, with the same gradient over it that
+     the plate uses. What you read is still the mark on a dark ground; what you
+     feel is that the ground is a place. */
+  background-image:
+    linear-gradient(180deg,rgba(16,16,16,.93) 0%,rgba(6,6,6,.96) 58%,rgba(4,4,4,.97) 100%),
+    image-set(url("img/autohaus_outside-768.webp") type("image/webp"),
+              url("img/autohaus_outside-768.jpg") type("image/jpeg"));
+  background-size:cover,cover;
+  background-position:center 62%,center 62%;
+  clip-path:polygon(0 0,100% 0,calc(100% - var(--plate-cut)) 100%,0 100%);
+}
+.cat__id::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:1px;pointer-events:none;
+  background:var(--edge-lit);
+}
+/* THE MARK SITS IN THE MIDDLE OF ITS WEDGE.
+   A second `.cat__id` rule used to follow this one and set
+   `flex-direction:column` — a leftover from when the wedge held a mark AND a
+   count on two lines. The count moved to the tools row and the column stayed,
+   so the wedge became a column with one child and no justification: the
+   logo was pinned to the TOP edge of a 62px band with 42px of empty wedge
+   under it. Measured at every breakpoint — mark top 0 in a 49/55/57/61/67px
+   bar, at all five. One rule now, and it centres. */
+.cat__mark{display:flex;align-items:center;line-height:0}
+/* the mark is on the wedge in both themes, so it stays white in both */
+.cat__mark .logo{width:calc(var(--plate-h) * 1.72);color:var(--white)}
+/* the visible count lives in the tools row; this one is for screen readers */
+.cat__count{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* Below 600 the bar was three objects fighting over 390px: the wedge, a count
+   that ellipsised mid-word to "87 авто…", and a 117px close button. The count
+   is already stated in full one row below — it goes, and the close keeps only
+   its mark. The bar then holds exactly what a bar should: who this is, and
+   the way out. */
+@media(max-width:599px){
+  /* Two fixes for one row. "Подредба" labels a control that already says its
+     own value and carries a caret, so it goes. And the count and the sort stop
+     sharing a line: side by side at 390 the count still lost its last word to
+     an ellipsis, and a sentence that ends in "…" reads as a fault, not as a
+     summary. Stacked, the count keeps every word and the sort keeps the end —
+     a deliberate two-line block rather than a row that ran out of room.
+     This is NOT the `flex-wrap:wrap` the row had before: that let the browser
+     break wherever it liked, including inside the count. */
+  .chead{flex-wrap:wrap;gap:2px 16px}
+  /* explicit 100% bases rather than flex-direction: the break point is then
+     stated by these two rules and cannot be re-rowed by anything that sets
+     flex-direction later in the cascade. */
+  /* THE WRAP IS SCOPED, and this is the whole lesson of the 390 regression.
+     Letting the count wrap makes its box one line tall or two DEPENDING ON THE
+     SPACE IT IS GIVEN — and the collection page's bar reserves a single
+     measured resting height in its spacer. A resting height that is not a
+     constant cannot be reserved: measured at 390 it put 22px of slip back into
+     the grid and refused nine scrolls out of the release, which is the exact
+     class of bug this whole pass was chasing.
+
+     So the wrap is allowed only where nothing reserves the height — the
+     landing preview's flex `.chead`, which is in the flow, and the popup's
+     tools, which overlay. The pinning bar keeps one deterministic line. */
+  .chead > .chead__count,
+  .cat__tools .chead__count{flex:1 0 100%;white-space:normal;overflow:visible;text-overflow:clip}
+  .chead > .chead__sort,
+  .cat__tools .chead__sort{flex:1 0 100%;justify-content:flex-end}
+
+  /* THE SAME ROW, THE OTHER WAY IT IS BUILT.
+     The landing preview wraps these two in a flex `.chead`; the popup and the
+     collection page place them as GRID areas inside `.ftools`, where the count
+     shared its row with the sort and lost its last word to an ellipsis. Same
+     answer, stated in grid: the count takes a row of its own and the sort takes
+     the one under it, ranged right.
+
+     SCOPED TO THE POPUP, and that is not an oversight. The collection page's
+     copy of this bar is the one that pins, and its spacer reserves its RESTING
+     height — so changing that height by a row destabilised the swap: measured
+     at 390 it put 22px of slip back into the grid and refused nine scrolls out
+     of the release. The popup's tools overlay and reserve nothing, so the same
+     row costs nothing there. The collection page keeps its single row until
+     that bar can afford a taller rest. */
+  .cat__tools .ftools{
+    grid-template-areas:
+      "search search search"
+      "pills  pills  pills"
+      "count  count  count"
+      "sort   sort   sort";
+  }
+  .cat__tools .ftools > .chead__sort{justify-self:end}
+  .chead__sort > span{display:none}
+  .cat__bar{justify-content:space-between}
+  /* the .cat__x overrides used to live here and did nothing: the base rule
+     is declared 60 lines BELOW this block at equal specificity, so source
+     order handed it back its 41px padding and its 10px gap. The button ended
+     up 57px of pure padding with the mark squeezed to zero height — an empty
+     black wedge where the only way out of the collection should be. They now
+     sit with the rule they override. See "THE WAY OUT". */
+}
+/* THE WAY OUT.
+   It was an outlined pill floating in the corner of the bar — findable, but
+   unrelated to anything else on screen. It is a WEDGE now, cut on its left
+   because it is anchored right, so the bar is bracketed by the same shape at
+   both ends: the mark on one side, the exit on the other, one geometry.
+
+   Full bar height, so it is a target rather than a chip, and it carries the
+   bar's own material rather than a border — which is what lets it be
+   unmissable without being loud. The mark turns on hover, the only movement
+   it makes. */
+.cat__x{
+  flex:none;align-self:stretch;
+  display:inline-flex;align-items:center;gap:10px;
+  padding-inline:calc(var(--plate-cut) + 18px) var(--margin);
+  /* `auto` on the start, not a fixed gap: the count beside it is visually
+     hidden now, so nothing else was pushing this to the end of the bar and
+     it collapsed against the mark. The negative end margin lets the wedge
+     reach the true edge through the bar's own padding. */
+  margin-inline:auto calc(var(--margin) * -1);
+  background:linear-gradient(180deg,#101010 0%,#060606 58%,#040404 100%);
+  border:0;color:var(--white);
+  clip-path:polygon(0 0,100% 0,100% 100%,var(--plate-cut) 100%);
+  font-size:13px;line-height:22px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;cursor:pointer;
+  transition:color var(--ui-dur) var(--ui-ease);
+}
+.cat__x:hover,.cat__x:focus-visible{color:var(--primary)}
+.cat__x svg{
+  width:13px;height:13px;flex:none;
+  stroke:currentColor;stroke-width:1.6;fill:none;
+  transition:transform var(--t-in) var(--e-move);
+}
+.cat__x:hover svg,.cat__x:focus-visible svg{transform:rotate(90deg)}
+/* Below 600 the word goes and the mark stays, and these have to be HERE —
+   after the rule they override — because the block that used to hold them
+   is above it at equal specificity and lost every one of them to source
+   order. `flex:none` on the svg belongs to the same fault: in a 40px box
+   with 41px of inherited padding the mark was a flex item with nothing to
+   occupy, and it collapsed to zero height. */
+@media(max-width:599px){
+  .cat__x{
+    width:auto;gap:0;justify-content:center;
+    padding-inline:calc(var(--plate-cut) + 14px) 16px;
+  }
+  .cat__x span{display:none}
+}
+.cat__tools{
+  /* above everything the card draws on itself: .lc__badge is z-index 2 and
+     .lc__cue / the photo wash are 3, and they pass underneath this bar */
+  grid-area:2 / 1;align-self:start;z-index:5;
+  padding-inline:var(--margin);border-bottom:1px solid var(--line-d);
+  /* it covers the results now, so it needs a ground of its own — `inherit`
+     would re-run the panel's gradient inside this box and restart it. */
+  background:var(--page-top);
+}
+.cat--pale .cat__tools,.pale .cat__tools{background:var(--paper)}
+.cat__body{
+  grid-area:2 / 1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  /* the tools sit on top of this, so the first row has to start below them.
+     Set from the bar's own measured at-rest height by showroom.js, and it
+     does NOT shrink when the bar condenses — the point is that this box never
+     changes size while you are scrolling it. */
+  padding-top:calc(var(--cat-tools-h,148px) + 24px);
+  scroll-padding-top:calc(var(--cat-tools-h,148px) + 24px);
+  overscroll-behavior:contain;padding-inline:var(--margin);
+  padding-bottom:calc(var(--sp-m) + env(safe-area-inset-bottom,0px));
+}
+/* No .cat__search overrides any more, and none should come back. The layer
+   used to shrink the field to a 34px pill with its own padding and its own
+   row, so the same control was 52px on collection.html and 34px here — two
+   filter designs for one collection, decided by which door you came in
+   through. The layer now renders the same `.ftools` grid as the page and
+   inherits its metrics; see style.css. */
+
+/* pagination — their "Next" is a wide bordered button, then numbers */
+.cpag{display:flex;flex-direction:column;align-items:center;gap:20px;padding-block:var(--sp-m)}
+/* THE DOOR IN.
+   This is the single most consequential control on the landing page — it is
+   how the collection is entered — and it was a 350px outlined rectangle that
+   answered a pointer with a 10% wash. It reads as a control now, and as the
+   same control the rest of the site uses: the house-angle sweep fills it from
+   the left on the same curve as every .btn, an arrow draws itself across as
+   the fill arrives, and the press lands instantly rather than easing.
+
+   Wider, taller and centred, because a door should look like a door. */
+.cpag__more{
+  position:relative;isolation:isolate;overflow:hidden;
+  width:min(460px,100%);min-height:60px;
+  display:inline-flex;align-items:center;justify-content:center;gap:18px;
+  padding:0 28px;
+  background:transparent;border:1px solid var(--line-2,var(--line-d));color:var(--white);
+  font-family:inherit;font-size:14px;line-height:24px;font-weight:600;
+  letter-spacing:1.3px;text-transform:uppercase;cursor:pointer;
+  transition:border-color var(--ui-dur) var(--ui-ease),color var(--ui-dur) var(--ui-ease);
+}
+.cpag__more::after{
+  content:"";position:absolute;z-index:-1;inset-block:0;
+  left:-18px;width:calc(100% + 36px);
+  background:var(--primary);
+  transform:translateX(-102%) skewX(-24.7deg);
+  transition:transform var(--t-in) var(--e-move);
+  pointer-events:none;
+}
+.cpag__more:hover,.cpag__more:focus-visible{border-color:var(--primary);color:var(--primary-ink)}
+.cpag__more:hover::after,.cpag__more:focus-visible::after{transform:translateX(0) skewX(-24.7deg)}
+/* pressing is an event, not a movement: it lands at once and only the release
+   eases back out — the same rule .btn follows */
+.cpag__more:active{transition-duration:0s}
+.cpag__more:active::after{transition-duration:0s}
+.cpag__more .cpag__arr{
+  width:30px;height:8px;flex:none;stroke:currentColor;stroke-width:1.4;fill:none;
+  stroke-dasharray:34;stroke-dashoffset:34;
+  transition:stroke-dashoffset var(--t-move) var(--e-mass) .06s;
+}
+.cpag__more:hover .cpag__arr,.cpag__more:focus-visible .cpag__arr{stroke-dashoffset:0}
+@media(prefers-reduced-motion:reduce){
+  .cpag__more::after{transition:none}
+  .cpag__more .cpag__arr{transition:none;stroke-dashoffset:0}
+}
+.cpag__note{font-size:13px;line-height:20px;color:rgba(255,255,255,.5);font-variant-numeric:tabular-nums}
+
+/* empty state */
+.cempty{padding-block:var(--sp-m);text-align:center;max-width:52ch;margin-inline:auto}
+.cempty h3{font-size:var(--fs-h4);line-height:var(--lh-h4);font-weight:200;color:var(--white);margin-bottom:16px}
+.cempty p{font-size:var(--fs-body);line-height:var(--lh-body);color:rgba(255,255,255,.66);margin-bottom:24px}
+
+/* ============================================================
+   8. THE DETAIL PAGE — their structure on our paper
+   ============================================================ */
+
+/* --- gallery: one big frame + two stacked, 8px radius (theirs) --- */
+.dgal{display:grid;gap:4px;grid-template-columns:1fr}
+@media(min-width:1024px){
+  .dgal{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .dgal__main{grid-row:1 / 3}
+}
+.dgal__f{
+  position:relative;overflow:hidden;background:#111;border:0;padding:0;
+  cursor:zoom-in;display:block;width:100%;
+}
+.dgal__main{aspect-ratio:1.155}                       /* their mobile ratio */
+@media(min-width:1024px){
+  .dgal__main{aspect-ratio:1.276}                     /* their desktop main */
+  .dgal__side{aspect-ratio:2.573}                     /* their stacked pair */
+  .dgal{border-radius:8px;overflow:hidden}            /* theirs, and the one radius we keep */
+}
+.dgal__f img{width:100%;height:100%;object-fit:cover;display:block}
+.dgal__side{display:none}
+@media(min-width:1024px){.dgal__side{display:block}}
+/* the frame counter, anchored RIGHT — so the cut faces left and the top edge
+   stays the long one. 26px tall, 12px of cut. */
+.dgal__n{
+  position:absolute;right:12px;bottom:12px;
+  padding:4px 8px 4px 20px;background:rgba(0,0,0,.6);color:#fff;
+  font-size:12px;line-height:18px;font-weight:600;font-variant-numeric:tabular-nums;
+  clip-path:polygon(0 0,100% 0,100% 100%,12px 100%);
+}
+
+/* ---- THE CONTACT SHEET ------------------------------------------------
+   Above 1024 the mosaic shows three frames of however many a car has, and the
+   line under it read "1 / 24 кадъра" — a total with nothing to click. The
+   other twenty-one existed only inside the lightbox, one arrow press apart,
+   which is a viewer and not an index. The box below is the index: it opens
+   every frame on the page, uniformly, and the lightbox goes back to doing the
+   single thing it is good at. */
+.dgal-wrap{position:relative;scroll-margin-top:96px}
+.dgal__all{
+  position:absolute;right:16px;bottom:16px;z-index:4;
+  display:inline-flex;align-items:center;gap:10px;
+  /* 44px tall, so 20px of cut, on the left because the box is anchored right.
+     The border goes with it — a 1px box-border would still draw the square
+     corner the clip has just removed — so the edge is a drop-shadow instead. */
+  min-height:44px;padding:0 20px 0 40px;border-radius:0;
+  background:rgba(255,255,255,.92);color:var(--ink);
+  border:0;box-shadow:var(--lift-1);
+  clip-path:polygon(0 0,100% 0,100% 100%,20px 100%);
+  font-family:inherit;font-size:13px;line-height:22px;font-weight:600;
+  letter-spacing:1.1px;text-transform:uppercase;white-space:nowrap;cursor:pointer;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  transition:background-color var(--ui-dur) var(--ui-ease),
+             box-shadow var(--ui-dur) var(--ui-ease);
+}
+.dgal__all:hover{background:#fff;box-shadow:var(--lift-2)}
+.dgal__all svg{width:14px;height:14px;flex:none;stroke:currentColor;stroke-width:1.3;fill:none}
+/* Two things want the bottom-right corner: this box and a frame's own "3 / 8".
+   Above 1024 the box always covers the same frame — the lower half of the
+   stacked pair — so that one frame gives its counter up. Below 1024 the box
+   floats over whichever frame the strip has landed on, so there is no single
+   badge to drop and the box takes the opposite corner instead. */
+@media(min-width:1024px){
+  .dgal-wrap:not(.is-all):has(.dgal__all) .dgal__f:nth-child(3) .dgal__n{display:none}
+}
+/* On the strip the box moves to the opposite corner, and the cut has to move
+   with it: the house rule is that the cut faces INWARD, so a box anchored
+   left is cut on its right. Flipping the clip without flipping the padding
+   would run the label out through the diagonal. */
+@media(max-width:1023px){
+  .dgal-wrap:not(.is-all) .dgal__all{
+    left:12px;right:auto;padding:0 40px 0 20px;
+    clip-path:polygon(0 0,100% 0,calc(100% - 20px) 100%,0 100%);
+  }
+}
+@media(max-width:599px){
+  .dgal__all{bottom:12px;padding:0 14px 0 34px;gap:8px;font-size:12px;letter-spacing:.6px}
+  .dgal-wrap:not(.is-all) .dgal__all{padding:0 34px 0 14px}
+}
+/* laid out as a sheet the box is a plain control in the flow, not a chip on a
+   photograph — the angle belongs to things that sit ON something */
+.dgal-wrap.is-all .dgal__all{
+  clip-path:none;padding-inline:24px;
+  border:1px solid rgba(20,19,18,.16);box-shadow:none;
+}
+/* Open, the box stops floating: it becomes the sheet's own footer control.
+   Left absolute it would pin itself to the bottom-right of a 2000px grid,
+   i.e. off the screen at the moment it is pressed and over the last
+   photograph for the whole time it is not. */
+.dgal-wrap.is-all{display:flex;flex-direction:column;gap:16px}
+.dgal-wrap.is-all .dgal__all{position:static;align-self:center}
+.dgal-wrap.is-all .dgal{
+  margin-inline:0;gap:4px;overflow-x:visible;scroll-snap-type:none;
+  grid-auto-flow:row;grid-auto-columns:auto;grid-template-rows:none;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+@media(min-width:1024px){
+  .dgal-wrap.is-all .dgal{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+.dgal-wrap.is-all .dgal__f,
+.dgal-wrap.is-all .dgal__main,
+.dgal-wrap.is-all .dgal__side{grid-row:auto;grid-column:auto;aspect-ratio:1.5}
+/* on a phone their gallery is one full-bleed swipeable frame */
+@media(max-width:1023px){
+  /* grid-template-columns must be cleared: left at 1fr it would size the
+     first frame differently from every auto-placed one after it */
+  .dgal{margin-inline:calc(var(--margin) * -1);
+        grid-template-columns:none;grid-template-rows:none;
+        scroll-snap-type:x mandatory;grid-auto-flow:column;
+        grid-auto-columns:100%;overflow-x:auto;gap:0;
+        scrollbar-width:none;overscroll-behavior-x:contain}
+  .dgal::-webkit-scrollbar{display:none}
+  .dgal__f{scroll-snap-align:center;scroll-snap-stop:always}
+  .dgal__side{display:block;aspect-ratio:1.155}
+  .dgal__main{grid-row:auto}
+}
+/* controls row under the gallery — theirs: actions left, counter right */
+.dgal-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;height:42px;margin-top:12px;
+}
+.dgal-bar__l{display:flex;gap:20px}
+.dgal-bar a,.dgal-bar button{
+  display:inline-flex;align-items:center;gap:8px;background:transparent;border:0;
+  padding:0;color:var(--ink-2);font-family:inherit;
+  font-size:13px;line-height:22px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;cursor:pointer;transition:color var(--ui-dur) var(--ui-ease);
+}
+.dgal-bar a:hover,.dgal-bar button:hover{color:var(--ink)}
+.dgal-bar svg{width:15px;height:15px;stroke:currentColor;stroke-width:1.5;fill:none}
+.dgal-bar__n{font-size:13px;line-height:22px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+/* --- body: content column + sticky rail (849 + 380, theirs) --- */
+.dbody{display:grid;grid-template-columns:1fr;gap:var(--sp-m)}
+@media(min-width:1024px){
+  .dbody{grid-template-columns:minmax(0,1fr) var(--cat-rail-w);gap:clamp(32px,4vw,72px);align-items:start}
+}
+.dsec{padding-top:24px;border-top:1px solid var(--line)}      /* their 24px + hairline */
+.dsec:first-child{padding-top:0;border-top:0}
+.dsec__h{
+  font-size:var(--fs-h6);line-height:var(--lh-h6);font-weight:300;
+  letter-spacing:normal;color:var(--ink);margin-bottom:16px;
+}
+
+/* title / price row — theirs puts them on one line, price right */
+.dtitle{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px}
+.dtitle h1{
+  font-size:var(--fs-h4);line-height:var(--lh-h4);font-weight:300;
+  letter-spacing:normal;color:var(--ink);text-wrap:balance;
+}
+.dtitle__price{
+  font-size:var(--fs-h4);line-height:var(--lh-h4);font-weight:300;
+  letter-spacing:normal;color:var(--ink);font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.dtitle__place{
+  flex:1 1 100%;font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink-3);
+}
+
+/* spec strip — value above label, horizontally scrollable (theirs) */
+.dspecs{
+  display:flex;gap:0;overflow-x:auto;overscroll-behavior-x:contain;
+  scrollbar-width:none;
+}
+.dspecs::-webkit-scrollbar{display:none}
+.dspecs > div{
+  flex:none;min-width:96px;padding-right:32px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.dspecs dt{
+  order:2;font-size:12px;line-height:18px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.dspecs dd{
+  order:1;font-size:16px;line-height:24px;font-weight:600;color:var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+
+/* prose with a read-more clamp — theirs clamps and expands in place */
+.dprose{font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink-2)}
+.dprose p + p{margin-top:16px}
+.dclamp{position:relative;overflow:hidden;max-height:168px}   /* their preview height */
+.dclamp::after{
+  content:"";position:absolute;inset:auto 0 0 0;height:64px;pointer-events:none;
+  background:linear-gradient(transparent,var(--paper));
+}
+.dclamp.is-open{max-height:none}
+.dclamp.is-open::after{display:none}
+.dmore{
+  margin-top:12px;background:transparent;border:0;padding:0;color:var(--ink);
+  font-family:inherit;font-size:13px;line-height:22px;font-weight:600;
+  letter-spacing:1.1px;text-transform:uppercase;cursor:pointer;
+  border-bottom:1px solid var(--ink);
+}
+
+/* details table — their 138 / 663 two-column grid */
+.dtable{display:grid;grid-template-columns:minmax(120px,138px) 1fr;gap:16px 48px}
+.dtable dt{font-size:var(--fs-body);line-height:24px;color:var(--ink-3)}
+.dtable dd{font-size:var(--fs-body);line-height:24px;color:var(--ink);font-variant-numeric:tabular-nums}
+@media(max-width:599px){
+  .dtable{grid-template-columns:minmax(110px,138px) 1fr;gap:16px 12px}
+}
+
+/* seller / trust block */
+.dseller{display:grid;grid-template-columns:auto 1fr;gap:16px 20px;align-items:center}
+.dseller__av{
+  width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--paper-2);
+  display:grid;place-items:center;color:var(--ink-3);
+}
+.dseller__av svg{width:26px;height:26px;stroke:currentColor;stroke-width:1.4;fill:none}
+.dseller__n{font-size:16px;line-height:24px;font-weight:600;color:var(--ink)}
+.dseller__m{font-size:var(--fs-body);line-height:22px;color:var(--ink-3)}
+.dseller__acts{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:20px}
+/* the gold reads as decoration on paper, so the seller's actions take a
+   darker bronze that still belongs to the same family */
+.dseller__acts a{
+  display:inline-flex;align-items:center;gap:8px;color:#8a6a24;
+  font-size:var(--fs-body);line-height:24px;font-weight:600;
+}
+.dseller__acts a:hover{color:var(--ink)}
+.dseller__acts svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.5;fill:none}
+/* the dossier's one-line question box. It borrowed `.fin` from the filter
+   drawer, which is gone — a form field on a car page had no business being
+   defined by a filter component in the first place. */
+.dask{
+  display:block;width:100%;min-height:100px;padding:12px;
+  background:#fff;border:1px solid var(--line);border-radius:0;
+  color:var(--ink);font-family:inherit;
+  font-size:var(--fs-body);line-height:var(--lh-body);
+  resize:vertical;-webkit-appearance:none;appearance:none;
+  transition:border-color var(--ui-dur) var(--ui-ease);
+}
+.dask::placeholder{color:var(--ink-3)}
+.dask:focus{outline:none;border-color:var(--primary)}
+.dtrust{display:grid;gap:12px;margin-top:24px}
+.dtrust li{display:flex;gap:12px;font-size:var(--fs-body);line-height:22px;color:var(--ink-2)}
+.dtrust svg{flex:none;width:16px;height:16px;margin-top:3px;stroke:var(--primary);stroke-width:1.6;fill:none}
+
+/* --- the inquiry rail: sticky on desktop, gone on a phone (theirs) --- */
+.drail{
+  border:1px solid var(--line);background:#fff;padding:clamp(20px,2vw,28px);
+}
+@media(min-width:1024px){
+  .drail{position:sticky;top:calc(var(--nav-h) + 24px);height:fit-content}
+}
+/* Their rail is display:none on a phone because the fixed bar replaces it.
+   Ours keeps it, because it carries the leasing calculator and there is no
+   other home for that — but its buttons and footnote must go: .dbar is
+   fixed to the bottom of the same screen, and two identical concierge
+   buttons a thumb apart is the defect their display:none avoids. */
+@media(max-width:1023px){
+  .drail .btn-primary,.drail .btn-ghost,.drail__fn{display:none}
+}
+.drail__pk{
+  font-size:11px;line-height:16px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.drail__price{
+  font-size:var(--fs-h4);line-height:var(--lh-h4);font-weight:300;color:var(--ink);
+  font-variant-numeric:tabular-nums;margin-top:4px;
+}
+.drail__lease{font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink-2);margin-top:12px}
+.drail .btn-primary,.drail .btn-ghost{width:100%;margin-top:12px}
+.drail .btn-primary{margin-top:24px}
+.drail__fn{font-size:13px;line-height:20px;color:var(--ink-3);margin-top:24px}
+.drail__fn a{border-bottom:1px solid currentColor}
+.drail__div{height:1px;background:var(--line);margin-block:24px}
+
+/* mobile: their fixed bottom bar. Ours sends the concierge, not a chat. */
+.dbar{
+  position:fixed;inset:auto 0 0 0;z-index:80;
+  display:flex;gap:8px;padding:10px var(--margin);
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  background:rgba(247,246,242,.96);border-top:1px solid var(--line);
+  transform:translateY(110%);transition:transform var(--t-in) var(--e-exit);
+}
+@supports (backdrop-filter:blur(12px)){
+  .dbar{background:rgba(247,246,242,.82);backdrop-filter:blur(12px)}
+}
+.dbar.show{transform:none;transition:transform var(--t-move) var(--e-mass)}
+.dbar .btn-primary{flex:1;min-height:44px}
+.dbar__call{
+  flex:none;width:44px;height:44px;display:grid;place-items:center;
+  border:1px solid var(--ink);color:var(--ink);
+}
+.dbar__call svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.6;fill:none}
+@media(min-width:1024px){.dbar{display:none}}
+@media(max-width:1023px){body:not(.ah){padding-bottom:0}}
+
+/* sticky mobile title bar — theirs carries title + price once scrolled */
+.dmini{
+  position:fixed;inset:var(--nav-h) 0 auto 0;z-index:70;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px var(--margin);
+  background:rgba(247,246,242,.96);border-bottom:1px solid var(--line);
+  transform:translateY(-110%);transition:transform var(--t-in) var(--e-exit);
+}
+@supports (backdrop-filter:blur(12px)){
+  .dmini{background:rgba(247,246,242,.82);backdrop-filter:blur(12px)}
+}
+.dmini.show{transform:none;transition:transform var(--t-move) var(--e-mass)}
+.dmini__t{
+  font-size:13px;line-height:18px;font-weight:600;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.dmini__p{font-size:13px;line-height:18px;color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(min-width:1024px){.dmini{display:none}}
+
+/* "you might also like" runs at full content width, like theirs */
+.dmore-sec{padding-top:48px}
+@media(max-width:767px){.dmore-sec{padding-top:32px}}   /* their mobile step */
+
+/* ============================================================
+   9. THE PAPER CATALOG  (v42)
+
+   JamesEdition's catalog is white, and the brief is to follow it. The dark
+   stage stays where AutoHaus earns it — hero, teasers, footer — and the
+   browsing surfaces flip to paper, which is also what our own detail page
+   already is.
+
+   Additive by design: every rule below is a `.pale` override of the dark
+   default above it, so both surfaces exist and nothing had to be rewritten.
+   ============================================================ */
+/* style.css declares the whole paper palette inside `body:not(.ah)`, so on a
+   dark page every var(--ink) / var(--line) / var(--paper) below would resolve
+   to nothing and the entire block would be dropped — which is exactly what
+   happened the first time: white price on a white card. `.pale` therefore
+   carries its own copy of the palette and is self-contained. The values are
+   the same ones style.css uses, so the detail page is unaffected. */
+.pale{
+  --paper:#f7f6f2;
+  --paper-2:#efece7;
+  --ink:#141312;
+  --ink-2:#4e4a45;
+  --ink-3:#6a645c;
+  --line:rgba(20,19,18,.14);
+  --line-2:rgba(20,19,18,.28);
+  --line-d:rgba(20,19,18,.14);   /* the hairline the system draws with */
+  background:#f7f6f2;
+  color:#4e4a45;
+}
+
+/* --- section furniture --- */
+.pale .csec__h{color:var(--ink)}
+.pale .csec__sub{color:var(--ink-2)}
+.pale .csec__all{color:#8a6a24}
+.pale .csec__all:hover{color:var(--ink)}
+
+/* --- the card --- */
+.pale .lc{border-color:var(--line);background:#fff}
+.pale .lc__price{color:var(--ink)}
+.pale .lc__price--ask{color:var(--ink-2)}
+.pale .lc__name{color:var(--ink)}
+.pale .lc__meta{color:var(--ink-3)}
+.pale .lc__act{color:#8a6a24}
+.pale .lc__act:hover{color:var(--ink)}
+/* --- marque tiles --- */
+.pale .mtile__name{color:var(--ink)}
+.pale .mtile__n{color:var(--ink-3)}
+.pale .mtile__pic{border-color:var(--line);background:var(--paper-2)}
+
+/* --- the filter rail, on paper ---
+   EVERY control below has a paper twin, and that is the lesson of the drawer
+   this replaces: it was built in the dark theme and shipped onto a white
+   panel with no override at all, so fourteen marque names rendered white on
+   white. A control that exists on both surfaces has to be written twice or
+   it does not exist on one of them. */
+.pale .fsel{border-color:var(--line-2);color:var(--ink)}
+.pale .fsel:hover:not(:disabled){background-color:rgba(20,19,18,.05);border-color:var(--ink-3)}
+.pale .fsel::after{background:linear-gradient(90deg,rgba(20,19,18,.14),rgba(20,19,18,.04) 56%,transparent 88%)}
+.pale .fsel.is-set{border-color:rgba(138,106,36,.55);color:var(--ink)}
+.pale .fsel.is-open{border-color:#8a6a24;background-color:rgba(201,162,90,.12)}
+.pale .fsel--clear{color:var(--ink-3);border-color:transparent}
+.pale .fsel--clear:hover:not(:disabled){color:var(--ink);background-color:transparent}
+.pale .fsel--all{border-color:#8a6a24;background-color:rgba(201,162,90,.14)}
+.pale .fsel__f{stroke:#8a6a24}
+
+/* --- count + sort --- */
+.pale .chead__count{color:var(--ink-2)}
+.pale .chead__count b{color:var(--ink)}
+.pale .chead__sort > span{color:var(--ink-3)}
+.pale .sortplain{color:var(--ink)}
+.pale .sortplain option{background:#fff;color:var(--ink)}
+
+/* --- search field --- */
+.pale .fsearch input{border-color:var(--line-2);color:var(--ink);background:#fff}
+.pale .fsearch input::placeholder{color:var(--ink-3)}
+.pale .fsearch-ic{stroke:var(--ink-3)}
+.pale .fsearch-x{color:var(--ink-3)}
+.pale .fsearch-x:hover{color:var(--ink)}
+
+/* --- the panels, on paper --- */
+.pale .fpop{background:#fff;border-color:var(--line-2);box-shadow:0 20px 52px rgba(20,19,18,.18)}
+.pale .fpop__h{color:var(--ink-3);border-bottom-color:var(--line)}
+.pale .fpop__b{color:var(--ink)}
+.pale .fpop__f{border-top-color:var(--line)}
+.pale .fpop__reset{color:var(--ink-3)}
+.pale .fpop__reset:hover{color:var(--ink)}
+.pale .fpop__n{color:#8a6a24}
+.pale .fpop__none{color:var(--ink-3)}
+.pale .fopt{color:var(--ink)}
+.pale .fopt:hover:not(:disabled){background-color:rgba(20,19,18,.06)}
+.pale .fopt__c{color:var(--ink-3)}
+.pale .fopt__k{stroke:#8a6a24}
+.pale .fopt.is-on{color:#8a6a24}
+.pale .fopt.is-on .fopt__c{color:rgba(138,106,36,.7)}
+.pale .frng__read{color:var(--ink)}
+.pale .frng__read em{color:var(--ink-3)}
+.pale .frng__track::before{background:var(--line-2)}
+.pale .frng__track input[type=range]::-webkit-slider-thumb{box-shadow:0 0 0 3px #fff}
+.pale .frng__track input[type=range]::-moz-range-thumb{box-shadow:0 0 0 3px #fff}
+.pale .frng__io span{color:var(--ink-3)}
+.pale .frng__io input{border-color:var(--line-2);color:var(--ink);background:#fff}
+.pale .frng__io input::placeholder{color:rgba(106,100,92,.6)}
+.pale .frng__io input:hover{border-color:var(--ink-3)}
+
+/* --- the sheet, on paper --- */
+.pale .fsheet__panel{background:var(--paper)}
+.pale .fsheet__bar,.pale .fsheet__foot{border-color:var(--line)}
+.pale .fsheet__bar::before{background:var(--line-2)}
+.pale .fsheet__title{color:var(--ink-3)}
+.pale .fsheet__x{color:var(--ink)}
+.pale .fgrp{border-bottom-color:var(--line)}
+.pale .fgrp__h{color:var(--ink-3)}
+.pale .fgrp .fopt{border-color:var(--line-2)}
+.pale .fgrp .fopt.is-on{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+
+/* --- the layer itself --- */
+.pale.cat__panel,.cat--pale .cat__panel{background:var(--paper)}
+.cat--pale .cat__bar,.cat--pale .cat__tools{border-color:var(--line)}
+.cat--pale .cat__count{color:var(--ink)}
+/* The close sits ON the wedge in both themes, exactly as the mark does, so it
+   keeps the wedge's own colours. Left as dark ink from the pale palette it was
+   near-black type on a near-black surface — the one control in the room a
+   visitor must be able to find at a glance was the hardest thing to read. */
+.cat--pale .cat__x{color:var(--white)}
+.cat--pale .cat__x:hover,.cat--pale .cat__x:focus-visible{color:var(--primary)}
+
+/* --- pagination + empty --- */
+.pale .cpag__more{border-color:var(--line-2);color:var(--ink)}
+.pale .cpag__more:hover{background-color:rgba(20,19,18,.06);border-color:var(--primary)}
+.pale .cpag__note{color:var(--ink-3)}
+.pale .cempty h3{color:var(--ink)}
+.pale .cempty p{color:var(--ink-2)}
+
+/* ============================================================
+   10. THE EXPANSION
+
+   The layer does not arrive — the preview grows into it. On open the panel
+   is clipped to the preview grid's own rectangle and that inset animates to
+   zero, so the white surface unfolds from exactly where the cards already
+   are. Because the grid inside the layer is the same grid at the same
+   column count, the cards never move: only the room around them opens.
+
+   clip-path and opacity are both compositor properties, so this is free on
+   the machines the rest of the site was tuned for. Closing runs the same
+   inset backwards to the rectangle the reader came from.
+   ============================================================ */
+.cat__panel{
+  clip-path:inset(0);
+  /* --e-mass on the unfold and NOT a linear opacity: a surface this size
+     fading on a straight ramp is the one frame-by-frame tell that separates a
+     web modal from a room opening. Closing runs shorter and on the exit curve,
+     because a dismissal that decelerates feels slow however short it is. */
+  transition:clip-path var(--t-in) var(--e-exit),
+             transform var(--t-in) var(--e-exit),
+             opacity var(--t-tap) var(--e-exit);
+}
+/* the furniture arrives just behind the opening edge, not with it */
+.cat__bar,.cat__tools{
+  opacity:0;transform:translateY(-10px);
+  /* leaving: no delay, and ahead of the geometry */
+  transition:opacity var(--t-tap) var(--e-exit),transform var(--t-tap) var(--e-exit);
+}
+.cat__body{
+  opacity:0;
+  transition:opacity var(--t-tap) var(--e-exit);
+}
+.cat.is-open .cat__panel{
+  transition:clip-path var(--t-mass) var(--e-mass),
+             transform var(--t-mass) var(--e-mass),
+             opacity var(--t-move) var(--e-mass);
+}
+.cat.is-open .cat__bar,.cat.is-open .cat__tools{
+  opacity:1;transform:none;
+  transition:opacity var(--t-move) var(--e-mass) .16s,
+             transform var(--t-move) var(--e-mass) .16s;
+}
+.cat.is-open .cat__body{
+  opacity:1;
+  transition:opacity var(--t-move) var(--e-mass) .24s;
+}
+/* closing: no delays on the way out, or the panel finishes before its
+   contents and you watch an empty white box collapse */
+.cat.is-closing .cat__bar,.cat.is-closing .cat__tools,.cat.is-closing .cat__body{
+  transition-delay:0s;transition-duration:.2s;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .cat__panel,.cat__bar,.cat__tools,.cat__body{
+    transition-duration:.01ms!important;transition-delay:0s!important;
+    clip-path:none!important;transform:none!important;
+  }
+}

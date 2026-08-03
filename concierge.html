@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="mask-icon" href="favicon.svg" color="#c9a25a">
+<title>AutoHaus Concierge — заявка за автомобил</title>
+<meta name="description" content="Опишете автомобила, който търсите. Заявката се разглежда лично от Иван Манев и получава отговор до 24 часа.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
+<link rel="stylesheet" href="style.css?v=155">
+<meta name="robots" content="noindex">
+<script defer src="data/vehicles.js?v=155"></script>
+<script defer src="main.js?v=155"></script>
+<script defer src="concierge.js?v=155"></script>
+<script defer src="i18n.js?v=155"></script>
+</head>
+<body class="ah">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ah-logo" viewBox="94 10 356 66">
+      <g fill="currentColor" fill-rule="evenodd" clip-rule="evenodd">
+        <path d="M349.9,16.8l3.5,0.8l2.1,1l1.6,0.9l0.6,1.3l0.8,0.9l-6.2,1.3l-5.4,0.8l-4.6,0.6h-4.1l-3.5,0.9h-3.3l-4.7,0.6 l-7.9,1.4l-12.5,2.1l-8.7,1.3l-4.7,0.3h-2.1l2.8-6.3l-4.9,6.2l-4.6-0.2l-4.6-0.5l2.8,1.6h3.2h3.6h3.8h4h3.3l3.5-0.8l5.2-1l4.3-0.3 l5.7-1l5.4-0.5l6.2-1.4l4.3-0.5l4.4-0.2l4.3-0.8l3.8-0.5c1.7,0,3.6-0.2,3.6-0.2l3.3-1.3l3.3-0.3l2.8-0.2l3-0.6l3.8-0.2l2.1-0.5 l-3.3-1.4l-4.1-1.7l-3.8-0.6l-2.4-0.9L349.9,16.8z"/>
+        <path d="M264.5,29.7h7l5.4-3l5.1-1.7l3.3-1.6c0.3,0.8,3.2-1.3,3.2-1.3l3.5-1.1l3.2-0.6l4.1-1.4l4.4-1.7l4.6-1.3 l4.1-0.6l4.4-1.4l6.5-0.6l5.7-0.2l6.5-0.3l6.6-0.2h5.7l3,0.5l2,0.5l3.3,0.3l2.2,0.6l2.4,0.8l2.7,0.9l2.5,1l3,1.3l2.8,1.3l2.5,1.3 l11.7-0.3l-6.6-3l-3.5-1.3l-1.1-0.5l-1.9-0.8l-2.8-0.8l-2.7-0.6l-2.8-0.6l-3.6-0.6l-3.2-0.6l-2.7-0.2h-2.8l-4.1-0.5h-4.9h-4.9 h-4.9h-3.9l-5.5,0.2l-3.2,0.2l-6,0.8c0,0-0.6,0-1.3,0c-0.7,0-1.4,0-1.4,0l-2.7,1.7L287,21l-8.1,2.8l-6.6,2.4L264.5,29.7z"/>
+        <path d="M427.5,28.6l7.5-3l-1.9,4.8l-4.7,0.6l-0.2,0.9l4.4-0.2l-0.3,7.8c0,0,1.6,0.1,3,0.2c1.1,0.1,2.1,0.1,2.1,0.1 l0.2,2.3l-5.6,8.3h-2.5l6.6-8.8l-8.3-1.2l-3.4-2.2L427.5,28.6z"/>
+        <path d="M404.6,32.1l22.8-7.5l-68.6-9.3l-6.1-2.8l31.7,3.8l26.5,3.4l10.3,1l15.8,2l1.8,0.4l-6.3,2L404.6,32.1z"/>
+        <path d="M301.9,33.8c0,0,3.6-0.5,8.1-1.1c7.5-1,17.6-2.4,17.6-2.4l16.4-2.7l8.7-0.9l6.6-0.8l7.2-1.3l5.5-0.6l5.7-0.5 l4.1-0.2l-25.7,5l17.2,4.4l-6.5,10.4l2.2-9.6l-18.6-2.8l-3-1.3l-21.9,2.8L301.9,33.8z"/>
+      </g>
+      <g fill="currentColor">
+        <path d="M125,70.3l-0.3-6.7h-14.4l-4.1,6.7H99l22.3-37.8c17.3,0,18.6,0,18.6,0l1.4,37.8H125z M124.5,39.6l-10,17.2 h10.1L124.5,39.6z"/>
+        <path d="M153.2,70.2c-6.6,0-8.2-3.9-6.6-10.1l3-11.3c1-3.8,1-3.7,1.7-6.4h14l-5.4,20c-0.5,1.7,0,2.3,1.7,2.3h5.1 c1.7,0,2.4-0.6,2.9-2.3l3.7-13.6c1-3.8,0.9-3.2,1.7-6.4h14l-5.7,21.3c-1,3.8-1.2,4.3-1.7,6.4H153.2z"/>
+        <path d="M194.7,70.2c-4.4,0-7.8-1.8-6-8.7l6.7-25h14l-1.6,6h8.8l-1.5,5.4h-8.8l-3.9,14.6c-0.5,1.8-0.3,2.2,2.2,2.2h4.9 c2.7,0-0.5,0,1.8,0l-1.5,5.4H194.7z"/>
+        <path d="M243.2,70.2h-21.8c-6.3,0-7.3-2.6-5.8-8.4l3-11c1.5-5.8,4-8.4,10.3-8.4h21.8c6.3,0,7.3,2.6,5.8,8.4l-3,11 C252,67.6,249.5,70.2,243.2,70.2z M242.7,50.2c0.4-1.6,0.1-2.2-1.5-2.2h-5.8c-1.5,0-2.2,0.6-2.6,2.2l-3.3,12.4 c-0.4,1.6-0.1,2.2,1.4,2.2h5.8c1.7,0,2.3-0.6,2.7-2.2L242.7,50.2z"/>
+        <path d="M281.7,70.2l4.3-16.1h-10.8L271,70.2h-15.4l10.1-37.7h15.4l-4,15.2h10.8l4-15.2h15.3L297,70.2H281.7z"/>
+        <path d="M310.2,70.2c-6.3,0-7.3-2.6-5.8-8.4l0.5-1.8c1.5-5.8,4-8.4,10.3-8.4h15.1c0.2-0.8,0.2-0.6,0.5-1.9 c0.4-1.2,0.1-1.8-1.9-1.8h-14.6l1.5-5.4h21.5c6.7,0,8.6,2.7,6.6,10.3L340.6,65c-0.8,2.8-0.8,3.1-1.4,5.2H310.2z M328.8,57.1h-6.2 c-2.1,0-3.1,0.4-3.6,2.4l-0.8,3c-0.6,2,0.2,2.4,2.3,2.4h3.3c2.7,0,2.9,0.2,3.8-3.4L328.8,57.1z"/>
+        <path d="M352.8,70.2c-6.6,0-8.2-3.9-6.6-10.1l3-11.3c1-3.8,1-3.7,1.7-6.4h14l-5.4,20c-0.5,1.7,0,2.3,1.7,2.3h5.1 c1.7,0,2.4-0.6,2.9-2.3l3.7-13.6c1-3.8,0.9-3.2,1.7-6.4h14l-5.7,21.3c-1,3.8-1.2,4.3-1.7,6.4H352.8z"/>
+        <path d="M410.7,47.9c-1.4,0-1.8,0.1-2.4,0.8c-0.7,0.8-0.5,1.6-0.2,2.3l3.9,8.5c0.5,1.1,2.1,4.2-0.4,7.7 c-1.7,2.3-3.7,2.9-6.1,2.9h-19.8l1.5-5.4c1.2,0,6.3,0,6.3,0c1,0,1.8-0.4,2.3-0.9c0.6-0.6,0.8-1.5,0.4-2.4l-4.1-8.8 c-1-2.3-0.8-5.1,1.1-7.4c1.9-2.2,3.9-2.7,6.4-2.7h18.8l-1.5,5.4C415.2,47.9,410.7,47.9,410.7,47.9z"/>
+      </g>
+    </symbol>
+    <symbol id="ic-arrow" viewBox="0 0 16 16"><path d="M2,8 L13,8 M9,4 L13,8 L9,12"/></symbol>
+    <symbol id="ic-chev-l" viewBox="0 0 16 16"><path d="M10,3 L5,8 L10,13"/></symbol>
+    <symbol id="ic-chev-r" viewBox="0 0 16 16"><path d="M6,3 L11,8 L6,13"/></symbol>
+    <symbol id="ic-chev-d" viewBox="0 0 16 16"><path d="M3,6 L8,11 L13,6"/></symbol>
+    <symbol id="ic-enter" viewBox="0 0 16 16"><path d="M13,3 L13,10 L4,10 M7,7 L4,10 L7,13"/></symbol>
+    <symbol id="ic-doc" viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12"/><path d="M5.5,5.5 H10.5 M5.5,8 H10.5 M5.5,10.5 H9"/></symbol>
+    <symbol id="ic-pin" viewBox="0 0 16 16"><path d="M8,14 C8,14 12.5,9.6 12.5,6.4 C12.5,4 10.5,2 8,2 C5.5,2 3.5,4 3.5,6.4 C3.5,9.6 8,14 8,14 Z"/><circle cx="8" cy="6.4" r="1.6"/></symbol>
+    <symbol id="ic-x" viewBox="0 0 18 18"><path d="M2,2 L16,16 M16,2 L2,16"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 16 16"><path d="M3,8.5 L6.5,12 L13,4.5"/></symbol>
+    <symbol id="ic-fb" viewBox="0 0 18 18"><path d="M11.9,9.8h2.06l.33-2.6h-2.39V5.53c0-.75.21-1.26,1.29-1.26h1.37V1.95a18.4,18.4,0,0,0-2-.1c-1.98,0-3.33,1.2-3.33,3.42V7.2H7.16V9.8H9.23V16.5h2.67Z"/></symbol>
+    <symbol id="ic-ig" viewBox="0 0 18 18"><path d="M9,3.5c1.79,0,2,0,2.71.04a3.7,3.7,0,0,1,1.25.23,2.23,2.23,0,0,1,1.27,1.27,3.7,3.7,0,0,1,.23,1.25c.03.71.04.92.04,2.71s-.01,2-.04,2.71a3.7,3.7,0,0,1-.23,1.25,2.23,2.23,0,0,1-1.27,1.27,3.7,3.7,0,0,1-1.25.23c-.71.03-.92.04-2.71.04s-2-.01-2.71-.04a3.7,3.7,0,0,1-1.25-.23,2.23,2.23,0,0,1-1.27-1.27,3.7,3.7,0,0,1-.23-1.25C3.51,11,3.5,10.79,3.5,9s.01-2,.04-2.71a3.7,3.7,0,0,1,.23-1.25A2.23,2.23,0,0,1,5.04,3.77a3.7,3.7,0,0,1,1.25-.23C7,3.51,7.21,3.5,9,3.5Zm0,1.49c-1.76,0-1.97.01-2.66.04a2.2,2.2,0,0,0-.74.14,1.24,1.24,0,0,0-.71.71,2.2,2.2,0,0,0-.14.74C4.72,7.31,4.71,7.52,4.71,9s.01,1.69.04,2.38a2.2,2.2,0,0,0,.14.74,1.24,1.24,0,0,0,.71.71,2.2,2.2,0,0,0,.74.14c.69.03.9.04,2.66.04s1.97-.01,2.66-.04a2.2,2.2,0,0,0,.74-.14,1.24,1.24,0,0,0,.71-.71,2.2,2.2,0,0,0,.14-.74c.03-.69.04-.9.04-2.38s-.01-1.69-.04-2.38a2.2,2.2,0,0,0-.14-.74,1.24,1.24,0,0,0-.71-.71,2.2,2.2,0,0,0-.74-.14C10.97,5,10.76,4.99,9,4.99Z"/><path d="M9,11.25A2.25,2.25,0,1,1,11.25,9,2.25,2.25,0,0,1,9,11.25Zm0-5.71A3.46,3.46,0,1,0,12.46,9,3.46,3.46,0,0,0,9,5.54Z"/><circle cx="12.6" cy="5.4" r=".81"/></symbol>
+    <symbol id="ic-menu" viewBox="0 0 18 18"><path d="M1,5 H17 M1,13 H17"/></symbol>
+  </defs>
+</svg>
+
+
+<a class="ah-skip" href="#cg-form">Към заявката</a>
+
+<header class="hd" id="hd">
+  <nav class="hd-nav" aria-label="Основна навигация">
+    <div class="hd-zone hd-zone--start">
+      <button class="hd-menu" id="hd-menu" aria-expanded="false" aria-controls="mob">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-menu"/></svg><span>Меню</span>
+      </button>
+      <a class="lnk" href="index.html#avtomobili">Автомобили</a>
+      <ul class="hd-links">
+        <li><a class="lnk" href="index.html#uslugi">Услуги</a></li>
+        <li><a class="lnk" href="index.html#lizing">Лизинг</a></li>
+        <li><a class="lnk" href="index.html#about">За нас</a></li>
+        <li><a class="lnk" href="index.html#kontakt">Контакт</a></li>
+      </ul>
+    </div>
+    <a class="hd-logo" href="index.html" aria-label="AutoHaus — начало">
+      <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
+    </a>
+    <ul class="hd-zone hd-zone--end">
+      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Concierge</span></a></li>
+      <li class="hd-lang">
+        <div class="lang" id="lang" role="group" aria-label="Език / Language">
+          <i class="lang__ind" aria-hidden="true"></i>
+          <button type="button" class="lang__o is-on" data-lang="bg" lang="bg" aria-pressed="true">BG</button>
+          <button type="button" class="lang__o" data-lang="en" lang="en" aria-pressed="false">EN</button>
+        </div>
+      </li>
+      <li class="hd-social">
+        <ul class="social social--hd" aria-label="AutoHaus в социалните мрежи">
+          <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+          <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<!-- THE BRAND PLATE — the same wedge the landing page carries. Both of these
+     pages have the same `position:absolute` header, so both lost their mark
+     and their menu the moment the reader scrolled. See "THE BRAND PLATE" in
+     style.css; main.js arms it off the first section on the page — here off
+     `.cgr__sentinel`, because the rail this page opens with is sticky and
+     would never leave the screen to trigger it. -->
+<div class="plate" id="plate">
+  <div class="plate__in">
+    <button type="button" class="plate__menu" id="plate-menu" aria-expanded="false" aria-controls="mob">
+      <span class="plate__bars" aria-hidden="true"><i></i><i></i></span>
+      <span class="plate__menu-l">Меню</span>
+    </button>
+    <a class="plate__mark" href="index.html" aria-label="AutoHaus — начало">
+      <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
+    </a>
+    <div class="lang" role="group" aria-label="Език / Language">
+      <i class="lang__ind" aria-hidden="true"></i>
+      <button type="button" class="lang__o is-on" data-lang="bg" lang="bg" aria-pressed="true">BG</button>
+      <button type="button" class="lang__o" data-lang="en" lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</div>
+
+<!-- THE MENU — a panel, not a takeover. See "THE MENU" in style.css. -->
+<div class="mob" id="mob" aria-hidden="true">
+  <div class="mob__scrim" id="mob-scrim"></div>
+  <div class="mob__reveal">
+    <div class="mob__sheet">
+      <a class="mob-mark" href="index.html" aria-label="AutoHaus">
+        <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
+      </a>
+      <button class="mob-close" id="mob-close" aria-label="Затвори">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
+      </button>
+      <nav aria-label="Меню">
+        <a href="index.html#avtomobili">Автомобили</a>
+        <a href="concierge.html">Concierge</a>
+        <a href="index.html#uslugi">Услуги</a>
+        <a href="index.html#lizing">Лизинг</a>
+        <a href="index.html#about">За нас</a>
+        <a href="index.html#kontakt">Контакт</a>
+      </nav>
+      <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
+        <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+        <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+      </ul>
+      <div class="mob-foot">
+        <a href="tel:+359884777147">+359 884 777 147</a>
+        <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- the language wipe: see i18n.js and "THE LANGUAGE SWITCH" in style.css -->
+<div class="wipe" id="wipe" aria-hidden="true">
+  <i class="wipe__panel"><span class="wipe__word" id="wipe-word"></span></i>
+</div>
+
+<main id="content">
+
+<!-- ==================== THE CONSULTATION ROOM ====================
+     This page is not a contact form. It is the one room in the building
+     where somebody sits down with you, and the layout says so before a
+     word is read: a HOST on the left who stays with you the whole way,
+     and ONE question at a time on the right, always landing on the same
+     line of the screen.
+
+     Three things carry the feeling, and all three are already the site's
+     own language rather than anything new — see "v41" in style.css:
+       · the STAGE — one photograph of the showroom, lit by a gradient
+         raked to the house angle, so the room is dark architecture and
+         the conversation sits in the calm part of it;
+       · the HOST — Иван, named, with a line that changes per question.
+         The rail also keeps a running record of what he has heard, which
+         is what turns a form into somebody listening;
+       · the WEDGE — twice, and only on things that sit ON the photograph:
+         the Concierge tag and Иван's plate.
+     ================================================================= -->
+<section class="cgr" id="cg">
+
+  <!-- arms the brand plate. The rail is sticky and never leaves the screen,
+       so it cannot be the trigger; this clears the absolute header instead. -->
+  <i class="cgr__sentinel" aria-hidden="true"></i>
+
+  <div class="cgr__bg" aria-hidden="true">
+    <picture>
+      <source type="image/webp" srcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" sizes="100vw">
+      <img width="1280" height="800" decoding="async" fetchpriority="high" alt=""
+           src="img/autohaus_inside2-1280.jpg"
+           srcset="img/autohaus_inside2-768.jpg 768w, img/autohaus_inside2-1280.jpg 1280w, img/autohaus_inside2-1920.jpg 1920w"
+           sizes="100vw">
+    </picture>
+  </div>
+  <div class="cgr__light" aria-hidden="true"></div>
+
+  <div class="grid cgr__grid">
+    <div class="cgr__row">
+
+      <!-- ---------- THE HOST ---------- -->
+      <aside class="cgs" id="cg-aside" aria-label="AutoHaus Concierge">
+        <div class="cgs__in">
+          <p class="cgs__tag">AutoHaus Concierge</p>
+          <h1 class="cgs__h">Седнете за момент.</h1>
+          <p class="cgs__lede body-s">Няколко въпроса, около две минути. Толкова, колкото да разберем какво търсите — и да го намерим вместо Вас.</p>
+
+          <div class="cgs__host">
+            <span class="cgs__host-n">Иван Манев</span>
+            <span class="cgs__host-r">Concierge · AutoHaus Пловдив</span>
+          </div>
+          <p class="cgs__say" id="cg-say" role="status" aria-live="polite"></p>
+
+          <ol class="cgs__spine" id="cg-spine" aria-label="Хода на разговора"></ol>
+
+          <p class="cgs__meta">Отговор до 24 часа в работни дни</p>
+        </div>
+      </aside>
+
+      <!-- ---------- THE CONVERSATION ---------- -->
+      <div class="cgc" id="cg-col">
+
+        <p class="cg-meta"><span id="cg-stepno">Въпрос 1</span><span id="cg-saved"></span></p>
+
+        <form id="cg-form" novalidate>
+          <div class="cg-steps" id="cg-steps">
+
+            <section class="cg-step is-on" data-step="intent" data-name="Посока"
+                     data-say="Кажете ми накъде, и ще Ви спестя останалите въпроси.">
+              <h2 class="cg-q">С какво да започнем?</h2>
+              <p class="cg-help body-s">Отговорът тук решава кои въпроси изобщо ще Ви задам.</p>
+              <div class="cg-body">
+                <div class="opts opts--2" data-field="intent" data-single>
+                  <button type="button" class="opt" data-value="stock"><span class="opt-txt"><span class="opt-t">Автомобил от колекцията</span><span class="opt-d body-s">Видях конкретна кола и искам да продължа.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                  <button type="button" class="opt" data-value="source"><span class="opt-txt"><span class="opt-t">Търсене по поръчка</span><span class="opt-d body-s">Знам какво искам, но го няма при вас. Намерете го.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                  <button type="button" class="opt" data-value="trade"><span class="opt-txt"><span class="opt-t">Продажба или замяна</span><span class="opt-d body-s">Имам автомобил за изкупуване или бартер.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                  <button type="button" class="opt" data-value="other"><span class="opt-txt"><span class="opt-t">Друго</span><span class="opt-d body-s">Auto Spa, лизинг, застраховка, регистрация.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                </div>
+              </div>
+            </section>
+
+            <section class="cg-step" data-step="car" data-name="Автомобилът"
+                     data-say="Дори само марката е достатъчна за начало.">
+              <h2 class="cg-q">Кой автомобил Ви е в главата?</h2>
+              <p class="cg-help body-s">Колкото по-конкретно, толкова по-точно търсим. „Още не знам“ също е отговор.</p>
+              <div class="cg-body">
+                <div id="cg-picked" hidden></div>
+                <div class="ask">
+                  <p class="cg-sub">Марка</p>
+                  <div class="chipset" data-field="make" data-single id="cg-makes"></div>
+                </div>
+                <div class="ask">
+                  <div class="fields fields--2">
+                    <div class="field"><label for="cg-model">Модел и версия</label><input type="text" id="cg-model" autocomplete="off" placeholder="напр. 911 Turbo S, G 63 AMG, S 580 L"></div>
+                    <div class="field"><label for="cg-body">Тип каросерия</label><span class="sel"><select id="cg-body"><option value="">Няма значение</option><option>Седан</option><option>Комби</option><option>SUV / офроуд</option><option>Купе</option><option>Кабрио</option><option>Ван / бус</option><option>Пикап</option><option>Брониран</option></select><svg class="sel__ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-d"/></svg></span></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="cg-step" data-step="spec" data-name="Изисквания"
+                     data-say="Пропуснете спокойно — това го уточняваме и на място.">
+              <h2 class="cg-q">Без какво не става?</h2>
+              <p class="cg-help body-s">Само задължителното. Останалото ще подберем ние.</p>
+              <div class="cg-body">
+                <div class="ask">
+                  <div class="chipset" data-field="must" id="cg-must">
+                    <button type="button" class="chip" data-value="4×4">4×4</button>
+                    <button type="button" class="chip" data-value="Автоматик">Автоматик</button>
+                    <button type="button" class="chip" data-value="Дълга база">Дълга база</button>
+                    <button type="button" class="chip" data-value="Брониран">Брониран</button>
+                    <button type="button" class="chip" data-value="Панорама">Панорама</button>
+                    <button type="button" class="chip" data-value="Теглич">Теглич</button>
+                    <button type="button" class="chip" data-value="Задно забавление">Задно забавление</button>
+                    <button type="button" class="chip" data-value="Сервизна история">Сервизна история</button>
+                  </div>
+                </div>
+                <div class="ask">
+                  <div class="fields fields--2">
+                    <div class="field"><label for="cg-cond">Състояние</label><span class="sel"><select id="cg-cond"><option value="">Няма значение</option><option>Нов / нерегистриран</option><option>Употребяван, до 3 години</option><option>Употребяван, до 7 години</option><option>По-възрастен, но перфектен</option></select><svg class="sel__ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-d"/></svg></span></div>
+                    <div class="field"><label for="cg-fuel">Двигател</label><span class="sel"><select id="cg-fuel"><option value="">Няма значение</option><option value="petrol">Бензин</option><option value="diesel">Дизел</option><option value="hybrid">Хибрид</option><option value="phev">Plug-in хибрид</option><option value="ev">Електрически</option></select><svg class="sel__ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-d"/></svg></span></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="cg-step" data-step="budget" data-name="Бюджет"
+                     data-say="Числото не е обещание. То само скъсява търсенето.">
+              <h2 class="cg-q">В какви рамки?</h2>
+              <p class="cg-help body-s">Ориентировъчно е достатъчно. Това е въпросът, който най-много скъсява търсенето.</p>
+              <div class="cg-body">
+                <div class="ask">
+                  <p class="cg-sub">Диапазон</p>
+                  <div class="chipset" data-field="band" data-single>
+                    <button type="button" class="chip" data-value="0-30">до 30 000 €</button>
+                    <button type="button" class="chip" data-value="30-60">30 – 60 000 €</button>
+                    <button type="button" class="chip" data-value="60-100">60 – 100 000 €</button>
+                    <button type="button" class="chip" data-value="100-200">100 – 200 000 €</button>
+                    <button type="button" class="chip" data-value="200+">над 200 000 €</button>
+                  </div>
+                </div>
+                <div class="ask">
+                  <p class="cg-sub">Как плащате</p>
+                  <div class="chipset" data-field="pay">
+                    <button type="button" class="chip" data-value="В брой">В брой</button>
+                    <button type="button" class="chip" data-value="Лизинг">Лизинг</button>
+                    <button type="button" class="chip" data-value="С бартер">С бартер</button>
+                  </div>
+                </div>
+                <div class="cg-match" id="cg-match" hidden>
+                  <span class="cg-match__n" id="cg-match-n" aria-hidden="true">0</span>
+                  <span class="cg-match__b">
+                    <span class="cg-match__k">В наличност сега</span>
+                    <span class="cg-match__t body-s" id="cg-match-t"></span>
+                  </span>
+                  <a class="btn btn--s btn--secondary cg-match__cta" id="cg-match-cta" href="index.html#avtomobili"><span class="btn__label">Виж ги</span></a>
+                </div>
+              </div>
+            </section>
+
+            <section class="cg-step" data-step="when" data-name="Срок"
+                     data-say="Срокът решава дали чакаме правилната кола, или взимаме от наличното.">
+              <h2 class="cg-q">Кога искате да я карате?</h2>
+              <p class="cg-help body-s">Срокът решава дали търсим от наличното, или можем да чакаме правилния автомобил.</p>
+              <div class="cg-body">
+                <div class="opts opts--2" data-field="when" data-single>
+                  <button type="button" class="opt" data-value="Веднага — до 2 седмици"><span class="opt-txt"><span class="opt-t">Веднага</span><span class="opt-d body-s">До две седмици. Търсим само от наличното.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                  <button type="button" class="opt" data-value="До 3 месеца"><span class="opt-txt"><span class="opt-t">До 3 месеца</span><span class="opt-d body-s">Достатъчно време за внос по поръчка.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                  <button type="button" class="opt" data-value="До 6 месеца"><span class="opt-txt"><span class="opt-t">До 6 месеца</span><span class="opt-d body-s">Ще чакам точния автомобил.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                  <button type="button" class="opt" data-value="Проучвам"><span class="opt-txt"><span class="opt-t">Още проучвам</span><span class="opt-d body-s">Без срок. Искам да знам какво е възможно.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                </div>
+              </div>
+            </section>
+
+            <section class="cg-step" data-step="trade" data-name="Замяната"
+                     data-say="Оценката е твърда и е от мен, не от таблица.">
+              <h2 class="cg-q">Разкажете ми за нея.</h2>
+              <p class="cg-help body-s">Оглеждаме я на място и даваме твърда оферта същия ден. Ако е на лизинг, поемаме и комуникацията с институцията.</p>
+              <div class="cg-body">
+                <div class="ask">
+                  <div class="fields fields--2">
+                    <div class="field"><label for="cg-tmake">Марка и модел</label><input type="text" id="cg-tmake" autocomplete="off" placeholder="напр. BMW X5 xDrive30d"></div>
+                    <div class="field"><label for="cg-tyear">Година</label><input type="text" inputmode="numeric" id="cg-tyear" autocomplete="off" placeholder="напр. 2019"></div>
+                    <div class="field"><label for="cg-tkm">Пробег (км)</label><input type="text" inputmode="numeric" id="cg-tkm" autocomplete="off" placeholder="напр. 90 000"></div>
+                    <div class="field"><label for="cg-tlease">На лизинг ли е?</label><span class="sel"><select id="cg-tlease"><option value="">—</option><option>Не</option><option>Да, с остатък по договора</option></select><svg class="sel__ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-d"/></svg></span></div>
+                  </div>
+                </div>
+                <div class="ask">
+                  <div class="field"><label for="cg-tnote">Състояние и забележки</label><textarea id="cg-tnote" placeholder="Сервизна история, забележки по купето, допълнително оборудване…"></textarea></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="cg-step" data-step="contact" data-name="Контакт"
+                     data-say="Само за да отговоря. Нищо друго.">
+              <h2 class="cg-q">Как да Ви намеря?</h2>
+              <p class="cg-help body-s">Използваме тези данни само за да отговорим на тази заявка.</p>
+              <div class="cg-body">
+                <div class="ask">
+                  <div class="fields fields--2">
+                    <div class="field"><label for="cg-name">Име</label><input type="text" id="cg-name" autocomplete="name"><p class="field-err body-s">Моля, въведете име.</p></div>
+                    <div class="field"><label for="cg-phone">Телефон</label><input type="tel" id="cg-phone" autocomplete="tel" placeholder="+359 …"><p class="field-err body-s">Моля, въведете телефон или имейл.</p></div>
+                    <div class="field"><label for="cg-email">Имейл</label><input type="email" id="cg-email" autocomplete="email"><p class="field-err body-s">Проверете имейл адреса.</p></div>
+                    <div class="field"><label for="cg-reach">Предпочитам</label><span class="sel"><select id="cg-reach"><option>Обаждане</option><option>Viber / WhatsApp</option><option>Имейл</option><option>SMS</option></select><svg class="sel__ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-d"/></svg></span></div>
+                  </div>
+                </div>
+                <div class="ask">
+                  <div class="field"><label for="cg-note">Нещо, което трябва да знаем</label><textarea id="cg-note" placeholder="Свободен текст — всичко, което не се е побрало по-горе."></textarea></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="cg-step" data-step="review" data-name="Преглед"
+                     data-say="Това е, което ще прочета. Проверете го.">
+              <h2 class="cg-q">Ето какво стига до мен.</h2>
+              <p class="cg-help body-s">Прегледайте и коригирайте, ако е нужно. Точно това ще види Иван.</p>
+              <div class="cg-body">
+                <div class="brief" id="cg-brief"></div>
+                <p class="cg-legal body-s">С изпращането се съгласявате AutoHaus да съхрани данните Ви за целите на тази заявка.</p>
+              </div>
+            </section>
+
+            <section class="cg-step" data-step="done">
+              <div class="cg-done">
+                <p class="cg-done__k">Заявката е приета</p>
+                <h2 class="cg-done__h" id="cg-done-h">Благодарим. Заявката е при нас.</h2>
+                <p class="cg-done__p body-s" id="cg-done-p"></p>
+                <div class="btn-group" id="cg-done-act"></div>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- The record, below the split. From 1024 up the spine in the rail
+               carries the answers next to the questions they belong to; on a
+               phone that column does not exist, so the same rows come back
+               here as a one-line receipt above the buttons, which is the only
+               place on a phone where a summary is glanceable at the moment it
+               matters. Only ever one of the two is rendered. -->
+          <div class="cg-nav" id="cg-nav">
+            <div class="cg-nav__slot" id="cg-slot-bar">
+              <div class="heard" id="cg-heard" hidden>
+                <button type="button" class="heard__k" id="cg-heard-k" aria-expanded="false" aria-controls="cg-heard-l">
+                  <span>Дотук</span>
+                  <svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-d"/></svg>
+                </button>
+                <ul class="heard__l" id="cg-heard-l"></ul>
+              </div>
+            </div>
+            <div class="cg-nav__row">
+              <button type="button" class="btn btn--s btn--tertiary cg-nav__back" id="cg-back"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-l"/></svg><span class="btn__label">Назад</span></button>
+              <button type="button" class="btn btn--s btn--tertiary cg-nav__skip" id="cg-skip"><span class="btn__label">Пропусни</span></button>
+              <!-- the return key, drawn rather than typed: Exo 2 has no glyph
+                   for U+21B5 and the keycap rendered as an empty box -->
+              <span class="cg-nav__hint" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-enter"/></svg></span>
+              <button type="button" class="btn btn--l btn--primary cg-nav__next" id="cg-next"><span class="btn__label">Продължи</span><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg></button>
+            </div>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- THE DESK ----------
+     The dignified exit. A question that is already answered somewhere on
+     this site should never wait a day in the owner's inbox, and somebody
+     who only wants to ask one thing should never be walked through eight
+     questions to do it. -->
+<section class="desk" id="hatch">
+  <div class="grid">
+    <div class="desk__in">
+      <div class="desk__t">
+        <p class="desk__k">Или просто питайте</p>
+        <h2 class="desk__h">Само един бърз въпрос?</h2>
+        <p class="body-s">Наличност, цени, лизинг, бартер, документи и оглед — тези отговори са публикувани и са актуални. Ако въпросът Ви е сред тях, ще получите отговора веднага, вместо утре.</p>
+      </div>
+      <div class="desk__a">
+        <a class="btn btn--s btn--secondary" href="index.html#uslugi"><span class="btn__label">Виж услугите</span></a>
+        <a class="btn btn--s btn--tertiary" id="hatch-wa" href="#" target="_blank" rel="noopener"><span class="btn__label">Пиши в WhatsApp</span></a>
+        <a class="btn btn--s btn--tertiary" href="tel:+359884777147"><span class="btn__label">+359 884 777 147</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="ft" id="kontakt">
+  <div class="grid">
+    <div class="row">
+      <div class="col span-12 ft-top">
+        <div class="ft-main">
+          <div class="ft-main-sec">
+            <a href="mailto:autohausbg@gmail.com?subject=Новини от AutoHaus">Новини</a>
+            <a href="index.html#lizing">Калкулатор</a>
+          </div>
+          <a class="ft-logo" href="index.html#top" aria-label="AutoHaus — начало">
+            <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
+          </a>
+          <div class="ft-main-sec">
+            <a href="https://maps.google.com/?q=ул.+Нестор+Абаджиев+24,+Пловдив" target="_blank" rel="noopener">Намерете ни</a>
+            <a href="concierge.html?visit=1">Запази оглед</a>
+          </div>
+        </div>
+        <ul class="social social--foot" aria-label="AutoHaus в социалните мрежи">
+          <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+          <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col offset-1 span-10 ft-cols">
+        <nav class="ft-col" aria-label="Автомобили">
+          <p class="ft-h">Автомобили</p>
+          <a href="index.html#avtomobili">Всички <b data-count="all">87</b> в наличност</a>
+          <a href="vehicle.html?id=911-targa-4-gts">Porsche 911 Targa 4 GTS</a>
+          <a href="index.html?chapter=chauffeur">Представителен клас</a>
+          <a href="index.html?chapter=performance">Performance</a>
+          <a href="index.html?chapter=utility">Терен</a>
+        </nav>
+        <nav class="ft-col" aria-label="Вашият AutoHaus">
+          <p class="ft-h">Вашият AutoHaus</p>
+          <a href="index.html#lizing">Лизинг от 6.9%</a>
+          <a href="concierge.html?intent=source">Внос по поръчка</a>
+          <a href="concierge.html?intent=trade">Изкупуване и бартер</a>
+          <a href="index.html#uslugi">Застраховки и регистрация</a>
+          <a href="index.html#care">Auto Spa и детайлинг</a>
+        </nav>
+        <nav class="ft-col" aria-label="Контакт">
+          <p class="ft-h">Контакт</p>
+          <a href="https://maps.google.com/?q=ул.+Нестор+Абаджиев+24,+Пловдив" target="_blank" rel="noopener">ул. „Нестор Абаджиев“ №24, Пловдив</a>
+          <a href="tel:+359884777147">+359 884 777 147</a>
+          <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+          <span>Пон – Пет 09:00 – 18:00</span>
+        </nav>
+        <nav class="ft-col" aria-label="Правни">
+          <p class="ft-h">Правни</p>
+          <a href="legal.html#privacy">Политика за поверителност</a>
+          <a href="legal.html#cookies">Политика за бисквитки</a>
+          <a href="legal.html#terms">Общи условия</a>
+          <a href="legal.html#gdpr">Вашите права по GDPR</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col span-12 ft-meta">
+        <p>© 2026 Аутохаус България ЕООД · ЕИК 200771286 · ДДС BG200771286</p>
+        <ul>
+          <li><a href="legal.html#privacy">Поверителност</a></li>
+          <li><a href="legal.html#cookies">Бисквитки</a></li>
+          <li><a href="legal.html#terms">Общи условия</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col span-12">
+        <p class="ft-reg">Обявените цени са крайни. Лизинг от 6.9% годишно при 20% първоначална вноска и срок до 60 месеца; месечната вноска е ориентировъчна и подлежи на одобрение от партньорска лизингова институция. Автомобил се запазва за 48 часа след капаро. Възможен бартер с вашия автомобил.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+</body>
+</html>
