@@ -1084,28 +1084,7 @@
   flex:1 1 100%;font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink-3);
 }
 
-/* spec strip — value above label, horizontally scrollable (theirs) */
-.dspecs{
-  display:flex;gap:0;overflow-x:auto;overscroll-behavior-x:contain;
-  scrollbar-width:none;
-}
-.dspecs::-webkit-scrollbar{display:none}
-.dspecs > div{
-  flex:none;min-width:96px;padding-right:32px;
-  display:flex;flex-direction:column;gap:2px;
-}
-.dspecs dt{
-  order:2;font-size:12px;line-height:18px;font-weight:600;letter-spacing:1.1px;
-  text-transform:uppercase;color:var(--ink-3);
-}
-.dspecs dd{
-  order:1;font-size:16px;line-height:24px;font-weight:600;color:var(--ink);
-  font-variant-numeric:tabular-nums;white-space:nowrap;
-}
 
-/* prose with a read-more clamp — theirs clamps and expands in place */
-.dprose{font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink-2)}
-.dprose p + p{margin-top:16px}
 .dclamp{position:relative;overflow:hidden;max-height:168px}   /* their preview height */
 .dclamp::after{
   content:"";position:absolute;inset:auto 0 0 0;height:64px;pointer-events:none;
@@ -1120,13 +1099,129 @@
   border-bottom:1px solid var(--ink);
 }
 
-/* details table — their 138 / 663 two-column grid */
-.dtable{display:grid;grid-template-columns:minmax(120px,138px) 1fr;gap:16px 48px}
-.dtable dt{font-size:var(--fs-body);line-height:24px;color:var(--ink-3)}
-.dtable dd{font-size:var(--fs-body);line-height:24px;color:var(--ink);font-variant-numeric:tabular-nums}
-@media(max-width:599px){
-  .dtable{grid-template-columns:minmax(110px,138px) 1fr;gap:16px 12px}
+/* ============================================================
+   THE SPECIFICATION, AND THE EQUIPMENT UNDER IT
+
+   The page used to say a car's year, mileage, power, engine, transmission
+   and colour THREE times: a scrolling strip of six values, a ten-row
+   "Детайли" table immediately under it, and a sentence at the top of the
+   prose restating all six a third time. Two of those existed because the
+   reference site had both a strip and a table; ours had nothing else to
+   put in either.
+
+   One block now, holding exactly the eight rows the AutoHaus listing
+   holds — марка и модел, регистрация, двигател, мощност, трансмисия,
+   пробег, цвят, цена — and under it the thing the page never had: the
+   equipment list, which on these cars runs from 17 lines to 155.
+
+   THE SHAPE IS A LEDGER, NOT A TABLE. Rows separated by a hairline, label
+   left in the micro-label voice the rest of the site uses, value right in
+   tabular figures. It reads as a record of a specific object rather than
+   as a grid of cells, which is the difference between a spec sheet and a
+   comparison chart — and the reader is looking at one car, not comparing
+   ten. Two columns of rows from 900px, because eight rows in one column
+   on a wide screen is a lot of white to the right of a short answer. */
+.dspec{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+.dspec > div{
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+  padding:11px 0;border-top:1px solid var(--line);
 }
+.dspec > div:first-child{border-top:0;padding-top:0}
+.dspec dt{
+  flex:none;font-size:11px;line-height:20px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.dspec dd{
+  text-align:right;font-size:var(--fs-body);line-height:20px;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+@media(min-width:900px){
+  .dspec{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:48px}
+  /* the second column starts a fresh run of hairlines, so the top row of
+     each column loses its rule rather than only the first row overall */
+  .dspec > div:nth-child(2){border-top:0;padding-top:0}
+}
+
+/* ---- the listing's own notes ----
+   "Пълна сервизна история", "Възможен лизинг", "Възможен бартер", and
+   whatever else that particular car says. They are set as marks rather
+   than as sentences because that is what they are on the listing: short
+   declarations under the price, not prose. The VAT line is not here — it
+   belongs against the number it qualifies. */
+.dnotes{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:20px}
+.dnotes li{
+  display:flex;align-items:center;gap:9px;
+  font-size:13px;line-height:20px;color:var(--ink-2);
+}
+.dnotes svg{
+  flex:none;width:14px;height:14px;stroke:var(--primary);stroke-width:1.8;fill:none;
+}
+
+/* ---- the price, and the one thing that qualifies it ----
+   25 of the 83 published cars carry "Цена без начислен 20% ДДС". It sits
+   directly under the figure, in the label voice, because a price with tax
+   still to come is not a footnote — it is part of the price. */
+.dtitle__pw{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.dtitle__vat,.drail__vat{
+  font-size:11px;line-height:16px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--primary-ink);
+  background:rgba(201,162,90,.16);padding:3px 8px;white-space:nowrap;
+}
+.drail__vat{align-self:flex-start;margin-top:8px}
+@media(max-width:599px){
+  .dtitle__pw{align-items:flex-start}
+}
+
+/* ---- THE EQUIPMENT ----
+   Every line is the listing's own. Most carry the manufacturer's option
+   code — "501", "PIP7", "LCF" — and setting that code in its own quiet
+   column, at a fixed width, is what turns a wall of 155 sentences into
+   something a reader can scan: the eye runs down the codes and stops at
+   the words. It is also the one place on this site where a monospaced
+   figure is right, because these are part numbers and they align.
+
+   Sub-points (a line opening with "-" on the listing) are indented under
+   their option rather than promoted to options of their own — the source
+   nests them and the nesting carries meaning: they are what the package
+   contains. */
+.deq{display:grid;gap:0;font-size:var(--fs-body);line-height:1.55}
+.deq-i{
+  display:grid;grid-template-columns:56px minmax(0,1fr);gap:16px;
+  padding:9px 0;border-top:1px solid var(--line);color:var(--ink);
+}
+.deq-i:first-child{border-top:0}
+.deq-c{
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  font-size:11px;line-height:22px;letter-spacing:.02em;
+  color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.deq-sub{
+  grid-column:1 / -1;margin:2px 0 4px;padding-inline-start:72px;
+  display:grid;gap:3px;
+}
+.deq-sub li{
+  position:relative;font-size:13px;line-height:1.5;color:var(--ink-2);
+  padding-inline-start:14px;
+}
+.deq-sub li::before{
+  content:"";position:absolute;inset-inline-start:0;top:.62em;
+  width:6px;height:1px;background:var(--line-2);
+}
+/* the count beside the heading — how much there is, before you open it */
+.dsec__n{
+  font-size:12px;line-height:20px;font-weight:600;letter-spacing:1.1px;
+  color:var(--ink-3);
+}
+@media(max-width:599px){
+  .deq-i{grid-template-columns:46px minmax(0,1fr);gap:12px}
+  .deq-sub{padding-inline-start:58px}
+}
+/* the clamp is taller here than it was over the prose: 168px of an
+   equipment list is four rows, which is not enough to tell whether it is
+   worth opening. Ten rows is. */
+#deq-clamp{max-height:420px}
+#deq-clamp.is-open{max-height:none}
+
 
 /* seller / trust block */
 .dseller{display:grid;grid-template-columns:auto 1fr;gap:16px 20px;align-items:center}

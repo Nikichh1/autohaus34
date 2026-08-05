@@ -385,7 +385,6 @@
        new-first. Collapsed back to a single digit once it has settled. */
     var cntD = cur ? cur.querySelector(".cnt-d") : null, rollT = 0;
     var roll = function (to, from) {
-      if (curA11y) curA11y.textContent = String(to);
       if (!cntD) return;
       var N = slides.length, snap = function () {
         cntD.innerHTML = "<span>" + to + "</span>";
@@ -416,11 +415,41 @@
       }, 2000);
     };
 
+    /* ---- THE CONVEYOR, AS ONE FORMULA ----------------------------------
+       The stylesheet has three resting states — active (opacity 1, scale 1),
+       past (0, .8) and everything else (0, 1.2) — and they are the correct
+       three for a carousel that only ever runs FORWARDS. They are still
+       there, and they are still what a browser with no JS renders.
+
+       They cannot describe a finger. A drag is a position BETWEEN two
+       frames, and it has a direction: dragged backwards, the frame you are
+       leaving has to grow to 1.2 and the one you are returning to has to
+       come up from .8, which is the exact opposite of what `.is-past` says.
+       Three classes cannot hold that; one formula can, and it is the
+       source's own (bm-m-full-width-slider, handlePaginationChange):
+
+           o       = clamp(-1, position - n, 1)     signed, per slide
+           opacity = 1 - |o|                        1 at centre, 0 at +-1
+           scale   = 1 - 0.2 * o                    .8 behind, 1.2 ahead
+
+       `position` is fractional, so this is the same code whether it is
+       being handed a whole number by the autoplay or 1.372 by a thumb. The
+       CSS transition still does all the easing; this only ever says where
+       the stack should be, never how long it should take to get there. */
+    var CONVEY = .2;
+    var place = function (pos) {
+      slides.forEach(function (s, n) {
+        var o = Math.max(-1, Math.min(1, pos - n));
+        var f = s.querySelector(".stage-frame"), b = s.querySelector(".stage-bg");
+        var op = String(1 - Math.abs(o));
+        if (f) { f.style.opacity = op; f.style.scale = String(1 - CONVEY * o); }
+        if (b) b.style.opacity = op;
+      });
+    };
+
     /* ---- slide state ----------------------------------------------------
-       Three states, never two: the leaving frame keeps travelling to
-       scale .8 while the arriving one settles from 1.2 to 1. Everything
-       else rests at the upcoming state (invisible), so the stack always
-       moves one way and nothing ever pops back. */
+       The classes stay: they carry `inert`, pointer-events and the no-JS
+       floor, and place() carries the picture. */
     /* ---- slide loading -------------------------------------------------
        Eight slides carry sixteen photographs, and every one of them sits in
        the viewport (the stack is absolutely positioned), so `loading=lazy`
@@ -477,6 +506,12 @@
            see, and a screen reader announces eight competing headlines. */
         if (n === i) s.removeAttribute("inert"); else s.setAttribute("inert", "");
       });
+      place(i);
+      /* the whole visible counter is aria-hidden (see THE FRAME COUNTER in
+         style.css — the separator is drawn, not typed), so this line is the
+         only thing a screen reader has. It is set here rather than inside
+         roll() because roll() does not run on the first paint. */
+      if (curA11y) curA11y.textContent = "Кадър " + (i + 1) + " от " + slides.length;
       if (range) range.value = String(i + 1);
       if (prev) prev.disabled = i === 0;
       if (next) next.disabled = i === slides.length - 1;
@@ -508,6 +543,98 @@
       stage.addEventListener("pointerenter", function () { hovering = true; clearInterval(timer); });
       stage.addEventListener("pointerleave", function () { hovering = false; restart(); });
     }
+    /* ---- THE HERO, SWIPED ----------------------------------------------
+       On a phone this carousel had exactly two ways to change frame: a 6px
+       scrubber and, failing that, waiting ten seconds. The source's own
+       hero takes the finger, and a full-bleed photograph that does not move
+       when you push it is the single loudest thing on a mobile hero.
+
+       THE MODEL IS THE SOURCE'S, and it is not a slider. Nothing translates
+       and there is no rail to drag: the drag moves `position` — the same
+       fractional index place() already understands — and the stack
+       crossfades and scales to wherever that lands. Let go and it rounds to
+       the nearest frame. So a half-swipe shows you half of the next
+       photograph and then falls back to the one you were on, which is what
+       tells a thumb that the gesture exists at all.
+
+         · ONE AXIS, LOCKED ONCE. The source re-decides the axis on every
+           touchmove, which lets a lazy diagonal drag flip mid-gesture
+           between scrolling the page and turning the carousel. This picks
+           once, after 8px of travel, and holds it for the rest of the
+           gesture.
+         · 34% OF THE VIEWPORT IS ONE FRAME. The source's constant works out
+           at two thirds of a frame per third of the screen across its own
+           eight slides; over three that is a heavy carousel. A third of the
+           screen, one frame.
+         · EVERY LISTENER IS PASSIVE and nothing calls preventDefault: the
+           page has no horizontal axis to lose (body{overflow-x:hidden}), so
+           the browser has nothing to do with a sideways drag anyway.
+         · THE GESTURE STARTS ANYWHERE, INCLUDING ON THE TWO CTAs. On a
+           phone those buttons are full width and stacked, i.e. a large
+           part of the hero, and a carousel with a dead strip across it is
+           worse than one that occasionally has to swallow a click. So the
+           drag is allowed to begin on them and the click that ENDS a drag
+           is cancelled in the capture phase instead — the same thing the
+           card wall does with `moved`.
+         · THE SCRUBBER IS THE ONE EXCEPTION. It is a real <input
+           type=range> and the browser drags it natively; without the guard
+           one thumb would move both it and the stack. Same reason the
+           source stops propagation on its own pagination. */
+    if (stage && "ontouchstart" in window) {
+      var sw = { on: false, x0: 0, y0: 0, x: 0, axis: 0, pos: 0, moved: false };
+      var span = function () { return Math.max(120, innerWidth * .34); };
+      var settleSwipe = function (to) {
+        stage.classList.remove("is-swiping");
+        /* place() is called either way: go() bails when the frame has not
+           changed, and a half-swipe that falls back still has to travel.
+           go(…, true) restarts the clock the drag stopped; the fall-back
+           branch has to restart it by hand or the carousel is dead until
+           the next scroll or tab switch. */
+        if (to === i) { place(i); restart(); } else go(to, true);
+      };
+      stage.addEventListener("touchstart", function (e) {
+        if (e.touches.length !== 1) return;
+        var t = e.target;
+        if (t && t.closest && t.closest(".pag-range")) return;
+        sw.on = true; sw.axis = 0; sw.moved = false; sw.pos = i;
+        sw.x0 = sw.x = e.touches[0].pageX;
+        sw.y0 = e.touches[0].pageY;
+      }, { passive: true });
+      stage.addEventListener("touchmove", function (e) {
+        if (!sw.on || e.touches.length !== 1) return;
+        var x = e.touches[0].pageX, y = e.touches[0].pageY;
+        if (!sw.axis) {
+          var ax = Math.abs(x - sw.x0), ay = Math.abs(y - sw.y0);
+          if (ax < 8 && ay < 8) return;
+          sw.axis = ax > ay ? 1 : -1;
+          if (sw.axis !== 1) { sw.on = false; return; }   /* the page's, now */
+          clearInterval(timer);                           /* hands beat clocks */
+          stage.classList.add("is-swiping");
+        }
+        sw.moved = true;
+        sw.pos = Math.max(0, Math.min(slides.length - 1,
+                 sw.pos + (sw.x - x) / span()));
+        sw.x = x;
+        place(sw.pos);
+      }, { passive: true });
+      var swEnd = function () {
+        if (!sw.on) return;
+        var was = sw.axis; sw.on = false; sw.axis = 0;
+        if (was === 1) settleSwipe(Math.round(sw.pos));
+      };
+      stage.addEventListener("touchend", swEnd, { passive: true });
+      stage.addEventListener("touchcancel", swEnd, { passive: true });
+      /* the click that ends a drag. Capture phase, so it is gone before it
+         reaches the CTA the finger happens to have been let go over — a
+         swipe must never also open the catalogue. `moved` is cleared here
+         rather than on touchstart because this fires after touchend. */
+      stage.addEventListener("click", function (e) {
+        if (!sw.moved) return;
+        sw.moved = false;
+        e.preventDefault(); e.stopPropagation();
+      }, true);
+    }
+
     /* and it does no work at all once it has scrolled away */
     if (stage && "IntersectionObserver" in window) {
       new IntersectionObserver(function (e) {
@@ -556,11 +683,14 @@
        `behavior:"smooth"` cannot be told either, which is why the rail is
        tweened by hand: at 1824px of travel it ran 510ms against a 400ms
        growth, so the card finished opening and the rail kept sliding. */
-    /* .3s linear — measured off the source frame by frame, not chosen. Fed
-       through the solver rather than special-cased: cubic-bezier(0,0,1,1) IS
-       linear, and keeping one code path means the curve can be retuned in one
-       place if the stylesheet's ever stops agreeing with it. */
-    var WALL_DUR = 300, WALL_BEZ = [0, 0, 1, 1];
+    /* THESE TWO ARE --wall-dur AND --wall-ease, IN JAVASCRIPT. The stylesheet
+       moves the card's width, the card's ratio and the rail's leading room;
+       this moves the scroll that happens at the same time, and the whole
+       point is that a reader cannot tell there are two systems involved. If
+       one of these changes, the other has to change with it — the comment on
+       --wall-dur in style.css explains why they are no longer the source's
+       own .3s linear. cubic-bezier(.62,.02,.16,1) is --e-move. */
+    var WALL_DUR = 520, WALL_BEZ = [.62, .02, .16, 1];
     var bez = (function (p) {
       var cx = 3 * p[0], bx = 3 * (p[2] - p[0]) - cx, ax = 1 - cx - bx;
       var cy = 3 * p[1], by = 3 * (p[3] - p[1]) - cy, ay = 1 - cy - by;
@@ -583,7 +713,7 @@
        scrubber used to read scrollWidth and seven bounding boxes on every
        frame of every scroll — 120 layout reads a second while the rail was
        being dragged, for a 2px indicator. */
-    var geo = { view: 0, content: 0, pitch: 0, max: 0 };
+    var geo = { view: 0, content: 0, pitch: 0, max: 0, rest: [] };
     var measure = function () {
       if (openItem) return;                       /* never measure mid-expand */
       geo.view = wall.clientWidth;
@@ -592,14 +722,72 @@
       geo.pitch = items0.length > 1
         ? items0[1].getBoundingClientRect().left - items0[0].getBoundingClientRect().left
         : items0[0] ? items0[0].getBoundingClientRect().width : 0;
+
+      /* ---- WHERE THE RAIL ACTUALLY COMES TO REST ----
+         Not k * pitch, and assuming it was is what put the scrubber out.
+         A snap position is the item's SNAP AREA — its border box grown by
+         `scroll-margin`, which is --margin here — brought to the
+         scrollport's start edge, which is inset by `scroll-padding`, which
+         is --wall-pad. Measured at 375: pitch is 293 and the rail rests at
+         0, 281, 574 and 821, i.e. 12px short of every multiple of it. Twelve
+         pixels is --wall-pad, and it is not a rounding error; it is the
+         difference between the mark tracking the cards and the mark
+         tracking arithmetic about the cards.
+         So it is read off the live geometry rather than derived, at the
+         same moment as everything else here, and it costs one pass. */
+      var wl = wall.getBoundingClientRect().left, sl = wall.scrollLeft;
+      var padS = parseFloat(getComputedStyle(wall).scrollPaddingInlineStart) || 0;
+      geo.rest = items0.map(function (it) {
+        var sm = parseFloat(getComputedStyle(it).scrollMarginInlineStart) || 0;
+        var x = it.getBoundingClientRect().left - wl + sl - sm - padS;
+        return Math.max(0, Math.min(geo.max, x));
+      });
+    };
+
+    /* ---- THE SCRUBBER ---------------------------------------------------
+       WHERE ALONG THE RAIL ARE WE, AS A NUMBER FROM 0 TO 1.
+
+       Above 768 the rail does not snap and there is no such thing as "the
+       card you are on", so the honest answer is the scroll fraction and
+       that is what this returns.
+
+       Below 768 the rail snaps and it ALWAYS rests on a card, so the honest
+       answer is which card — and the scroll fraction is not that. Measured
+       at 375 with four 76vw cards: pitch 293.15, so the cards want to rest
+       at 0, 293, 586 and 879, but the rail only has 822 of travel. The last
+       card therefore cannot reach its own snap point; it stops 57px short,
+       and a straight scrollLeft/max put the mark at 0, 78.2, 156.3 and
+       219.2 of a 219.2px travel. Three swipes, and the last one moved the
+       mark 20% less than the other two — the indicator saying "not quite
+       there" on the card you are plainly looking at. THAT is the bug, and
+       it is arithmetic, not lag.
+
+       So below the snap this walks the cards' ACTUAL rest positions —
+       geo.rest, measured above — and interpolates between them. Resting on
+       card k puts the mark at exactly k/(n-1) of its travel whether card k
+       could reach its ideal offset or not, the steps are even, and
+       mid-swipe the mark is between the two cards the rail is between. */
+    var progress = function () {
+      if (geo.max <= 0) return 0;
+      var x = Math.max(0, Math.min(geo.max, wall.scrollLeft));
+      if (x >= geo.max - .5) return 1;         /* the end is the end */
+      var last = geo.rest.length - 1;
+      if (innerWidth >= 768 || last < 1) return x / geo.max;
+      for (var k = 0; k < last; k++) {
+        var a = geo.rest[k], b = geo.rest[k + 1];
+        if (x <= b) return (b > a ? k + (x - a) / (b - a) : k) / last;
+      }
+      return 1;
     };
 
     var sync = function () {
       if (!bar) return;
       var frac = geo.content ? geo.view / geo.content : 1;
-      bar.style.width = Math.max(8, Math.min(100, frac * 100)) + "%";
-      bar.style.transform = "translateX(" +
-        (geo.max > 0 ? (wall.scrollLeft / geo.max) * ((1 / frac - 1) * 100) : 0) + "%)";
+      var w = Math.max(8, Math.min(100, frac * 100));
+      bar.style.width = w + "%";
+      /* translateX on the mark is a percentage OF THE MARK, so the (100 - w)
+         of track it has to cross is (100 - w) / w of itself */
+      bar.style.transform = "translateX(" + (progress() * (100 - w) / w * 100) + "%)";
       /* `visibility:hidden` here left a 42px band of nothing under the rail.
          That was invisible when the band held seven cards and always
          overflowed; with four service cards the rail fits a desktop exactly,
@@ -621,8 +809,15 @@
        measured, for the same reason as above. */
     var framed = -1;
     var markActive = function () {
-      if (innerWidth >= 768 || !geo.pitch) return;
-      var n = Math.max(0, Math.min(items0.length - 1, Math.round(wall.scrollLeft / geo.pitch)));
+      if (innerWidth >= 768 || geo.rest.length < 2) return;
+      /* nearest rest, not scrollLeft/pitch: same reason as the scrubber's,
+         and reading both off geo.rest is what stops the highlighted card
+         and the mark under it from ever disagreeing */
+      var x = wall.scrollLeft, n = 0, best = Infinity;
+      for (var k = 0; k < geo.rest.length; k++) {
+        var d = Math.abs(geo.rest[k] - x);
+        if (d < best) { best = d; n = k; }
+      }
       if (n === framed) return;
       framed = n;
       items0.forEach(function (it, i) { it.classList.toggle("is-framed", i === n); });
@@ -646,8 +841,46 @@
       requestAnimationFrame(frame);
     };
 
+    /* ---- AND WHEN TO READ IT --------------------------------------------
+       A `scroll` listener is not a clock. iOS coalesces scroll events during
+       momentum and can go several frames without firing one at all in the
+       middle of a fast flick, so an indicator written only from that event
+       arrives in visible steps behind the rail. (The stylesheet used to
+       paper over it with a .42s transition on the mark, which made it worse
+       — see NO TRANSITION ON THE INDICATOR in style.css.)
+
+       So the event writes the mark AT ONCE — that is the floor, and it is
+       what the indicator used to have — and it also starts a loop that
+       keeps reading scrollLeft every animation frame for as long as it goes
+       on changing. Six still frames, about a tenth of a second, and the
+       loop stops until something moves again, so a rail at rest costs
+       nothing.
+
+       BOTH, not one or the other. The loop alone is better while a finger
+       is down and strictly worse everywhere requestAnimationFrame does not
+       run — a backgrounded tab, a hidden pane, a browser deferring frames
+       — where it would leave the mark frozen at whatever it last said. The
+       event alone is what was wrong to begin with. Together the mark is
+       written at least once per scroll event and at most once per frame. */
     var onScroll = function () { sync(); markActive(); };
-    wall.addEventListener("scroll", onScroll, { passive: true });
+    var raf = 0, seen = -1, still = 0;
+    var pump = function () {
+      raf = 0;
+      onScroll();
+      if (wall.scrollLeft !== seen) { seen = wall.scrollLeft; still = 0; }
+      else if (++still > 6) return;
+      raf = requestAnimationFrame(pump);
+    };
+    var kick = function () {
+      onScroll();
+      still = 0;
+      if (!raf && typeof requestAnimationFrame === "function") raf = requestAnimationFrame(pump);
+    };
+    wall.addEventListener("scroll", kick, { passive: true });
+    /* armed on contact, not on the first scroll event, so the very first
+       frame of a drag is already being reported */
+    wall.addEventListener("touchstart", kick, { passive: true });
+    wall.addEventListener("pointerdown", kick, { passive: true });
     addEventListener("resize", function () { measure(); onScroll(); });
     measure(); onScroll();
 
@@ -1062,13 +1295,30 @@
   }
 
   /* ============================================================
-     5. LEASING CONTROL (article teaser 2)
-     Annuity on 80% of price at 6.9% nominal annual interest.
-     Indicative only — the footer note says so.
+     5. LEASING CONTROL (inside the "Лизинг и застраховане" card)
+
+     An annuity on (1 - deposit) of the price. Indicative only — the card
+     says so, in a sentence that is itself marked provisional.
+
+     THE THREE NUMBERS ARE NOT HERE ANY MORE. They used to be hard-coded on
+     the next line, which meant the card could say one rate and the
+     calculator could compute another, and the owner — who is the person
+     who actually knows what the rate is — would have had to open a script
+     to fix it. They now live on the `.lz` element in index.html, beside the
+     figures they belong to, marked [data-tbd] like everything else on that
+     card that is waiting for the real terms. This reads them and falls back
+     to what was previously hard-coded, so a missing attribute degrades to
+     the old behaviour rather than to NaN.
      ============================================================ */
   var lzCar = $("lz-car"), lzOut = $("lz-out");
   if (lzCar && lzOut) {
-    var RATE = 0.069, DEPOSIT = 0.2, term = 60;
+    var lzBox = lzCar.closest ? lzCar.closest(".lz") : null;
+    var lzNum = function (name, dflt) {
+      var v = lzBox ? parseFloat(lzBox.getAttribute("data-" + name)) : NaN;
+      return isFinite(v) && v > 0 ? v : dflt;
+    };
+    var RATE = lzNum("rate", 0.069), DEPOSIT = lzNum("deposit", 0.2);
+    var term = lzNum("term", 60);
     /* Was eight hard-coded cars. Now the priced part of the real collection,
        most expensive first — so the calculator can never quote a car that
        has been sold, and never miss one that has just arrived. */
@@ -1110,86 +1360,164 @@
   /* No sticky-header logic on purpose: the source header is position:absolute
      at every scroll offset (verified 0→3600 and on scroll-up), so it simply
      scrolls away with the hero. */
-  var mbtn = $("hd-menu"), mob = $("mob"), mclose = $("mob-close");
-  /* The brand plate carries a second Меню trigger, because below the hero the
-     header — and with it the burger — has scrolled away. Both triggers drive
-     the one overlay and both have to carry its aria-expanded, or a screen
-     reader is told the menu is shut by whichever button was not pressed. */
-  var mtriggers = [mbtn, $("plate-menu")].filter(Boolean);
-  if (mtriggers.length && mob && mclose) {
-    var last = null, mobY = 0;
-    /* `body.style.overflow = "hidden"` reads as a scroll lock and behaves as a
-       scroll RESET: the body's overflow is what propagates to the viewport
-       here, so hiding it makes the viewport non-scrollable and the offset is
-       clamped. Measured: open the menu 900px down, close it, land at 461.
-       Pin the body at its offset instead, as every other layer does. */
-    var lockMob = function (on) {
+  /* ---- A PANEL OVER THE PAGE ------------------------------------------
+     There are two of these now — the menu and the contact panel — and they
+     are the same object with different contents, so this is the one
+     description of what "a panel over the page" does. Written out twice it
+     would have drifted the first time one of them was touched, and the half
+     that drifts is always the accessibility half: the trap, the inert, the
+     focus return, the scroll pin. Those are exactly the parts nobody
+     notices is broken.
+
+     What a panel owes the page it covers:
+
+       · A SCROLL PIN, NOT A SCROLL LOCK. `body.style.overflow = "hidden"`
+         reads as a lock and behaves as a RESET — the body's overflow is
+         what propagates to the viewport here, so hiding it makes the
+         viewport non-scrollable and the offset is clamped. Measured on the
+         menu: open it 900px down, close it, land at 461. The body is
+         pinned at its own offset instead and put back afterwards.
+       · INERT WHILE CLOSED, so the trap below is a second line of defence
+         and not the only one.
+       · A TAB TRAP WHILE OPEN. The catalog and the lightbox both had one;
+         the menu did not, and a keyboard user tabbed straight out of it
+         into the page it was covering — measured escaping to ah-skip,
+         hd-menu, hd-logo.
+       · FOCUS BACK TO SOMETHING THAT IS STILL ON THE SCREEN. `last` is
+         whatever had focus at open, which is right for a real click and
+         wrong when the panel was opened some other way (it is <body>
+         then, and returning focus to <body> drops a keyboard user at the
+         top of the document). It falls back to a trigger that is
+         currently rendered — below the hero the header burger has gone
+         with the header, and focusing a node that scrolled away is how a
+         keyboard user loses their place.
+       · AND IT CLOSES ITS SIBLING. Two of these open at once would stack
+         two scrim blurs and two scroll pins, and the second close would
+         restore the scroll position captured by the first. */
+  var panels = [];
+  var makePanel = function (o) {
+    var el = $(o.id), closeBtn = $(o.close), scrim = o.scrim ? $(o.scrim) : null;
+    if (!el || !closeBtn) return null;
+    var triggers = (o.triggers || []).filter(Boolean);
+    var last = null, savedY = 0, isOpen = false;
+
+    var lock = function (on) {
       var html = document.documentElement;
       if (on) {
-        mobY = window.scrollY || window.pageYOffset || 0;
-        document.body.style.top = (-mobY) + "px";
-        html.classList.add("mob-open");
+        savedY = window.scrollY || window.pageYOffset || 0;
+        document.body.style.top = (-savedY) + "px";
+        html.classList.add(o.lock);
       } else {
-        html.classList.remove("mob-open");
+        html.classList.remove(o.lock);
         document.body.style.top = "";
-        window.scrollTo({ top: mobY, left: 0, behavior: "instant" });
+        window.scrollTo({ top: savedY, left: 0, behavior: "instant" });
       }
     };
-    var setMob = function (open) {
-      mob.classList.toggle("is-open", open);
-      mob.setAttribute("aria-hidden", open ? "false" : "true");
-      mtriggers.forEach(function (t) {
-        t.setAttribute("aria-expanded", open ? "true" : "false");
-      });
-      /* out of the tab order entirely while closed, so the trap below is the
-         only thing that has to hold and not the last line of defence */
-      if (open) mob.removeAttribute("inert"); else mob.setAttribute("inert", "");
-      lockMob(open);
-      if (open) {
-        last = document.activeElement;
-        void mob.offsetWidth;                  /* flush the class before focusing */
-        mclose.focus({ preventScroll: true });
-      } else {
-        /* Fall back to the trigger. `last` is whatever had focus when the menu
-           opened, which is the right answer for a real click — but it is
-           <body> when the menu is opened any other way, and returning focus to
-           <body> drops a keyboard user back at the top of the document. */
-        /* whichever trigger is actually on the screen: below the hero the
-           header burger is gone with the header, and focusing a node that
-           scrolled away is how a keyboard user loses their place */
-        var live = mtriggers.filter(function (t) {
-          return t.offsetParent !== null && t.getBoundingClientRect().height > 0;
+
+    var api = {
+      el: el,
+      isOpen: function () { return isOpen; },
+      set: function (want, opener) {
+        if (want === isOpen) return;
+        if (want) panels.forEach(function (p) { if (p !== api) p.set(false); });
+        isOpen = want;
+        el.classList.toggle("is-open", want);
+        el.setAttribute("aria-hidden", want ? "false" : "true");
+        triggers.forEach(function (t) {
+          t.setAttribute("aria-expanded", want ? "true" : "false");
         });
-        var back = (last && last !== document.body && document.contains(last))
-          ? last : (live[live.length - 1] || mtriggers[0]);
-        if (back) back.focus({ preventScroll: true });
-        last = null;
+        if (want) el.removeAttribute("inert"); else el.setAttribute("inert", "");
+        lock(want);
+        if (want) {
+          last = opener || document.activeElement;
+          if (o.onOpen) o.onOpen();
+          void el.offsetWidth;               /* flush the class before focusing */
+          closeBtn.focus({ preventScroll: true });
+        } else {
+          var live = triggers.filter(function (t) {
+            return t.offsetParent !== null && t.getBoundingClientRect().height > 0;
+          });
+          var back = (last && last !== document.body && document.contains(last) &&
+                      last.offsetParent !== null)
+            ? last : (live[live.length - 1] || triggers[0]);
+          if (back) back.focus({ preventScroll: true });
+          last = null;
+        }
       }
     };
-    mob.setAttribute("inert", "");
-    mtriggers.forEach(function (t) {
-      t.addEventListener("click", function () { setMob(true); });
+
+    el.setAttribute("inert", "");
+    triggers.forEach(function (t) {
+      t.addEventListener("click", function () { api.set(true, t); });
     });
-    mclose.addEventListener("click", function () { setMob(false); });
+    closeBtn.addEventListener("click", function () { api.set(false); });
     /* the page is visible beside the panel now, so clicking it is the most
        natural way out — and the one a modal never offered */
-    var mscrim = $("mob-scrim");
-    if (mscrim) mscrim.addEventListener("click", function () { setMob(false); });
-    all("nav a", mob).forEach(function (a) { a.addEventListener("click", function () { setMob(false); }); });
+    if (scrim) scrim.addEventListener("click", function () { api.set(false); });
+    /* a link inside the panel that goes somewhere on THIS page has to shut
+       it on the way; one that opens a new tab must not */
+    all("a[href]", el).forEach(function (a) {
+      if (a.target === "_blank") return;
+      a.addEventListener("click", function () { api.set(false); });
+    });
+
     document.addEventListener("keydown", function (e) {
-      if (!mob.classList.contains("is-open")) return;
-      if (e.key === "Escape") { setMob(false); return; }
-      /* The catalog and the lightbox both trap Tab; this one never did, so a
-         keyboard user tabbed straight out of the open menu and into the page
-         it was covering — measured escaping to ah-skip, hd-menu, hd-logo. */
+      if (!isOpen) return;
+      if (e.key === "Escape") { api.set(false); return; }
       if (e.key !== "Tab") return;
-      var f = all("a[href],button:not([disabled])", mob).filter(function (el) {
-        return el.offsetWidth || el.offsetHeight || el.getClientRects().length;
-      });
+      var f = all("a[href],button:not([disabled]),iframe,[tabindex]:not([tabindex='-1'])", el)
+        .filter(function (x) {
+          return x.offsetWidth || x.offsetHeight || x.getClientRects().length;
+        });
       if (!f.length) return;
       var first = f[0], lastF = f[f.length - 1];
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); lastF.focus(); }
       else if (!e.shiftKey && document.activeElement === lastF) { e.preventDefault(); first.focus(); }
+    });
+
+    panels.push(api);
+    return api;
+  };
+
+  /* ---- THE MENU ----
+     The brand plate carries a second Меню trigger, because below the hero
+     the header — and with it the burger — has scrolled away. Both drive the
+     one panel and both carry its aria-expanded, or a screen reader is told
+     the menu is shut by whichever button was not pressed. */
+  makePanel({
+    id: "mob", close: "mob-close", scrim: "mob-scrim", lock: "mob-open",
+    triggers: [$("hd-menu"), $("plate-menu")]
+  });
+
+  /* ---- THE CONTACT PANEL ----
+     Its triggers are not two known buttons but every "Контакт" on the site:
+     the header, the menu, the footer column, the cafe card's "Как да
+     стигнете". So they are found by attribute and handled by delegation,
+     exactly as [data-catalog] opens the collection — and for the same
+     reason, every one of them keeps a real href to #kontakt so a
+     middle-click, a crawler and a JS-off render all still work.
+
+     THE MAP IS PROMOTED ON FIRST OPEN AND NEVER AGAIN. It is a third-party
+     frame on a site whose cookie policy says it sets no third-party
+     cookies; that statement stays true for every visitor who does not ask
+     for the map, and the landing page's byte count is unchanged. */
+  var ctc = makePanel({
+    id: "ctc", close: "ctc-close", scrim: "ctc-scrim", lock: "ctc-open",
+    onOpen: function () {
+      var box = $("ctc-map"), f = box && box.querySelector("iframe[data-src]");
+      if (!f) return;
+      f.src = f.getAttribute("data-src");
+      f.removeAttribute("data-src");
+      f.addEventListener("load", function () { box.classList.add("is-live"); });
+    }
+  });
+  if (ctc) {
+    document.addEventListener("click", function (e) {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
+      var t = e.target.closest && e.target.closest("[data-contact]");
+      if (!t) return;
+      e.preventDefault();
+      ctc.set(true, t);
     });
   }
 

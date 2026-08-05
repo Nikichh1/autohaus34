@@ -207,6 +207,8 @@
      animation-enabled, so a no-JS render swaps instantly instead of fading) */
   --ease:var(--e-enter);      /* the original name for --e-enter: 71 rules use it */
   --slide-dur:0s;
+  /* THE PACE OF THE HERO. See `.js .stage` below for why this is 1.6s and
+     not the source's 1s. */
   /* The card wall's expand. MEASURED ON THE SOURCE, frame by frame, at 1440:
      `transition: all .3s linear` on both the item and the card, and the growth
      tracks a straight line to within 0.3% once the ~24ms dispatch lag is taken
@@ -216,9 +218,30 @@
      where a scale() would soften the photograph and the type.
      One duration and one curve, shared by the card's width, the rail's leading
      room and the scroll tween in main.js, so the growth and the travel are a
-     single movement. main.js reads WALL_DUR / WALL_BEZ — change both. */
-  --wall-dur:.3s;
-  --wall-ease:linear;
+     single movement. main.js reads WALL_DUR / WALL_BEZ — change both.
+
+     AND THIS IS WHERE THE MEASUREMENT STOPS BEING THE INSTRUCTION.
+     .3s linear is what the source does and it is right FOR THE SOURCE: its
+     card is 304 wide and its panel is white on a white page, so the growth
+     is a sheet of paper unfolding over a sheet of paper and a straight line
+     is the honest description of it. Ours opens 318 -> 888 over a dark rail
+     with a photograph on the left of it, and at 300ms linear that is 570px
+     of geometry starting and stopping dead, twice, with no acceleration at
+     either end. Measured beside the source it does not read as the same
+     gesture; it reads as a panel being switched on.
+
+     So the STRUCTURE is kept verbatim — one duration and one curve for the
+     grid tracks, the card's ratio, the rail's leading room and the scroll,
+     with the panel and the headline landing inside it on the source's own
+     offsets — and the numbers move to this site's own motion system:
+     --t-move is what everything else here uses for something that starts
+     and stops on screen, and --e-move is the curve that goes with it,
+     eased at both ends and weighted late so the eye can follow the whole
+     travel. .52s is --t-move less the 140ms of overlap the panel needs on
+     the end of it; the geometry stops at 520ms, the panel finishes fading
+     at 680ms, and the whole gesture is over inside 700ms. */
+  --wall-dur:.52s;
+  --wall-ease:var(--e-move);
   /* Pointer feedback — one duration and one curve for every control on the
      site. Buttons had NO transition at all and snapped their fill in a single
      frame, while the filter pills next to them crossfaded over 80ms linear:
@@ -294,7 +317,24 @@
 
   font-size:16px;               /* source: 16px at every breakpoint */
 }
-.js .stage{--slide-dur:1s}
+/* THE SLIDE, RETIMED.  The source runs its crossfade for 1s on a plain
+   ease-out; this ran for 1s on --e-mass, and the two are not the same
+   picture. --e-mass is deliberately front-loaded — at a third of the way
+   through the time it is already 85% of the way through the movement — so a
+   1s crossfade on it did most of its visible work inside 300ms and read as a
+   cut with a soft edge rather than as one frame giving way to another.
+
+   The curve stays: it is what makes the frame LAND instead of drifting, and
+   drifting is the failure mode a plain ease-out has here (a 1344x702
+   photograph that arrives and then keeps arriving is a slideshow). What
+   changes is the clock. At 1.6s the same 85% now takes ~480ms, which is
+   where the source's 1s ease-out puts its own 80% — so the two now agree
+   about pace while still disagreeing about landing, which was always the
+   point of choosing --e-mass in the first place.
+
+   The dwell between frames is untouched at 10s (main.js DUR), because that
+   is the source's own autoslide-duration and it was measured, not chosen. */
+.js .stage{--slide-dur:1.6s}
 
 /* The source holds its entrance choreography paused until the hero image has
    decoded, and arms a 4s step-end keyframe as the fallback so the page can
@@ -1052,6 +1092,254 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
 }
 
 /* ============================================================
+   THE CONTACT PANEL
+
+   "Контакт" used to be a link to the bottom of the homepage. From any
+   other page it was a navigation — leave where you are, load the landing
+   page, land in its footer — to read six phone numbers. That is a long way
+   to go for an address, and it throws away whatever the visitor was doing.
+
+   It is a PANEL now, and deliberately the MENU's sibling rather than a new
+   idea: same scrim with the same real blur, same rake-that-settles reveal,
+   same material, same scroll lock, same close. A visitor who has opened the
+   menu once already knows how this behaves.
+
+   WHAT IS DIFFERENT IS WHICH CORNER IT BELONGS TO, and that is the house
+   angle doing its job. The menu is the plate with a body — anchored LEFT,
+   so it is cut on its RIGHT. This is anchored RIGHT, so it is cut on its
+   LEFT. Two panels, one rule, mirrored; and because the cut faces inward
+   on both, the page between them is never the thing being cut into.
+
+   It is also wider, because it carries more than a list: an address, a
+   map, six departments and their hours. Wider, and still not the screen —
+   at most 760px and never more than 94vw, so the page it is covering is
+   visibly still there behind the blur.
+
+   IT IS `.ctc` AND NOT `.cnt`, WHICH IS WHAT IT WAS CALLED FIRST.
+   `.cnt` is the hero's frame counter — the odometer in THE FRAME COUNTER
+   below, `display:inline-flex; height:1lh; overflow:clip`. A full-screen
+   `position:fixed` layer that also matches that rule is 24px tall and
+   clipped, and nothing about it errors: the panel opened, the scrim
+   appeared, the sheet was measured at 24px and everything inside it was
+   invisible. Two three-letter class names in one stylesheet is a real
+   cost, and this is the shape it takes.
+   ============================================================ */
+.ctc{
+  position:fixed;inset:0;z-index:60;pointer-events:none;
+  visibility:hidden;transition:visibility 0s linear var(--t-in);
+}
+.ctc.is-open{visibility:visible;transition:visibility 0s}
+
+/* the menu's scrim, raked the other way — the gradient leans with the panel
+   it belongs to, so the two together read as one lighting model */
+.ctc__scrim{
+  position:absolute;inset:0;pointer-events:auto;
+  background:linear-gradient(260deg,rgba(4,4,4,.56),rgba(4,4,4,.26) 48%,rgba(4,4,4,.4));
+  -webkit-backdrop-filter:blur(6px) saturate(.92);
+  backdrop-filter:blur(6px) saturate(.92);
+  opacity:0;transition:opacity var(--t-in) var(--e-exit);
+}
+.ctc.is-open .ctc__scrim{opacity:1;transition:opacity var(--t-move) var(--e-mass)}
+
+/* THE REVEAL. The menu's, mirrored: it unrolls downward from the top edge
+   with its leading edge raked at the house angle, and the rake falls to
+   zero as the panel lands. There the RIGHT-hand bottom point travels
+   furthest, so the rake leads on the right; here it is the LEFT one, which
+   is the edge nearest the middle of the page and therefore the edge the eye
+   is already on when the panel arrives. */
+.ctc__reveal{
+  position:absolute;inset-block:0;inset-inline-end:0;
+  width:min(94vw,clamp(340px,46vw,760px));
+  pointer-events:auto;
+  clip-path:polygon(0 0,100% 0,100% 0,0 -34%);
+  transition:clip-path var(--t-in) var(--e-exit);
+}
+.ctc.is-open .ctc__reveal{
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%);
+  transition:clip-path var(--t-mass) var(--e-mass);
+}
+.ctc__sheet{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  /* the plate's material, lit from the other side — the menu's gradient is
+     168deg and this is its mirror, so the light in the two panels comes
+     from the same place in the room rather than from each panel's own top */
+  background:linear-gradient(192deg,#121212 0%,#080808 46%,#040404 100%);
+  clip-path:polygon(0 0,100% 0,100% 100%,
+    var(--plate-cut) 100%,var(--plate-cut) var(--plate-h));
+  overflow:hidden;
+}
+.ctc__sheet::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:1px;pointer-events:none;
+  background:linear-gradient(270deg,
+    rgba(255,255,255,.30),rgba(255,255,255,.08) 56%,transparent 88%);
+}
+html.ctc-open{overflow:hidden}
+html.ctc-open body{position:fixed;left:0;right:0;width:100%}
+
+/* The scroll lives INSIDE the sheet rather than on it, because the sheet
+   carries the clip-path: a clipped box that also scrolls clips its own
+   scrollbar, and on the corner where the cut is it clips the first 30px of
+   every row that passes it. The pad on the leading side carries the cut,
+   exactly as every other wedge on this site does. */
+.ctc__scroll{
+  position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+  padding:calc(var(--plate-h) + 40px) clamp(26px,3.4vw,48px) 40px
+          calc(clamp(26px,3.4vw,48px) + var(--plate-cut));
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent;
+}
+.ctc__scroll::-webkit-scrollbar{width:10px}
+.ctc__scroll::-webkit-scrollbar-thumb{
+  background:linear-gradient(90deg,transparent 4px,rgba(255,255,255,.22) 4px);
+}
+.ctc-close{
+  position:absolute;z-index:2;
+  top:calc((var(--plate-h) - 40px) / 2);
+  right:clamp(26px,3.4vw,48px);
+  width:40px;height:40px;display:grid;place-items:center;
+  color:var(--white);
+  transition:transform var(--t-in) var(--e-move);
+}
+.ctc-close:hover,.ctc-close:focus-visible{transform:rotate(90deg)}
+.ctc-close svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.5;fill:none}
+
+.ctc__eyebrow{
+  font-size:var(--fs-eyebrow);line-height:var(--lh-eyebrow);font-weight:600;
+  letter-spacing:1.6px;text-transform:uppercase;color:var(--primary);
+}
+.ctc__h{
+  margin-top:10px;
+  font-size:var(--fs-h4);line-height:var(--lh-h4);font-weight:300;letter-spacing:normal;
+}
+
+/* ---- the address, and the map under it ---- */
+.ctc__where{margin-top:26px}
+.ctc__addr{
+  font-style:normal;
+  font-size:var(--fs-body);line-height:1.65;color:rgba(255,255,255,.78);
+}
+.ctc__addr b{color:var(--white);font-weight:400}
+.ctc__co{
+  margin-top:8px;
+  font-size:11px;line-height:18px;font-weight:600;letter-spacing:1.1px;
+  /* .42 measured 4.03:1 on this sheet — under AA for 11px. The company
+     registration line is quiet, not decorative. */
+  text-transform:uppercase;color:rgba(255,255,255,.54);
+}
+
+/* THE MAP IS NOT LOADED UNTIL THE PANEL IS OPENED, and that is not an
+   optimisation, it is the whole reason there can be a map here at all.
+   An embedded Google map is a third-party frame with third-party cookies,
+   on a site whose cookie policy says — truthfully — that it sets none. In
+   the markup it carries `data-src`; main.js promotes it to `src` the first
+   time the panel opens and never again. So the frame exists only for a
+   visitor who has asked for the map, the landing page's byte count is
+   unchanged, and the policy stays true for everyone who does not open it.
+   The aspect ratio is fixed so the box does not reflow when it arrives. */
+.ctc__map{
+  position:relative;margin-top:18px;aspect-ratio:16 / 10;
+  background:#0c0c0c;overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+}
+.ctc__map iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+/* what stands there before the frame lands: the site's own hairline cross,
+   not a spinner — the panel has only just opened and a spinner in it would
+   be the first thing the reader sees moving */
+.ctc__map::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,transparent calc(50% - .5px),rgba(255,255,255,.12) calc(50% - .5px),rgba(255,255,255,.12) calc(50% + .5px),transparent calc(50% + .5px)),
+    linear-gradient(180deg,transparent calc(50% - .5px),rgba(255,255,255,.12) calc(50% - .5px),rgba(255,255,255,.12) calc(50% + .5px),transparent calc(50% + .5px));
+  opacity:1;transition:opacity var(--t-in) var(--e-exit);
+}
+.ctc__map.is-live::after{opacity:0}
+.ctc__go{margin-top:16px;width:100%;justify-content:center}
+
+/* ---- the departments ----
+   Six of them, and they are the building rather than a switchboard: the
+   labels are the same words the service carousel uses (AutoSpa, Сервиз,
+   Кафе бар), so somebody who has just read a card knows which line to
+   call. One row each, hairline-separated, the same list grammar the card
+   panels use. */
+.ctc__depts{margin-top:34px}
+.ctc__dept{
+  padding:16px 0;border-top:1px solid rgba(255,255,255,.12);
+  display:grid;grid-template-columns:minmax(0,1fr);gap:4px;
+}
+.ctc__dept:last-child{border-bottom:1px solid rgba(255,255,255,.12)}
+.ctc__k{
+  font-size:11px;line-height:16px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--white);
+}
+.ctc__lines{display:flex;flex-wrap:wrap;gap:2px 18px;align-items:baseline}
+.ctc__lines a,.ctc__lines span{
+  font-size:var(--fs-body);line-height:22px;color:rgba(255,255,255,.78);
+  font-variant-numeric:tabular-nums;
+}
+.ctc__lines a{
+  position:relative;transition:color var(--t-ui) var(--e-ui);
+  display:inline-flex;align-items:center;min-height:26px;
+}
+.ctc__lines a::after{
+  content:"";position:absolute;left:0;right:0;bottom:2px;height:1px;
+  background:var(--primary);transform:scaleX(0);transform-origin:0 50%;
+  transition:transform var(--t-in) var(--e-move);
+}
+@media(hover:hover){
+  .ctc__lines a:hover,.ctc__lines a:focus-visible{color:var(--white)}
+  .ctc__lines a:hover::after,.ctc__lines a:focus-visible::after{transform:scaleX(1)}
+}
+/* a note on a number — "Щети", "ГТП" — set as the label it is, so the two
+   emergency lines do not read as two more main numbers */
+.ctc__note{
+  font-size:10px;line-height:16px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:rgba(255,255,255,.54);
+  margin-inline-end:-12px;
+}
+.ctc__hrs{
+  font-size:12px;line-height:18px;color:rgba(255,255,255,.5);
+  font-variant-numeric:tabular-nums;
+}
+
+.ctc__social{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  margin-top:30px;
+}
+.ctc__social .ctc__k{flex:none}
+
+/* the same staggered rise the menu's rows get, on the panel's own blocks */
+.ctc__eyebrow,.ctc__h,.ctc__where,.ctc__depts,.ctc__social{
+  --appear-start-y:20px;--appear-start-x:14px;
+}
+.ctc.is-open .ctc__eyebrow,.ctc.is-open .ctc__h,.ctc.is-open .ctc__where,
+.ctc.is-open .ctc__depts,.ctc.is-open .ctc__social{
+  animation:ah-appear var(--t-move) var(--e-mass) backwards;
+}
+.ctc.is-open .ctc__eyebrow{animation-delay:.20s}
+.ctc.is-open .ctc__h{animation-delay:.26s}
+.ctc.is-open .ctc__where{animation-delay:.32s}
+.ctc.is-open .ctc__depts{animation-delay:.38s}
+.ctc.is-open .ctc__social{animation-delay:.44s}
+@media(prefers-reduced-motion:reduce){
+  .ctc__reveal,.ctc__scrim{transition:none}
+  .ctc.is-open .ctc__eyebrow,.ctc.is-open .ctc__h,.ctc.is-open .ctc__where,
+  .ctc.is-open .ctc__depts,.ctc.is-open .ctc__social{animation:none}
+}
+
+/* On a phone the panel takes the width it needs and the cut goes with the
+   plate's own height, which is already smaller here. The map is the first
+   thing to give up room: at 375 a 16/10 box is 211px tall and the six
+   departments then start below the fold of the panel itself. */
+@media(max-width:767px){
+  .ctc__reveal{width:min(94vw,440px)}
+  .ctc__map{aspect-ratio:4 / 3}
+  .ctc__scroll{padding-top:calc(var(--plate-h) + 28px)}
+  .ctc__dept{padding:14px 0}
+}
+/* the paper pages carry the same panel on a dark sheet — it is chrome, not
+   content, and it belongs to the plate rather than to the page under it */
+
+/* ============================================================
    HERO STAGE
    An inset media box (aspect-ratio per breakpoint) over a blurred,
    darkened full-bleed copy of the same frame inset -32px.
@@ -1166,13 +1454,72 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
   animation:ah-fade 2.4s linear 2.4s backwards;
 }
 .pag-range,.pag-btn{pointer-events:auto}
+
+/* ============================================================
+   THE FRAME COUNTER — ONE BAR, NOT THREE CHIPS
+
+   What was here was the source's own construction, reproduced faithfully:
+   `14px / 400 / letter-spacing normal` on a flat 40%-black rectangle, with
+   `1 / 8` set as one run of text at one size. Two things were wrong with
+   it on a phone, and only one of them was a bug.
+
+   THE BUG.  `margin-inline-end:-10px` against the row's own `gap:8px`
+   leaves a NET 2px overlap, so the scrubber's own scrim painted over the
+   right-hand 2px of the total. Measured at 375: counter right edge 62.9,
+   scrubber left edge 60.9. The source gets away with the same arithmetic
+   because its two grounds are the same colour and its glyphs are narrower;
+   ours clipped the "3". The margin is now -8px — it cancels the gap
+   EXACTLY, so the two grounds meet with no seam and no overlap — and the
+   counter carries 14px of its own trailing padding, so the glyph is never
+   anywhere near the join.
+
+   THE DESIGN.  "1 / 3" set flat, at one weight, in one size, on a hard
+   grey rectangle is a 2010 slideshow counter. It is now a hierarchy: the
+   frame you are on is the display face at 18px/300, the total is an 11px
+   tracked label at 55%, and the two are separated by a hairline leaning on
+   THE HOUSE ANGLE — the same 24.7 degrees as the brand plate, the card
+   badge and the language wipe. It is the smallest possible place to sign
+   the page, and it costs one pseudo-element.
+
+   The ground is glass rather than a tint: the row runs over a photograph
+   whose luminance changes every ten seconds, and a blur that carries the
+   picture through underneath reads as chrome laid on the image where a
+   flat 40% black reads as a hole cut in it. --pag-ground is the fallback
+   and stays for the low-power path, which drops the blur entirely.
+   ============================================================ */
+.pag-pos,.pag-range,.pag-btn{
+  --pag-ground:rgba(6,6,6,.34);
+  background-color:var(--pag-ground);
+  -webkit-backdrop-filter:blur(10px) saturate(1.12);
+  backdrop-filter:blur(10px) saturate(1.12);
+}
+.lo-fx .pag-pos,.lo-fx .pag-range,.lo-fx .pag-btn{
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  --pag-ground:var(--scrim);
+}
 .pag-pos{
   flex-shrink:0;height:24px;line-height:24px;
-  background-color:var(--scrim);
-  padding-inline-start:12px;margin-inline-end:-10px;
-  font-size:14px;font-weight:400;letter-spacing:normal;
+  padding-inline:12px 14px;margin-inline-end:-8px;
   font-variant-numeric:tabular-nums;
-  display:flex;align-items:center;gap:0;
+  display:flex;align-items:center;gap:9px;
+}
+/* the count, in the display face — the one number on the page that says
+   where you are, so it is allowed to be the size of a number */
+.cnt{font-size:18px;line-height:24px;font-weight:300;letter-spacing:.01em}
+/* the total is a label, not a number: it never changes and it is only there
+   to give the count a denominator */
+.pag-tot{
+  font-size:11px;line-height:24px;font-weight:600;letter-spacing:1.1px;
+  color:rgba(255,255,255,.55);
+}
+/* the house angle, at its smallest: 14px tall, so 14 x --shear = 6.4px of
+   lean, cut the same way round as every other wedge on the site */
+.pag-sep{
+  flex:none;width:1px;height:14px;background:currentColor;opacity:.34;
+  transform:skewX(calc(atan(var(--shear)) * -1));
+}
+@supports not (transform:skewX(calc(atan(.46)))){
+  .pag-sep{transform:skewX(-24.7deg)}
 }
 /* ODOMETER. The source renders the current slide number as a clipped strip of
    digits and rolls it: translateY(calc(-100% + 1lh)) -> 0 over 2s on
@@ -1185,7 +1532,7 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
 .pag-range{
   -webkit-appearance:none;appearance:none;
   flex:1 1 auto;height:24px;padding:12px;margin:0;
-  background-color:var(--scrim);color:inherit;cursor:pointer;
+  color:inherit;cursor:pointer;
   --visible-fraction:.125;
 }
 .pag-range,.wall-track{
@@ -1219,7 +1566,7 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
 .pag-btn{
   display:none;
   width:42px;min-height:40px;padding:12px;flex:0 0 auto;
-  background-color:var(--scrim);transition:opacity var(--t-ui) var(--e-ui);
+  transition:opacity var(--t-ui) var(--e-ui);
 }
 .pag-btn:disabled{opacity:.3;pointer-events:none}
 #pag-prev{margin-inline-start:auto}
@@ -1316,32 +1663,99 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
    copy settles onto it. And the entry has to live here too: if the card faded
    in while the item was already opaque white, the reveal would flash six
    white rectangles. */
-/* The entry: a 56px rise masked by the rail's own edge, 800ms on the master
-   curve, staggered LEFT TO RIGHT at 70ms.
-   It was a 120px rise over 3200ms with a 150ms REVERSE stagger, i.e. 4.1s from
-   the first pixel to the last and the leftmost card — the one you are looking
-   straight at — arriving dead last. Scrolling the wall into view at any normal
-   speed showed a black void where the cards were. The rise is now short enough
-   to live inside the rail's clip, which is also what stops it from ever
-   creating vertical overflow again. */
+/* ---- THE ENTRY ----
+   The source: 120px rise, 3200ms, master curve, 150ms REVERSE stagger, i.e.
+   4.1s end to end with the leftmost card — the one you are looking straight
+   at — arriving dead last. That was tried here verbatim and rejected: at any
+   normal scroll speed the band was a black void where the cards should be.
+   It went to a 56px rise over 800ms with a 70ms forward stagger, which fixed
+   the void and lost the occasion with it. Four cards appearing over 1.0s in
+   near-unison is not an entrance, it is a repaint.
+
+   THREE THINGS MOVE NOW, NOT ONE, and that is the whole difference.
+
+     1. THE SHEET rises 72px over --t-epic on the enter curve, staggered left
+        to right at 90ms. The rise still lives entirely inside the rail's own
+        clip (overflow-y:hidden, see above), so it can never become
+        scrollable overflow the way the source's 120px did.
+     2. THE PHOTOGRAPH settles behind it: 1.06 -> 1 over --t-mass on the mass
+        curve, 120ms behind its own card. This is the source's hero move —
+        media-container from scale 1.2 — brought down to card scale, and it
+        is what stops the card reading as a flat rectangle sliding up. The
+        image is still arriving after the card has stopped, so the eye keeps
+        being given something for another half-second.
+     3. THE COPY follows at 220ms, so the type lands ON the sheet rather than
+        travelling with it.
+
+   End to end that is ~1.4s for the first card and ~1.9s for the last, which
+   is inside the source's own 4.1s and well past the 1.0s it replaces. */
 .wcard-item{
   flex:0 0 var(--card-w);
   margin-inline:calc(var(--gutter) / 2);
   scroll-margin-inline:var(--margin);
   display:grid;grid-template-columns:var(--card-w) 0px;column-gap:0;
   background-color:var(--white);
-  transform:translateY(56px);opacity:0;
+  transform:translateY(72px);opacity:0;
   transition:
     flex-basis var(--wall-dur) var(--wall-ease),
     grid-template-columns var(--wall-dur) var(--wall-ease),
     column-gap var(--wall-dur) var(--wall-ease),
-    transform .8s var(--ease),
-    opacity .8s var(--ease);
+    transform var(--t-epic) var(--e-enter),
+    opacity var(--t-epic) var(--e-enter);
   transition-delay:0s,0s,0s,
-    calc(var(--i,0) * 70ms),
-    calc(var(--i,0) * 70ms);
+    calc(var(--i,0) * 90ms),
+    calc(var(--i,0) * 90ms);
 }
 .wcard-item.is-in{transform:none;opacity:1}
+/* The photograph's own settle. It is on the <img>, not on .wcard, because
+   .wcard's aspect-ratio is already transitioning on the expand and a second
+   transform there would fight it.
+
+   THE SELECTOR IS DOUBLED ON PURPOSE, and it is the whole reason this
+   works. Every card photograph also carries .fade-img (see IMAGE DISSOLVE
+   in main.js), whose rule is `.js .fade-img` — two classes, 0-2-0 — and a
+   plain `.wcard-photo img` is 0-1-1, so it LOSES. The transition shorthand
+   there names only `opacity`, and a shorthand does not merge: transform was
+   silently dropped from the transition list and the photograph snapped out
+   of 1.06 in a single frame instead of settling. Nothing errored and the
+   rule was plainly present in the stylesheet; it just never applied.
+   `.wcard-photo img.fade-img` is 0-2-1 and takes it back — and both
+   properties are named here, so the dissolve keeps working too. */
+.wcard-photo img.fade-img,
+.wcard-photo img{
+  transform:scale(1.06);
+  transition:opacity var(--t-move) var(--e-mass),
+             transform var(--t-mass) var(--e-mass);
+  transition-delay:0s,calc(var(--i,0) * 90ms + 120ms);
+}
+.wcard-item.is-in .wcard-photo img{transform:none}
+/* and the copy, a beat after the sheet it is printed on. The children, NOT
+   .wcard-text itself: that element carries the scrim gradient, and fading it
+   would leave the photograph unshaded for the first fifth of a second — the
+   card would appear to be lit and then dimmed. The ground arrives with the
+   card; only the type waits. */
+.wcard-text > *{
+  opacity:0;
+  transition:opacity var(--t-move) var(--e-enter);
+  transition-delay:calc(var(--i,0) * 90ms + 220ms);
+}
+.wcard-item.is-in .wcard-text > *{opacity:1}
+/* An open card must never be caught mid-entry: arriving on #lizing from
+   another page opens one before the rail has been scrolled into view, and
+   without this the panel faded up inside a card that was still 72px low and
+   transparent. */
+.wcard-item.is-open{transform:none;opacity:1}
+.wcard-item.is-open .wcard-photo img{transform:none}
+.wcard-item.is-open .wcard-text > *{opacity:1}
+/* the same floor the rest of the entry already has: with the script off,
+   nothing ever adds .is-in and the copy would never appear */
+html:not(.js) .wcard-photo img{transform:none}
+html:not(.js) .wcard-text > *{opacity:1}
+@media(prefers-reduced-motion:reduce){
+  .wcard-photo img,.wcard-text > *{transition:none!important}
+  .wcard-photo img{transform:none!important}
+  .wcard-text > *{opacity:1!important}
+}
 .wcard-item.is-open{
   flex-basis:calc(var(--cw-open) + var(--gutter) + var(--pw-open));
   grid-template-columns:var(--cw-open) var(--pw-open);
@@ -1387,6 +1801,61 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
 .wcard-item.is-open .wcard{aspect-ratio:var(--card-aspect-open)}
 .wcard-photo{position:absolute;inset:0;display:block}
 .wcard-photo img{width:100%;height:100%;object-fit:cover}
+
+/* ============================================================
+   THE PHOTOGRAPHIC TREATMENT
+
+   The source's own answer to "how do you put a photograph on a card and
+   still have it look like a photograph" is a scrim and nothing else: no
+   filter is set on any image anywhere on that site (getComputedStyle
+   reports `filter: none` on the card media, the hero media and the article
+   media alike), and the entire effect is the eased double gradient already
+   reproduced on .wcard-text below. That gradient is theirs, verbatim.
+
+   What it does NOT do is treat the picture. Their photography arrives
+   graded — shot for the brand, corrected before it is ever uploaded — and
+   ours arrives as it came off the phone at the showroom: four sources, four
+   white balances, four exposures, sitting side by side in one rail. So the
+   treatment their photographer applies before the file exists is applied
+   here in CSS, and it is three separate things doing three separate jobs:
+
+     THE GRADE (on the image).  Contrast up 7%, saturation up 4%, exposure
+     down 4%. Small numbers on purpose — this is a correction, not a look.
+     It closes most of the gap between a bright midday shot and a dusk one
+     and it costs a single raster pass, because none of it animates.
+
+     THE WASH (first layer below).  A cool shadow on one side and a warm
+     lift on the other, raked at 114.7deg — the perpendicular of THE HOUSE
+     ANGLE, the same rake the concierge room is lit on. This is what makes
+     four unrelated photographs read as one set: they all now lean the same
+     way and carry the same two tints, one of which is the brand gold at
+     9%.
+
+     THE VIGNETTE (second layer).  Edge darkening, biased to the middle so
+     it never fights the scrim: the foot of every card already runs to 75%
+     black under the headline, and a symmetric vignette on top of that
+     closes the picture up into a hole. Corners at 34%, clear by 34% of the
+     radius, so it reads as a lens rather than as a frame.
+
+   All three sit UNDER .wcard-text (z-index 1), so the label chip, the
+   headline and the scrim are unaffected. */
+.wcard-photo img{filter:saturate(1.04) contrast(1.07) brightness(.96)}
+.wcard-photo::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(114.7deg,
+      rgba(8,12,18,.22) 0%,
+      rgba(8,12,18,0) 44%,
+      rgba(201,162,90,.09) 100%),
+    radial-gradient(112% 86% at 50% 44%,
+      rgba(4,4,4,0) 34%,
+      rgba(4,4,4,.13) 68%,
+      rgba(4,4,4,.34) 100%);
+}
+/* a filter is a raster pass the compositor cannot skip, and on a device
+   that already told us it is short of memory the grade is the first thing
+   worth giving up — the wash and the vignette are plain paint and stay */
+.lo-fx .wcard-photo img{filter:none}
 /* Two layers.
    LAYER 1 — a short label band measured in PIXELS. The source's ramp is
    percentage-based, so the label lands at 5.5% of an open card but 7% of a
@@ -1466,8 +1935,14 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
 .wcard-item.is-open .wcard-panel{
   grid-area:1 / 2 / 2 / 3;
   opacity:1;visibility:visible;
-  /* starts once the geometry is ~55% of the way there */
-  transition:opacity var(--t-in) var(--e-enter) .22s,visibility 0s;
+  /* The source starts its panel at 250ms of a 300ms growth, i.e. once the
+     geometry is 83% done, and runs it for 300ms. Held to that PROPORTION
+     rather than to those numbers: on --e-move, 260ms of a 520ms growth is
+     ~70% of the travel, which is where a sheet this much wider than the
+     source's has stopped moving fast enough for type to be readable on it.
+     It ends at 680ms, 160ms after the geometry — the same overhang the
+     source has, on a clock 1.7x longer. */
+  transition:opacity var(--t-in) var(--e-enter) .26s,visibility 0s;
 }
 .wcard-panel-in{
   position:absolute;inset:0;
@@ -1495,6 +1970,93 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
 }
 .wcard-panel .body-s{color:var(--panel-ink)}
 .wcard-panel .body-s p + p{margin-top:24px}
+
+/* ============================================================
+   WHAT IS INSIDE A CARD — the three furniture pieces
+
+   The four cards are rooms in the building rather than propositions, and
+   what a room needs is a list of what is in it. Three shapes cover all
+   four, and all three already exist elsewhere on this site: the micro-label
+   (.cg-sub, in the concierge room), the definition row (.brief dl, on the
+   printed brief) and a hairline list, which is the vehicle dossier's spec
+   table with one column instead of two. Nothing here is a new idea; it is
+   the same grammar on a white panel.
+   ============================================================ */
+
+/* the micro-label, with the rule the concierge's own version carries */
+.wcard-sub{
+  margin-top:30px;padding-bottom:9px;
+  border-bottom:1px solid rgba(5,5,5,.14);
+  font-size:10px;line-height:16px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:rgba(5,5,5,.5);
+}
+.wcard-scroll > *:first-child + .wcard-sub{margin-top:24px}
+
+/* the list. Two columns from 1440, where the open panel is 432px wide and a
+   single column of six four-word items leaves half the sheet empty; one
+   below that, because two columns of 200px break "Полиране и корекция на
+   лака" across three lines. */
+.wcard-list{
+  margin-top:22px;
+  display:grid;grid-template-columns:minmax(0,1fr);
+  column-gap:var(--gutter);
+}
+.wcard-list li{
+  position:relative;
+  padding:9px 0 9px 18px;
+  border-top:1px solid rgba(5,5,5,.12);
+  font-size:var(--fs-body);line-height:var(--lh-body);
+  color:rgba(5,5,5,.86);
+}
+/* a 6px gold dash, not a bullet: the system has no round marks in it, and
+   the dash is the same mark the concierge spine uses for a step */
+.wcard-list li::before{
+  content:"";position:absolute;left:0;top:calc(9px + (var(--lh-body) - 1px) / 2);
+  width:6px;height:1px;background:var(--primary);
+}
+@media(min-width:1440px){
+  .wcard-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* the definition row — the brief's own construction, re-tokenised for a
+   narrower measure (the brief runs to 30% of a 700px column; this one has
+   to survive a 432px panel, so the key column is capped in ch) */
+.wcard-dl{margin-top:20px;display:grid;gap:11px}
+.wcard-dl > div{
+  display:grid;grid-template-columns:minmax(0,15ch) minmax(0,1fr);
+  gap:14px;align-items:baseline;
+}
+.wcard-dl dt{
+  font-size:10px;line-height:16px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:rgba(5,5,5,.5);
+}
+.wcard-dl dd{
+  font-size:var(--fs-body);line-height:var(--lh-body);
+  color:var(--panel-ink);font-variant-numeric:tabular-nums;
+}
+@media(max-width:767px){
+  .wcard-dl > div{grid-template-columns:minmax(0,1fr);gap:1px}
+}
+
+/* ---- PROVISIONAL ----
+   The leasing and insurance card is standing in for terms the owner has
+   not supplied yet. Every figure on it that is not yet confirmed carries
+   [data-tbd], and this rule is the ONLY thing that makes such a figure look
+   different from a confirmed one — so replacing the text and deleting the
+   attribute is the whole of "make it real". There is no second place to
+   remember, and nothing is left saying 6.9% in a voice that sounds certain.
+
+   A dotted rule rather than a colour: on a white panel a greyed-out number
+   reads as disabled, and these are not disabled — they are indicative. */
+.wcard-panel [data-tbd]{
+  color:rgba(5,5,5,.62);
+  text-decoration:underline dotted rgba(5,5,5,.34);
+  text-underline-offset:4px;text-decoration-thickness:1px;
+}
+.wcard-panel .body-s p[data-tbd]{text-decoration:none;font-style:italic}
+/* on the card face the marker is the chip's own gold, at the weight the
+   label already has — a dotted underline inside a 28px wedge is noise */
+.wcard-label[data-tbd]{color:rgba(255,255,255,.72)}
 /* the CTA bar starts opaque and settles into frosted glass a beat later —
    source: transition background .5s .5s, backdrop-filter .3s .3s */
 .wcard-cta{
@@ -1658,19 +2220,29 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
 .ft{background:var(--page-bottom);padding:var(--ft-pad) 0;contain:layout style}
 .ft a:hover,.ft button:hover{text-decoration:underline;text-underline-offset:9px}
 .ft-top{margin-bottom:64px}
-.ft-main{display:grid;grid-template-columns:1fr;gap:24px;justify-items:center;text-align:center}
-.ft-main-sec{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 64px}
-.ft-main-sec a{font-size:13px;line-height:13px;font-weight:600;letter-spacing:normal;text-transform:uppercase;padding:8px 0}
 /* the wordmark link is only ~15px tall; padding grows the target to 45px and
    the matching negative margin keeps the footer's grid rhythm untouched */
-.ft-logo{display:flex;justify-content:center;padding-block:15px;margin-block:-15px}
-.ft-logo .logo{width:80px}
-.ft-social{display:flex;justify-content:center;gap:24px;margin-top:40px}
-.ft-social a{
-  width:32px;height:32px;display:grid;place-items:center;
-  border:1px solid rgba(255,255,255,.26);font-size:11px;line-height:16px;font-weight:400;
+/* `width:max-content` and an auto margin, not `justify-content` — the two
+   link pairs that used to flank the wordmark are gone, so this anchor is
+   now the only child of a full-width row and a stretched flex box made the
+   whole 1344px band a silent "back to top" target. It centres itself
+   instead, and the target is the wordmark. */
+.ft-logo{
+  display:flex;width:max-content;margin-inline:auto;
+  padding-block:15px;margin-block:-15px;
 }
-.ft-social a:hover{border-color:currentcolor;text-decoration:none}
+.ft-logo .logo{width:80px}
+.ft-social{display:flex;flex-direction:column;gap:12px}
+.ft-social a{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:11px;line-height:16px;font-weight:400;letter-spacing:.11px;
+  padding-block:4px;margin-block:-4px;
+}
+.ft-social svg{
+  width:15px;height:15px;flex:none;fill:currentColor;stroke:none;
+  opacity:.55;transition:opacity var(--t-ui) var(--e-ui);
+}
+.ft-social a:hover svg,.ft-social a:focus-visible svg{opacity:1}
 .ft-cols{display:flex;flex-direction:column;gap:8px;margin-bottom:40px}
 .ft-col{display:flex;flex-direction:column;gap:12px;flex:1 1 0;min-width:0}
 /* source footer headings run their own scale (16/22 · 20/28 · 22/30), one
@@ -1817,9 +2389,6 @@ html:not(.js) [data-reveal],html:not(.js) .wcard-item{opacity:1;transform:none}
   .teaser .btn{width:unset}
   .cta-media{width:calc(5 / 12 * 100% - var(--gutter));margin-inline-start:calc(var(--gutter) / 2)}
   .cta-text{width:calc(6 / 12 * 100% - var(--gutter));margin-inline-start:calc(var(--gutter) / 2)}
-  .ft-main{grid-template-columns:1fr auto 1fr;gap:64px;text-align:start}
-  .ft-main-sec{justify-content:flex-start}
-  .ft-main-sec:last-child{justify-content:flex-end}
   .ft-cols{flex-direction:row;gap:32px}
   .ft-meta{flex-direction:row;align-items:center;justify-content:space-between}
   .stage-pag{justify-content:center}
@@ -2724,6 +3293,36 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
   /* the article teaser headline is the h3 scale on mobile, not h4 */
   .teaser-headline{font-size:var(--fs-h3);line-height:var(--lh-h3)}
 
+  /* ---------- 1b. THE MARK, AND WHAT IT IS STANDING NEXT TO ----------
+     Measured at 375 before this: the wordmark was 104px wide and 19.3px
+     tall, and the two labels sharing its row — "АВТОМОБИЛИ" on the left,
+     "МЕНЮ" on the right — were 13px on 1.3px of tracking, i.e. the same
+     13/1.3 the 1440 bar uses. So on the one screen where the mark has the
+     least room, it was ALSO competing with the heaviest labels the system
+     has: 101px of tracked capitals ending 18px short of it. On a desktop
+     the mark reads as the middle zone of a three-zone bar; here it read as
+     the third item in a row of three.
+
+     Two moves, and they are the same move. The labels drop to the mobile
+     label scale this block already sets for buttons — 11/20 on 1.1px,
+     which the source uses for every nav item on a phone — and the mark
+     takes the room that releases: 104 -> 124px, so it is a third of the
+     viewport rather than a quarter, with ~25px of clearance either side
+     instead of 18 and 0.
+
+     The shadow is not decoration. The mark sits directly on a photograph
+     whose luminance changes every ten seconds, and the header veil above
+     it is a graded scrim, not a fill — on the sunlit showroom frame a
+     white wordmark on a pale ceiling had nothing to stand on. One wide
+     soft shadow is the site's own elevation idea (see ELEVATION), applied
+     to the one element that is genuinely floating over an image. */
+  :root{--logo-w:124px}
+  .lnk,.hd-menu{font-size:11px;line-height:20px;letter-spacing:1.1px}
+  .hd-logo .logo{filter:drop-shadow(0 2px 14px rgba(0,0,0,.55))}
+  /* the burger's rule-icon comes down with its label, or a 18px glyph beside
+     an 11px word reads as an icon that has been left at the old size */
+  .hd-menu svg{width:16px;height:16px}
+
   /* ---------- 2. HEADER — Bentley's three-zone mobile bar ----------
      Row 1 is a single full-width outlined action. Row 2 is
      link | wordmark | menu, balanced left and right. Ours had a small pill
@@ -2750,6 +3349,23 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
   .stage-item[data-i="0"] .stage-content{animation-delay:.8s}
   .stage-item[data-i="0"] .stage-media{animation-duration:1.6s}
   .btn-group--stage{align-items:stretch}
+
+  /* THE SWIPE. main.js drives the crossfade straight off the finger (see
+     THE HERO, SWIPED there), which means every frame of the drag sets
+     opacity and scale by hand. The transitions that own those two
+     properties at rest have to be out of the way while that is happening
+     or the picture arrives ~1.6s behind the thumb; they come back for the
+     release, which is what turns the let-go into a settle.
+
+     `user-select` because a slow drag over the headline otherwise starts
+     selecting it, and a phone answers a text selection with a magnifier
+     and a toolbar in the middle of the gesture. */
+  .stage.is-swiping .stage-frame,
+  .stage.is-swiping .stage-bg{transition:none}
+  .stage.is-swiping{-webkit-user-select:none;user-select:none}
+  /* iOS gives an image a long-press callout of its own, which lands in the
+     middle of a swipe as often as not */
+  .stage-media img,.stage-bg img{-webkit-touch-callout:none}
 
   /* ---------- 4. CARD WALL — the collection, swiped ----------
      The measured difference that matters most. Bentley snaps:
@@ -2803,15 +3419,31 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
 @media(max-width:767px){
   .wall-pag{padding-inline:calc(var(--wall-pad) + var(--gutter) / 2)}
   .wall-track{height:2px;background:rgba(255,255,255,.22)}
-  .wall-track i{top:0;height:2px;background:var(--white);
-    transition:transform var(--t-in) var(--e-move),width var(--t-in) var(--e-move)}
+  .wall-track i{top:0;height:2px;background:var(--white)}
 }
+/* NO TRANSITION ON THE INDICATOR. IT HAD ONE, AND THAT WAS THE BUG.
+   `transition: transform .42s var(--e-move), width .42s var(--e-move)` was
+   set here, and a scroll indicator with a clock of its own cannot report a
+   position — every scroll event restarted a 420ms tween from wherever the
+   last one had got to, so under a finger the mark was permanently ~400ms
+   and, on a fast swipe, a whole card behind the rail. Letting go, it then
+   drifted into place after the cards had already stopped, which is what
+   reads as "it doesn't follow me".
+
+   An indicator does not need motion of its own: it is a readout of
+   something that is already moving. main.js now writes it every animation
+   frame for as long as the rail is scrolling (see THE SCRUBBER there), so
+   it tracks the finger 1:1 during a swipe and glides for free during the
+   arrows' own tween, because it is copying that tween rather than running
+   a second one beside it. */
 
 /* The framed card on a snapped mobile rail. Barely anything — a card that is
    fully in view simply reads a touch brighter than its neighbours, so the eye
    knows which one it is looking at without a border or a shadow appearing. */
 @media(max-width:767px){
-  .wcard-photo img{transition:opacity var(--t-move) var(--e-mass)}
+  /* only the VALUES here — the transition that carries them is declared once,
+     with the entry, and naming it again at this breakpoint is how the two
+     lists get to disagree */
   .wcard-item:not(.is-framed) .wcard-photo img{opacity:.62}
   .wcard-item.is-framed .wcard-photo img{opacity:1}
 }
@@ -3386,6 +4018,40 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 }
 .lg-list b{color:var(--white);font-weight:600}
 
+/* the company record. The same definition row the printed brief and the
+   leasing card use — this site has one way of setting a label beside a
+   value and this is it, at the one size a legal page reads at. */
+.lg-dl{display:grid;gap:14px;margin-top:8px;max-width:56ch}
+.lg-dl > div{
+  display:grid;grid-template-columns:minmax(0,17ch) minmax(0,1fr);
+  gap:18px;align-items:baseline;
+}
+.lg-dl dt{
+  font-size:11px;line-height:22px;font-weight:600;letter-spacing:1.1px;
+  text-transform:uppercase;color:rgba(255,255,255,.44);
+}
+.lg-dl dd{font-size:var(--fs-body);line-height:1.7;color:var(--white)}
+@media(max-width:559px){
+  .lg-dl > div{grid-template-columns:minmax(0,1fr);gap:2px}
+}
+
+/* WHAT IS NOT YET DECIDED, MARKED THE SAME WAY EVERYWHERE.
+   The leasing card in the service carousel already had this problem and
+   already solved it: a figure the owner has not confirmed carries
+   [data-tbd] and one rule gives it a dotted underline, so replacing the
+   text and deleting the attribute is the whole of "make it real". The
+   legal page used to mark the same idea with a literal "[• ... ]" typed
+   into the copy — which reads as a broken document rather than as a
+   pending decision, cannot be found by a selector, and has to be deleted
+   by hand in a place where deleting the wrong bracket changes a sentence.
+   One marker, two very different pages, and a single grep to find every
+   one of them before publication. */
+.lg-doc [data-tbd],.lg-note [data-tbd]{
+  color:rgba(255,255,255,.72);font-weight:400;
+  text-decoration:underline dotted var(--primary);
+  text-underline-offset:4px;text-decoration-thickness:1px;
+}
+
 /* ============================================================
    v41 — THE CONSULTATION ROOM   (concierge.html)
 
@@ -3424,11 +4090,84 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
    of this file.
    ============================================================ */
 
+/* ============================================================
+   THE ROOM IS LIT NOW — the palette, in one place
+
+   What this page was: #050505 ground, a photograph at 66% under two
+   gradients that reach 97% black at the rail, and every piece of type on
+   it a percentage of white. It was consistent, and read end to end it was
+   also unrelieved — near-black from the header to the desk, with the only
+   light in the building coming from a photograph that had been turned down
+   until it was texture. A room where somebody sits down with you is not a
+   room with the lights off.
+
+   It is now PAPER, and paper is not the same thing as white. Four surfaces,
+   which is what stops a light page reading as an empty one:
+
+     --r-paper    the ground the room is built on. #f4f2ee, warm, and
+                  deliberately NOT #fff — it is what makes the sheets on
+                  top of it read as sheets rather than as holes.
+     --r-paper-2  the ground where it settles: the foot of the room, the
+                  desk, the underside of the action bar.
+     --r-sheet    pure white, and used ONLY for things that are lifted off
+                  the ground — the option cards, Иван's plate, the brief.
+                  The 4px of luminance between it and --r-paper is the
+                  whole elevation system on this page; there is one soft
+                  shadow and no borders drawn to fake depth.
+     the photograph, which stays, and is now the light SOURCE rather than
+     the wallpaper — see .cgr__light.
+
+   The inks are the ones vehicle.html already runs on (--ink / --ink-2 /
+   --ink-3 in "DETAIL PAGE"), repeated here rather than referenced because
+   those are declared on `body:not(.ah)` and this page is `.ah`. Same
+   values, same three steps, so the two light surfaces on the site are the
+   same light surface.
+
+   The gold is NOT --primary. #c9a25a is mixed to sit on near-black and
+   lands at 2.1:1 on paper; #8a6a24 is the same hue at the value the
+   catalogue already uses wherever gold has to appear on a pale band
+   (.pale .csec__all), and it clears 4.5:1. One gold per surface, not one
+   gold per site.
+   ============================================================ */
+/* The tokens are declared on the BODY as well as on the two sections, and
+   that is not belt-and-braces: the header is a sibling of both, so
+   `body.cg-room .hd .lnk{color:var(--r-ink)}` had nothing to resolve
+   against and fell back to the white it inherits from body.ah — measured
+   at 1.12:1 against the paper, i.e. invisible. A custom property that is
+   not in scope does not fail loudly; it makes the whole declaration
+   invalid at computed-value time and lets the previous one stand. */
+body.cg-room,.cgr,.desk{
+  --r-paper:#f4f2ee;
+  --r-paper-2:#eae7e0;
+  --r-sheet:#fff;
+  --r-ink:#141312;
+  --r-ink-2:#4e4a45;
+  --r-ink-3:#6a645c;
+  /* The faint step. It is used ONLY where low contrast IS the message —
+     a question the conversation has not reached yet, the separator dots in
+     the receipt. Anything that is a sentence uses --r-ink-3 instead: this
+     lands at 2.5:1 on paper, which is right for "not yet" and wrong for
+     text, and the dark room got that boundary wrong in the same places
+     (rgba(255,255,255,.3) on a sentence measured 2.4:1 there). */
+  --r-ink-4:rgba(20,19,18,.42);
+  --r-line:rgba(20,19,18,.13);
+  --r-line-2:rgba(20,19,18,.26);
+  --r-gold:#8a6a24;
+  --r-gold-line:rgba(138,106,36,.5);
+  --r-gold-wash:rgba(138,106,36,.07);
+  --r-bad:#a2361e;
+  /* one shadow, wide and very soft, per ELEVATION at the top of this file.
+     Softer than --lift-1 because it is falling on paper rather than on a
+     dark ground, and a shadow that reads correctly on #050505 reads as
+     dirt on #f4f2ee. */
+  --r-lift:0 14px 34px -16px rgba(20,19,18,.28);
+  color:var(--r-ink-2);
+}
 .cgr{
   position:relative;isolation:isolate;
   min-block-size:100vh;min-block-size:100svh;
   display:flex;flex-direction:column;
-  background:var(--stage-bg);
+  background:var(--r-paper);
   /* The action bar's floor overhangs its column by 56px on each side so it
      can feather instead of drawing a seam, and on the right that reached
      past the page margin: measured 40px of document overflow at 360, 24 at
@@ -3452,44 +4191,85 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
    a sticky action bar moving over it. The photograph is simply dimmed by
    its own opacity against the near-black ground, and the gradients above it
    do the rest — all of which composites. */
-.cgr__bg{position:absolute;inset:0;z-index:0;overflow:hidden;background:var(--stage-bg)}
+.cgr__bg{position:absolute;inset:0;z-index:0;overflow:hidden;background:var(--r-paper)}
+/* The photograph is now behind daylight rather than behind a veil, so it is
+   turned DOWN rather than dimmed: 22% over paper is about the same amount
+   of picture as 66% over near-black was, and what changes is which
+   direction the remaining contrast runs. The grade is what keeps it from
+   going muddy at that opacity — a photograph faded towards white loses its
+   blacks first, and lifting contrast before the fade puts them back. */
 .cgr__bg img{
   width:100%;height:100%;object-fit:cover;object-position:58% 38%;
-  opacity:var(--room-op,.66);
+  opacity:var(--room-op,.22);
+  filter:saturate(.72) contrast(1.14) brightness(1.06);
   animation:cg-room var(--t-epic) var(--e-mass) backwards;
 }
 @keyframes cg-room{
   0%{opacity:0;transform:scale(1.05)}
-  100%{opacity:var(--room-op,.66);transform:none}
+  100%{opacity:var(--room-op,.22);transform:none}
 }
-/* THE RAKE. Bands parallel to the house cut (a line 24.7deg off vertical
-   has its perpendicular 24.7deg off horizontal, so the gradient travels at
-   90 + 24.7 = 114.7deg). The room is darkest where the rail sits, opens to
-   the photograph across the middle, and closes again bottom-right. The
-   second layer is the floor: it hands the room down to the page ground so
-   the band below it is not a seam. */
+/* THE RAKE, INVERTED — and inverting it is the whole point.
+   Bands parallel to the house cut (a line 24.7deg off vertical has its
+   perpendicular 24.7deg off horizontal, so the gradient travels at
+   90 + 24.7 = 114.7deg). That geometry does not change; what changes is
+   what is doing the raking. The dark room raked SHADOW across a
+   photograph and sat the conversation in the least-lit part of it. This
+   one rakes LIGHT: the paper is brightest at the top-left where the host
+   rail stands, the middle opens far enough to let the showroom through,
+   and it closes back to paper at the foot. Same angle, same three stops,
+   opposite sign.
+
+   Three layers, and each one is doing a job the others cannot:
+     1. THE RAKE — the house angle, in white.
+     2. THE WARMTH — a wide, very low radial of the brand gold from above
+        the rail. It is 4% at its strongest and it is the difference
+        between "white page" and "a room with the sun on one side of it".
+     3. THE FLOOR — paper again at the bottom, so the desk below is a
+        continuation of the room rather than a second panel butted to it. */
 .cgr__light{
   position:absolute;inset:0;z-index:1;pointer-events:none;
   background:
+    radial-gradient(120% 68% at 18% -8%,
+      rgba(201,162,90,.10) 0%, rgba(201,162,90,.03) 42%, transparent 72%),
     linear-gradient(114.7deg,
-      rgba(5,5,5,.97) 0%, rgba(5,5,5,.93) 28%,
-      rgba(5,5,5,.76) 55%, rgba(5,5,5,.88) 78%, rgba(5,5,5,.96) 100%),
+      rgba(244,242,238,.96) 0%, rgba(244,242,238,.88) 28%,
+      rgba(244,242,238,.52) 55%, rgba(244,242,238,.80) 78%,
+      rgba(244,242,238,.94) 100%),
     linear-gradient(180deg,
-      rgba(5,5,5,.66) 0%, rgba(5,5,5,.24) 20%,
-      rgba(5,5,5,.34) 56%, rgba(5,5,5,.9) 100%);
+      rgba(244,242,238,.62) 0%, rgba(244,242,238,.10) 20%,
+      rgba(238,235,229,.30) 56%, rgba(234,231,224,.92) 100%);
   transition:opacity var(--t-mass) var(--e-mass);
 }
+/* THE GRAIN.
+   One 140x140 tile of monochrome noise at 3.5%, tiled over the whole room
+   and nothing else. On a dark page you never need this — near-black hides
+   the banding that a wide, shallow gradient always has, and the eye reads
+   the photograph as the texture. On paper both of those go away: a
+   96%-to-52% white ramp across 1400px is exactly the case where an 8-bit
+   channel shows its steps, and a large field of flat #f4f2ee reads as
+   unprinted rather than as paper. The noise fixes the first and IS the
+   second. It is a 2KB data URI, it composites once, and it is the last
+   thing a low-power device needs — hence the opt-out below. */
+.cgr__light::after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.lo-fx .cgr__light::after{display:none}
 /* The close is the quietest thing on the page. Everything that was a
-   control is gone, so the room goes with it — one more veil, and what is
-   left is a name, a number and a way to send it. */
+   control is gone, so the room goes with it — the light closes down to
+   paper and the photograph goes almost entirely, and what is left is a
+   name, a number and a way to send it. */
 .cgr.is-done .cgr__light{
   background:
+    radial-gradient(120% 68% at 18% -8%,
+      rgba(201,162,90,.06) 0%, transparent 66%),
     linear-gradient(114.7deg,
-      rgba(5,5,5,.985) 0%, rgba(5,5,5,.96) 28%,
-      rgba(5,5,5,.88) 55%, rgba(5,5,5,.94) 78%, rgba(5,5,5,.98) 100%),
+      rgba(244,242,238,.99) 0%, rgba(244,242,238,.97) 28%,
+      rgba(244,242,238,.86) 55%, rgba(244,242,238,.95) 78%,
+      rgba(244,242,238,.99) 100%),
     linear-gradient(180deg,
-      rgba(5,5,5,.7) 0%, rgba(5,5,5,.4) 20%,
-      rgba(5,5,5,.56) 56%, rgba(5,5,5,.94) 100%);
+      rgba(244,242,238,.8) 0%, rgba(244,242,238,.5) 20%,
+      rgba(238,235,229,.6) 56%, rgba(234,231,224,.96) 100%);
 }
 
 .cgr__grid{position:relative;z-index:2;flex:1;display:flex;flex-direction:column}
@@ -3545,7 +4325,7 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
    spine to within 30px of a 1440x900 viewport with the lede already gone.
    max-height rather than display, so it leaves rather than disappears. */
 .cgs__lede{
-  margin-top:14px;max-width:44ch;color:rgba(255,255,255,.66);
+  margin-top:14px;max-width:44ch;color:var(--r-ink-2);
   max-height:240px;overflow:hidden;
   --appear-start-y:16px;
   animation:ah-appear var(--t-mass) var(--e-enter) 260ms backwards;
@@ -3565,8 +4345,9 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
   width:max-content;max-width:100%;height:var(--host-h);overflow:hidden;
   margin-top:32px;
   padding-inline:16px calc(18px + var(--host-cut));
-  background:rgba(4,4,4,.86);
-  border-inline-start:2px solid var(--primary);
+  background:var(--r-sheet);
+  border-inline-start:2px solid var(--r-gold);
+  box-shadow:var(--r-lift);
   -webkit-clip-path:polygon(0 0,100% 0,calc(100% - var(--host-cut)) 100%,0 100%);
   clip-path:polygon(0 0,100% 0,calc(100% - var(--host-cut)) 100%,0 100%);
   animation:cg-wedge-h var(--t-move) var(--e-mass) 340ms backwards;
@@ -3577,10 +4358,10 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
   100%{-webkit-clip-path:polygon(0 0,100% 0,calc(100% - var(--host-cut)) 100%,0 100%);
        clip-path:polygon(0 0,100% 0,calc(100% - var(--host-cut)) 100%,0 100%)}
 }
-.cgs__host-n{font-size:15px;line-height:20px;font-weight:400;letter-spacing:.02em;color:var(--white);white-space:nowrap}
+.cgs__host-n{font-size:15px;line-height:20px;font-weight:400;letter-spacing:.02em;color:var(--r-ink);white-space:nowrap}
 .cgs__host-r{
   font-size:10px;line-height:14px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;
-  color:rgba(255,255,255,.5);white-space:nowrap;
+  color:var(--r-ink-3);white-space:nowrap;
 }
 
 /* the line that changes with the question — the host actually saying
@@ -3588,11 +4369,11 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
    because the quote marks differ per language and this text is swapped */
 .cgs__say{
   position:relative;margin-top:18px;padding-inline-start:16px;max-width:38ch;
-  font-size:14px;line-height:22px;color:rgba(255,255,255,.7);min-height:22px;
+  font-size:14px;line-height:22px;color:var(--r-ink-2);min-height:22px;
 }
 .cgs__say::before{
   content:"";position:absolute;inset-inline-start:0;top:.34em;bottom:.24em;
-  width:1px;background:var(--primary);opacity:.55;
+  width:1px;background:var(--r-gold);opacity:.75;
 }
 .cgs__say.is-new{animation:cg-say var(--t-move) var(--e-enter)}
 @keyframes cg-say{0%{opacity:0;transform:translateY(9px)}100%{opacity:1;transform:none}}
@@ -3609,7 +4390,7 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
    reached, gold once answered, 32px and 2px on the one being asked. */
 .cgs__spine{display:flex;flex-direction:column;margin-top:32px;width:100%}
 .cgs__spine li{
-  color:rgba(255,255,255,.3);
+  color:var(--r-ink-4);
   transition:color var(--t-in) var(--e-move);
 }
 .cgs__spine li > *{
@@ -3629,18 +4410,18 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .cgs__val{
   grid-column:2;grid-row:2;min-width:0;margin-top:1px;
   font-size:13px;line-height:18px;font-weight:300;letter-spacing:.01em;text-transform:none;
-  color:rgba(255,255,255,.82);
+  color:var(--r-ink-2);
   overflow:hidden;text-overflow:ellipsis;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
   transition:color var(--ui-dur) var(--ui-ease);
 }
-.cgs__spine li.is-done{color:rgba(255,255,255,.46)}
-.cgs__spine li.is-done i{background:var(--primary)}
-.cgs__spine li.is-now{color:var(--white)}
-.cgs__spine li.is-now i{width:32px;height:2px;background:var(--primary)}
+.cgs__spine li.is-done{color:var(--r-ink-3)}
+.cgs__spine li.is-done i{background:var(--r-gold)}
+.cgs__spine li.is-now{color:var(--r-ink)}
+.cgs__spine li.is-now i{width:32px;height:2px;background:var(--r-gold)}
 .cgs__spine button:hover .cgs__val,
-.cgs__spine button:focus-visible .cgs__val{color:var(--primary)}
-.cgs__spine button:hover,.cgs__spine button:focus-visible{color:rgba(255,255,255,.86)}
+.cgs__spine button:focus-visible .cgs__val{color:var(--r-gold)}
+.cgs__spine button:hover,.cgs__spine button:focus-visible{color:var(--r-ink)}
 
 /* Everything a script fills has to reserve its space, or the browser paints
    a zero-height box and drops content into it — the CLS lesson the grids on
@@ -3655,7 +4436,7 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .cgs__meta{
   margin-top:auto;padding-top:26px;
   font-size:10px;line-height:14px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;
-  color:rgba(255,255,255,.3);
+  color:var(--r-ink-3);
 }
 
 /* ============================================================
@@ -3670,7 +4451,7 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .heard__k{
   display:flex;align-items:center;gap:8px;width:100%;text-align:start;
   font-size:10px;line-height:14px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;
-  color:rgba(255,255,255,.4);margin-bottom:10px;
+  color:var(--r-ink-3);margin-bottom:10px;
 }
 .heard__k svg{width:12px;height:12px;stroke:currentColor;stroke-width:1.5;fill:none;
   margin-inline-start:auto;transition:transform var(--t-in) var(--e-move)}
@@ -3688,7 +4469,7 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .heard__l > li{position:relative;flex:none}
 .heard__l > li + li::before{
   content:"·";position:absolute;inset-inline-start:-11px;top:0;
-  color:rgba(255,255,255,.3);font-size:12px;line-height:20px;
+  color:var(--r-ink-4);font-size:12px;line-height:20px;
 }
 .heard.is-open .heard__l{
   flex-wrap:wrap;max-height:34vh;overflow-y:auto;gap:10px 18px;
@@ -3698,11 +4479,11 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .heard__i{width:auto;text-align:start;padding:0;transition:color var(--ui-dur) var(--ui-ease)}
 .heard__i b{
   display:none;font-size:10px;line-height:14px;font-weight:600;letter-spacing:1.1px;
-  text-transform:uppercase;color:rgba(255,255,255,.34);margin-bottom:1px;
+  text-transform:uppercase;color:var(--r-ink-3);margin-bottom:1px;
 }
 .heard.is-open .heard__i b{display:block}
-.heard__i span{display:block;font-size:12px;line-height:20px;color:rgba(255,255,255,.72)}
-.heard__i:hover span,.heard__i:focus-visible span{color:var(--primary)}
+.heard__i span{display:block;font-size:12px;line-height:20px;color:var(--r-ink-2)}
+.heard__i:hover span,.heard__i:focus-visible span{color:var(--r-gold)}
 .heard__i.is-new{--appear-start-y:8px;animation:ah-appear var(--t-in) var(--e-enter) backwards}
 @media(min-width:1024px){.heard{display:none}}
 
@@ -3714,9 +4495,9 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
   display:flex;align-items:baseline;justify-content:space-between;gap:24px;
   margin-bottom:26px;min-height:16px;
   font-size:10px;line-height:16px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;
-  color:rgba(255,255,255,.38);
+  color:var(--r-ink-3);
 }
-#cg-saved{color:var(--primary);opacity:.8}
+#cg-saved{color:var(--r-gold);opacity:.9}
 /* the skip link lands on the form, and it must not land under the plate */
 #cg-form{display:flex;flex-direction:column;flex:1;scroll-margin-top:calc(var(--plate-h) + 20px)}
 .cg-steps{position:relative;flex:1 0 auto}
@@ -3736,14 +4517,14 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
    step, including the one that lands on load. The focus still moves and is
    still announced; only the ring, which had nobody to inform, is gone. */
 .cg-q:focus,.cg-q:focus-visible{outline:none}
-.cg-help{color:rgba(255,255,255,.62);max-width:52ch;margin-bottom:38px}
+.cg-help{color:var(--r-ink-2);max-width:52ch;margin-bottom:38px}
 .cg-body{padding-bottom:24px}
 .ask + .ask{margin-top:36px}
 .cg-sub{
   font-size:10px;line-height:16px;font-weight:600;letter-spacing:1.1px;
-  text-transform:uppercase;color:rgba(255,255,255,.42);margin-bottom:14px;
+  text-transform:uppercase;color:var(--r-ink-3);margin-bottom:14px;
 }
-.cg-legal{margin-top:26px;color:rgba(255,255,255,.42);max-width:56ch}
+.cg-legal{margin-top:26px;color:var(--r-ink-3);max-width:56ch}
 
 /* ---- the option card ----
    Depth here is LIGHT, not a box: nothing carries a shadow at rest, the
@@ -3754,16 +4535,16 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .opt{
   position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
   width:100%;text-align:start;padding:22px 22px 24px;
-  border:1px solid rgba(255,255,255,.16);
-  background-color:rgba(255,255,255,.03);
-  color:var(--white);
+  border:1px solid var(--r-line);
+  background-color:var(--r-sheet);
+  color:var(--r-ink);
   transition:border-color var(--ui-dur) var(--ui-ease),
              background-color var(--ui-dur) var(--ui-ease),
              box-shadow var(--ui-dur) var(--ui-ease);
 }
 .opt::before{
   content:"";position:absolute;inset-block:-1px;inset-inline-start:-1px;width:2px;
-  background:var(--primary);transform:scaleY(0);transform-origin:50% 0;
+  background:var(--r-gold);transform:scaleY(0);transform-origin:50% 0;
   transition:transform var(--t-in) var(--e-move);
 }
 .opt::after{
@@ -3772,27 +4553,27 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
   transition:opacity var(--ui-dur) var(--ui-ease);
 }
 .opt:hover,.opt:focus-visible{
-  border-color:rgba(255,255,255,.34);
-  background-color:rgba(255,255,255,.07);
-  box-shadow:var(--lift-1);
+  border-color:var(--r-line-2);
+  background-color:var(--r-sheet);
+  box-shadow:var(--r-lift);
 }
 .opt:hover::after,.opt:focus-visible::after{opacity:1}
-.opt.is-on{border-color:rgba(201,162,90,.66);background-color:rgba(201,162,90,.09)}
+.opt.is-on{border-color:var(--r-gold-line);background-color:var(--r-gold-wash)}
 .opt.is-on::before{transform:scaleY(1)}
 .opt-txt{display:block;min-width:0}
 .opt-t{
   display:block;font-size:var(--fs-h6);line-height:var(--lh-h6);font-weight:300;
   margin-bottom:6px;text-wrap:balance;
 }
-.opt-d{display:block;color:rgba(255,255,255,.6);max-width:34ch}
+.opt-d{display:block;color:var(--r-ink-2);max-width:34ch}
 .opt-mark{
   flex:none;width:20px;height:20px;margin-top:3px;
-  border:1px solid rgba(255,255,255,.24);display:grid;place-items:center;
+  border:1px solid var(--r-line-2);display:grid;place-items:center;
   transition:background-color var(--t-tap) var(--e-ui),border-color var(--t-tap) var(--e-ui);
 }
-.opt.is-on .opt-mark{background:var(--primary);border-color:var(--primary)}
+.opt.is-on .opt-mark{background:var(--r-gold);border-color:var(--r-gold)}
 .opt-mark svg{
-  width:11px;height:11px;stroke:var(--primary-ink);stroke-width:2;fill:none;
+  width:11px;height:11px;stroke:#fff;stroke-width:2;fill:none;
   opacity:0;transform:scale(.5);
   transition:opacity var(--t-tap) var(--e-ui),transform var(--t-ui) var(--e-enter);
 }
@@ -3806,14 +4587,14 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .chipset{display:flex;flex-wrap:wrap;gap:8px}
 .cgr .chip{
   min-height:44px;padding:13px 20px;
-  border-color:rgba(255,255,255,.2);background-color:rgba(255,255,255,.03);
+  border-color:var(--r-line-2);background-color:var(--r-sheet);color:var(--r-ink-2);
   transition:background-color var(--ui-dur) var(--ui-ease),
              border-color var(--ui-dur) var(--ui-ease),
              color var(--ui-dur) var(--ui-ease);
 }
-.cgr .chip:hover:not(:disabled){background-color:rgba(255,255,255,.12);border-color:rgba(255,255,255,.38)}
-.cgr .chip.is-on{background-color:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
-.cgr .chip.is-on:hover:not(:disabled){background-color:var(--primary-hover);border-color:var(--primary-hover)}
+.cgr .chip:hover:not(:disabled){background-color:var(--r-paper-2);border-color:var(--r-ink-3);color:var(--r-ink)}
+.cgr .chip.is-on{background-color:var(--r-gold);border-color:var(--r-gold);color:#fff}
+.cgr .chip.is-on:hover:not(:disabled){background-color:var(--r-ink);border-color:var(--r-ink);color:#fff}
 
 /* ---- fields ---- */
 .fields{display:grid;gap:26px}
@@ -3821,52 +4602,53 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .field label{
   display:block;margin-bottom:10px;
   font-size:10px;line-height:14px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;
-  color:rgba(255,255,255,.44);
+  color:var(--r-ink-3);
 }
 .field input,.field select,.field textarea{
-  width:100%;background:transparent;color:var(--white);border:0;
-  border-bottom:1px solid rgba(255,255,255,.22);padding:11px 0;
+  width:100%;background:transparent;color:var(--r-ink);border:0;
+  border-bottom:1px solid var(--r-line-2);padding:11px 0;
   font-size:var(--fs-h6);line-height:var(--lh-h6);font-weight:300;
   transition:border-color var(--ui-dur) var(--ui-ease),box-shadow var(--ui-dur) var(--ui-ease);
 }
-.field input::placeholder,.field textarea::placeholder{color:rgba(255,255,255,.26)}
-.field input:hover,.field select:hover,.field textarea:hover{border-bottom-color:rgba(255,255,255,.4)}
+.field input::placeholder,.field textarea::placeholder{color:var(--r-ink-3);opacity:.86}
+.field input:hover,.field select:hover,.field textarea:hover{border-bottom-color:var(--r-ink-3)}
 .field input:focus,.field select:focus,.field textarea:focus{
-  outline:0;border-bottom-color:var(--primary);box-shadow:0 1px 0 0 var(--primary);
+  outline:0;border-bottom-color:var(--r-gold);box-shadow:0 1px 0 0 var(--r-gold);
 }
 .field select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-inline-end:26px}
-.field select option{background:#14100c;color:var(--white)}
+.field select option{background:var(--r-sheet);color:var(--r-ink)}
 .field textarea{resize:vertical;min-height:104px;line-height:1.55}
 .sel{position:relative;display:block}
 .sel__ic{
   position:absolute;inset-inline-end:0;top:50%;transform:translateY(-50%);
-  width:14px;height:14px;stroke:rgba(255,255,255,.42);stroke-width:1.4;fill:none;
+  width:14px;height:14px;stroke:var(--r-ink-3);stroke-width:1.4;fill:none;
   pointer-events:none;transition:stroke var(--ui-dur) var(--ui-ease);
 }
-.sel:focus-within .sel__ic{stroke:var(--primary)}
-.field-err{display:none;color:#e2856a;margin-top:9px}
-.field.is-bad input,.field.is-bad select{border-bottom-color:#e2856a;box-shadow:none}
+.sel:focus-within .sel__ic{stroke:var(--r-gold)}
+.field-err{display:none;color:var(--r-bad);margin-top:9px}
+.field.is-bad input,.field.is-bad select{border-bottom-color:var(--r-bad);box-shadow:none}
 .field.is-bad .field-err{display:block}
 
 /* ---- the payout for answering: real cars, right now ---- */
 .cg-match{
   display:flex;align-items:center;gap:18px 22px;flex-wrap:wrap;
   margin-top:38px;padding:20px 22px;
-  border:1px solid rgba(255,255,255,.14);background-color:rgba(255,255,255,.04);
+  border:1px solid var(--r-line);background-color:var(--r-sheet);
+  box-shadow:var(--r-lift);
 }
 .cg-match__n{
   font-size:var(--fs-h3);line-height:1;font-weight:300;font-variant-numeric:tabular-nums;
-  color:var(--primary);
+  color:var(--r-gold);
 }
 .cg-match__n.is-roll{animation:cg-roll var(--t-move) var(--e-enter)}
 @keyframes cg-roll{0%{opacity:0;transform:translateY(.42em)}100%{opacity:1;transform:none}}
 .cg-match__b{flex:1 1 220px;min-width:0;display:block}
 .cg-match__k{
   display:block;font-size:10px;line-height:14px;font-weight:600;letter-spacing:1.1px;
-  text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px;
+  text-transform:uppercase;color:var(--r-ink-3);margin-bottom:4px;
 }
-.cg-match__t{display:block;color:rgba(255,255,255,.76)}
-.cg-match.is-none{border-color:rgba(201,162,90,.5);background-color:rgba(201,162,90,.06)}
+.cg-match__t{display:block;color:var(--r-ink-2)}
+.cg-match.is-none{border-color:var(--r-gold-line);background-color:var(--r-gold-wash)}
 
 /* ---- BOOKED SPACE ----
    The two boxes concierge.js draws into the first screen. `defer` does not
@@ -3892,24 +4674,25 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .cg-picked{
   display:flex;gap:18px;align-items:stretch;margin-bottom:32px;
   max-width:540px;
-  border:1px solid rgba(255,255,255,.18);background-color:rgba(255,255,255,.04);
+  border:1px solid var(--r-line);background-color:var(--r-sheet);
+  box-shadow:var(--r-lift);
 }
 .cg-picked-photo{flex:0 0 132px;align-self:stretch;overflow:hidden;background:#111}
 .cg-picked-photo img{width:100%;height:100%;object-fit:cover;min-height:118px}
 .cg-picked-body{display:flex;flex-direction:column;gap:3px;min-width:0;padding:16px 18px 16px 0}
 .cg-picked-body .cg-sub{margin-bottom:4px}
 .cg-picked-h{font-size:var(--fs-h6);line-height:var(--lh-h6);font-weight:300}
-.cg-picked-make{color:rgba(255,255,255,.6)}
-.cg-picked-spec{color:rgba(255,255,255,.72);font-variant-numeric:tabular-nums}
+.cg-picked-make{color:var(--r-ink-2)}
+.cg-picked-spec{color:var(--r-ink-2);font-variant-numeric:tabular-nums}
 .cg-unpick{align-self:flex-start;margin-top:12px;padding-inline:0;min-height:30px}
 .cg-unpick .btn__label{
-  font-size:11px;letter-spacing:1.1px;color:rgba(255,255,255,.55);
-  border-bottom:1px solid rgba(255,255,255,.22);padding-bottom:3px;
+  font-size:11px;letter-spacing:1.1px;color:var(--r-ink-3);
+  border-bottom:1px solid var(--r-line-2);padding-bottom:3px;
   transition:color var(--ui-dur) var(--ui-ease),border-color var(--ui-dur) var(--ui-ease);
 }
 .cg-unpick::after{content:none}          /* no angled wipe on a text link */
 .cg-unpick:hover .btn__label,.cg-unpick:focus-visible .btn__label{
-  color:var(--white);border-bottom-color:var(--primary);
+  color:var(--r-ink);border-bottom-color:var(--r-gold);
 }
 
 /* ---- the brief: the one piece of paper in the building ----
@@ -3940,14 +4723,14 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .cg-done{max-width:46ch;padding-block:8px var(--sp-s)}
 .cg-done__k{
   font-size:11px;line-height:16px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;
-  color:var(--primary);margin-bottom:18px;
+  color:var(--r-gold);margin-bottom:18px;
 }
 .cg-done__h{
   font-size:var(--fs-h3);line-height:var(--lh-h3);font-weight:300;letter-spacing:normal;
   margin-bottom:16px;text-wrap:balance;
 }
-.cg-done__p{color:rgba(255,255,255,.7);margin-bottom:34px}
-.cg-done__p .t-num{color:var(--white);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.cg-done__p{color:var(--r-ink-2);margin-bottom:34px}
+.cg-done__p .t-num{color:var(--r-ink);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.04em}
 .cgr.is-done .cgs__spine,
 .cgr.is-done .cg-meta,
 .cgr.is-done .cg-nav{display:none}
@@ -3987,7 +4770,8 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
      and hands the bar's own box a ground that is already solid. */
   inset-block:-20px 0;inset-inline:-56px;
   background:linear-gradient(180deg,
-    rgba(5,5,5,0) 0,rgba(6,5,4,.92) 20px,rgba(6,5,4,.995) 34px,rgba(6,5,4,.995) 100%);
+    rgba(244,242,238,0) 0,rgba(244,242,238,.94) 20px,
+    rgba(243,241,236,.995) 34px,rgba(240,237,231,.995) 100%);
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 56px,#000 calc(100% - 56px),transparent);
   mask-image:linear-gradient(90deg,transparent,#000 56px,#000 calc(100% - 56px),transparent);
   pointer-events:none;
@@ -3995,17 +4779,17 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 .heard{margin-bottom:10px}      /* [hidden] takes the margin with it */
 .cg-nav__row{
   display:flex;align-items:center;gap:12px;
-  padding-top:18px;border-top:1px solid rgba(255,255,255,.16);
+  padding-top:18px;border-top:1px solid var(--r-line);
 }
-.cg-nav__back .btn__label,.cg-nav__skip .btn__label{color:rgba(255,255,255,.62)}
-.cg-nav__back:hover .btn__label,.cg-nav__skip:hover .btn__label{color:var(--white)}
-.cg-nav__back .ic{stroke:rgba(255,255,255,.62)}
+.cg-nav__back .btn__label,.cg-nav__skip .btn__label{color:var(--r-ink-2)}
+.cg-nav__back:hover .btn__label,.cg-nav__skip:hover .btn__label{color:var(--r-ink)}
+.cg-nav__back .ic{stroke:var(--r-ink-2)}
 .cg-nav__next{margin-inline-start:auto}
 .cg-nav__hint{
   display:none;flex:none;place-items:center;
-  width:28px;height:28px;border:1px solid rgba(255,255,255,.2);
+  width:28px;height:28px;border:1px solid var(--r-line-2);
 }
-.cg-nav__hint svg{width:14px;height:14px;stroke:rgba(255,255,255,.46);stroke-width:1.4;fill:none}
+.cg-nav__hint svg{width:14px;height:14px;stroke:var(--r-ink-3);stroke-width:1.4;fill:none}
 @media(hover:hover) and (min-width:1024px){
   .cg-nav__hint{display:grid;margin-inline-start:auto}
   .cg-nav__hint + .cg-nav__next{margin-inline-start:0}
@@ -4016,21 +4800,150 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
    ============================================================ */
 .desk{
   position:relative;z-index:2;
-  border-top:1px solid rgba(255,255,255,.12);
-  background:linear-gradient(180deg,#070605,#15120d);
+  border-top:1px solid var(--r-line);
+  background:linear-gradient(180deg,var(--r-paper-2),#e3dfd6);
   padding-block:var(--sp-m);
 }
 .desk__in{display:grid;gap:28px;max-width:70ch}
 .desk__k{
   font-size:10px;line-height:14px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;
-  color:var(--primary);margin-bottom:14px;
+  color:var(--r-gold);margin-bottom:14px;
 }
 .desk__h{
   font-size:var(--fs-h4);line-height:var(--lh-h4);font-weight:300;letter-spacing:normal;
   margin-bottom:14px;
 }
-.desk__t .body-s{color:rgba(255,255,255,.64);max-width:60ch}
+.desk__t .body-s{color:var(--r-ink-2);max-width:60ch}
 .desk__a{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+
+/* ============================================================
+   THE ROOM ON PAPER — the things a palette swap alone cannot do
+
+   Everything above this point had a colour changed. These twelve rules
+   exist because on a light surface the ORIGINAL rule is not merely the
+   wrong colour, it is the wrong idea: a white highlight on a white sheet,
+   a graded black veil under a header whose type is now ink, a white brief
+   laid on a white page. Each one is a different construction, not a
+   different value.
+   ============================================================ */
+
+/* 1. THE HEADINGS. body.ah sets `color:var(--white)` on the document and
+      every display line on this page inherited it. The room's own colour
+      is --r-ink-2 (set with the tokens), which is right for running copy
+      and one step too light for something set at 48px, so only the display
+      lines are lifted to full ink here.
+
+      An earlier pass also carried `.cgr .body-s{color:inherit}`, which
+      looked harmless and was not: .cg-help, .opt-d and .cgs__lede all
+      carry `body-s` as a second class, so a 0,2,0 selector beat every one
+      of their own 0,1,0 colours and the whole page collapsed to one ink.
+      .body-s sets no colour of its own — there was nothing to correct. */
+.cgs__h,.cg-q,.cg-done__h,.desk__h,.cg-picked-h{color:var(--r-ink)}
+
+/* 2. THE LIT EDGE. `--edge-lit` is a white-to-transparent highlight, and it
+      is most of what makes a raised object read as raised — on a dark
+      ground. On white it is invisible at best and a pale smear across the
+      top of the card at worst. The option card keeps its hover; what
+      carries it is the shadow, which is the correct half of the pair for
+      a light surface. */
+.cgr .opt::after{display:none}
+
+/* 3. THE CONCIERGE WEDGE STAYS BLACK, and it is now doing more work than
+      it was. On the dark page it was one dark chip among many; here it is
+      the only near-black object above the fold, which makes it the anchor
+      the whole light room hangs off — the same job the brand plate does
+      further down the page. It is the reason this reads as AutoHaus on
+      paper rather than as a white form. --primary (the light gold) is
+      correct ON it, because it is still sitting on rgba(4,4,4,.9). */
+
+/* 4. THE BRIEF. It was white on near-black: the one piece of paper in a
+      dark building, and it needed no help being seen. On paper it has to
+      be a DIFFERENT piece of paper — so it keeps the white, gains a
+      hairline and a deeper shadow than anything else in the room, and
+      sits on the page rather than in it. The print animation is unchanged;
+      it is still the thing that arrives from the top edge down. */
+.brief{
+  border:1px solid var(--r-line);
+  box-shadow:0 22px 48px -20px rgba(20,19,18,.34);
+}
+
+/* 5. THE BUTTONS. .btn--secondary draws its hairline in --white and wipes
+      its fill in 22% white; both vanish here. The site already has the
+      paper version of this control — see "the same control on paper" in
+      BUTTONS — and it is keyed off .pale, which is why both sections on
+      this page carry that class. This adds the two things .pale does not:
+      the hairline and the label.
+
+      SCOPED TO THIS PAGE, not to .pale. The homepage's collection band
+      carries .pale too — it is the site's general "this band is light"
+      marker — and a bare `.pale .btn--primary` here would repaint every
+      button in it. (It would not have, today, only because --r-gold is out
+      of scope there and an unresolvable var takes the whole declaration
+      with it. That is an accident, and an accident that stops working the
+      moment someone hoists these tokens to :root.)
+
+      And scoped to the three LIGHT surfaces inside it, not to the body:
+      the brand plate and the menu panel are still near-black on this page
+      — deliberately, they are the same object on every page — and an ink
+      hairline or an ink focus ring inside either of them is a control you
+      cannot see. */
+.cgr .btn--secondary,.desk .btn--secondary,body.cg-room .hd .btn--secondary{
+  border-color:var(--r-ink);
+}
+.cgr .btn--secondary,.cgr .btn--tertiary,
+.desk .btn--secondary,.desk .btn--tertiary,
+body.cg-room .hd .btn--secondary{color:var(--r-ink)}
+.cgr .btn--primary,.desk .btn--primary{
+  background-color:var(--r-gold);border-color:var(--r-gold);color:#fff;
+  --btn-fill:var(--r-ink);
+}
+.cgr .btn--primary:hover:not(:disabled),.cgr .btn--primary:focus-visible,
+.desk .btn--primary:hover:not(:disabled),.desk .btn--primary:focus-visible{
+  border-color:var(--r-ink);color:#fff;
+}
+.cgr .btn--primary:active:not(:disabled),
+.desk .btn--primary:active:not(:disabled){
+  --btn-fill:var(--r-gold);border-color:var(--r-gold);color:#fff;
+}
+/* the focus ring is --primary-hover, a pale gold mixed for near-black; on
+   paper it is a highlighter mark rather than a ring */
+.cgr :focus-visible,.desk :focus-visible,
+body.cg-room .hd :focus-visible{outline-color:var(--r-ink)}
+.cgr ::selection,.desk ::selection{background:var(--r-gold);color:#fff}
+
+/* 6. THE HEADER, over a light room.
+      The bar is `position:absolute` over the top of whatever the page
+      opens with, and on every other page that is a photograph — hence the
+      white labels and the graded black veil beneath them. Here it opens
+      over paper. The veil inverts (it is still doing its job, which is to
+      give the type a ground that does not change), the labels go to ink,
+      and the mark goes with them. Nothing about the layout moves. */
+body.cg-room{background:var(--r-paper)}
+body.cg-room .hd::before{
+  background:
+    radial-gradient(58% 132% at 50% -18%,rgba(244,242,238,.9),transparent 70%),
+    linear-gradient(180deg,
+      rgba(244,242,238,.96) 0%,rgba(244,242,238,.8) 34%,
+      rgba(244,242,238,.4) 68%,transparent 100%);
+}
+body.cg-room .hd{color:var(--r-ink)}
+body.cg-room .hd .lnk,
+body.cg-room .hd-menu,
+body.cg-room .hd-logo{color:var(--r-ink)}
+body.cg-room .hd .btn--secondary{border-color:var(--r-ink);color:var(--r-ink);--btn-fill:rgba(20,19,18,.1)}
+body.cg-room .hd .lang__o{color:var(--r-ink)}
+body.cg-room .hd .lang::before{background:var(--r-line-2)}
+body.cg-room .hd .lang__ind{background:var(--r-gold)}
+body.cg-room .hd .social__a{color:var(--r-ink);opacity:.5}
+body.cg-room .hd .social__a::before{background:rgba(20,19,18,.07)}
+body.cg-room .hd .social__a::after{background:var(--r-gold)}
+/* the skip link is white-on-ink everywhere else and would be white-on-paper
+   here */
+body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
+
+/* 7. THE PHOTOGRAPH WELL behind a chosen car keeps its dark ground: it is
+      a crop of a car, not a surface, and a white well around a dark
+      photograph reads as a gap. */
 
 /* ============================================================
    THE STEP CHANGE
@@ -4168,9 +5081,9 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
   .cgs__spine{flex-direction:row;gap:4px;margin-top:28px}
   .cgs__spine li{flex:1 1 0;min-width:0}
   .cgs__spine li > *{display:block;padding:0;pointer-events:none}
-  .cgs__spine i{display:block;width:100%;height:2px;background:rgba(255,255,255,.2);margin:0}
-  .cgs__spine li.is-done i{background:var(--primary)}
-  .cgs__spine li.is-now i{width:100%;height:2px;background:var(--white)}
+  .cgs__spine i{display:block;width:100%;height:2px;background:var(--r-line-2);margin:0}
+  .cgs__spine li.is-done i{background:var(--r-gold)}
+  .cgs__spine li.is-now i{width:100%;height:2px;background:var(--r-ink)}
   .cgs__nm,.cgs__val{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 }
 
@@ -4201,7 +5114,7 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
      line of centred text rather than as something to press — so here the
      two quiet ones take a hairline and the three become one instrument. */
   .desk__a .btn{width:100%;justify-content:center}
-  .desk__a .btn--tertiary{border-color:rgba(255,255,255,.2)}
+  .desk__a .btn--tertiary{border-color:var(--r-line-2)}
 }
 @media(max-width:559px){
   .cg-nav__row{flex-wrap:wrap;gap:10px}

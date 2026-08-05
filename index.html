@@ -28,19 +28,19 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" type="image/webp" href="img/autohaus_outside-1280.webp" imagesrcset="img/autohaus_outside-768.webp 768w, img/autohaus_outside-1280.webp 1280w, img/autohaus_outside-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=fc6f82db" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=d9b9cb35" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
-<link rel="stylesheet" href="catalog.min.css?v=fc6f82db" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="catalog.min.css?v=fc6f82db"></noscript>
+<link rel="stylesheet" href="catalog.min.css?v=d9b9cb35" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="catalog.min.css?v=d9b9cb35"></noscript>
 <script>
 /* Starts the app the moment the render-blocking stylesheet is in — not
    before (it would share the pipe with it) and not on window.load (that
    waits for every photograph). The timeout is a floor, never a ceiling: a
    stylesheet that stalls must not take the site down with it. */
 (function () {
-  var q = ["data/vehicles.js?v=fc6f82db","main.js?v=fc6f82db","catalog.js?v=fc6f82db","showroom.js?v=fc6f82db","i18n.js?v=fc6f82db"], fired = false;
+  var q = ["data/vehicles.js?v=d9b9cb35","main.js?v=d9b9cb35","catalog.js?v=d9b9cb35","showroom.js?v=d9b9cb35","i18n.js?v=d9b9cb35"], fired = false;
   function boot() {
     if (fired) return; fired = true;
     for (var i = 0; i < q.length; i++) {
@@ -106,10 +106,10 @@
       </button>
       <a class="lnk" href="#avtomobili">Автомобили</a>
       <ul class="hd-links">
-        <li><a class="lnk" href="#uslugi">Услуги</a></li>
+        <li><a class="lnk" href="#razdeli">Услуги</a></li>
         <li><a class="lnk" href="#lizing">Лизинг</a></li>
         <li><a class="lnk" href="#about">За нас</a></li>
-        <li><a class="lnk" href="#kontakt">Контакт</a></li>
+        <li><a class="lnk" href="#kontakt" data-contact>Контакт</a></li>
       </ul>
     </div>
 
@@ -118,7 +118,7 @@
     </a>
 
     <ul class="hd-zone hd-zone--end">
-      <li><a class="btn btn--s btn--secondary" href="concierge.html"><span class="btn__label">Concierge</span></a></li>
+      <li><a class="btn btn--s btn--secondary" href="concierge.html"><span class="btn__label">Консиерж</span></a></li>
       <!-- Колекцията and Калкулатор used to sit here and both were already in
            the bar twice over — Автомобили on the left, Лизинг on the left, and
            the menu behind the burger. The language switch is the one control
@@ -206,11 +206,11 @@
       </button>
       <nav aria-label="Меню">
         <a href="#avtomobili">Автомобили</a>
-        <a href="concierge.html">Concierge</a>
-        <a href="#uslugi">Услуги</a>
+        <a href="concierge.html">Консиерж</a>
+        <a href="#razdeli">Услуги</a>
         <a href="#lizing">Лизинг</a>
         <a href="#about">За нас</a>
-        <a href="#kontakt">Контакт</a>
+        <a href="#kontakt" data-contact>Контакт</a>
       </nav>
       <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
         <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
@@ -219,6 +219,124 @@
       <div class="mob-foot">
         <a href="tel:+359884777147">+359 884 777 147</a>
         <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== THE CONTACT PANEL ====================
+     The menu's sibling, mirrored to the other corner — see "THE CONTACT
+     PANEL" in style.css for why it is a panel and not a page, and
+     "THE HOUSE ANGLE" for why the cut is on the left here and on the right
+     there. Anything carrying [data-contact] opens it; every one of those
+     triggers keeps a real href to #kontakt, so with JS off "Контакт" still
+     lands in the footer, which still holds the address and the office line.
+
+     The figures below are the ones published on autohaus.bg/контакти —
+     six departments, each with its own line and its own hours. They are
+     the only place on this site those numbers appear in full. -->
+<div class="ctc" id="ctc" aria-hidden="true">
+  <div class="ctc__scrim" id="ctc-scrim"></div>
+  <div class="ctc__reveal">
+    <div class="ctc__sheet" role="dialog" aria-modal="true" aria-labelledby="ctc-h">
+      <button class="ctc-close" id="ctc-close" aria-label="Затвори">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
+      </button>
+      <div class="ctc__scroll">
+        <p class="ctc__eyebrow">AutoHaus Пловдив</p>
+        <h2 class="ctc__h" id="ctc-h">Контакт</h2>
+
+        <div class="ctc__where">
+          <address class="ctc__addr">
+            <b>Аутохаус България ЕООД</b><br>
+            ул. „Нестор Абаджиев“ №24<br>
+            Асеновградско шосе<br>
+            4023 Пловдив, България
+          </address>
+          <p class="ctc__co">ЕИК 200771286 · ДДС BG200771286</p>
+
+          <!-- data-src, not src: the frame is a third party and it is not
+               fetched until somebody opens this panel. main.js promotes it
+               once. See THE MAP IS NOT LOADED in style.css. -->
+          <div class="ctc__map" id="ctc-map">
+            <iframe
+              data-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3519.3174753334256!2d24.773724387624082!3d42.120716529933546!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14acd18af42d2935%3A0xd53e00b37b9b5671!2z0YPQuy4g4oCe0J3QtdGB0YLQvtGAINCQ0LHQsNC00LbQuNC10LLigJwgMjQsIDQwMjMg0JjQvdC00YPRgdGC0YDQuNCw0LvQvdCwINC30L7QvdCwICLQotGA0LDQutC40Y8iLCDQn9C70L7QstC00LjQsg!5e0!3m2!1sbg!2sbg!4v1558527129797!5m2!1sbg!2sbg"
+              title="Карта до AutoHaus Пловдив" loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen></iframe>
+          </div>
+          <a class="btn btn--l btn--secondary ctc__go"
+             href="https://www.google.com/maps/search/?api=1&amp;query=42.1207165%2C24.7737244"
+             target="_blank" rel="noopener">
+            <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-pin"/></svg>
+            <span class="btn__label">Отвори в Google Maps</span>
+          </a>
+        </div>
+
+        <div class="ctc__depts">
+          <div class="ctc__dept">
+            <p class="ctc__k">Офис</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777147">+359 884 777 147</a>
+              <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Продажби</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777045">+359 884 777 045</a>
+              <a href="tel:+359885725860">+359 885 725 860</a>
+              <a href="mailto:autohaussale@gmail.com">autohaussale@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Застраховане</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777089">+359 884 777 089</a>
+              <a href="tel:+359888850777">+359 888 850 777</a>
+              <span class="ctc__note">Щети</span>
+              <a href="tel:+359884560502">+359 884 560 502</a>
+              <a href="mailto:autohausbroker@gmail.com">autohausbroker@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Сервиз</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777321">+359 884 777 321</a>
+              <span class="ctc__note">ГТП</span>
+              <a href="tel:+359884536361">+359 884 536 361</a>
+              <a href="mailto:autohausservices@gmail.com">autohausservices@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">AutoSpa</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Кафе бар</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+        </div>
+
+        <div class="ctc__social">
+          <p class="ctc__k">Последвайте ни</p>
+          <ul class="social" aria-label="AutoHaus в социалните мрежи">
+            <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+            <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -235,7 +353,12 @@
     <!-- the current number is an odometer: main.js builds a descending digit
          strip and rolls it (source: .bm-h-counter). Static markup below is the
          resting state, so it still reads correctly with JS blocked. -->
-    <span class="pag-pos"><span class="cnt" id="pag-cur"><span class="sr-only" id="pag-cur-a11y">1</span><span class="cnt-d" aria-hidden="true"><span>1</span></span></span>&nbsp;/&nbsp;<span id="pag-tot">3</span></span>
+    <!-- The separator is an ELEMENT rather than a "/" in the text, because it
+         is drawn on the house angle — see THE FRAME COUNTER in style.css. So
+         the whole visible run is aria-hidden and one .sr-only line carries the
+         position instead: "1 / 3" was read aloud as "one slash three", which
+         is not what the counter says. main.js keeps this line in step. -->
+    <span class="pag-pos"><span class="sr-only" id="pag-cur-a11y">Кадър 1 от 3</span><span class="cnt" id="pag-cur" aria-hidden="true"><span class="cnt-d"><span>1</span></span></span><i class="pag-sep" aria-hidden="true"></i><span class="pag-tot" id="pag-tot" aria-hidden="true">3</span></span>
     <input class="pag-range" id="pag-range" type="range" min="1" max="3" value="1" step="1" aria-label="Кадър">
     <button class="btn btn--s btn--tertiary pag-btn" id="pag-prev" aria-label="Предишен">
       <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-l"/></svg>
@@ -253,14 +376,21 @@
         <div class="grad grad--t" aria-hidden="true"></div>
         <div class="grad grad--b" aria-hidden="true"></div>
       </div>
+      <!-- HEADLINE AND ACTIONS ONLY.
+           A paragraph of copy used to sit under every one of these headlines
+           — "87 подбрани автомобила под един покрив…", and one each on the
+           two frames below. All three are gone, and the reason is the same
+           reason the source carries almost no copy over its own hero: a
+           1344x702 photograph of the building is the argument, and a
+           sentence laid over it is a second one competing with the first.
+           What is left is a name, a way in and a way to ask. -->
       <div class="stage-content">
         <div class="stage-text">
           <h1 class="h3">AutoHaus Пловдив</h1>
-          <p class="body-s"><b data-count="all">87</b> подбрани автомобила под един покрив. Всеки може да бъде видян, изкаран и проверен днес.</p>
         </div>
         <div class="btn-group btn-group--stage">
-          <a class="btn btn--l btn--primary" href="#avtomobili"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg><span class="btn__label">Виж колекцията</span></a>
-          <a class="btn btn--l btn--secondary" href="concierge.html"><span class="btn__label">Concierge</span></a>
+          <a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg><span class="btn__label">Виж колекцията</span></a>
+          <a class="btn btn--l btn--secondary" href="concierge.html"><span class="btn__label">Консиерж</span></a>
         </div>
       </div>
     </div></div>
@@ -277,11 +407,10 @@
       <div class="stage-content">
         <div class="stage-text">
           <h2 class="h3">Един стандарт, 87 пъти</h2>
-          <p class="body-s">Проверка на произход и история, механична подготовка в собствен сервиз, Auto Spa. Един и същ път за всеки автомобил, преди да влезе във витрината.</p>
         </div>
         <div class="btn-group btn-group--stage">
-          <a class="btn btn--l btn--primary" href="index.html#uslugi"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg><span class="btn__label">Как работим</span></a>
-          <a class="btn btn--l btn--secondary" href="#avtomobili"><span class="btn__label">Цялата колекция</span></a>
+          <a class="btn btn--l btn--primary" href="index.html#razdeli"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg><span class="btn__label">Как работим</span></a>
+          <a class="btn btn--l btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Цялата колекция</span></a>
         </div>
       </div>
     </div></div>
@@ -298,11 +427,10 @@
       <div class="stage-content">
         <div class="stage-text">
           <h2 class="h3">Достъп, а не обяви</h2>
-          <p class="body-s">Голяма част от това, което продаваме, никога не е стояло във витрината — намерено е по поръчка в Германия и Австрия, с доклад преди плащане.</p>
         </div>
         <div class="btn-group btn-group--stage">
           <a class="btn btn--l btn--primary" href="concierge.html?intent=source"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg><span class="btn__label">Заявка за търсене</span></a>
-          <a class="btn btn--l btn--secondary" href="#avtomobili"><span class="btn__label">Цялата колекция</span></a>
+          <a class="btn btn--l btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Цялата колекция</span></a>
         </div>
       </div>
     </div></div>
@@ -341,9 +469,13 @@
   <section class="csec grid pale" id="avtomobili">
     <div class="csec__head" data-reveal>
       <h2 class="csec__h">Колекцията</h2>
-      <a class="csec__all" href="#avtomobili">Целият каталог</a>
+      <!-- `href` stays a real link to this section so a middle-click, a
+           crawler and a JS-off render all still have somewhere to go;
+           [data-catalog] is what makes a plain click open the collection
+           layer over the page instead of jumping to the heading the reader
+           is already looking at, which is all the bare hash ever did. -->
+      <a class="csec__all" href="#avtomobili" data-catalog>Целият каталог</a>
     </div>
-    <p class="csec__sub">Осемдесет и седем автомобила в наличност в Пловдив — от фабрично брониран транспорт и Maybach до AMG, Porsche и G-класа.</p>
 
     <div class="fbar2" id="pv-bar" role="group" aria-label="Филтри"></div>
 
@@ -368,34 +500,146 @@
        own job (the pill row and the drawer answer "which kind of car" far
        better than seven cards can), so the band answers the other half of the
        question instead: what AutoHaus does once the car is chosen. Four cards,
-       and each one is a service the showroom actually performs.
+       and each one is a room in the building rather than a proposition:
+       AutoSpa, the workshop, the finance desk, the cafe bar. Someone who has
+       driven to Пловдив has stood in all four.
 
-       Two of them carry the ids the rest of the site already links to —
+       "Внос по поръчка" and "Изкупуване и бартер" used to be cards three and
+       four. Both are still offered and both are still reachable — the hero's
+       "Заявка за търсене" and the concierge's own intent step ask for exactly
+       those two things — but neither is a place you can walk into, which is
+       what this band is now for.
+
+       Two cards carry the ids the rest of the site already links to —
        #lizing from every header and footer, #care from three footers — so the
-       leasing calculator and the Auto Spa entry moved in here with them rather
-       than being deleted with the bands they used to live in. main.js opens
-       the matching card when one of those links lands. -->
+       leasing calculator and the AutoSpa entry keep the anchors they had.
+       main.js opens the matching card when one of those links lands. -->
   <section class="wall" id="razdeli">
     <div class="wall-scroll" id="wall-scroll" style="--n:4">
 
-      <div class="wcard-item" id="lizing" style="--i:0">
+      <!-- 1. AUTOSPA — id="care", because three footers link to #care and
+           main.js opens the matching card when one of those links lands. -->
+      <div class="wcard-item" id="care" style="--i:0">
         <div class="wcard">
-          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_coffeebar-320.webp 320w, img/autohaus_coffeebar-768.webp 768w, img/autohaus_coffeebar-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/autohaus_coffeebar-768.jpg" srcset="img/autohaus_coffeebar-320.jpg 320w, img/autohaus_coffeebar-768.jpg 768w, img/autohaus_coffeebar-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Терасата на AutoHaus при залез"></picture></span>
+          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_autospa-400.webp 400w, img/autohaus_autospa-800.webp 800w, img/autohaus_autospa-1080.webp 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/autohaus_autospa-800.jpg" srcset="img/autohaus_autospa-400.jpg 400w, img/autohaus_autospa-800.jpg 800w, img/autohaus_autospa-1080.jpg 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил пред входа на AutoSpa в базата на AutoHaus"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label">От 6.9% годишно</span>
-            <a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h">Лизинг</span></a>
-            <span class="body-s wcard-body">20% първоначална вноска, срок до 60 месеца. Сметката е насреща.</span>
+            <span class="wcard-label">Собствено ателие</span>
+            <a class="wcard-anchor" href="#cw-care" aria-expanded="false" aria-controls="cw-care"><span class="h6 wcard-h">AutoSpa</span></a>
+            <span class="body-s wcard-body">Ръчно измиване, детайлинг, полиране и защита — на място в базата.</span>
           </span>
         </div>
-        <div class="wcard-panel" id="cw-lizing" role="group" aria-label="Лизинг">
+        <div class="wcard-panel" id="cw-care" role="group" aria-label="AutoSpa">
           <div class="wcard-panel-in">
             <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
             <div class="wcard-scroll">
-              <h3 class="wcard-panel-h">Лизинг</h3>
+              <h3 class="wcard-panel-h">AutoSpa</h3>
               <div class="body-s">
-                <p>От 6.9% годишна лихва, 20% първоначална вноска и срок до 60 месеца. Изберете автомобил и период — вноската се смята веднага.</p>
+                <p>Ръчно измиване, детайлинг, полиране, керамично покритие и защитно фолио — в собствено ателие в базата, не при подизпълнител.</p>
+                <p>Ателието е на разположение и след покупката — за автомобил, купен от нас или не.</p>
               </div>
-              <div class="lz">
+              <ul class="wcard-list">
+                <li>Ръчно измиване и сушене</li>
+                <li>Детайлинг на интериора</li>
+                <li>Полиране и корекция на лака</li>
+                <li>Керамично покритие</li>
+                <li>Защитно фолио</li>
+                <li>Подготовка преди продажба</li>
+              </ul>
+            </div>
+            <div class="btn-group wcard-cta">
+              <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запази час</span></a>
+              <a class="btn btn--s btn--secondary" href="tel:+359884777147"><span class="btn__label">+359 884 777 147</span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. СЕРВИЗ -->
+      <div class="wcard-item" id="servis" style="--i:1">
+        <div class="wcard">
+          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/v/2026-07_1-16-400.webp 400w, img/v/2026-07_1-16-800.webp 800w, img/v/2026-07_1-16-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/v/2026-07_1-16-800.jpg" srcset="img/v/2026-07_1-16-400.jpg 400w, img/v/2026-07_1-16-800.jpg 800w, img/v/2026-07_1-16-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил след механична подготовка пред сервиза"></picture></span>
+          <span class="wcard-text">
+            <span class="wcard-label">Собствен сервиз</span>
+            <a class="wcard-anchor" href="#cw-servis" aria-expanded="false" aria-controls="cw-servis"><span class="h6 wcard-h">Сервиз</span></a>
+            <span class="body-s wcard-body">Диагностика, обслужване и поддръжка — в базата в Пловдив.</span>
+          </span>
+        </div>
+        <div class="wcard-panel" id="cw-servis" role="group" aria-label="Сервиз">
+          <div class="wcard-panel-in">
+            <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
+            <div class="wcard-scroll">
+              <h3 class="wcard-panel-h">Сервиз</h3>
+              <div class="body-s">
+                <p>Компютърна диагностика, планово обслужване, окачване, спирачки, климатик и гуми — в собствен сервиз в базата в Пловдив.</p>
+                <p>Сервизът поема и поддръжката след покупката.</p>
+              </div>
+              <ul class="wcard-list">
+                <li>Компютърна диагностика</li>
+                <li>Планово обслужване</li>
+                <li>Окачване и спирачки</li>
+                <li>Климатик и електроника</li>
+                <li>Гуми и реглаж</li>
+                <li>Подготовка за годишен преглед</li>
+              </ul>
+              <div class="body-s">
+                <p>Час се запазва по телефона или през Консиерж — за автомобил, купен от нас или не.</p>
+              </div>
+            </div>
+            <div class="btn-group wcard-cta">
+              <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запази час</span></a>
+              <a class="btn btn--s btn--secondary" href="tel:+359884777147"><span class="btn__label">+359 884 777 147</span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. ЛИЗИНГ И ЗАСТРАХОВАНЕ — id="lizing", because every header and
+           footer on the site links to #lizing.
+
+           ============================================================
+           PLACEHOLDER CARD.  The owner has not supplied the final leasing
+           and insurance terms yet, so everything provisional on this card
+           is marked `data-tbd` and nothing else is. To make it real:
+
+             1. `.lz` below carries the three leasing constants as data
+                attributes — data-rate (nominal annual, as a decimal),
+                data-deposit (as a decimal) and data-term (default months).
+                main.js reads them from here; there is no number to change
+                in the script.
+             2. Replace the text of each [data-tbd] node with the real
+                figure and DELETE the attribute. The muted italic styling
+                and the "уточнява се" tint come from that attribute alone,
+                so removing it is what makes a line read as confirmed.
+             3. The card face label (.wcard-label) and the two provisional
+                sentences are marked the same way.
+
+           Nothing here invents a rate: the numbers below are the ones the
+           previous build already displayed, kept only so the instrument has
+           something to compute with, and every one of them is flagged.
+           ============================================================ -->
+      <div class="wcard-item" id="lizing" style="--i:2">
+        <div class="wcard">
+          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/v/2026-07_1-11-400.webp 400w, img/v/2026-07_1-11-800.webp 800w, img/v/2026-07_1-11-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/v/2026-07_1-11-800.jpg" srcset="img/v/2026-07_1-11-400.jpg 400w, img/v/2026-07_1-11-800.jpg 800w, img/v/2026-07_1-11-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Mercedes-Maybach GLS пред шоурума на AutoHaus"></picture></span>
+          <span class="wcard-text">
+            <span class="wcard-label" data-tbd>Условия при запитване</span>
+            <a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h">Лизинг и застраховане</span></a>
+            <span class="body-s wcard-body">Финансиране, каско и гражданска отговорност — подготвени на едно място.</span>
+          </span>
+        </div>
+        <div class="wcard-panel" id="cw-lizing" role="group" aria-label="Лизинг и застраховане">
+          <div class="wcard-panel-in">
+            <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
+            <div class="wcard-scroll">
+              <h3 class="wcard-panel-h">Лизинг и застраховане</h3>
+              <div class="body-s">
+                <p>Финансирането и застраховките се уреждат при нас, с партньорски институции. Документите се подготвят на място, заедно с регистрацията.</p>
+              </div>
+
+              <p class="wcard-sub">Лизинг</p>
+              <!-- data-rate / data-deposit / data-term ARE the calculator.
+                   main.js reads them here — change them and the instrument
+                   follows, with no script to edit. -->
+              <div class="lz" data-rate="0.069" data-deposit="0.2" data-term="60">
                 <label class="sr-only" for="lz-car">Автомобил</label>
                 <select id="lz-car"><option value="147000">Porsche 911 Targa 4 GTS — 147 000 €</option></select>
                 <!-- "Срок в месеци", not "Срок": the bare word is the
@@ -410,8 +654,23 @@
                 </div>
                 <p class="lz-out" id="lz-out" role="status" aria-live="polite">≈ 2 323 € / месец</p>
               </div>
+              <dl class="wcard-dl">
+                <div><dt>Лихва</dt><dd data-tbd>6.9% годишно</dd></div>
+                <div><dt>Първоначална вноска</dt><dd data-tbd>от 20%</dd></div>
+                <div><dt>Срок на лизинга</dt><dd data-tbd>до 60 месеца</dd></div>
+                <div><dt>Одобрение</dt><dd data-tbd>до два работни дни</dd></div>
+              </dl>
+
+              <p class="wcard-sub">Застраховане</p>
+              <dl class="wcard-dl">
+                <div><dt>Каско</dt><dd data-tbd>условия при запитване</dd></div>
+                <div><dt>Гражданска отговорност</dt><dd data-tbd>условия при запитване</dd></div>
+                <div><dt>Асистанс</dt><dd data-tbd>условия при запитване</dd></div>
+                <div><dt>Гаранция</dt><dd data-tbd>условия при запитване</dd></div>
+              </dl>
+
               <div class="body-s">
-                <p>Сумата е ориентировъчна и подлежи на одобрение от партньорска лизингова институция. Одобрението отнема до два работни дни, документите се подготвят при нас.</p>
+                <p data-tbd>Показаните условия са примерни и подлежат на потвърждение от партньорска лизингова и застрахователна институция.</p>
               </div>
             </div>
             <div class="btn-group wcard-cta">
@@ -422,84 +681,36 @@
         </div>
       </div>
 
-      <div class="wcard-item" id="care" style="--i:1">
+      <!-- 4. КАФЕ БАР -->
+      <div class="wcard-item" id="cafe" style="--i:3">
         <div class="wcard">
-          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/v/2026-07_1-16-400.webp 400w, img/v/2026-07_1-16-800.webp 800w, img/v/2026-07_1-16-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/v/2026-07_1-16-800.jpg" srcset="img/v/2026-07_1-16-400.jpg 400w, img/v/2026-07_1-16-800.jpg 800w, img/v/2026-07_1-16-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил след детайлинг пред шоурума"></picture></span>
+          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_coffeebar-320.webp 320w, img/autohaus_coffeebar-768.webp 768w, img/autohaus_coffeebar-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/autohaus_coffeebar-768.jpg" srcset="img/autohaus_coffeebar-320.jpg 320w, img/autohaus_coffeebar-768.jpg 768w, img/autohaus_coffeebar-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Терасата на кафе бара на AutoHaus при залез"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label">Собствено ателие</span>
-            <a class="wcard-anchor" href="#cw-care" aria-expanded="false" aria-controls="cw-care"><span class="h6 wcard-h">Auto&nbsp;Spa</span></a>
-            <span class="body-s wcard-body">Детайлинг, полиране и защита. Всеки автомобил минава оттук преди витрината.</span>
+            <span class="wcard-label">На терасата</span>
+            <a class="wcard-anchor" href="#cw-cafe" aria-expanded="false" aria-controls="cw-cafe"><span class="h6 wcard-h">Кафе бар</span></a>
+            <span class="body-s wcard-body">Кафе, закуски и маса за разговора — с изглед към витрината.</span>
           </span>
         </div>
-        <div class="wcard-panel" id="cw-care" role="group" aria-label="Auto Spa">
+        <div class="wcard-panel" id="cw-cafe" role="group" aria-label="Кафе бар">
           <div class="wcard-panel-in">
             <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
             <div class="wcard-scroll">
-              <h3 class="wcard-panel-h">Auto&nbsp;Spa</h3>
+              <h3 class="wcard-panel-h">Кафе бар</h3>
               <div class="body-s">
-                <p>Детайлинг, полиране, керамично покритие и защитно фолио — в собствено ателие, не при подизпълнител.</p>
-                <p>Всеки автомобил в колекцията минава оттук, преди да бъде показан. Същото ателие остава на разположение и след покупката, заедно със сервизната поддръжка, застраховките и регистрацията.</p>
-                <p>Заявка се прави по телефона или през Concierge — за автомобил, купен от нас или не.</p>
+                <p>В повечето шоуруми кафето идва от автомат в ъгъла. Тук е част от сградата — тераса с изглед към витрината, маси навън и вътре.</p>
+                <p>Отворен е за всеки, не само за клиенти. Разговорът за автомобил върви по-добре на маса, отколкото прав до колата — и голяма част от огледите и документите минават именно оттук.</p>
               </div>
+              <ul class="wcard-list">
+                <li>Кафе и напитки</li>
+                <li>Закуски</li>
+                <li>Тераса с изглед</li>
+                <li>Безплатен Wi-Fi</li>
+                <li>Паркинг пред входа</li>
+                <li>Отворено и за гости</li>
+              </ul>
             </div>
             <div class="btn-group wcard-cta">
-              <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запази час</span></a>
-              <a class="btn btn--s btn--secondary" href="tel:+359884777147"><span class="btn__label">+359 884 777 147</span></a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="wcard-item" style="--i:2">
-        <div class="wcard">
-          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/v/2026-07_1-11-400.webp 400w, img/v/2026-07_1-11-800.webp 800w, img/v/2026-07_1-11-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/v/2026-07_1-11-800.jpg" srcset="img/v/2026-07_1-11-400.jpg 400w, img/v/2026-07_1-11-800.jpg 800w, img/v/2026-07_1-11-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Mercedes-Maybach GLS, доставен по поръчка"></picture></span>
-          <span class="wcard-text">
-            <span class="wcard-label">Германия и Австрия</span>
-            <a class="wcard-anchor" href="#cw-import" aria-expanded="false" aria-controls="cw-import"><span class="h6 wcard-h">Внос по поръчка</span></a>
-            <span class="body-s wcard-body">Намираме автомобила, който го няма във витрината — с доклад преди плащане.</span>
-          </span>
-        </div>
-        <div class="wcard-panel" id="cw-import" role="group" aria-label="Внос по поръчка">
-          <div class="wcard-panel-in">
-            <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
-            <div class="wcard-scroll">
-              <h3 class="wcard-panel-h">Внос по поръчка</h3>
-              <div class="body-s">
-                <p>Голяма част от това, което продаваме, никога не е стояло във витрината — намерено е по поръчка в Германия и Австрия.</p>
-                <p>Казвате модел, бюджет и срок. Ние търсим, проверяваме на място и изпращаме доклад със снимки и история — преди да е платено каквото и да било.</p>
-                <p>Транспортът, обмитяването и регистрацията са наша работа. Автомобилът пристига готов за път.</p>
-              </div>
-            </div>
-            <div class="btn-group wcard-cta">
-              <a class="btn btn--s btn--primary" href="concierge.html?intent=source"><span class="btn__label">Заявка за търсене</span></a>
-              <a class="btn btn--s btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Виж наличните</span></a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="wcard-item" style="--i:3">
-        <div class="wcard">
-          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/v/2026-07_1-14-400.webp 400w, img/v/2026-07_1-14-800.webp 800w, img/v/2026-07_1-14-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/v/2026-07_1-14-800.jpg" srcset="img/v/2026-07_1-14-400.jpg 400w, img/v/2026-07_1-14-800.jpg 800w, img/v/2026-07_1-14-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил, приет за изкупуване в AutoHaus"></picture></span>
-          <span class="wcard-text">
-            <span class="wcard-label">Оценка до 24 часа</span>
-            <a class="wcard-anchor" href="#cw-trade" aria-expanded="false" aria-controls="cw-trade"><span class="h6 wcard-h">Изкупуване и бартер</span></a>
-            <span class="body-s wcard-body">Изкупуваме вашия автомобил или го приемаме като част от плащането.</span>
-          </span>
-        </div>
-        <div class="wcard-panel" id="cw-trade" role="group" aria-label="Изкупуване и бартер">
-          <div class="wcard-panel-in">
-            <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
-            <div class="wcard-scroll">
-              <h3 class="wcard-panel-h">Изкупуване и бартер</h3>
-              <div class="body-s">
-                <p>Купуваме автомобила ви направо или го приемаме като част от плащането по друг от колекцията.</p>
-                <p>Изпратете снимки, пробег и история — оценката идва до 24 часа в работни дни. Огледът е в Пловдив и отнема около половин час.</p>
-                <p>Ако сделката е бартер, разликата се доплаща в брой или на лизинг, по избор.</p>
-              </div>
-            </div>
-            <div class="btn-group wcard-cta">
-              <a class="btn btn--s btn--primary" href="concierge.html?intent=trade"><span class="btn__label">Оценка на автомобил</span></a>
+              <a class="btn btn--s btn--primary" href="#kontakt" data-contact><span class="btn__label">Как да стигнете</span></a>
               <a class="btn btn--s btn--secondary" href="tel:+359884777147"><span class="btn__label">+359 884 777 147</span></a>
             </div>
           </div>
@@ -516,24 +727,11 @@
   </section>
 
   <!-- ---------- ARTICLE TEASER 1 — Услуги ---------- -->
-  <section class="teaser" id="uslugi">
-    <div class="teaser-bg"><picture><source type="image/webp" srcset="img/welcome_to_autohaus-768.webp 768w, img/welcome_to_autohaus-1280.webp 1280w, img/welcome_to_autohaus-1920.webp 1920w" sizes="100vw"><img loading="lazy" decoding="async" width="1280" height="800" src="img/welcome_to_autohaus-1280.jpg" srcset="img/welcome_to_autohaus-768.jpg 768w, img/welcome_to_autohaus-1280.jpg 1280w, img/welcome_to_autohaus-1920.jpg 1920w" sizes="100vw" alt="" aria-hidden="true"></picture></div>
-    <div class="grid">
-      <div class="row">
-        <div class="col span-4 teaser-container">
-          <div class="teaser-decor" data-parallax="18" aria-hidden="true"></div>
-          <div class="teaser-content" data-reveal>
-            <p class="teaser-eyebrow">Разгледай</p>
-            <h2 class="teaser-headline">Услуги</h2>
-            <div class="teaser-text"><p>Подбор и внос по поръчка, изкупуване и бартер, застраховки и регистрация, Auto&nbsp;Spa. Всичко около автомобила, на едно място.</p></div>
-            <div class="btn-group">
-              <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg><span class="btn__label">Разгледай</span></a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- "Услуги" stood here: one photograph, the word Услуги, one sentence
+       listing five things, and a button reading "Разгледай". It was a
+       signpost to a place three screens above it — the four service cards
+       ARE the services, and they open in full. Every "Услуги" link on the
+       site now lands on that band directly instead of on a teaser for it. -->
 
   <!-- ---------- CTA TEASER — За AutoHaus ---------- -->
   <!-- source: .bm-m-cta-teaser — two stacked images parallaxing at different rates -->
@@ -548,12 +746,45 @@
             <picture><source type="image/webp" srcset="img/v/2024-02_1-8-400.webp 400w, img/v/2024-02_1-8-800.webp 800w, img/v/2024-02_1-8-1280.webp 1280w" sizes="100vw"><img loading="lazy" decoding="async" width="1280" height="800" src="img/v/2024-02_1-8-800.jpg" srcset="img/v/2024-02_1-8-400.jpg 400w, img/v/2024-02_1-8-800.jpg 800w, img/v/2024-02_1-8-1280.jpg 1280w" sizes="100vw" alt="Mercedes-Benz 420 SEL, 1991 — класиката в AutoHaus"></picture>
           </div>
         </div>
+        <!-- ЗА AUTOHAUS.
+             What stood here was two sentences and two buttons — "Разгледай"
+             and "Запази оглед" — which is a section about the company that
+             told you almost nothing about the company and then asked you
+             for something twice.
+
+             It is an ACCOUNT now, not an invitation. Everything AutoHaus
+             does is named once, in the order somebody actually meets it:
+             the cars on the floor, the ones found to order, the money, the
+             cover, the workshop, the AutoSpa, the part-exchange, the room
+             you sit in. Nothing here asks the reader to act — the two
+             links go to the collection and to the departments, which is
+             where somebody who wants to do something is already heading,
+             and somebody who wants to keep reading is left alone.
+
+             The register is the whole point: a visitor who can find out
+             everything the company does, in ninety seconds, without being
+             pushed, is a visitor who can decide. That is why the copy
+             states capabilities and never urgency. -->
         <div class="col offset-1 span-5 cta-text" data-reveal>
           <h2 class="h4">За AutoHaus</h2>
-          <div class="body-s"><p>Всяка кола минава един и същ път — проверка, подготовка, Auto&nbsp;Spa, витрина — и всяка тръгва с проверен произход и пълна сервизна история. В салона има кафе бар, отворен за всички: елате за еспресо и разгледайте без никакъв натиск.</p></div>
+          <div class="body-s">
+            <p>AutoHaus е комплекс в Пловдив, на Асеновградско шосе, и работи с
+              автомобили от горния клас — в наличност на място и по поръчка.</p>
+            <p>Във витрината стоят автомобилите в наличност. Ако търсеният не е сред
+              тях, той се издирва и внася — марка, оборудване, състояние и бюджет
+              се уточняват предварително. Приемаме автомобил и насрещно, за
+              изкупуване или като част от плащането.</p>
+            <p>Финансирането и застраховането се уреждат на място, с партньорски
+              институции; одобрението остава тяхно решение. В базата са и
+              собственият сервиз — диагностика и обслужване — и AutoSpa за
+              измиване, детайлинг и защита на лака. И двата остават на
+              разположение и след покупката.</p>
+            <p>Кафе барът на терасата е отворен и за хора, които просто минават.
+              Разговорът за автомобил върви по-добре на маса.</p>
+          </div>
           <div class="btn-group">
-            <a class="btn btn--s btn--primary" href="#kontakt"><span class="btn__label">Разгледай</span></a>
-            <a class="btn btn--s btn--secondary" href="concierge.html?visit=1"><span class="btn__label">Запази оглед</span></a>
+            <a class="btn btn--s btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Колекцията</span></a>
+            <a class="btn btn--s btn--secondary" href="#razdeli"><span class="btn__label">Отделите</span></a>
           </div>
         </div>
       </div>
@@ -566,59 +797,59 @@
 <!-- ==================== FOOTER ==================== -->
 <footer class="ft shw-behind" id="kontakt">
   <div class="grid">
+    <!-- THE FOOTER, SUBTRACTED.
+         It carried five blocks: two loose link pairs either side of the
+         wordmark (Новини, Калкулатор, Намерете ни, Запази оглед), four
+         columns, a meta row and a financing footnote. Of those, "Новини"
+         was a mailto with a subject line and no newsletter behind it,
+         "Калкулатор" and "Намерете ни" were third and second copies of
+         links already in the columns, and "Запази оглед" was a fourth way
+         into the concierge on a page that already had three.
+
+         The two inventory columns went with them. "Автомобили" listed one
+         car by name — which dates the moment it sells — and four chapter
+         links the catalogue's own filter row does better; "Вашият AutoHaus"
+         listed five services the service carousel three screens above
+         already opens in full. A footer that repeats the page is not a
+         footer, it is a second page nobody reads.
+
+         What is left is what a footer is actually for: how to reach the
+         building, where to follow it, and the documents. -->
     <div class="row">
       <div class="col span-12 ft-top">
-        <div class="ft-main">
-          <div class="ft-main-sec">
-            <a href="mailto:autohausbg@gmail.com?subject=Новини от AutoHaus">Новини</a>
-            <a href="#lizing">Калкулатор</a>
-          </div>
-          <a class="ft-logo" href="#top" aria-label="AutoHaus — начало">
-            <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
-          </a>
-          <div class="ft-main-sec">
-            <a href="https://maps.google.com/?q=ул.+Нестор+Абаджиев+24,+Пловдив" target="_blank" rel="noopener">Намерете ни</a>
-            <a href="concierge.html?visit=1">Запази оглед</a>
-          </div>
-        </div>
-        <ul class="social social--foot" aria-label="AutoHaus в социалните мрежи">
-          <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
-          <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
-        </ul>
+        <a class="ft-logo" href="#top" aria-label="AutoHaus — начало">
+          <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
+        </a>
       </div>
     </div>
 
     <div class="row">
       <div class="col offset-1 span-10 ft-cols">
-        <nav class="ft-col" aria-label="Автомобили">
-          <p class="ft-h">Автомобили</p>
-          <a href="#avtomobili">Всички <b data-count="all">87</b> в наличност</a>
-          <a href="vehicle.html?id=911-targa-4-gts">Porsche 911 Targa 4 GTS</a>
-          <a href="index.html?chapter=chauffeur">Представителен клас</a>
-          <a href="index.html?chapter=performance">Performance</a>
-          <a href="index.html?chapter=utility">Терен</a>
-        </nav>
-        <nav class="ft-col" aria-label="Вашият AutoHaus">
-          <p class="ft-h">Вашият AutoHaus</p>
-          <a href="#lizing">Лизинг от 6.9%</a>
-          <a href="concierge.html?intent=source">Внос по поръчка</a>
-          <a href="concierge.html?intent=trade">Изкупуване и бартер</a>
-          <a href="#uslugi">Застраховки и регистрация</a>
-          <a href="#care">Auto Spa и детайлинг</a>
-        </nav>
         <nav class="ft-col" aria-label="Контакт">
           <p class="ft-h">Контакт</p>
-          <a href="https://maps.google.com/?q=ул.+Нестор+Абаджиев+24,+Пловдив" target="_blank" rel="noopener">ул. „Нестор Абаджиев“ №24, Пловдив</a>
+          <!-- [data-contact] opens the contact panel over whatever page the
+               reader is on; the href is the no-JS floor and lands here, in
+               this column, which is why the address and the office line are
+               still printed rather than only living in the panel. -->
+          <a href="#kontakt" data-contact>ул. „Нестор Абаджиев“ №24, 4023 Пловдив</a>
           <a href="tel:+359884777147">+359 884 777 147</a>
           <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
-          <span>Пон – Пет 09:00 – 18:00</span>
+          <span>Пон – Пет · 09:00 – 18:00</span>
+          <a href="#kontakt" data-contact>Всички телефони и картата</a>
+        </nav>
+        <nav class="ft-col" aria-label="Последвайте ни">
+          <p class="ft-h">Последвайте ни</p>
+          <ul class="ft-social">
+            <li><a href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg>Facebook</a></li>
+            <li><a href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg>Instagram</a></li>
+          </ul>
         </nav>
         <nav class="ft-col" aria-label="Правни">
           <p class="ft-h">Правни</p>
           <a href="legal.html#privacy">Политика за поверителност</a>
           <a href="legal.html#cookies">Политика за бисквитки</a>
           <a href="legal.html#terms">Общи условия</a>
-          <a href="legal.html#gdpr">Вашите права по GDPR</a>
+          <a href="legal.html#imprint">Фирмени данни</a>
         </nav>
       </div>
     </div>
@@ -630,13 +861,8 @@
           <li><a href="legal.html#privacy">Поверителност</a></li>
           <li><a href="legal.html#cookies">Бисквитки</a></li>
           <li><a href="legal.html#terms">Общи условия</a></li>
+          <li><a href="legal.html#imprint">Фирмени данни</a></li>
         </ul>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col span-12">
-        <p class="ft-reg">Обявените цени са крайни. Лизинг от 6.9% годишно при 20% първоначална вноска и срок до 60 месеца; месечната вноска е ориентировъчна и подлежи на одобрение от партньорска лизингова институция. Автомобил се запазва за 48 часа след капаро. Възможен бартер с вашия автомобил.</p>
       </div>
     </div>
   </div>

@@ -97,22 +97,24 @@
     "Пълно досие": "Full dossier",
     "Стъпка": "Step",
     "Език / Language": "Language",
+    /* THE WORD ITSELF.  The source language of this site is Bulgarian, so
+       what is written in the markup IS the Bulgarian — and for a long time
+       the markup said "Concierge", which meant the one page named after a
+       person sitting down with you was the one thing on the site that never
+       spoke Bulgarian. The pages now say Консиерж and this table carries it
+       back the other way. */
+    "Консиерж": "Concierge",
+    "AutoHaus Консиерж": "AutoHaus Concierge",
 
     /* ---- the hero ---- */
     "AutoHaus Пловдив": "AutoHaus Plovdiv",
     "AutoHaus · Пловдив": "AutoHaus · Plovdiv",
     "Автомобили в наличност": "Vehicles in stock",
-    "подбрани автомобила под един покрив. Всеки може да бъде видян, изкаран и проверен днес.":
-      "selected vehicles under one roof. Every one of them can be seen, driven and inspected today.",
     "Виж колекцията": "See the collection",
     "Един стандарт, 87 пъти": "One standard, 87 times",
-    "Проверка на произход и история, механична подготовка в собствен сервиз, Auto Spa. Един и същ път за всеки автомобил, преди да влезе във витрината.":
-      "Provenance and service-history checks, mechanical preparation in our own workshop, Auto Spa. The same route for every car before it reaches the showroom floor.",
     "Как работим": "How we work",
     "Цялата колекция": "The whole collection",
     "Достъп, а не обяви": "Access, not listings",
-    "Голяма част от това, което продаваме, никога не е стояло във витрината — намерено е по поръчка в Германия и Австрия, с доклад преди плащане.":
-      "Much of what we sell has never stood in the showroom — it was sourced to order in Germany and Austria, with a report before any money moves.",
     "Заявка за търсене": "Request a search",
     "Шоурумът на AutoHaus в Пловдив по здрач, с осветена фасада":
       "The AutoHaus showroom in Plovdiv at dusk, its facade lit",
@@ -131,8 +133,6 @@
     "Колекцията": "The collection",
     "Колекцията на AutoHaus": "The AutoHaus collection",
     "Целият каталог": "The full catalogue",
-    "Осемдесет и седем автомобила в наличност в Пловдив — от фабрично брониран транспорт и Maybach до AMG, Porsche и G-класа.":
-      "Eighty-seven vehicles in stock in Plovdiv — from factory-armoured transport and Maybach to AMG, Porsche and the G-Class.",
     "автомобила в наличност": "vehicles in stock",
     "в наличност": "in stock",
     "Подредба": "Sort",
@@ -267,51 +267,163 @@
     "марки": "marques",
     "Друга марка": "Another marque",
 
-    /* ---- the service wall ---- */
-    "От 6.9% годишно": "From 6.9% a year",
-    "20% първоначална вноска, срок до 60 месеца. Сметката е насреща.":
-      "20% deposit, terms up to 60 months. The maths is right here.",
-    "От 6.9% годишна лихва, 20% първоначална вноска и срок до 60 месеца. Изберете автомобил и период — вноската се смята веднага.":
-      "From 6.9% annual interest, a 20% deposit and terms up to 60 months. Pick a car and a term — the payment is calculated as you go.",
-    "Сумата е ориентировъчна и подлежи на одобрение от партньорска лизингова институция. Одобрението отнема до два работни дни, документите се подготвят при нас.":
-      "The figure is indicative and subject to approval by a partner leasing institution. Approval takes up to two working days; the paperwork is prepared here.",
+    "Ателието е на разположение и след покупката — за автомобил, купен от нас или не.":
+      "The studio is available after the purchase too — for a car bought from us or not.",
+    "Сервизът поема и поддръжката след покупката.":
+      "The workshop takes on the maintenance after the purchase as well.",
+    "AutoHaus Пловдив · Асеновградско шосе": "AutoHaus Plovdiv · Asenovgradsko Shose",
+    "Опишете я накратко — марка, година, пробег и състояние. Ако е на лизинг, посочете го.":
+      "Describe it briefly — marque, year, mileage and condition. If it is on finance, say so.",
+    "Заявката е пълна и стига до екипа на AutoHaus.":
+      "The enquiry is complete and reaches the AutoHaus team.",
+    "Заявката стига до екипа на AutoHaus в Пловдив.":
+      "The enquiry reaches the AutoHaus team in Plovdiv.",
+    /* ---- За AutoHaus ---- */
+    "AutoHaus е комплекс в Пловдив, на Асеновградско шосе, и работи с автомобили от горния клас — в наличност на място и по поръчка.":
+      "AutoHaus is a complex in Plovdiv, on Asenovgradsko Shose, working with upper-segment cars — in stock on site and sourced to order.",
+    "Във витрината стоят автомобилите в наличност. Ако търсеният не е сред тях, той се издирва и внася — марка, оборудване, състояние и бюджет се уточняват предварително. Приемаме автомобил и насрещно, за изкупуване или като част от плащането.":
+      "On the showroom floor are the cars in stock. If the one you are after is not among them, it is sourced and imported — marque, equipment, condition and budget agreed beforehand. We also take a car the other way, outright or against the purchase.",
+    "Финансирането и застраховането се уреждат на място, с партньорски институции; одобрението остава тяхно решение. В базата са и собственият сервиз — диагностика и обслужване — и AutoSpa за измиване, детайлинг и защита на лака. И двата остават на разположение и след покупката.":
+      "Finance and insurance are arranged on site, with partner institutions; approval remains their decision. The site also holds our own workshop — diagnostics and servicing — and AutoSpa for washing, detailing and paint protection. Both stay available after the purchase.",
+    "Кафе барът на терасата е отворен и за хора, които просто минават. Разговорът за автомобил върви по-добре на маса.":
+      "The cafe bar on the terrace is open to people simply passing by. A conversation about a car goes better at a table.",
+    "Отделите": "The departments",
+
+    /* ---- the vehicle dossier: the listing's own eight rows and its notes ----
+       These are the labels autohaus.bg prints, in its order. The month names
+       and the euro figure go through RULES below, because they carry values. */
+    "Спецификация": "Specification",
+    "Оборудване": "Equipment",
+    "Регистрация": "Registration",
+    "Тип двигател": "Engine",
+    "Трансмисия": "Transmission",
+    "Без първа регистрация": "Not first registered",
+    "Цена без начислен 20% ДДС": "Price excludes 20% VAT",
+    "Възможен лизинг": "Leasing available",
+    "Възможен бартер": "Part-exchange available",
+    "Фабрично нов автомобил": "Factory new",
+    "Сертификат N1 за товарен автомобил": "N1 goods-vehicle certificate",
+    "Автомобилът е цялостно облепен в предпазно фолио с матиращ ефект":
+      "Fully wrapped in matte protective film",
+    "Добавена е спортна изпускателна система MILLTEK Sport":
+      "MILLTEK Sport exhaust system fitted",
+    "Автомобилът е с електроника и компоненти за повишаване на мощността до 800 к.с.":
+      "Electronics and components taking output to 800 hp",
+    "Добавен екстериорен пакет от G63 AMG": "G63 AMG exterior package fitted",
+    "Цената на този автомобил се съобщава при запитване.":
+      "The price of this vehicle is given on request.",
+
+    /* ---- the contact panel ----
+       Six departments, an address and a map. The address is transliterated
+       rather than translated: a street name is how a courier finds the
+       building, and "Nestor Abadzhiev" is what is written on it. */
+    "Карта до AutoHaus Пловдив": "Map to AutoHaus Plovdiv",
+    "Отвори в Google Maps": "Open in Google Maps",
+    "ул. „Нестор Абаджиев“ №24": "24 Nestor Abadzhiev Street",
+    "Асеновградско шосе": "Asenovgradsko Shose",
+    "4023 Пловдив, България": "4023 Plovdiv, Bulgaria",
+    "ул. „Нестор Абаджиев“ №24, 4023 Пловдив": "24 Nestor Abadzhiev Street, 4023 Plovdiv",
+    "ЕИК 200771286 · ДДС BG200771286": "Company No. 200771286 · VAT BG200771286",
+    "Офис": "Office",
+    "Продажби": "Sales",
+    "Щети": "Claims",
+    "ГТП": "Annual test",
+    "Пон – Пет · 09:00 – 18:00": "Mon – Fri · 09:00 – 18:00",
+    "Пон – Нед · 08:00 – 20:00": "Mon – Sun · 08:00 – 20:00",
+    "Всички телефони и картата": "All numbers and the map",
+    "Последвайте ни": "Follow us",
+    "Фирмени данни": "Company information",
+
+    /* ---- the service wall — the four rooms ----
+       Card three is provisional: the owner has not supplied the final
+       leasing and insurance terms, so every figure on it is marked
+       [data-tbd] in index.html and every one of them is a key here.
+       Replacing a figure means replacing one line in each file. */
     "Собствено ателие": "Our own studio",
+    "AutoSpa": "AutoSpa",
     "Auto Spa": "Auto Spa",
-    "Детайлинг, полиране и защита. Всеки автомобил минава оттук преди витрината.":
-      "Detailing, polishing and protection. Every car passes through here before the showroom floor.",
-    "Детайлинг, полиране, керамично покритие и защитно фолио — в собствено ателие, не при подизпълнител.":
-      "Detailing, polishing, ceramic coating and paint protection film — in our own studio, not at a subcontractor.",
-    "Всеки автомобил в колекцията минава оттук, преди да бъде показан. Същото ателие остава на разположение и след покупката, заедно със сервизната поддръжка, застраховките и регистрацията.":
-      "Every car in the collection passes through here before it is shown. The same studio stays available after the purchase, along with servicing, insurance and registration.",
-    "Заявка се прави по телефона или през Concierge — за автомобил, купен от нас или не.":
-      "Book by phone or through Concierge — for a car bought from us or not.",
+    "Ръчно измиване, детайлинг, полиране и защита — на място в базата.":
+      "Hand washing, detailing, polishing and protection — on site.",
+    "Ръчно измиване, детайлинг, полиране, керамично покритие и защитно фолио — в собствено ателие в базата, не при подизпълнител.":
+      "Hand washing, detailing, polishing, ceramic coating and paint protection film — in our own studio on site, not at a subcontractor.",
+    "Всеки автомобил от колекцията минава оттук, преди да бъде показан. Ателието остава на разположение и след покупката — за автомобил, купен от нас или не.":
+      "Every car in the collection passes through here before it is shown. The studio stays available after the purchase too — for a car bought from us or not.",
+    "Ръчно измиване и сушене": "Hand washing and drying",
+    "Детайлинг на интериора": "Interior detailing",
+    "Полиране и корекция на лака": "Polishing and paint correction",
+    "Керамично покритие": "Ceramic coating",
+    "Защитно фолио": "Paint protection film",
+    "Подготовка преди продажба": "Pre-sale preparation",
+    "Автомобил пред входа на AutoSpa в базата на AutoHaus":
+      "A car at the AutoSpa entrance on the AutoHaus site",
     "Запази час": "Book a slot",
-    "Германия и Австрия": "Germany and Austria",
+
+    "Собствен сервиз": "Our own workshop",
+    "Сервиз": "Service",
+    "Диагностика, обслужване и поддръжка — в базата в Пловдив.":
+      "Diagnostics, servicing and maintenance — on site in Plovdiv.",
+    "Компютърна диагностика, планово обслужване, окачване, спирачки, климатик и гуми — в собствен сервиз в базата в Пловдив.":
+      "Computer diagnostics, scheduled servicing, suspension, brakes, air conditioning and tyres — in our own workshop on site in Plovdiv.",
+    "Всеки автомобил минава пълна механична подготовка, преди да влезе във витрината. Същият сервиз поема и поддръжката след покупката.":
+      "Every car goes through full mechanical preparation before it reaches the showroom floor. The same workshop takes on the maintenance after the purchase.",
+    "Компютърна диагностика": "Computer diagnostics",
+    "Планово обслужване": "Scheduled servicing",
+    "Окачване и спирачки": "Suspension and brakes",
+    "Климатик и електроника": "Air conditioning and electronics",
+    "Гуми и реглаж": "Tyres and alignment",
+    "Подготовка за годишен преглед": "Preparation for the annual test",
+    "Час се запазва по телефона или през Консиерж — за автомобил, купен от нас или не.":
+      "Book by phone or through the Concierge — for a car bought from us or not.",
+    "Автомобил след механична подготовка пред сервиза":
+      "A car outside the workshop after mechanical preparation",
+
+    "Условия при запитване": "Terms on request",
+    "Лизинг и застраховане": "Leasing and insurance",
+    "Финансиране, каско и гражданска отговорност — подготвени на едно място.":
+      "Finance, comprehensive and third-party cover — arranged in one place.",
+    "Финансирането и застраховките се уреждат при нас, с партньорски институции. Документите се подготвят на място, заедно с регистрацията.":
+      "Finance and insurance are arranged here, with partner institutions. The paperwork is prepared on site, along with the registration.",
+    "Застраховане": "Insurance",
+    "Лихва": "Interest",
+    "6.9% годишно": "6.9% a year",
+    "Първоначална вноска": "Deposit",
+    "от 20%": "from 20%",
+    /* NOT "Срок". That bare word is the concierge's delivery-timescale
+       question further down this table, and one key cannot be both. */
+    "Срок на лизинга": "Leasing term",
+    "до 60 месеца": "up to 60 months",
+    "Одобрение": "Approval",
+    "до два работни дни": "up to two working days",
+    "Каско": "Comprehensive cover",
+    "Гражданска отговорност": "Third-party liability",
+    "Асистанс": "Roadside assistance",
+    "Гаранция": "Warranty",
+    "условия при запитване": "terms on request",
+    "Показаните условия са примерни и подлежат на потвърждение от партньорска лизингова и застрахователна институция.":
+      "The terms shown are indicative and subject to confirmation by a partner leasing and insurance institution.",
+    "Mercedes-Maybach GLS пред шоурума на AutoHaus":
+      "Mercedes-Maybach GLS outside the AutoHaus showroom",
+
+    "На терасата": "On the terrace",
+    "Кафе, закуски и маса за разговора — с изглед към витрината.":
+      "Coffee, something to eat and a table for the conversation — overlooking the showroom floor.",
+    "В повечето шоуруми кафето идва от автомат в ъгъла. Тук е част от сградата — тераса с изглед към витрината, маси навън и вътре.":
+      "In most showrooms the coffee comes from a machine in the corner. Here it is part of the building — a terrace overlooking the showroom floor, tables outside and in.",
+    "Отворен е за всеки, не само за клиенти. Разговорът за автомобил върви по-добре на маса, отколкото прав до колата — и голяма част от огледите и документите минават именно оттук.":
+      "It is open to everyone, not only to customers. A conversation about a car goes better at a table than standing beside one — and a good deal of the viewings and the paperwork happen right here.",
+    "Кафе и напитки": "Coffee and drinks",
+    "Закуски": "Something to eat",
+    "Тераса с изглед": "A terrace with a view",
+    "Безплатен Wi-Fi": "Free Wi-Fi",
+    "Паркинг пред входа": "Parking at the door",
+    "Отворено и за гости": "Open to visitors too",
+    "Как да стигнете": "How to find us",
+    "Терасата на кафе бара на AutoHaus при залез":
+      "The AutoHaus cafe bar terrace at sunset",
+
     "Внос по поръчка": "Sourcing to order",
-    "Намираме автомобила, който го няма във витрината — с доклад преди плащане.":
-      "We find the car that is not on the floor — with a report before any payment.",
-    "Голяма част от това, което продаваме, никога не е стояло във витрината — намерено е по поръчка в Германия и Австрия.":
-      "Much of what we sell has never stood in the showroom — it was sourced to order in Germany and Austria.",
-    "Казвате модел, бюджет и срок. Ние търсим, проверяваме на място и изпращаме доклад със снимки и история — преди да е платено каквото и да било.":
-      "You name the model, the budget and the timescale. We search, inspect in person and send a report with photographs and history — before anything is paid.",
-    "Транспортът, обмитяването и регистрацията са наша работа. Автомобилът пристига готов за път.":
-      "Transport, customs and registration are our job. The car arrives ready for the road.",
-    "Виж наличните": "See what's in stock",
-    "Оценка до 24 часа": "Valued within 24 hours",
     "Изкупуване и бартер": "Buying and part-exchange",
-    "Изкупуваме вашия автомобил или го приемаме като част от плащането.":
-      "We buy your car outright, or take it as part of the payment.",
-    "Купуваме автомобила ви направо или го приемаме като част от плащането по друг от колекцията.":
-      "We buy your car outright, or take it against another from the collection.",
-    "Изпратете снимки, пробег и история — оценката идва до 24 часа в работни дни. Огледът е в Пловдив и отнема около половин час.":
-      "Send photographs, mileage and history — a valuation follows within 24 hours on working days. The inspection is in Plovdiv and takes about half an hour.",
-    "Ако сделката е бартер, разликата се доплаща в брой или на лизинг, по избор.":
-      "On a part-exchange the difference is settled in cash or on finance, as you prefer.",
-    "Оценка на автомобил": "Value my car",
-    "Автомобил след детайлинг пред шоурума": "A car after detailing, outside the showroom",
-    "Mercedes-Maybach GLS, доставен по поръчка": "Mercedes-Maybach GLS, sourced to order",
-    "Автомобил, приет за изкупуване в AutoHaus": "A car taken in part-exchange at AutoHaus",
-    "Терасата на AutoHaus при залез": "The AutoHaus terrace at sunset",
+
     "AMG, RS, Turbo S, GT. Автомобили, които се избират с ушите.":
       "AMG, RS, Turbo S, GT. Cars chosen with your ears.",
     "G-класа, Land Cruiser, Range Rover. Построени да не се извиняват.":
@@ -501,7 +613,7 @@
     "Седнете за момент.": "Take a seat.",
     "Няколко въпроса, около две минути. Толкова, колкото да разберем какво търсите — и да го намерим вместо Вас.":
       "A few questions, about two minutes. Just enough for us to understand what you are looking for — and to go and find it for you.",
-    "Concierge · AutoHaus Пловдив": "Concierge · AutoHaus Plovdiv",
+    "Консиерж · AutoHaus Пловдив": "Concierge · AutoHaus Plovdiv",
     "Хода на разговора": "The shape of the conversation",
     "Отговор до 24 часа в работни дни": "An answer within 24 hours on working days",
     "Дотук": "So far",
@@ -565,7 +677,7 @@
     ". Изберете как да стигне до нас — текстът вече е попълнен.":
       ". Choose how it should reach us — the text is already written for you.",
 
-    "AutoHaus Concierge — заявка за автомобил": "AutoHaus Concierge — vehicle enquiry",
+    "AutoHaus Консиерж — заявка за автомобил": "AutoHaus Concierge — vehicle enquiry",
     "Кажете ни какво търсите.": "Tell us what you are looking for.",
     "Няколко въпроса, около две минути. Заявките с описан автомобил, бюджет и срок се разглеждат лично от Иван Манев и получават отговор до 24 часа в работни дни.":
       "A few questions, about two minutes. Enquiries that describe the car, the budget and the timescale are reviewed personally by Ivan Manev and answered within 24 hours on working days.",
@@ -753,6 +865,22 @@
   function UNIT(u) { return UNITS[u] || u; }
 
   var RULES = [
+    /* the hero counter's screen-reader line. The visible "1 / 3" is
+       aria-hidden — its separator is drawn on the house angle rather than
+       typed — so this sentence is the whole of what a screen reader gets,
+       and main.js rewrites it on every frame change. */
+    [/^Кадър (\d+) от (\d+)$/, "Frame $1 of $2"],
+    /* the dossier's registration row — the listing writes the month as a
+       Bulgarian word, so it is a rule and not 12 table entries */
+    [/^(януари|февруари|март|април|май|юни|юли|август|септември|октомври|ноември|декември) (\d{4}) г\.$/,
+      function (m, mo, y) {
+        var EN = {"януари":"January","февруари":"February","март":"March",
+                  "април":"April","май":"May","юни":"June","юли":"July",
+                  "август":"August","септември":"September","октомври":"October",
+                  "ноември":"November","декември":"December"};
+        return EN[mo] + " " + y;
+      }],
+    [/^([\d\s ]+) евро$/, "€ $1"],
     [/^Виж всички (\d[\d\s ]*) автомобила$/, "See all $1 vehicles"],
     [/^Виж всички (\d[\d\s ]*) (?:кадъра|кадър)$/, "See all $1 frames"],
     [/^Виж (\d[\d\s ]*) автомобила$/, "See $1 vehicles"],

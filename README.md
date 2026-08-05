@@ -18,6 +18,8 @@ vehicle.js        dossier rendering, gallery, leasing
 concierge.js      the step flow, matching, brief assembly, submission
 
 data/vehicles.js  the inventory — the only file that changes week to week
+data/eq/<id>.js   one car's equipment list, verbatim from its listing.
+                  vehicle.js loads exactly one; see data/eq/README.
 
 SPEC.md           the measured spec this design system is built to. Still the
                   authority: if a number here and a number there disagree,
@@ -674,8 +676,9 @@ slides, wrapping 3 → 1 rolled `3,4,5,6,7,8,9,0,1`. It now walks back through
 
 **The chapter carousel became a service carousel.** Seven cards of inventory
 chapters — a question the catalog's own pill row and drawer answer far better —
-gave way to four cards of what the showroom actually does: Лизинг, Auto Spa,
-Внос по поръчка, Изкупуване и бартер. Two of them carry the page ids the rest
+gave way to four cards of what the showroom actually does. (The four have
+since been re-cut — see v53 — but the mechanism below is unchanged.) Two of
+them carry the page ids the rest
 of the site links to (`#lizing` from every header and footer, `#care` from
 three), so the leasing calculator moved into the Лизинг panel rather than being
 deleted with the band it used to live in, and main.js opens the matching card
@@ -1361,3 +1364,477 @@ inside the measured window. Absolute time-to-interactive improved. The
 biggest single task — filtering 87 records and building the six preview cards
 — now waits for the first idle moment, since every pixel of it is below the
 hero.
+
+
+### v53 — the landing page, the hero and the phone
+
+A production-polishing pass over the first screen, the service carousel and
+the consultation room. Everything below was measured against
+bentleymotors.com before it was written, and the measurements are quoted
+where they decided something.
+
+#### The word
+
+`Concierge` was the one piece of copy on a Bulgarian site that never spoke
+Bulgarian. The dictionary in `i18n.js` keys on the Bulgarian, so what is in
+the markup **is** the Bulgarian — writing "Concierge" there meant the page
+named after a person sitting down with you was permanently in English. The
+pages now say **Консиерж** and the table carries it back the other way, on
+all four pages, in the nav, the menu, the `<title>`, the host's plate, the
+aria-labels and the legal text.
+
+#### The hero
+
+- **The copy is gone.** All three frames carried a paragraph under the
+  headline; so did the collection heading below them. The reference carries
+  almost none over its own hero for the obvious reason — a 1344×702
+  photograph of the building is the argument and a sentence laid over it is
+  a second one competing with the first. What is left is a name, a way in
+  and a way to ask.
+- **"Целият каталог" opens the catalogue.** It was `href="#avtomobili"`,
+  i.e. a jump to the heading the reader was already looking at. It carries
+  `[data-catalog]` now, like every other doorway into the layer, and keeps
+  the real `href` for middle-clicks and no-JS. The two hero CTAs that say
+  "collection" got the same treatment.
+- **The transition was too quick, and the duration was not the reason.**
+  The reference crossfades over 1 s on a plain `ease-out`; this ran 1 s on
+  `--e-mass`, which is front-loaded — 85 % of the movement inside the first
+  third of the time. So a nominally equal duration did most of its visible
+  work in ~300 ms and read as a cut with a soft edge. `--slide-dur` is now
+  **1.6 s**, which puts that same 85 % at ~480 ms, where the reference's
+  1 s `ease-out` has its own 80 %. The curve is unchanged: it is what makes
+  the frame land rather than drift, which is the failure mode a plain
+  `ease-out` has on a photograph this size. The 10 s dwell is untouched —
+  it is the reference's own `autoslide-duration`, measured.
+
+#### The hero, on a phone
+
+- **It takes the finger now.** The model is the reference's own
+  (`handlePaginationChange`): a fractional `position`, and per slide
+  `o = clamp(-1, position - n, 1)`, `opacity = 1 - |o|`,
+  `scale = 1 - 0.2·o`. One formula for the drag and for the settle, which
+  is what made it possible at all — three CSS classes cannot describe a
+  drag, because a drag has a DIRECTION. Dragged backwards, the frame you
+  are leaving has to grow to 1.2 and the one you are returning to has to
+  come up from 0.8, which is the exact opposite of what `.is-past` says.
+  Verified with synthetic touches: at half a frame both frames sit at 0.5
+  opacity and 0.9/1.1 scale; at 34 % of the viewport width the swap is
+  exactly complete, forwards and backwards.
+- **One axis, locked once.** The reference re-decides the axis on every
+  `touchmove`, which lets a lazy diagonal flip mid-gesture between scrolling
+  the page and turning the carousel. This picks after 8 px and holds it. A
+  vertical drag leaves the carousel untouched — measured, byte-identical
+  state before and after.
+- **The counter was clipping its own total.** `margin-inline-end:-10px`
+  against the row's `gap:8px` is a net 2 px overlap, and the scrubber's
+  scrim painted over the right-hand 2 px of the "3" (counter right edge
+  62.9, scrubber left edge 60.9 at 375). The margin is `-8px` now — it
+  cancels the gap exactly, so the two grounds meet with no seam and no
+  overlap — and the counter carries 14 px of trailing padding. Measured
+  after: overlap 0, glyph 14 px clear.
+- **And it was set like a slideshow counter.** "1 / 3", one size, one
+  weight, on a flat grey rectangle. It is a hierarchy now: the frame you
+  are on in the display face at 18/300, the total as an 11 px tracked label
+  at 55 %, and between them a hairline leaning on **the house angle** —
+  the same 24.7° as the brand plate and the language wipe, `skewX(atan(.46))`,
+  the smallest place on the site it appears. The grounds are glass rather
+  than tint, with the flat fill kept for the low-power path.
+- **The mark had lost its presence.** 104 px wide beside two 13 px/1.3 px
+  tracked labels — the same weight the 1440 bar uses — with 18 px of
+  clearance on one side and none on the other. The labels drop to the
+  mobile label scale the reference uses on a phone (11/20 on 1.1 px) and
+  the mark takes the room that releases: **124 px, with 24 and 45 px of
+  clearance**. One wide soft shadow, because it sits on a photograph whose
+  luminance changes every ten seconds.
+
+#### The service carousel
+
+- **Four new cards**: AutoSpa, Сервиз, Лизинг и застраховане, Кафе бар —
+  rooms in the building rather than propositions. `#care` and `#lizing`
+  keep their anchors, so every header and footer link still lands on an
+  open card. "Внос по поръчка" and "Изкупуване и бартер" are still offered
+  and still reachable (the hero and the concierge's intent step ask for
+  exactly those two things); neither is a place you can walk into, which is
+  what this band is now for.
+- **The leasing card is explicitly provisional.** The owner has not
+  supplied final terms, so every unconfirmed figure carries `[data-tbd]`
+  and one rule gives it its dotted-underline treatment — replacing the text
+  and deleting the attribute is the whole of "make it real". The
+  calculator's three constants moved out of `main.js` and onto the `.lz`
+  element as `data-rate` / `data-deposit` / `data-term`, so the numbers live
+  beside the figures they belong to and there is no script to edit.
+- **The expand keeps the reference's structure and loses its clock.**
+  `.3s linear` is right for the reference — its card is 304 wide and its
+  panel is white on a white page, so the growth is paper unfolding over
+  paper. Ours opens 318 → 888 over a dark rail and at 300 ms linear that is
+  570 px starting and stopping dead, twice. The structure is verbatim (one
+  duration and one curve for the grid tracks, the ratio, the rail's leading
+  room and the scroll; the panel and headline landing inside it on the
+  reference's own offsets) and the numbers are this site's:
+  `--wall-dur:.52s` on `--e-move`, panel at 260 ms, everything over by
+  700 ms. The measured geometry is unchanged — 318×459 → 432×587 at 1440,
+  item 318 → 888, tracks 432/432.
+- **The entry moves three things instead of one.** The sheet rises 72 px
+  over `--t-epic` staggered 90 ms left to right; the photograph settles
+  1.06 → 1 over `--t-mass`, 120 ms behind its own card; the copy follows at
+  220 ms. ~1.4 s for the first card and ~1.9 s for the last, against the
+  1.0 s near-unison it replaces and the reference's own 4.1 s.
+- **The photographic treatment.** No filter is set on any image on the
+  reference — its photography arrives graded. Ours arrives as it came off a
+  phone at the showroom: four sources, four white balances, four exposures,
+  side by side in one rail. So the grade is applied here — contrast +7 %,
+  saturation +4 %, exposure −4 % — under a cool/warm wash raked at 114.7°
+  (the perpendicular of the house angle, the same rake the concierge room
+  is lit on, carrying the brand gold at 9 %) and an edge vignette biased to
+  the middle so it never fights the scrim, whose foot already runs to 75 %
+  black. The eased double gradient itself is the reference's, verbatim.
+
+#### The scrubber under the rail, which was lying
+
+Two separate faults, and the visible one was not the interesting one.
+
+- **It had a transition.** `transform .42s, width .42s` on the mark. A
+  scroll indicator with a clock of its own cannot report a position: every
+  scroll event restarted a 420 ms tween from wherever the last one had got
+  to, so under a finger the mark ran permanently ~400 ms behind and, on a
+  fast swipe, a whole card. It has none now. `main.js` writes it on the
+  scroll event **and** on every animation frame for as long as the rail
+  keeps moving — both, because the loop alone is worse anywhere
+  `requestAnimationFrame` does not run and the event alone is what was
+  wrong to begin with.
+- **It was measuring the wrong thing.** With four 76vw cards at 375 the
+  pitch is 293 and the rail has 822 of travel, so the last card cannot
+  reach its own snap point — it stops 57 px short. A straight
+  `scrollLeft / max` therefore put the mark at 0, 78.2, 156.3, 219.2 of a
+  219.2 px travel: **three swipes, the last of which moved the mark 20 %
+  less than the other two.** Below the snap it now walks the cards' real
+  rest positions — and those are not `k × pitch` either, because a snap
+  position is the item's snap area (border box + `scroll-margin`) brought
+  to the scrollport's start edge (inset by `scroll-padding`), which lands
+  12 px short of every multiple. Measured rests: 0, 281, 574, 821. After:
+  **73.0, 73.2, 72.9 px per step, and the last card flush at the end of the
+  track.** Mid-swipe it interpolates (109.7 against a predicted 109.6).
+
+#### The consultation room, lit
+
+The concierge page was #050505 ground, a photograph at 66 % under gradients
+reaching 97 % black at the rail, and every piece of type a percentage of
+white. Consistent, and read end to end also unrelieved — the only light in
+the building came from a photograph turned down until it was texture.
+
+It is paper now, and paper is not the same thing as white. Four surfaces:
+`--r-paper` (#f4f2ee, warm, deliberately not #fff, which is what lets the
+sheets on it read as sheets), `--r-paper-2` where it settles, `--r-sheet`
+for things genuinely lifted off it, and the photograph — which stays, and
+is now the light **source** rather than the wallpaper.
+
+- **The rake inverts, the geometry does not.** The dark room raked shadow
+  at 114.7° and sat the conversation in the least-lit part; this rakes
+  light, brightest at the top-left where the host rail stands. Same angle,
+  same three stops, opposite sign, plus a very low radial of brand gold
+  above the rail — 4 % at its strongest, and the difference between "white
+  page" and "a room with the sun on one side".
+- **Grain.** One 140×140 tile of monochrome noise at 3.5 %. On a dark page
+  you never need it; on paper a 96 %-to-52 % white ramp across 1400 px is
+  exactly where an 8-bit channel shows its steps, and a large field of flat
+  #f4f2ee reads as unprinted rather than as paper. 2 KB, composited once,
+  dropped on the low-power path.
+- **The gold is not `--primary`.** #c9a25a is mixed for near-black and
+  lands at 2.1:1 on paper. The room uses #8a6a24 — the same hue at the
+  value the catalogue already uses on its pale bands — which clears 4.5:1.
+- **The wedge stays black,** and does more work than it did: it is the only
+  near-black object above the fold, which makes it the anchor the light
+  room hangs off. It is the reason this reads as AutoHaus on paper rather
+  than as a white form.
+- **Verified, not eyeballed:** every text node in the room, the desk, the
+  header, the plate and the menu panel, measured against its own painted
+  background — **zero below WCAG AA**.
+
+#### Three defects found by measuring rather than by looking
+
+1. **A stray `*` `/` in the stylesheet.** An edit left the tail of a
+   comment outside the comment. The CSS parser discards that and the rules
+   after it, silently — the page still loads and a handful of declarations
+   have simply stopped applying. Found by reading computed styles in a
+   browser and noticing `.desk .btn--secondary` had a white border it had
+   been told not to have. `build.js` now refuses to write when a comment
+   marker survives stripping, which can only happen if the source had an
+   unbalanced one; the guard is self-tested against a deliberately broken
+   copy.
+2. **`.js .fade-img` beat the card entry.** Every card photograph also
+   carries `.fade-img` (the image dissolve), whose rule is two classes —
+   0-2-0 — against a plain `.wcard-photo img` at 0-1-1. Its `transition`
+   shorthand names only `opacity`, and a shorthand does not merge, so
+   `transform` was dropped from the transition list and the photograph
+   snapped out of 1.06 in one frame. Nothing errored; the rule was plainly
+   there. `.wcard-photo img.fade-img` is 0-2-1 and takes it back.
+3. **`.cgr .body-s{color:inherit}` collapsed the room to one ink.**
+   `.cg-help`, `.opt-d` and `.cgs__lede` all carry `body-s` as a second
+   class, so a 0-2-0 selector beat every one of their own 0-1-0 colours.
+   `.body-s` sets no colour — there was nothing to correct.
+
+A fourth, in the same family, is worth recording because it is the joke
+version of the first: the build guard's own comment originally contained a
+literal comment terminator, and closed itself.
+
+
+### v54 — contact, footer and the legal section
+
+#### Контакт stopped being a page
+
+It was a link to the bottom of the landing page. From any other page that is
+a navigation — leave what you are doing, load index.html, land in its
+footer — to read a phone number. It is a **panel** now, and deliberately the
+menu's sibling rather than a new idea: same scrim with the same real blur,
+same rake-that-settles reveal, same material, same scroll pin, same close.
+Somebody who has opened the menu once already knows how this behaves.
+
+What differs is which corner it belongs to, and that is the house angle
+doing its job. The menu is the plate with a body — anchored **left**, cut on
+its **right**. This is anchored **right**, cut on its **left**. One rule,
+mirrored; and because the cut faces inward on both, the page between them is
+never the thing being cut into. Measured: 46 % of a 1440 screen and 94 % of
+a 375 one, with the page visibly still there beside it.
+
+The contents are the six departments published on autohaus.bg/контакти —
+Офис, Продажби, Застраховане, Сервиз, AutoSpa, Кафе бар — each with its own
+lines and its own hours, plus the address, the company numbers and a map.
+The labels are the same words the service carousel uses, so somebody who has
+just read a card knows which line to call.
+
+**The map is not loaded until the panel is opened**, and that is not an
+optimisation — it is the only reason there can be a map here at all. An
+embedded Google map is a third-party frame with third-party cookies, on a
+site whose cookie policy says, truthfully, that it sets none. In the markup
+it carries `data-src`; `main.js` promotes it once, on first open. So the
+frame exists only for a visitor who has asked for it, the landing page's
+byte count is unchanged, and the policy stays true for everyone who does
+not. The Cookie Policy now documents the exception in its own section, and
+the Privacy Policy's "data outside the EU" section stopped being a
+placeholder and became a fact.
+
+`[data-contact]` opens it, exactly as `[data-catalog]` opens the collection,
+and every trigger keeps a real `href="#kontakt"` so a middle-click, a
+crawler and a JS-off render all still work — landing in the footer, which
+still prints the address and the office line for that reason.
+
+#### One description of "a panel over the page"
+
+The menu's open/close was ~80 lines of scroll pin, inert, focus trap, focus
+return and Escape. Written out a second time for the contact panel it would
+have drifted the first time either was touched, and the half that drifts is
+always the accessibility half — the parts nobody notices are broken. It is
+one `makePanel()` now, and it also does the thing neither could do alone:
+**closes its sibling**, so two scrim blurs and two scroll pins can never
+stack and the second close can never restore a scroll position captured by
+the first.
+
+#### The footer, subtracted
+
+It carried five blocks. Gone: two loose link pairs flanking the wordmark
+(Новини was a `mailto` with a subject line and no newsletter behind it;
+Калкулатор and Намерете ни were third and second copies of links already in
+the columns; Запази оглед was a fourth way into the concierge on a page that
+had three), and the two inventory columns — "Автомобили", which listed one
+car by name and so dated the moment it sold, and "Вашият AutoHaus", which
+listed five services the carousel three screens above already opens in full.
+A footer that repeats the page is not a footer.
+
+What is left is what a footer is for: **Контакт**, **Последвайте ни** and
+**Правни**. The Follow-us column is a link list like the two beside it —
+Facebook and Instagram as words with their marks, not a row of bare glyphs,
+because a column of icons among columns of words reads as a different kind
+of object and the footer's job is to be one object.
+
+The financing footnote went with them. "Обявените цени са крайни. Лизинг от
+6.9 % …" is a sales term, not a site-wide legal notice; it now lives in the
+Terms, where somebody looking for it will actually look.
+
+#### The legal section, rewritten
+
+Four documents, and not the same four.
+
+- **"Вашите права по GDPR" was never a document.** Rights are not a separate
+  policy — they arise from the privacy policy and are exercised against the
+  same controller. They are section 6 of the Privacy Policy now, where the
+  reader has just found out what is being processed.
+- **In its place, the document that was actually missing: Фирмени данни.**
+  Every marque site carries one. It also stops the same eight facts from
+  being retyped in a footer, a privacy policy and a set of terms and
+  drifting apart.
+- **The Terms gained the disclaimer they needed.** Availability, prices,
+  specifications and photographs may change without notice; what is
+  published is true at the moment of publishing and is not an offer; confirm
+  with us before purchase, and only a written confirmation binds. Financing
+  now says plainly that **approval depends entirely on the leasing
+  institution, not on AutoHaus** — it sets the rate, the payment, the term
+  and the answer.
+- **The register changed.** Closer to how Bentley, Porsche and Ferrari write
+  a policy than to a contract: short sentences, second person, headings that
+  say what the section is about ("Този сайт не Ви проследява", "Едно
+  изключение: картата"), and the article numbers tucked at the end of
+  sentences rather than opening them.
+
+**Placeholders.** The old text marked unknowns by typing `[• …]` into the
+copy, which reads as a broken document rather than as a pending decision,
+cannot be found by a selector, and has to be deleted by hand somewhere a
+stray bracket changes a sentence. Every real company fact is now filled in —
+name, legal form, ЕИК, VAT number, registered address, all six departments'
+numbers and addresses — and the ten that genuinely need a decision carry
+`[data-tbd]`, the same marker the leasing card already uses, so one grep
+finds every one of them before publication. They are eight decisions: the
+DPO, the retention period for unconverted enquiries, the named processors,
+the leasing terms, the reservation period, the manager's name, registration
+as an insurance intermediary, and — only if they are ever added — the cookie
+table.
+
+#### Two defects, both found by measuring
+
+1. **The panel was 24px tall.** It was called `.ctc` only after it was
+   called `.cnt`, which is the hero's frame counter —
+   `display:inline-flex; height:1lh; overflow:clip`. A full-screen
+   `position:fixed` layer that also matches that rule is 24px tall and
+   clipped, and nothing errors: the panel opened, the scrim appeared, and
+   everything inside it was invisible. Two three-letter class names in one
+   stylesheet is a real cost.
+2. **The footer wordmark became a 1344px click target.** With the two link
+   pairs beside it gone, the anchor was the only child of a full-width row
+   and a stretched flex box made the whole band a silent "back to top".
+   `width:max-content` with an auto margin; the target is the wordmark
+   again, at 80 × 45.
+
+#### Still Bulgarian
+
+The four legal documents remain Bulgarian-only in the body, which is what
+they have always been — the dictionary never carried their headings either.
+The panel, the footer and every label around them do translate. Putting the
+policies into English is a copywriting job with a lawyer attached to both
+versions, not a dictionary entry, and it is not pretended here.
+
+
+### v55 — the dossier, told only what AutoHaus says
+
+#### What was on the page that nobody had said
+
+The vehicle page was generating editorial. Removed, all of it:
+
+- **A four-step standard, asserted for all 87 cars.** "Преминал е през същия
+  път като всеки автомобил в колекцията: проверка на произход и сервизна
+  история, механична подготовка в собствен сервиз, пълен Auto Spa детайлинг
+  и лично одобрение от … , преди да бъде показан."
+- **A promise about paperwork** — provenance report, service books and
+  invoices available at the viewing.
+- **"Гаранции и оглед", four commitments**: viewings every weekday 09:00 to
+  18:00 without an appointment, a test drive by arrangement, a 48-hour hold
+  after a deposit, a firm part-exchange offer the same day.
+- **"Защо този"**, up to four editorial verdicts per car, generated from the
+  record: "Мощност, която оправдава подготовката", "Възраст, в която
+  състоянието е единственото, което тежи", "Рядкост в този клас". A dealer
+  may write that about a car. A template may not write it about eighty-seven.
+- **"Пълна сервизна история" as a filler** whenever fewer than three of those
+  verdicts fired. It is true of 60 of the 83 published listings, and it is
+  printed now for exactly those 60 — because it is one of their own notes.
+- **A monthly leasing figure per car**, on the price rail and again in the
+  prose, computed from a rate nobody has confirmed. The listings say
+  "Възможен лизинг!" and nothing more.
+- **An answer "до 24 часа в работни дни"**, and an expert who "одобри лично
+  този автомобил". Both also removed from the concierge, where the same two
+  claims appeared in the meta description, the rail and two confirmations.
+- **"реф. AH-018"** on the identity line. That reference is this site's, made
+  when the inventory was scraped; no AutoHaus listing prints it. It still
+  travels with an enquiry — labelled as the enquiry's reference, which is
+  what it is.
+- **"Всеки автомобил минава оттук, преди да бъде показан"** on the AutoSpa
+  card and its twin on the Сервиз card. autohaus.bg's five service pages
+  (Застраховки, Лизинг, Сервиз, Автомивка, Кафе бар) each hold a heading and
+  nothing else — there is no published account of how any department works,
+  so a department may be named and its real phone, address and hours given,
+  and what it does to a car before that car is shown may not be asserted.
+
+#### The price
+
+AutoHaus publishes a euro figure and, on **25 of the 83** listings, the line
+**"Цена без начислен 20% ДДС!"** — the price does not include 20% VAT. The
+page printed "Крайна цена" and "Обявената цена е крайна" on every car, which
+is wrong twice: wrong for those 25 because the tax is still to come, and
+wrong for the other 58 because it asserts something their listing never said.
+
+The note is carried per car now, in the listing's own words, sitting directly
+under the figure in both places the figure appears. No car gets a claim about
+its price that its own listing does not make.
+
+#### The duplication
+
+Year, mileage, power, engine, transmission and colour appeared **three times
+each**: a scrolling strip of six values, a ten-row "Детайли" table
+immediately under it, and the opening sentence of the prose restating all six
+a third time. Two of those existed because the reference site has both a
+strip and a table; ours had nothing else to put in either.
+
+There is one specification block now, holding exactly the eight rows the
+listing holds — марка и модел, регистрация, тип двигател, мощност,
+трансмисия, пробег, цвят, цена. It is set as a ledger rather than a grid:
+hairline-separated rows, label left in the micro-label voice, value right in
+tabular figures. A reader is looking at one car, not comparing ten.
+
+#### What the page never had
+
+**The equipment list.** Every AutoHaus listing carries one — 17 lines at the
+shortest, 155 at the longest, a median of 45 — and none of it was on this
+site. All 87 listings were re-fetched, 83 of them still published, and their
+equipment is now data/eq/&lt;id&gt;.js, verbatim, in the listing's own order.
+
+Most lines carry the manufacturer's option code — "501", "PIP7", "LCF" — and
+setting that code in its own quiet monospaced column is what turns a wall of
+155 sentences into something scannable: the eye runs down the codes and stops
+at the words. Sub-points (a line opening with "-" on the listing) are indented
+under their option rather than promoted, because the source nests them and the
+nesting means something: they are what the package contains.
+
+**83 files, not one table.** Together they are 357KB of text and a reader
+wants one car's 4KB. vehicle.js injects the one it needs after the render,
+into a section below the fold at every width, so the weight is paid by the
+person looking at that car. A car whose file is missing renders without the
+section; four have been sold since the inventory was scraped and their
+listings now 404.
+
+The **Read More / Show Less** is the interaction that stayed — it just has
+something worth opening now. It used to clamp a paragraph of generated prose.
+
+#### Verification, and four corrections it produced
+
+All 87 listings were re-fetched and compared field by field. **Every make,
+model, registration month and year, engine, power, transmission, mileage and
+colour on the 83 still-published cars agreed** with data/vehicles.js. Four
+differences, all the same kind: cars held here as "по запитване" that now
+carry a public price — m550d-xdrive €30 000, caddy-maxi €22 000,
+rr-sport-p525-autobio €56 000, escalade-600-premium €130 000. Corrected.
+
+#### Two other things
+
+**"Услуги" is gone.** One photograph, the word Услуги, one sentence listing
+five things and a button reading "Разгледай" — a signpost to a band three
+screens above it. The four service cards *are* the services and they open in
+full; every "Услуги" link now lands on that band instead of on a teaser for
+it.
+
+**"За AutoHaus" is an account now, not an invitation.** It was two sentences
+and two buttons, "Разгледай" and "Запази оглед" — a section about the company
+that said almost nothing about the company and then asked for something
+twice. It names everything AutoHaus does, once, in the order somebody meets
+it: the cars in stock, the ones sourced and imported to order, finance and
+insurance (with the approval left where it belongs — with the institution),
+the workshop, AutoSpa, part-exchange, the cafe bar. Nothing in it asks the
+reader to act; the two links go to the collection and to the departments,
+which is where somebody who wants to do something is already heading.
+
+#### One thing found on the live site, which is not ours to fix
+
+**autohaus.bg has been injected with SEO spam.** The homepage and the five
+service pages carry several hundred words of French casino text — "Pour les
+joueurs expérimentés, choisir le bon casino en ligne…" — with outbound links
+to gambling sites, sitting in the page body where the service copy should be.
+It is invisible to a casual reader because those pages have no visible copy
+of their own, and it is the reason those five pages parse as empty here. It
+looks like a compromised WordPress install. None of it was used as source
+material. It wants a look from whoever maintains that site.

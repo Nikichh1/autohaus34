@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="mask-icon" href="favicon.svg" color="#c9a25a">
-<title>AutoHaus Concierge — заявка за автомобил</title>
-<meta name="description" content="Опишете автомобила, който търсите. Заявката се разглежда лично от Иван Манев и получава отговор до 24 часа.">
+<title>AutoHaus Консиерж — заявка за автомобил</title>
+<meta name="description" content="Опишете автомобила, който търсите. Заявката стига до екипа на AutoHaus в Пловдив.">
 <!-- THE CRITICAL PATH.
      Measured on a 1.6Mbps link with 300ms RTT: first paint was gated by
      160KB arriving before it, of which only 83KB draws anything. The rest
@@ -27,7 +27,7 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.min.css?v=fc6f82db" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=d9b9cb35" id="ah-css">
 <meta name="robots" content="noindex">
 <!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
      index/vehicle/legal start their scripts only once the stylesheet is
@@ -39,10 +39,10 @@
      without it.  runs them after parsing and before first paint, so
      the furniture is there from the first frame. The page can afford it:
      18KB of CSS, no hero photograph to compete with. -->
-<script defer src="data/vehicles.js?v=fc6f82db"></script>
-<script defer src="main.js?v=fc6f82db"></script>
-<script defer src="concierge.js?v=fc6f82db"></script>
-<script defer src="i18n.js?v=fc6f82db"></script>
+<script defer src="data/vehicles.js?v=d9b9cb35"></script>
+<script defer src="main.js?v=d9b9cb35"></script>
+<script defer src="concierge.js?v=d9b9cb35"></script>
+<script defer src="i18n.js?v=d9b9cb35"></script>
 <script>
 /* RESERVE WHAT THE SCRIPTS ARE ABOUT TO DRAW.
    `defer` holds a script until after parsing, but it does NOT hold first
@@ -56,7 +56,11 @@ if(/[?&]v=/.test(q))c.add("cg-has-pick");
 if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");})();
 </script>
 </head>
-<body class="ah">
+<!-- .cg-room flips the header from white-on-photograph to ink-on-paper,
+     and .pale on the two sections below is the site's own signal that a
+     band is on a light surface — it is what gives .btn--secondary an ink
+     hairline instead of a white one. See "THE ROOM ON PAPER" in style.css. -->
+<body class="ah cg-room">
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -105,17 +109,17 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
       </button>
       <a class="lnk" href="index.html#avtomobili">Автомобили</a>
       <ul class="hd-links">
-        <li><a class="lnk" href="index.html#uslugi">Услуги</a></li>
+        <li><a class="lnk" href="index.html#razdeli">Услуги</a></li>
         <li><a class="lnk" href="index.html#lizing">Лизинг</a></li>
         <li><a class="lnk" href="index.html#about">За нас</a></li>
-        <li><a class="lnk" href="index.html#kontakt">Контакт</a></li>
+        <li><a class="lnk" href="index.html#kontakt" data-contact>Контакт</a></li>
       </ul>
     </div>
     <a class="hd-logo" href="index.html" aria-label="AutoHaus — начало">
       <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
     </a>
     <ul class="hd-zone hd-zone--end">
-      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Concierge</span></a></li>
+      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Консиерж</span></a></li>
       <li class="hd-lang">
         <div class="lang" id="lang" role="group" aria-label="Език / Language">
           <i class="lang__ind" aria-hidden="true"></i>
@@ -169,11 +173,11 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
       </button>
       <nav aria-label="Меню">
         <a href="index.html#avtomobili">Автомобили</a>
-        <a href="concierge.html">Concierge</a>
-        <a href="index.html#uslugi">Услуги</a>
+        <a href="concierge.html">Консиерж</a>
+        <a href="index.html#razdeli">Услуги</a>
         <a href="index.html#lizing">Лизинг</a>
         <a href="index.html#about">За нас</a>
-        <a href="index.html#kontakt">Контакт</a>
+        <a href="index.html#kontakt" data-contact>Контакт</a>
       </nav>
       <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
         <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
@@ -182,6 +186,124 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
       <div class="mob-foot">
         <a href="tel:+359884777147">+359 884 777 147</a>
         <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== THE CONTACT PANEL ====================
+     The menu's sibling, mirrored to the other corner — see "THE CONTACT
+     PANEL" in style.css for why it is a panel and not a page, and
+     "THE HOUSE ANGLE" for why the cut is on the left here and on the right
+     there. Anything carrying [data-contact] opens it; every one of those
+     triggers keeps a real href to #kontakt, so with JS off "Контакт" still
+     lands in the footer, which still holds the address and the office line.
+
+     The figures below are the ones published on autohaus.bg/контакти —
+     six departments, each with its own line and its own hours. They are
+     the only place on this site those numbers appear in full. -->
+<div class="ctc" id="ctc" aria-hidden="true">
+  <div class="ctc__scrim" id="ctc-scrim"></div>
+  <div class="ctc__reveal">
+    <div class="ctc__sheet" role="dialog" aria-modal="true" aria-labelledby="ctc-h">
+      <button class="ctc-close" id="ctc-close" aria-label="Затвори">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
+      </button>
+      <div class="ctc__scroll">
+        <p class="ctc__eyebrow">AutoHaus Пловдив</p>
+        <h2 class="ctc__h" id="ctc-h">Контакт</h2>
+
+        <div class="ctc__where">
+          <address class="ctc__addr">
+            <b>Аутохаус България ЕООД</b><br>
+            ул. „Нестор Абаджиев“ №24<br>
+            Асеновградско шосе<br>
+            4023 Пловдив, България
+          </address>
+          <p class="ctc__co">ЕИК 200771286 · ДДС BG200771286</p>
+
+          <!-- data-src, not src: the frame is a third party and it is not
+               fetched until somebody opens this panel. main.js promotes it
+               once. See THE MAP IS NOT LOADED in style.css. -->
+          <div class="ctc__map" id="ctc-map">
+            <iframe
+              data-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3519.3174753334256!2d24.773724387624082!3d42.120716529933546!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14acd18af42d2935%3A0xd53e00b37b9b5671!2z0YPQuy4g4oCe0J3QtdGB0YLQvtGAINCQ0LHQsNC00LbQuNC10LLigJwgMjQsIDQwMjMg0JjQvdC00YPRgdGC0YDQuNCw0LvQvdCwINC30L7QvdCwICLQotGA0LDQutC40Y8iLCDQn9C70L7QstC00LjQsg!5e0!3m2!1sbg!2sbg!4v1558527129797!5m2!1sbg!2sbg"
+              title="Карта до AutoHaus Пловдив" loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen></iframe>
+          </div>
+          <a class="btn btn--l btn--secondary ctc__go"
+             href="https://www.google.com/maps/search/?api=1&amp;query=42.1207165%2C24.7737244"
+             target="_blank" rel="noopener">
+            <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-pin"/></svg>
+            <span class="btn__label">Отвори в Google Maps</span>
+          </a>
+        </div>
+
+        <div class="ctc__depts">
+          <div class="ctc__dept">
+            <p class="ctc__k">Офис</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777147">+359 884 777 147</a>
+              <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Продажби</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777045">+359 884 777 045</a>
+              <a href="tel:+359885725860">+359 885 725 860</a>
+              <a href="mailto:autohaussale@gmail.com">autohaussale@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Застраховане</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777089">+359 884 777 089</a>
+              <a href="tel:+359888850777">+359 888 850 777</a>
+              <span class="ctc__note">Щети</span>
+              <a href="tel:+359884560502">+359 884 560 502</a>
+              <a href="mailto:autohausbroker@gmail.com">autohausbroker@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Сервиз</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777321">+359 884 777 321</a>
+              <span class="ctc__note">ГТП</span>
+              <a href="tel:+359884536361">+359 884 536 361</a>
+              <a href="mailto:autohausservices@gmail.com">autohausservices@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">AutoSpa</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Кафе бар</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+        </div>
+
+        <div class="ctc__social">
+          <p class="ctc__k">Последвайте ни</p>
+          <ul class="social" aria-label="AutoHaus в социалните мрежи">
+            <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+            <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -211,9 +333,9 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
          The rail also keeps a running record of what he has heard, which
          is what turns a form into somebody listening;
        · the WEDGE — twice, and only on things that sit ON the photograph:
-         the Concierge tag and Иван's plate.
+         the Консиерж tag and Иван's plate.
      ================================================================= -->
-<section class="cgr" id="cg">
+<section class="cgr pale" id="cg">
 
   <!-- arms the brand plate. The rail is sticky and never leaves the screen,
        so it cannot be the trigger; this clears the absolute header instead. -->
@@ -234,21 +356,21 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
     <div class="cgr__row">
 
       <!-- ---------- THE HOST ---------- -->
-      <aside class="cgs" id="cg-aside" aria-label="AutoHaus Concierge">
+      <aside class="cgs" id="cg-aside" aria-label="AutoHaus Консиерж">
         <div class="cgs__in">
-          <p class="cgs__tag">AutoHaus Concierge</p>
+          <p class="cgs__tag">AutoHaus Консиерж</p>
           <h1 class="cgs__h">Седнете за момент.</h1>
           <p class="cgs__lede body-s">Няколко въпроса, около две минути. Толкова, колкото да разберем какво търсите — и да го намерим вместо Вас.</p>
 
           <div class="cgs__host">
             <span class="cgs__host-n">Иван Манев</span>
-            <span class="cgs__host-r">Concierge · AutoHaus Пловдив</span>
+            <span class="cgs__host-r">Консиерж · AutoHaus Пловдив</span>
           </div>
           <p class="cgs__say" id="cg-say" role="status" aria-live="polite"></p>
 
           <ol class="cgs__spine" id="cg-spine" aria-label="Хода на разговора"></ol>
 
-          <p class="cgs__meta">Отговор до 24 часа в работни дни</p>
+          <p class="cgs__meta">AutoHaus Пловдив · Асеновградско шосе</p>
         </div>
       </aside>
 
@@ -370,7 +492,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
             <section class="cg-step" data-step="trade" data-name="Замяната"
                      data-say="Оценката е твърда и е от мен, не от таблица.">
               <h2 class="cg-q">Разкажете ми за нея.</h2>
-              <p class="cg-help body-s">Оглеждаме я на място и даваме твърда оферта същия ден. Ако е на лизинг, поемаме и комуникацията с институцията.</p>
+              <p class="cg-help body-s">Опишете я накратко — марка, година, пробег и състояние. Ако е на лизинг, посочете го.</p>
               <div class="cg-body">
                 <div class="ask">
                   <div class="fields fields--2">
@@ -463,7 +585,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
      this site should never wait a day in the owner's inbox, and somebody
      who only wants to ask one thing should never be walked through eight
      questions to do it. -->
-<section class="desk" id="hatch">
+<section class="desk pale" id="hatch">
   <div class="grid">
     <div class="desk__in">
       <div class="desk__t">
@@ -472,7 +594,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
         <p class="body-s">Наличност, цени, лизинг, бартер, документи и оглед — тези отговори са публикувани и са актуални. Ако въпросът Ви е сред тях, ще получите отговора веднага, вместо утре.</p>
       </div>
       <div class="desk__a">
-        <a class="btn btn--s btn--secondary" href="index.html#uslugi"><span class="btn__label">Виж услугите</span></a>
+        <a class="btn btn--s btn--secondary" href="index.html#razdeli"><span class="btn__label">Виж услугите</span></a>
         <a class="btn btn--s btn--tertiary" id="hatch-wa" href="#" target="_blank" rel="noopener"><span class="btn__label">Пиши в WhatsApp</span></a>
         <a class="btn btn--s btn--tertiary" href="tel:+359884777147"><span class="btn__label">+359 884 777 147</span></a>
       </div>
@@ -485,59 +607,59 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
 <!-- ==================== FOOTER ==================== -->
 <footer class="ft" id="kontakt">
   <div class="grid">
+    <!-- THE FOOTER, SUBTRACTED.
+         It carried five blocks: two loose link pairs either side of the
+         wordmark (Новини, Калкулатор, Намерете ни, Запази оглед), four
+         columns, a meta row and a financing footnote. Of those, "Новини"
+         was a mailto with a subject line and no newsletter behind it,
+         "Калкулатор" and "Намерете ни" were third and second copies of
+         links already in the columns, and "Запази оглед" was a fourth way
+         into the concierge on a page that already had three.
+
+         The two inventory columns went with them. "Автомобили" listed one
+         car by name — which dates the moment it sells — and four chapter
+         links the catalogue's own filter row does better; "Вашият AutoHaus"
+         listed five services the service carousel three screens above
+         already opens in full. A footer that repeats the page is not a
+         footer, it is a second page nobody reads.
+
+         What is left is what a footer is actually for: how to reach the
+         building, where to follow it, and the documents. -->
     <div class="row">
       <div class="col span-12 ft-top">
-        <div class="ft-main">
-          <div class="ft-main-sec">
-            <a href="mailto:autohausbg@gmail.com?subject=Новини от AutoHaus">Новини</a>
-            <a href="index.html#lizing">Калкулатор</a>
-          </div>
-          <a class="ft-logo" href="index.html#top" aria-label="AutoHaus — начало">
-            <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
-          </a>
-          <div class="ft-main-sec">
-            <a href="https://maps.google.com/?q=ул.+Нестор+Абаджиев+24,+Пловдив" target="_blank" rel="noopener">Намерете ни</a>
-            <a href="concierge.html?visit=1">Запази оглед</a>
-          </div>
-        </div>
-        <ul class="social social--foot" aria-label="AutoHaus в социалните мрежи">
-          <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
-          <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
-        </ul>
+        <a class="ft-logo" href="index.html#top" aria-label="AutoHaus — начало">
+          <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
+        </a>
       </div>
     </div>
 
     <div class="row">
       <div class="col offset-1 span-10 ft-cols">
-        <nav class="ft-col" aria-label="Автомобили">
-          <p class="ft-h">Автомобили</p>
-          <a href="index.html#avtomobili">Всички <b data-count="all">87</b> в наличност</a>
-          <a href="vehicle.html?id=911-targa-4-gts">Porsche 911 Targa 4 GTS</a>
-          <a href="index.html?chapter=chauffeur">Представителен клас</a>
-          <a href="index.html?chapter=performance">Performance</a>
-          <a href="index.html?chapter=utility">Терен</a>
-        </nav>
-        <nav class="ft-col" aria-label="Вашият AutoHaus">
-          <p class="ft-h">Вашият AutoHaus</p>
-          <a href="index.html#lizing">Лизинг от 6.9%</a>
-          <a href="concierge.html?intent=source">Внос по поръчка</a>
-          <a href="concierge.html?intent=trade">Изкупуване и бартер</a>
-          <a href="index.html#uslugi">Застраховки и регистрация</a>
-          <a href="index.html#care">Auto Spa и детайлинг</a>
-        </nav>
         <nav class="ft-col" aria-label="Контакт">
           <p class="ft-h">Контакт</p>
-          <a href="https://maps.google.com/?q=ул.+Нестор+Абаджиев+24,+Пловдив" target="_blank" rel="noopener">ул. „Нестор Абаджиев“ №24, Пловдив</a>
+          <!-- [data-contact] opens the contact panel over whatever page the
+               reader is on; the href is the no-JS floor and lands here, in
+               this column, which is why the address and the office line are
+               still printed rather than only living in the panel. -->
+          <a href="index.html#kontakt" data-contact>ул. „Нестор Абаджиев“ №24, 4023 Пловдив</a>
           <a href="tel:+359884777147">+359 884 777 147</a>
           <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
-          <span>Пон – Пет 09:00 – 18:00</span>
+          <span>Пон – Пет · 09:00 – 18:00</span>
+          <a href="index.html#kontakt" data-contact>Всички телефони и картата</a>
+        </nav>
+        <nav class="ft-col" aria-label="Последвайте ни">
+          <p class="ft-h">Последвайте ни</p>
+          <ul class="ft-social">
+            <li><a href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg>Facebook</a></li>
+            <li><a href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg>Instagram</a></li>
+          </ul>
         </nav>
         <nav class="ft-col" aria-label="Правни">
           <p class="ft-h">Правни</p>
           <a href="legal.html#privacy">Политика за поверителност</a>
           <a href="legal.html#cookies">Политика за бисквитки</a>
           <a href="legal.html#terms">Общи условия</a>
-          <a href="legal.html#gdpr">Вашите права по GDPR</a>
+          <a href="legal.html#imprint">Фирмени данни</a>
         </nav>
       </div>
     </div>
@@ -549,13 +671,8 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
           <li><a href="legal.html#privacy">Поверителност</a></li>
           <li><a href="legal.html#cookies">Бисквитки</a></li>
           <li><a href="legal.html#terms">Общи условия</a></li>
+          <li><a href="legal.html#imprint">Фирмени данни</a></li>
         </ul>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col span-12">
-        <p class="ft-reg">Обявените цени са крайни. Лизинг от 6.9% годишно при 20% първоначална вноска и срок до 60 месеца; месечната вноска е ориентировъчна и подлежи на одобрение от партньорска лизингова институция. Автомобил се запазва за 48 часа след капаро. Възможен бартер с вашия автомобил.</p>
       </div>
     </div>
   </div>

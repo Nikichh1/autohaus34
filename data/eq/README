@@ -1,0 +1,29 @@
+One file per car, keyed by the same id as data/vehicles.js, holding that
+car's equipment list exactly as its listing on autohaus.bg prints it.
+
+  window.AH_EQ = {
+    id: "<slug>"   which car this is — vehicle.js checks it, because a stale
+                   file arriving late must never be rendered against another
+                   car's page.
+    e:  [ ... ]    the equipment, line for line, in the listing's own order.
+                   A line beginning "-" is a sub-point of the line above it.
+                   A line "<code> – <text>" carries the maker's option code.
+  }
+
+SEPARATE FILES, NOT ONE TABLE. Together these are 350KB of text and a reader
+wants one car's 4KB of it. vehicle.js injects exactly the one it needs, after
+the page has rendered, into a section that is below the fold at every width —
+so the weight is paid by the person looking at the car and by nobody else.
+
+The per-car NOTES ("Пълна сервизна история!", "Цена без начислен 20% ДДС!",
+"Възможен лизинг!" …) are NOT here. They are two to four short lines, the
+price line needs them at first paint, and they live on the record itself in
+data/vehicles.js. They are not the same on every car and must never be
+rendered as though they were: of the 83 listings still published, 25 carry
+the VAT note and 60 the service-history note.
+
+Four of the 87 cars have no file here — their listings now return 404, i.e.
+they have been sold since data/vehicles.js was scraped:
+maybach-s-680-4matic, s8-plus-4-0-v8-tfsi-quattro, x7-xdrive40i-m-sport-2,
+x6-m50d-xdrive-3. A car with no file renders without an equipment section;
+nothing is invented to fill the gap.

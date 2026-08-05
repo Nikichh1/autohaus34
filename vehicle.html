@@ -26,21 +26,21 @@
      NOT preloaded: preloading the weight-300 pair put 59KB in front of the
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
-<link rel="stylesheet" href="style.min.css?v=fc6f82db" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=d9b9cb35" id="ah-css">
 <!-- BLOCKING here, unlike the landing page. On index.html this stylesheet
      draws the collection grid (below the hero) and the catalog layer
      (closed), so it can arrive late. On THIS page it draws the dossier
      itself — .dtitle, .dsec, .dgal, .dprose are all defined in it — and
      letting it arrive late reflowed the title by a whole 42px line at
      ~1.9s: 0.097 CLS, measured. -->
-<link rel="stylesheet" href="catalog.min.css?v=fc6f82db">
+<link rel="stylesheet" href="catalog.min.css?v=d9b9cb35">
 <script>
 /* Starts the app the moment the render-blocking stylesheet is in — not
    before (it would share the pipe with it) and not on window.load (that
    waits for every photograph). The timeout is a floor, never a ceiling: a
    stylesheet that stalls must not take the site down with it. */
 (function () {
-  var q = ["data/vehicles.js?v=fc6f82db","main.js?v=fc6f82db","catalog.js?v=fc6f82db","vehicle.js?v=fc6f82db","i18n.js?v=fc6f82db"], fired = false;
+  var q = ["data/vehicles.js?v=d9b9cb35","main.js?v=d9b9cb35","catalog.js?v=d9b9cb35","vehicle.js?v=d9b9cb35","i18n.js?v=d9b9cb35"], fired = false;
   function boot() {
     if (fired) return; fired = true;
     for (var i = 0; i < q.length; i++) {
@@ -106,9 +106,9 @@
 <header class="nav" id="nav">
   <nav class="links" aria-label="Основна навигация">
     <a href="index.html#avtomobili">Автомобили</a>
-    <a href="index.html#uslugi">Услуги</a>
+    <a href="index.html#razdeli">Услуги</a>
     <a href="index.html#about">За нас</a>
-    <a href="index.html#kontakt">Контакт</a>
+    <a href="index.html#kontakt" data-contact>Контакт</a>
   </nav>
   <a class="burger" href="index.html#avtomobili" aria-label="Обратно към колекцията">
     <svg class="arr" viewBox="0 0 26 8" style="transform:rotate(180deg)" aria-hidden="true"><use href="#arrow"/></svg><span>Колекцията</span>
@@ -153,6 +153,124 @@
   <button class="nav-a next" id="lb-next" aria-label="Следващ кадър"><svg viewBox="0 0 26 8" aria-hidden="true"><use href="#arrow"/></svg></button>
 </div>
 
+<!-- ==================== THE CONTACT PANEL ====================
+     The menu's sibling, mirrored to the other corner — see "THE CONTACT
+     PANEL" in style.css for why it is a panel and not a page, and
+     "THE HOUSE ANGLE" for why the cut is on the left here and on the right
+     there. Anything carrying [data-contact] opens it; every one of those
+     triggers keeps a real href to #kontakt, so with JS off "Контакт" still
+     lands in the footer, which still holds the address and the office line.
+
+     The figures below are the ones published on autohaus.bg/контакти —
+     six departments, each with its own line and its own hours. They are
+     the only place on this site those numbers appear in full. -->
+<div class="ctc" id="ctc" aria-hidden="true">
+  <div class="ctc__scrim" id="ctc-scrim"></div>
+  <div class="ctc__reveal">
+    <div class="ctc__sheet" role="dialog" aria-modal="true" aria-labelledby="ctc-h">
+      <button class="ctc-close" id="ctc-close" aria-label="Затвори">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
+      </button>
+      <div class="ctc__scroll">
+        <p class="ctc__eyebrow">AutoHaus Пловдив</p>
+        <h2 class="ctc__h" id="ctc-h">Контакт</h2>
+
+        <div class="ctc__where">
+          <address class="ctc__addr">
+            <b>Аутохаус България ЕООД</b><br>
+            ул. „Нестор Абаджиев“ №24<br>
+            Асеновградско шосе<br>
+            4023 Пловдив, България
+          </address>
+          <p class="ctc__co">ЕИК 200771286 · ДДС BG200771286</p>
+
+          <!-- data-src, not src: the frame is a third party and it is not
+               fetched until somebody opens this panel. main.js promotes it
+               once. See THE MAP IS NOT LOADED in style.css. -->
+          <div class="ctc__map" id="ctc-map">
+            <iframe
+              data-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3519.3174753334256!2d24.773724387624082!3d42.120716529933546!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14acd18af42d2935%3A0xd53e00b37b9b5671!2z0YPQuy4g4oCe0J3QtdGB0YLQvtGAINCQ0LHQsNC00LbQuNC10LLigJwgMjQsIDQwMjMg0JjQvdC00YPRgdGC0YDQuNCw0LvQvdCwINC30L7QvdCwICLQotGA0LDQutC40Y8iLCDQn9C70L7QstC00LjQsg!5e0!3m2!1sbg!2sbg!4v1558527129797!5m2!1sbg!2sbg"
+              title="Карта до AutoHaus Пловдив" loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen></iframe>
+          </div>
+          <a class="btn btn--l btn--secondary ctc__go"
+             href="https://www.google.com/maps/search/?api=1&amp;query=42.1207165%2C24.7737244"
+             target="_blank" rel="noopener">
+            <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-pin"/></svg>
+            <span class="btn__label">Отвори в Google Maps</span>
+          </a>
+        </div>
+
+        <div class="ctc__depts">
+          <div class="ctc__dept">
+            <p class="ctc__k">Офис</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777147">+359 884 777 147</a>
+              <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Продажби</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777045">+359 884 777 045</a>
+              <a href="tel:+359885725860">+359 885 725 860</a>
+              <a href="mailto:autohaussale@gmail.com">autohaussale@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Застраховане</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777089">+359 884 777 089</a>
+              <a href="tel:+359888850777">+359 888 850 777</a>
+              <span class="ctc__note">Щети</span>
+              <a href="tel:+359884560502">+359 884 560 502</a>
+              <a href="mailto:autohausbroker@gmail.com">autohausbroker@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Сервиз</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777321">+359 884 777 321</a>
+              <span class="ctc__note">ГТП</span>
+              <a href="tel:+359884536361">+359 884 536 361</a>
+              <a href="mailto:autohausservices@gmail.com">autohausservices@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">AutoSpa</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Кафе бар</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+        </div>
+
+        <div class="ctc__social">
+          <p class="ctc__k">Последвайте ни</p>
+          <ul class="social" aria-label="AutoHaus в социалните мрежи">
+            <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+            <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ============ FOOTER ============ -->
 <footer class="foot">
   <div class="ft-top">
@@ -161,12 +279,11 @@
     </a>
     <nav class="ft-links" aria-label="Долна навигация">
       <a href="index.html#avtomobili">Колекцията</a>
-      <a href="concierge.html">Concierge</a>
-      <a href="index.html#uslugi">Услуги</a>
-      <a href="index.html#kontakt">Контакт</a>
+      <a href="concierge.html">Консиерж</a>
+      <a href="index.html#razdeli">Услуги</a>
+      <a href="index.html#kontakt" data-contact>Контакт</a>
     </nav>
   </div>
-  <p class="ft-reg">Обявените цени са крайни. Лизингът е ориентировъчен: 6.9% годишна лихва при 20% първоначална вноска и срок до 60 месеца; окончателните условия се потвърждават след одобрение от партньорска лизингова институция. Автомобил се запазва за 48 часа след капаро. Възможен бартер с вашия автомобил.</p>
   <p class="ft-reg">Аутохаус България ЕООД · ЕИК 200771286 · ул. „Нестор Абаджиев“ №24, Асеновградско шосе, 4023 Пловдив · +359 884 777 147 · autohausbg@gmail.com</p>
   <p class="ft-cp">© 2026 Аутохаус България ЕООД</p>
 </footer>

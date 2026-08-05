@@ -69,21 +69,11 @@
     return String(name).split(/\s+/).map(function (w) { return w.charAt(0); })
       .join("").slice(0, 2).toUpperCase();
   }
-  function has(tag) { return (v.tags || []).indexOf(tag) > -1; }
   function frames(n) { return n === 1 ? "кадър" : "кадъра"; }
 
   var shots = v.shots || [];
   var N = shots.length;
-  var l60 = AH.lease(v.price, 60);
-  var age = v.year ? Math.max(1, (new Date()).getFullYear() - v.year) : null;
-  var perYear = (age && v.km != null) ? Math.round(v.km / age) : null;
-  var gearName = v.gear === "manual" ? "Ръчна" : "Автоматична";
   var chapterName = AH.chapterName[v.chapter] || "";
-  var chapterBlurb = (function () {
-    for (var i = 0; i < AH.chapters.length; i++)
-      if (AH.chapters[i].key === v.chapter) return AH.chapters[i].blurb;
-    return "";
-  })();
   var backHref = "index.html#avtomobili" + (v.chapter ? "?chapter=" + v.chapter : "");
   var backName = (chapterName || "колекцията").toLowerCase();
 
@@ -103,83 +93,109 @@
                 '<rect x="1" y="9" width="6" height="6"/><rect x="9" y="9" width="6" height="6"/></svg>';
 
   /* ============================================================
-     PROSE — assembled from the record and from the four-step standard.
-     No provenance the data cannot support.
+     WHAT THIS PAGE IS ALLOWED TO SAY
+
+     Everything on it is either in data/vehicles.js — verified line by line
+     against the live listings on 2026-08-05, where all 83 still-published
+     cars agreed on make, model, registration, engine, power, transmission,
+     mileage and colour — or in data/eq/<id>.js, which is that listing's own
+     equipment list, verbatim.
+
+     WHAT WAS HERE AND IS NOT ANY MORE, because AutoHaus does not say it:
+
+       · "Преминал е през същия път като всеки автомобил в колекцията:
+          проверка на произход и сервизна история, механична подготовка в
+          собствен сервиз, пълен Auto Spa детайлинг и лично одобрение от …,
+          преди да бъде показан." A four-step standard, asserted for all 87.
+       · "Документите — справка за произход, сервизни книжки и фактури — са
+          на разположение при огледа." A promise about paperwork.
+       · A "Гаранции и оглед" block of four: viewings every weekday 09:00 to
+          18:00 without an appointment, a test drive by arrangement, a
+          48-hour hold after a deposit, a firm part-exchange offer the same
+          day. Four commitments, none of them made by the company.
+       · "Защо този" — up to four editorial verdicts per car, generated from
+          the record: "Мощност, която оправдава подготовката", "Възраст, в
+          която състоянието е единственото, което тежи", "Рядкост в този
+          клас". A dealer may write that about a car; a template may not
+          write it about eighty-seven.
+       · "Пълна сервизна история" as a filler whenever fewer than three of
+          those verdicts fired. True of 60 of the 83 listings — and printed
+          now for exactly those 60, because it is one of their own notes.
+       · A monthly leasing figure per car, on the rail and again in the
+          prose, computed from a rate nobody has confirmed. The listings say
+          "Възможен лизинг!" and nothing more, so that is what this says.
+       · "Обявената цена е крайна" and the rail's "Крайна цена" — the
+          opposite of what the listing says. See THE PRICE below.
+       · An answer "до 24 часа в работни дни", and an expert who "одобри
+          лично този автомобил".
+       · "реф. AH-018" on the identity line. That reference is this site's,
+          generated when the inventory was scraped; it is not printed on any
+          AutoHaus listing. It still travels with an enquiry — where it is
+          labelled as the enquiry's reference, which is what it is — but it
+          is no longer shown as though it were the car's catalogue number.
+
+     THE PRICE. AutoHaus publishes a euro figure and, on 25 of the 83 cars,
+     the line "Цена без начислен 20% ДДС!" — the price does not include 20%
+     VAT. The old page printed "Крайна цена" on every car, which is wrong
+     twice: wrong for those 25 because the VAT is still to come, and wrong
+     for the other 58 because it asserts something their listing never said.
+     The note is carried per car now, in the listing's own words.
+
+     THE DUPLICATION. Year, mileage, power, engine, transmission and colour
+     used to appear three times each — in a scrolling spec strip, again in a
+     "Детайли" table underneath it, and a third time as the opening sentence
+     of the prose. There is one specification block now, holding exactly the
+     eight rows the listing holds.
      ============================================================ */
-  function story() {
-    var p = [];
 
-    p.push(v.make + " " + v.model + " — " +
-      (v.unreg ? "нерегистриран" : v.year + " г.") + ", " + AH.km(v.km) + ", " +
-      v.hp + " к.с. " + AH.fuel[v.fuel].toLowerCase() + ", " +
-      gearName.toLowerCase() + " скоростна кутия" +
-      (v.colour ? ", " + v.colour.toLowerCase() : "") + ".");
+  /* the per-car notes: two to four lines the listing prints under the price.
+     The VAT one belongs beside the price; the rest belong under the spec. */
+  var allNotes = (v.notes || []).slice();
+  var vatNote = null;
+  var notes = allNotes.filter(function (t) {
+    if (/ДДС/.test(t)) { vatNote = t.replace(/!+$/, ""); return false; }
+    return true;
+  }).map(function (t) { return t.replace(/!+$/, ""); });
 
-    if (v.unreg)
-      p.push("Автомобилът не е регистриран. " + AH.km(v.km) +
-        " са доставъчен пробег — от завода до салона.");
-    else if (v.km != null && v.km < 1000)
-      p.push("Пробегът от " + AH.km(v.km) + " е доставъчен; автомобилът е практически нов.");
-    else if (perYear)
-      p.push("От " + v.year + " г. са изминати " + AH.km(v.km) + " — около " +
-        AH.fmt(perYear) + " км средногодишно.");
+  var MONTHS = ["", "януари", "февруари", "март", "април", "май", "юни",
+                "юли", "август", "септември", "октомври", "ноември", "декември"];
+  /* the listing's own wording, including the case where there is none */
+  var regTxt = v.unreg ? "Без първа регистрация"
+    : (v.year ? ((v.month ? MONTHS[v.month] + " " : "") + v.year + " г.") : "—");
 
-    if (has("guard"))
-      p.push("Фабрично брониран автомобил. Нивото на защита и документацията към " +
-        "бронирането се преглеждат лично при огледа, не се описват в обява.");
-
-    if (chapterName)
-      p.push("Стои в раздел „" + chapterName + "“" + (chapterBlurb ? ": " + chapterBlurb : "."));
-
-    p.push("Преминал е през същия път като всеки автомобил в колекцията: проверка на " +
-      "произход и сервизна история, механична подготовка в собствен сервиз, пълен Auto Spa " +
-      "детайлинг и лично одобрение от " + CFG.expert + ", преди да бъде показан.");
-
-    p.push("Документите — справка за произход, сервизни книжки и фактури — са на " +
-      "разположение при огледа, преди да е поет какъвто и да било ангажимент.");
-
-    p.push(v.price == null
-      ? "Цената на този автомобил не се обявява публично; съобщава се при заявка."
-      : "Обявената цена е крайна. Лизинг от ≈ " + AH.fmt(l60) +
-        " € на месец при 20% първоначална вноска и 60 месеца.");
-
-    return p.map(function (t) { return "<p>" + AH.esc(t) + "</p>"; }).join("");
+  function specRows() {
+    return [["Марка и модел", v.full],
+            ["Регистрация", regTxt],
+            ["Тип двигател", AH.fuel[v.fuel] || "—"],
+            ["Мощност", v.hp ? v.hp + " к.с." : "—"],
+            ["Трансмисия", v.gear === "manual" ? "Ръчна" : "Автоматична"],
+            ["Пробег", v.km == null ? "—" : AH.fmt(v.km) + " км"],
+            ["Цвят", v.colour || "—"],
+            ["Цена", v.price == null ? "При запитване" : AH.fmt(v.price) + " евро"]];
   }
 
-  /* ============================================================
-     HIGHLIGHTS — derived, never invented. Max four.
-     ============================================================ */
-  function highlights() {
-    var out = [];
-    if (has("guard"))
-      out.push(["Фабрично брониран", "Ниво на защита и документация — лично при оглед."]);
-    if (v.unreg)
-      out.push(["Нерегистриран", "Без първа регистрация, " + AH.km(v.km) + " от завода."]);
-    else if (v.km != null && v.km < 1000)
-      out.push(["Доставъчен пробег", AH.km(v.km) + " — практически нов автомобил."]);
-    else if (perYear && perYear < 12000)
-      out.push(["Малко каран", "Около " + AH.fmt(perYear) + " км средногодишно от " + v.year + " г."]);
-    if (v.price == null)
-      out.push(["Дискретна продажба", "Не се обявява публично; цената се съобщава при заявка."]);
-    if (has("classic"))
-      out.push(["Колекционерска стойност", "Възраст, в която състоянието е единственото, което тежи."]);
-    if (v.gear === "manual")
-      out.push(["Ръчна скоростна кутия", "Рядкост в този клас."]);
-    if (v.fuel === "ev" || v.fuel === "phev" || v.fuel === "hybrid")
-      out.push([AH.fuel[v.fuel], "С пълна история на батерията."]);
-    if (v.hp >= 500)
-      out.push([v.hp + " к.с.", "Мощност, която оправдава подготовката."]);
-    if (out.length < 3)
-      out.push(["Пълна сервизна история", "Книжки, фактури и справка за произход при огледа."]);
-    return out.slice(0, 4);
-  }
-
-  function trustRow(t) {
-    return "<li>" + CHECK + "<span>" + t + "</span></li>";
-  }
-  function checkRow(h) {
-    return "<li>" + CHECK + '<span><b style="color:var(--ink);font-weight:600">' + AH.esc(h[0]) +
-      '</b><span style="display:block;color:var(--ink-3)">' + AH.esc(h[1]) + "</span></span></li>";
+  /* ---- the equipment list ----
+     Two shapes in the source, both kept: "<code> – <text>" is an option
+     carrying the maker's own code, and a line opening with "-" is a
+     sub-point of the option above it. Nothing is reordered or reworded. */
+  function equipHTML(lines) {
+    var html = "", open = false, n = 0;
+    for (var i = 0; i < lines.length; i++) {
+      var t = String(lines[i]);
+      if (/^[-–—]\s*/.test(t)) {
+        if (!open) { html += '<ul class="deq-sub">'; open = true; }
+        html += "<li>" + AH.esc(t.replace(/^[-–—]\s*/, "")) + "</li>";
+        continue;
+      }
+      if (open) { html += "</ul>"; open = false; }
+      var m = t.match(/^([0-9A-Za-zА-Яа-я]{1,5})\s*[–—]\s*(.+)$/);
+      n++;
+      html += '<li class="deq-i">' + (m
+        ? '<span class="deq-c">' + AH.esc(m[1]) + "</span><span>" + AH.esc(m[2]) + "</span>"
+        : '<span class="deq-c" aria-hidden="true"></span><span>' + AH.esc(t) + "</span>") + "</li>";
+    }
+    if (open) html += "</ul>";
+    return { html: html, n: n };
   }
 
   var related = AH.all.filter(function (o) {
@@ -231,70 +247,55 @@
     '<div class="dbody">' +
     '<div style="min-width:0">' +
 
-      /* a) title / price / place */
+      /* a) title / price */
       '<section class="dsec">' +
         '<div class="dtitle">' +
           "<h1>" + AH.esc(v.model) + "</h1>" +
-          '<p class="dtitle__price">' +
-            (v.price == null ? "Цена при запитване" : AH.price(v.price)) + "</p>" +
-          '<p class="dtitle__place">AutoHaus · Пловдив · реф. ' + AH.esc(v.ref) + "</p>" +
+          '<div class="dtitle__pw">' +
+            '<p class="dtitle__price">' +
+              (v.price == null ? "Цена при запитване" : AH.fmt(v.price) + " €") + "</p>" +
+            (vatNote ? '<p class="dtitle__vat">' + AH.esc(vatNote) + "</p>" : "") +
+          "</div>" +
         "</div>" +
+        '<p class="dtitle__place">AutoHaus · Пловдив</p>' +
       "</section>" +
 
-      /* b) spec strip — value above label, scrollable */
+      /* b) THE SPECIFICATION — one block, the eight rows the listing has.
+         It was a scrolling strip of six, a table of ten underneath it and a
+         sentence restating all six a third time. */
       '<section class="dsec">' +
-        '<dl class="dspecs">' +
-          [["Година", v.unreg ? "Нерегистриран" : (v.year ? v.year + " г." : "—")],
-           ["Пробег", AH.km(v.km)],
-           ["Мощност", v.hp + " к.с."],
-           ["Двигател", AH.fuel[v.fuel]],
-           ["Скоростна кутия", gearName],
-           ["Цвят", v.colour || "—"]
-          ].map(function (r) {
+        '<h2 class="dsec__h">Спецификация</h2>' +
+        '<dl class="dspec">' +
+          specRows().map(function (r) {
             return "<div><dt>" + r[0] + "</dt><dd>" + AH.esc(String(r[1])) + "</dd></div>";
           }).join("") +
         "</dl>" +
+        /* the listing's own notes, in its own words. Never a fixed set: of
+           the 83 published cars, 25 carry the VAT line and 60 the service
+           history, and a car that says neither says neither here. */
+        (notes.length
+          ? '<ul class="dnotes">' + notes.map(function (t) {
+              return "<li>" + CHECK + "<span>" + AH.esc(t) + "</span></li>";
+            }).join("") + "</ul>"
+          : "") +
       "</section>" +
 
-      /* c) prose */
-      '<section class="dsec">' +
-        '<h2 class="dsec__h">За този автомобил</h2>' +
-        '<div class="dclamp" id="dabout"><div class="dprose">' + story() + "</div></div>" +
-        '<button type="button" class="dmore" id="dmore" aria-expanded="false" aria-controls="dabout">' +
+      /* c) THE EQUIPMENT.
+         Loaded per car from data/eq/<id>.js after this render — it is the
+         one heavy thing on the page and it is below the fold at every
+         width. The box reserves its own height so the arrival shifts
+         nothing, and if the file is missing (four cars have been sold and
+         their listings are gone) the section simply never appears. */
+      '<section class="dsec" id="deq-sec" hidden>' +
+        '<h2 class="dsec__h">Оборудване <span class="dsec__n" id="deq-n"></span></h2>' +
+        '<div class="dclamp" id="deq-clamp"><ul class="deq" id="deq"></ul></div>' +
+        '<button type="button" class="dmore" id="deq-more" aria-expanded="false" aria-controls="deq-clamp" hidden>' +
           "Прочети още</button>" +
       "</section>" +
 
-      /* d) details table */
-      '<section class="dsec">' +
-        '<h2 class="dsec__h">Детайли</h2>' +
-        '<dl class="dtable">' +
-          [["Марка", v.make],
-           ["Модел", v.model],
-           ["Първа регистрация", v.unreg ? "Нерегистриран"
-              : (v.year ? (v.month ? (v.month < 10 ? "0" + v.month : v.month) + "." + v.year
-                                   : v.year + " г.") : "—")],
-           ["Пробег", AH.km(v.km)],
-           ["Мощност", v.hp + " к.с."],
-           ["Двигател", AH.fuel[v.fuel]],
-           ["Скоростна кутия", gearName],
-           ["Цвят", v.colour || "—"],
-           ["Раздел", chapterName || "—"],
-           ["Референция", v.ref]
-          ].map(function (r) {
-            return "<dt>" + r[0] + "</dt><dd>" + AH.esc(String(r[1])) + "</dd>";
-          }).join("") +
-        "</dl>" +
-      "</section>" +
-
-      /* e) why this one */
-      '<section class="dsec">' +
-        '<h2 class="dsec__h">Защо този</h2>' +
-        '<ul class="dtrust" style="margin-top:0">' +
-          highlights().map(checkRow).join("") +
-        "</ul>" +
-      "</section>" +
-
-      /* f) ask — the seller, then a question that travels to the brief */
+      /* d) ask — the enquiry. The form is real and stays; what went is the
+         claim that the expert personally approved this car and the promise
+         of an answer within 24 working hours. */
       '<section class="dsec">' +
         '<h2 class="dsec__h">Въпрос към AutoHaus</h2>' +
         '<div class="dseller">' +
@@ -302,7 +303,7 @@
             initials(CFG.expert) + "</span>" +
           "<div>" +
             '<p class="dseller__n">' + AH.esc(CFG.expert) + "</p>" +
-            '<p class="dseller__m">Одобри лично този автомобил, преди да бъде показан.</p>' +
+            '<p class="dseller__m">AutoHaus Пловдив</p>' +
           "</div>" +
           '<div class="dseller__acts">' +
             '<a href="tel:' + CFG.expertPhone + '">' + PHONE +
@@ -320,48 +321,27 @@
             ' placeholder="Например: свободен ли е за оглед в събота?"></textarea>' +
           '<button class="btn-primary" type="submit" style="margin-top:16px">Продължи</button>' +
           '<p class="body-s" style="margin-top:12px;color:var(--ink-3)">Въпросът се добавя към ' +
-            "заявката и стига до " + AH.esc(CFG.expert) + " — отговор до 24 часа в работни дни.</p>" +
+            "заявката и стига до " + AH.esc(CFG.expert) + ".</p>" +
         "</form>" +
-      "</section>" +
-
-      /* g) guarantees and viewing */
-      '<section class="dsec">' +
-        '<h2 class="dsec__h">Гаранции и оглед</h2>' +
-        '<ul class="dtrust" style="margin-top:0">' +
-          trustRow("Оглед всеки делничен ден 09:00 – 18:00, без записване. Автомобилът е физически в салона.") +
-          trustRow("Тест драйв по уговорка — автомобилът трябва да е подготвен и застрахован за него.") +
-          trustRow("Запазване за 48 часа след капаро, докато уредите финансирането.") +
-          trustRow("Бартер: оглеждаме вашия автомобил на място и даваме твърда оферта същия ден.") +
-        "</ul>" +
       "</section>" +
 
     "</div>" +
 
     /* the rail — sticky on a desktop, last in the stack on a phone */
     '<aside class="drail" aria-label="Цена и запитване">' +
-      '<p class="drail__pk">' + (v.price == null ? "Дискретна продажба" : "Крайна цена") + "</p>" +
+      '<p class="drail__pk">' + (v.price == null ? "Цена" : "Цена") + "</p>" +
       '<p class="drail__price">' +
-        (v.price == null ? "При запитване" : AH.price(v.price)) + "</p>" +
-      '<p class="drail__lease">' + (v.price == null
-        ? "Този автомобил не се обявява публично. Цената и условията се съобщават при заявка."
-        : "Лизинг от ≈ " + AH.fmt(l60) + " € / мес. при 20% първоначална вноска") + "</p>" +
+        (v.price == null ? "При запитване" : AH.fmt(v.price) + " €") + "</p>" +
+      (vatNote
+        ? '<p class="drail__vat">' + AH.esc(vatNote) + "</p>"
+        : (v.price == null
+            ? '<p class="drail__lease">Цената на този автомобил се съобщава при запитване.</p>'
+            : "")) +
       '<a class="btn-primary" href="' + AH.conciergeUrl({ v: v.id }) + '">Запитване</a>' +
       '<a class="btn-ghost" href="' + AH.conciergeUrl({ v: v.id, visit: 1 }) + '">Запази оглед</a>' +
-      '<p class="drail__fn">Заявката стига директно до ' + AH.esc(CFG.expert) +
-        ' и получава отговор до 24 часа в работни дни. За спешни въпроси: <a href="tel:' +
+      '<p class="drail__fn">Заявката стига до ' + AH.esc(CFG.expert) +
+        '. За въпроси по телефона: <a href="tel:' +
         CFG.salonPhone + '">' + prettyPhone(CFG.salonPhone) + "</a>.</p>" +
-
-      (v.price == null ? "" :
-      '<div class="drail__div"></div>' +
-      '<p class="drail__pk">Лизинг · 20% първоначална вноска</p>' +
-      '<div class="vd-terms" role="group" aria-label="Срок в месеци" style="margin-top:16px">' +
-        [24, 36, 48, 60].map(function (t) {
-          return '<button type="button" class="vd-term' + (t === 60 ? " is-on" : "") +
-            '" data-term="' + t + '" aria-pressed="' + (t === 60) + '">' + t + "</button>";
-        }).join("") +
-      "</div>" +
-      '<p class="vd-out" id="vd-out" role="status" aria-live="polite">≈ ' +
-        AH.fmt(l60) + " € / месец</p>") +
     "</aside>" +
     "</div>" +
 
@@ -522,39 +502,85 @@
   var printBtn = D.getElementById("dgal-print");
   if (printBtn) printBtn.addEventListener("click", function () { window.print(); });
 
-  /* ---- the read-more clamp ---- */
-  var clamp = D.getElementById("dabout"), moreBtn = D.getElementById("dmore");
-  if (clamp && moreBtn) {
-    /* nothing to expand if the prose already fits. Re-checked on load,
-       because the webfont arrives after this runs and reflows the prose. */
+  /* ---- THE EQUIPMENT, LOADED FOR THIS CAR ONLY ------------------------
+     data/eq/<id>.js is the one heavy asset on this page — a median 4.3KB
+     and 20KB at the worst — and all 83 of them together are 357KB, which
+     is why they are 83 files and not one table. This injects exactly the
+     one the reader is looking at.
+
+     AFTER the render, not before: the section is below the fold at every
+     width, so a late arrival shifts nothing above it, and a car whose file
+     is missing (four have been sold and their listings are gone) simply
+     renders without the section rather than with an empty one.
+
+     The file states its own id and it is checked. Two dossiers in one
+     session — click a related car, come back — would otherwise let a
+     slow response paint one car's options onto another car's page. */
+  (function loadEquipment() {
+    var sec = D.getElementById("deq-sec");
+    if (!sec) return;
+    /* THE VERSION HAS TO TRAVEL WITH IT.
+       _headers caches every .js on this site `immutable` for a year, which
+       is correct only because build.js stamps ?v=<hash> onto every URL it
+       writes into the HTML. This URL is built at runtime, so it is not one
+       of those — and without the stamp a re-scraped equipment list would
+       never reach anybody who had already opened that car. The page's own
+       scripts carry the current hash; this borrows it. build.js hashes
+       data/eq/ too, so re-scraping moves it. */
+    var ver = (function () {
+      var tags = D.getElementsByTagName("script");
+      for (var i = 0; i < tags.length; i++) {
+        var m = (tags[i].src || "").match(/[?&]v=([\w]+)/);
+        if (m) return m[1];
+      }
+      return "";
+    })();
+    var s = D.createElement("script");
+    s.src = "data/eq/" + encodeURIComponent(v.id) + ".js" + (ver ? "?v=" + ver : "");
+    s.async = true;
+    s.onload = function () {
+      var data = window.AH_EQ;
+      if (!data || data.id !== v.id || !data.e || !data.e.length) return;
+      var built = equipHTML(data.e);
+      var list = D.getElementById("deq");
+      var count = D.getElementById("deq-n");
+      var clamp = D.getElementById("deq-clamp");
+      var btn = D.getElementById("deq-more");
+      if (!list || !clamp || !btn) return;
+      list.innerHTML = built.html;
+      if (count) count.textContent = built.n ? "· " + built.n : "";
+      sec.removeAttribute("hidden");
+      armClamp(clamp, btn);
+    };
+    /* a 404 is a real state here, not a failure to report: the car has been
+       sold and its listing is gone. The section stays hidden. */
+    s.onerror = function () {};
+    D.head.appendChild(s);
+  })();
+
+  /* ---- THE READ-MORE, WHICH IS THE ONE INTERACTION THAT STAYED ---------
+     Same clamp, same two words, same behaviour as the prose block it used
+     to open — it just has something worth opening now. An equipment list
+     runs from 17 lines to 155, so the box shows the first screenful and
+     the button says how to get the rest. If a car's list already fits, the
+     button never appears rather than appearing and doing nothing. */
+  function armClamp(clamp, btn) {
     var fits = function () {
       if (clamp.classList.contains("is-open")) return;
-      if (clamp.scrollHeight <= clamp.clientHeight + 4) moreBtn.setAttribute("hidden", "");
-      else moreBtn.removeAttribute("hidden");
+      if (clamp.scrollHeight <= clamp.clientHeight + 4) btn.setAttribute("hidden", "");
+      else btn.removeAttribute("hidden");
     };
     fits();
     addEventListener("load", fits);
-    moreBtn.addEventListener("click", function () {
+    addEventListener("resize", fits);
+    btn.addEventListener("click", function () {
       var open = clamp.classList.toggle("is-open");
-      moreBtn.setAttribute("aria-expanded", open ? "true" : "false");
-      moreBtn.textContent = open ? "Скрий" : "Прочети още";
-    });
-  }
-
-  /* ---- leasing terms ---- */
-  var out = D.getElementById("vd-out");
-  if (out) {
-    var terms = Array.prototype.slice.call(D.querySelectorAll(".vd-term"));
-    terms.forEach(function (b) {
-      b.addEventListener("click", function () {
-        var term = parseInt(b.getAttribute("data-term"), 10) || 60;
-        terms.forEach(function (o) {
-          var on = o === b;
-          o.classList.toggle("is-on", on);
-          o.setAttribute("aria-pressed", on ? "true" : "false");
-        });
-        out.textContent = "≈ " + AH.fmt(AH.lease(v.price, term)) + " € / месец";
-      });
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.textContent = open ? "Скрий" : "Прочети още";
+      if (!open) {
+        var top = clamp.getBoundingClientRect().top + window.scrollY - 120;
+        if (window.scrollY > top) window.scrollTo({ top: top, behavior: "smooth" });
+      }
     });
   }
 

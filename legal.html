@@ -26,7 +26,7 @@
      NOT preloaded: preloading the weight-300 pair put 59KB in front of the
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
-<link rel="stylesheet" href="style.min.css?v=fc6f82db" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=d9b9cb35" id="ah-css">
 <meta name="robots" content="noindex">
 <script>
 /* Starts the app the moment the render-blocking stylesheet is in — not
@@ -34,7 +34,7 @@
    waits for every photograph). The timeout is a floor, never a ceiling: a
    stylesheet that stalls must not take the site down with it. */
 (function () {
-  var q = ["data/vehicles.js?v=fc6f82db","main.js?v=fc6f82db","i18n.js?v=fc6f82db"], fired = false;
+  var q = ["data/vehicles.js?v=d9b9cb35","main.js?v=d9b9cb35","i18n.js?v=d9b9cb35"], fired = false;
   function boot() {
     if (fired) return; fired = true;
     for (var i = 0; i < q.length; i++) {
@@ -97,17 +97,17 @@
       </button>
       <a class="lnk" href="index.html#avtomobili">Автомобили</a>
       <ul class="hd-links">
-        <li><a class="lnk" href="index.html#uslugi">Услуги</a></li>
+        <li><a class="lnk" href="index.html#razdeli">Услуги</a></li>
         <li><a class="lnk" href="index.html#lizing">Лизинг</a></li>
         <li><a class="lnk" href="index.html#about">За нас</a></li>
-        <li><a class="lnk" href="index.html#kontakt">Контакт</a></li>
+        <li><a class="lnk" href="index.html#kontakt" data-contact>Контакт</a></li>
       </ul>
     </div>
     <a class="hd-logo" href="index.html" aria-label="AutoHaus — начало">
       <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
     </a>
     <ul class="hd-zone hd-zone--end">
-      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Concierge</span></a></li>
+      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Консиерж</span></a></li>
       <li class="hd-lang">
         <div class="lang" id="lang" role="group" aria-label="Език / Language">
           <i class="lang__ind" aria-hidden="true"></i>
@@ -159,11 +159,11 @@
       </button>
       <nav aria-label="Меню">
         <a href="index.html#avtomobili">Автомобили</a>
-        <a href="concierge.html">Concierge</a>
-        <a href="index.html#uslugi">Услуги</a>
+        <a href="concierge.html">Консиерж</a>
+        <a href="index.html#razdeli">Услуги</a>
         <a href="index.html#lizing">Лизинг</a>
         <a href="index.html#about">За нас</a>
-        <a href="index.html#kontakt">Контакт</a>
+        <a href="index.html#kontakt" data-contact>Контакт</a>
       </nav>
       <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
         <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
@@ -172,6 +172,124 @@
       <div class="mob-foot">
         <a href="tel:+359884777147">+359 884 777 147</a>
         <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== THE CONTACT PANEL ====================
+     The menu's sibling, mirrored to the other corner — see "THE CONTACT
+     PANEL" in style.css for why it is a panel and not a page, and
+     "THE HOUSE ANGLE" for why the cut is on the left here and on the right
+     there. Anything carrying [data-contact] opens it; every one of those
+     triggers keeps a real href to #kontakt, so with JS off "Контакт" still
+     lands in the footer, which still holds the address and the office line.
+
+     The figures below are the ones published on autohaus.bg/контакти —
+     six departments, each with its own line and its own hours. They are
+     the only place on this site those numbers appear in full. -->
+<div class="ctc" id="ctc" aria-hidden="true">
+  <div class="ctc__scrim" id="ctc-scrim"></div>
+  <div class="ctc__reveal">
+    <div class="ctc__sheet" role="dialog" aria-modal="true" aria-labelledby="ctc-h">
+      <button class="ctc-close" id="ctc-close" aria-label="Затвори">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
+      </button>
+      <div class="ctc__scroll">
+        <p class="ctc__eyebrow">AutoHaus Пловдив</p>
+        <h2 class="ctc__h" id="ctc-h">Контакт</h2>
+
+        <div class="ctc__where">
+          <address class="ctc__addr">
+            <b>Аутохаус България ЕООД</b><br>
+            ул. „Нестор Абаджиев“ №24<br>
+            Асеновградско шосе<br>
+            4023 Пловдив, България
+          </address>
+          <p class="ctc__co">ЕИК 200771286 · ДДС BG200771286</p>
+
+          <!-- data-src, not src: the frame is a third party and it is not
+               fetched until somebody opens this panel. main.js promotes it
+               once. See THE MAP IS NOT LOADED in style.css. -->
+          <div class="ctc__map" id="ctc-map">
+            <iframe
+              data-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3519.3174753334256!2d24.773724387624082!3d42.120716529933546!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14acd18af42d2935%3A0xd53e00b37b9b5671!2z0YPQuy4g4oCe0J3QtdGB0YLQvtGAINCQ0LHQsNC00LbQuNC10LLigJwgMjQsIDQwMjMg0JjQvdC00YPRgdGC0YDQuNCw0LvQvdCwINC30L7QvdCwICLQotGA0LDQutC40Y8iLCDQn9C70L7QstC00LjQsg!5e0!3m2!1sbg!2sbg!4v1558527129797!5m2!1sbg!2sbg"
+              title="Карта до AutoHaus Пловдив" loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen></iframe>
+          </div>
+          <a class="btn btn--l btn--secondary ctc__go"
+             href="https://www.google.com/maps/search/?api=1&amp;query=42.1207165%2C24.7737244"
+             target="_blank" rel="noopener">
+            <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-pin"/></svg>
+            <span class="btn__label">Отвори в Google Maps</span>
+          </a>
+        </div>
+
+        <div class="ctc__depts">
+          <div class="ctc__dept">
+            <p class="ctc__k">Офис</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777147">+359 884 777 147</a>
+              <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Продажби</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777045">+359 884 777 045</a>
+              <a href="tel:+359885725860">+359 885 725 860</a>
+              <a href="mailto:autohaussale@gmail.com">autohaussale@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Застраховане</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777089">+359 884 777 089</a>
+              <a href="tel:+359888850777">+359 888 850 777</a>
+              <span class="ctc__note">Щети</span>
+              <a href="tel:+359884560502">+359 884 560 502</a>
+              <a href="mailto:autohausbroker@gmail.com">autohausbroker@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Сервиз</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777321">+359 884 777 321</a>
+              <span class="ctc__note">ГТП</span>
+              <a href="tel:+359884536361">+359 884 536 361</a>
+              <a href="mailto:autohausservices@gmail.com">autohausservices@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">AutoSpa</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Кафе бар</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+        </div>
+
+        <div class="ctc__social">
+          <p class="ctc__k">Последвайте ни</p>
+          <ul class="social" aria-label="AutoHaus в социалните мрежи">
+            <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+            <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -191,165 +309,265 @@
     <div class="phead">
       <p class="phead-eyebrow">AutoHaus</p>
       <h1 class="h4">Правна информация</h1>
-      <div class="body-s"><p>Четирите документа, които уреждат отношенията между
-        Аутохаус България ЕООД и посетителите на този сайт: как обработваме лични
-        данни, какви бисквитки използваме, при какви условия ползвате сайта и какви
-        права имате по GDPR.</p></div>
+      <div class="body-s"><p>Четири документа: какво правим с личните Ви данни,
+        какво този сайт оставя на устройството Ви, при какви условия го ползвате
+        и кой стои зад него. Написани са, за да бъдат прочетени.</p></div>
     </div>
 
     <!-- ЗА ПРЕГЛЕД ОТ ЮРИСТ / FOR LEGAL REVIEW
-         Този текст е изготвен като професионална основа и е готов за публикуване
-         от гледна точка на структура и оформление. Преди да влезе в сила трябва
-         да бъде потвърден от юрист и допълнен с точните фирмени данни, отбелязани
-         по-долу с [•]. Нищо в него не е правен съвет. -->
-    <p class="lg-note"><b>Бележка за собственика.</b> Документите по-долу са
-      професионално структурирани и готови за публикуване като оформление. Преди
-      публикуване трябва да бъдат прегледани от юрист и допълнени с точните данни,
-      отбелязани с <b>[•]</b>.</p>
+         Структурата, тонът и оформлението са готови за публикуване, а всички
+         фирмени данни са попълнени с действителните — ЕИК, ДДС номер, адрес,
+         телефони, електронни адреси. Остават отбелязаните с пунктир полета:
+         те не са пропуски в текста, а решения, които някой в дружеството или
+         юрист трябва да вземе. Нищо тук не е правен съвет.
+
+         ЧЕТИРИ ДОКУМЕНТА, НЕ ПЕТ. „Вашите права по GDPR" беше пети документ,
+         което беше подвеждащо: правата НЕ са отделна политика, а раздел от
+         политиката за поверителност — те произтичат от нея и се упражняват
+         срещу същия администратор. Сега са раздел 6 там, където читателят
+         тъкмо е разбрал какви данни се обработват. На тяхно място дойде
+         документът, който наистина липсваше: фирмените данни. -->
+    <p class="lg-note"><b>Бележка за собственика.</b> Фирмените данни по-долу са
+      действителните и текстовете са готови за публикуване. Полетата с
+      <b data-tbd>пунктирано подчертаване</b> не са пропуски — те са решения,
+      които трябва да вземете Вие или юрист, преди страницата да влезе в сила.
+      Решенията са осем: длъжностно лице по защита на данните, срок за
+      съхранение на запитванията, списък на доставчиците, лизинговите условия,
+      срокът на запазване след капаро, името на управителя, регистрацията като
+      застрахователен посредник и — само ако някога бъдат добавени — таблицата
+      с бисквитки.</p>
 
     <nav class="lg-toc" aria-label="Съдържание">
       <a href="#privacy">Поверителност</a>
       <a href="#cookies">Бисквитки</a>
       <a href="#terms">Общи условия</a>
-      <a href="#gdpr">Права по GDPR</a>
+      <a href="#imprint">Фирмени данни</a>
     </nav>
 
     <article class="lg-doc" id="privacy">
       <h2 class="lg-h">Политика за поверителност</h2>
-      <p class="lg-upd">Последна редакция: <b>[• дата]</b></p>
+      <p class="lg-upd">Последна редакция: 5 август 2026 г.</p>
 
-      <h3>1. Кой обработва Вашите данни</h3>
+      <p>Този документ казва кои Ваши данни стигат до нас, защо, за колко време
+        остават и какво можете да поискате по всяко време. Ако нещо в него не е
+        ясно, обадете се — телефонът е в дъното на страницата.</p>
+
+      <h3>1. Кой обработва данните</h3>
       <p><b>Аутохаус България ЕООД</b>, ЕИК 200771286, ДДС № BG200771286, със
         седалище и адрес на управление ул. „Нестор Абаджиев“ №24, Асеновградско
-        шосе, 4023 Пловдив, е администратор на лични данни по смисъла на
-        Регламент (ЕС) 2016/679 (GDPR) и Закона за защита на личните данни.</p>
-      <p>Връзка по въпроси за лични данни: <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>,
-        +359 884 777 147. Длъжностно лице по защита на данните: <b>[• ако е
-        определено — име и контакт; ако не е, това се посочва изрично]</b>.</p>
+        шосе, 4023 Пловдив. Дружеството е администратор на лични данни по смисъла
+        на Регламент (ЕС) 2016/679 (GDPR) и Закона за защита на личните данни.</p>
+      <p>По всички въпроси за лични данни:
+        <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a> или
+        <a href="tel:+359884777147">+359 884 777 147</a>.
+        Длъжностно лице по защита на данните:
+        <b data-tbd>предстои да се определи дали дружеството е задължено да
+        назначи такова; ако да — име и контакт, ако не — изричното посочване,
+        че не е назначено</b>.</p>
 
       <h3>2. Какви данни събираме и на какво основание</h3>
-      <p><b>Данни от заявка през Concierge или запитване за автомобил</b> — име,
-        телефон, имейл и описанието, което сами предоставяте (търсен автомобил,
-        бюджет, срок, автомобил за замяна). Основание: чл. 6, ал. 1, б. „б“ GDPR
-        — предприемане на стъпки по Ваше искане преди сключване на договор.</p>
-      <p><b>Данни при сделка</b> — данни от документ за самоличност, данни за
-        превозното средство и плащането, доколкото са необходими за договор,
-        регистрация и счетоводна отчетност. Основание: чл. 6, ал. 1, б. „б“ и
-        б. „в“ GDPR — договор и законово задължение.</p>
-      <p><b>Технически данни</b> — вижте „Политика за бисквитки“ по-долу.
-        Основание за строго необходимите: чл. 6, ал. 1, б. „е“ — легитимен
-        интерес сайтът да работи. За всички останали — Вашето съгласие.</p>
-      <p>Не събираме специални категории данни и не използваме автоматизирано
-        вземане на решения или профилиране с правен ефект.</p>
+      <p><b>Когато ни пишете.</b> Име, телефон, електронен адрес и това, което
+        сами опишете в заявка през Консиерж или в запитване за автомобил —
+        търсен модел, бюджет, срок, автомобил за замяна. Обработваме ги, за да
+        отговорим и да подготвим сделката, която сами сте поискали
+        (чл. 6 §1 б. „б“).</p>
+      <p><b>Когато купувате.</b> Данни от документ за самоличност, данни за
+        автомобила и за плащането — толкова, колкото договорът, регистрацията и
+        счетоводството изискват (чл. 6 §1 б. „б“ и б. „в“).</p>
+      <p><b>Докато разглеждате.</b> Технически данни — вижте „Политика за
+        бисквитки“ по-долу. За строго необходимото основанието е нашият
+        легитимен интерес сайтът да работи (чл. 6 §1 б. „е“); за всичко
+        останало — Вашето съгласие.</p>
+      <p>Не събираме чувствителни данни. Не вземаме решения за Вас автоматично
+        и не Ви профилираме.</p>
 
       <h3>3. Колко дълго ги пазим</h3>
-      <p>Запитване, което не е довело до сделка — <b>[• срок, напр. 12 месеца]</b>
-        от последния контакт. Документи по сключена сделка — за срока, определен
-        от счетоводното и данъчното законодателство (по правило 10 години).
-        Съгласия за маркетинг — до оттеглянето им.</p>
+      <p>Запитване, което не е довело до сделка —
+        <b data-tbd>12 месеца</b> от последния контакт.
+        Документи по сключена сделка — 10 години, колкото изисква счетоводното
+        и данъчното законодателство. Съгласие за маркетинг — докато не го
+        оттеглите.</p>
 
-      <h3>4. На кого ги предоставяме</h3>
-      <p>Само когато е необходимо и в необходимия обем: партньорски лизингови и
-        застрахователни институции — когато сами поискате оферта; счетоводен и
-        правен консултант; държавни органи, когато закон го изисква; доставчици
-        на хостинг и комуникационни услуги, действащи като обработващи по
-        писмен договор. <b>[• списък на конкретните доставчици]</b>.</p>
-      <p>Не продаваме и не отдаваме под наем лични данни. Не предаваме данни
-        извън ЕС/ЕИП, освен ако това не е изрично посочено тук. <b>[• ако се
-        използва услуга извън ЕС — да се опише и да се посочи механизмът за
-        трансфер]</b>.</p>
+      <h3>4. С кого ги споделяме</h3>
+      <p>Само когато е необходимо и само в необходимия обем:</p>
+      <ul class="lg-list">
+        <li><b>Лизингови и застрахователни партньори</b> — единствено ако сами
+          поискате оферта от тях.</li>
+        <li><b>Счетоводител и правен консултант</b> — по договор и при
+          задължение за поверителност.</li>
+        <li><b>Държавни органи</b> — когато закон го изисква.</li>
+        <li><b>Доставчици на хостинг и комуникации</b>, действащи като
+          обработващи по писмен договор:
+          <b data-tbd>да се впишат конкретните дружества — хостинг, електронна
+          поща, формуляри</b>.</li>
+      </ul>
+      <p>Не продаваме и не отдаваме под наем лични данни. Никога.</p>
 
-      <h3>5. Сигурност</h3>
-      <p>Прилагаме технически и организационни мерки, съобразени с риска:
-        ограничен достъп на принципа „необходимост да се знае“, криптирана
-        връзка към сайта, и договорни задължения към обработващите. Никоя
-        мярка не дава абсолютна гаранция; при нарушение, което може да породи
-        висок риск за Вас, ще бъдете уведомени съгласно чл. 34 GDPR.</p>
-    </article>
+      <h3>5. Данни извън Европейския съюз</h3>
+      <p>Едно нещо на този сайт е чуждо: <b>вградената карта на Google</b> в
+        панела „Контакт“. Тя не се зарежда, докато не отворите този панел — до
+        този момент никакви данни не напускат сайта. Когато го отворите, Google
+        Ireland Limited получава IP адреса Ви и може да постави свои бисквитки,
+        при своите условия. Прехвърлянето към САЩ, ако възникне, се извършва на
+        основание Стандартните договорни клаузи на Европейската комисия и
+        Рамката за защита на личните данни ЕС–САЩ.</p>
 
-    <article class="lg-doc" id="cookies">
-      <h2 class="lg-h">Политика за бисквитки</h2>
-      <p class="lg-upd">Последна редакция: <b>[• дата]</b></p>
-
-      <h3>1. Какво използваме днес</h3>
-      <p>Този сайт работи без рекламни и без проследяващи бисквитки. Използва се
-        единствено локално съхранение в браузъра Ви за две неща: избрания език
-        (BG/EN) и, ако сте започнали заявка през Concierge, нейното съдържание —
-        за да не го въвеждате отново. Тези данни остават на Вашето устройство и
-        не се изпращат към нас, докато сами не изпратите заявката.</p>
-      <p>Можете да ги изтриете по всяко време от настройките на браузъра си, без
-        това да наруши работата на сайта.</p>
-
-      <h3>2. Ако това се промени</h3>
-      <p>Ако в бъдеще бъдат добавени аналитични или маркетингови бисквитки
-        (например Google Analytics или Meta Pixel), те ще се зареждат <b>само
-        след Ваше изрично съгласие</b>, дадено чрез банер за съгласие, който ще
-        позволява и отказ, и последващо оттегляне. <b>[• при внедряване:
-        да се опишат имената, целта, срокът и доставчикът на всяка бисквитка в
-        таблица]</b>.</p>
-    </article>
-
-    <article class="lg-doc" id="terms">
-      <h2 class="lg-h">Общи условия за ползване</h2>
-      <p class="lg-upd">Последна редакция: <b>[• дата]</b></p>
-
-      <h3>1. Предмет</h3>
-      <p>Тези условия уреждат ползването на сайта на Аутохаус България ЕООД.
-        С използването на сайта приемате условията в актуалната им редакция.</p>
-
-      <h3>2. Информацията за автомобилите</h3>
-      <p>Публикуваните автомобили, цени и характеристики са актуални към момента
-        на публикуване и <b>не представляват публична покана или оферта</b> по
-        смисъла на чл. 290 от Търговския закон. Наличността се променя ежедневно;
-        продаден автомобил се сваля от сайта в деня на продажбата.</p>
-      <p>Обявените цени са в евро, с включени всички данъци, и се отнасят за
-        автомобила в описаното състояние. Възможни са техническа грешка и
-        разминаване; обвързваща е цената, потвърдена писмено при сделката.</p>
-
-      <h3>3. Лизинг, запазване и замяна</h3>
-      <p>Показаните лизингови вноски са ориентировъчни, изчислени при
-        <b>[• годишна лихва]</b>% годишно, <b>[• %]</b> първоначална вноска и
-        срок до <b>[• месеца]</b>, и не представляват одобрение. Окончателните
-        условия се определят от партньорска лизингова институция.</p>
-      <p>Автомобил се запазва за <b>[• 48]</b> часа след капаро при условията,
-        договорени писмено. Замяна с Ваш автомобил е възможна след оглед и
-        писмена оферта.</p>
-
-      <h3>4. Отговорност и интелектуална собственост</h3>
-      <p>Полагаме грижа информацията да е вярна и актуална, но не отговаряме за
-        вреди от използването на сайта, освен в случаите на умисъл или груба
-        небрежност и доколкото законът не предвижда друго. Всички текстове,
-        фотографии и марки на сайта са обект на закрила и не могат да се
-        използват без писмено съгласие.</p>
-
-      <h3>5. Приложимо право и спорове</h3>
-      <p>Прилага се българското право. Спорове се решават по споразумение, а при
-        невъзможност — от компетентния български съд. Потребителите могат да се
-        обърнат към Комисията за защита на потребителите
-        (<a href="https://kzp.bg" target="_blank" rel="noopener">kzp.bg</a>) или
-        към платформата за онлайн решаване на спорове на ЕС.</p>
-    </article>
-
-    <article class="lg-doc" id="gdpr">
-      <h2 class="lg-h">Вашите права по GDPR</h2>
-      <p class="lg-upd">Последна редакция: <b>[• дата]</b></p>
-      <p>По отношение на личните си данни имате следните права, които можете да
-        упражните безплатно, като ни пишете на
-        <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>. Отговаряме
-        в срок до един месец.</p>
+      <h3>6. Вашите права</h3>
+      <p>Правата по-долу са Ваши по силата на GDPR. Упражняват се безплатно —
+        пишете на <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+        и отговаряме в срок до един месец.</p>
       <ul class="lg-list">
         <li><b>Достъп</b> — да разберете какви данни обработваме за Вас и защо.</li>
-        <li><b>Коригиране</b> — да поправим неточни или непълни данни.</li>
-        <li><b>Изтриване</b> — да заличим данните Ви, когато вече не са необходими
-          и не сме задължени по закон да ги пазим.</li>
+        <li><b>Коригиране</b> — да поправим неточното или непълното.</li>
+        <li><b>Изтриване</b> — да заличим данните Ви, когато вече не са
+          необходими и законът не ни задължава да ги пазим.</li>
         <li><b>Ограничаване</b> — да спрем обработването, докато се изясни спор.</li>
         <li><b>Преносимост</b> — да получите данните си в машинно четим формат.</li>
         <li><b>Възражение</b> — срещу обработване на основание легитимен интерес.</li>
         <li><b>Оттегляне на съгласие</b> — по всяко време, без това да засяга
           законосъобразността на обработването преди оттеглянето.</li>
-        <li><b>Жалба</b> — до Комисията за защита на личните данни, гр. София,
+        <li><b>Жалба</b> — до Комисията за защита на личните данни, гр. София
+          1592, бул. „Проф. Цветан Лазаров“ №2,
+          <a href="https://cpdp.bg" target="_blank" rel="noopener">cpdp.bg</a>.</li>
+      </ul>
+
+      <h3>7. Сигурност</h3>
+      <p>Достъпът до данни е на принципа „необходимост да се знае“, връзката към
+        сайта е криптирана, а обработващите са обвързани договорно. Никоя мярка
+        не дава абсолютна гаранция; ако възникне нарушение с висок риск за Вас,
+        ще бъдете уведомени лично, както изисква чл. 34 GDPR.</p>
+    </article>
+
+    <article class="lg-doc" id="cookies">
+      <h2 class="lg-h">Политика за бисквитки</h2>
+      <p class="lg-upd">Последна редакция: 5 август 2026 г.</p>
+
+      <h3>1. Този сайт не Ви проследява</h3>
+      <p>Няма рекламни бисквитки, няма аналитични бисквитки, няма пиксели.
+        Не измерваме поведението Ви и не го препродаваме.</p>
+      <p>Това, което сайтът наистина оставя на устройството Ви, е локално
+        съхранение за две неща: <b>избрания език</b> (BG или EN) и, ако сте
+        започнали заявка през Консиерж, <b>нейното съдържание</b> — за да не
+        въвеждате всичко отново, ако затворите страницата. И двете остават на
+        Вашето устройство и не се изпращат към нас, докато сами не изпратите
+        заявката. Изтриват се от настройките на браузъра Ви по всяко време, без
+        това да наруши работата на сайта.</p>
+
+      <h3>2. Едно изключение: картата</h3>
+      <p>Панелът „Контакт“ съдържа вградена карта на Google. Тя е единственото
+        чуждо съдържание тук и <b>се зарежда само в момента, в който отворите
+        панела</b> — не при отваряне на сайта и не при разглеждане на
+        автомобилите. Ако не го отворите, никаква връзка с Google не се
+        осъществява. Ако го отворите, важат условията на Google, включително
+        възможността да постави свои бисквитки.</p>
+      <p>Бутонът „Отвори в Google Maps“ е обикновена препратка — тя не зарежда
+        нищо, докато не я натиснете.</p>
+
+      <h3>3. Ако това се промени</h3>
+      <p>Ако някога бъдат добавени аналитични или маркетингови бисквитки, те ще
+        се зареждат <b>само след Ваше изрично съгласие</b>, дадено чрез банер,
+        който позволява и отказ, и последващо оттегляне.
+        <b data-tbd>При внедряване: тук се описват името, целта, срокът и
+        доставчикът на всяка бисквитка</b>.</p>
+    </article>
+
+    <article class="lg-doc" id="terms">
+      <h2 class="lg-h">Общи условия за ползване</h2>
+      <p class="lg-upd">Последна редакция: 5 август 2026 г.</p>
+
+      <h3>1. Предмет</h3>
+      <p>Тези условия уреждат ползването на сайта на Аутохаус България ЕООД. С
+        използването му ги приемате в актуалната им редакция.</p>
+
+      <h3>2. Автомобилите, цените и снимките</h3>
+      <p><b>Наличността, цените, техническите характеристики и фотографиите
+        могат да се променят без предизвестие.</b> Публикуваното е вярно към
+        момента на публикуване и нищо повече: то не е оферта и не е публична
+        покана по смисъла на чл. 290 от Търговския закон.</p>
+      <p>Наличността се променя ежедневно и продаден автомобил се сваля от сайта
+        в деня на продажбата. Фотографиите показват конкретния автомобил, но
+        цвят, оборудване и детайли могат да изглеждат различно на екран.
+        Възможни са техническа грешка и разминаване.</p>
+      <p><b>Затова: преди покупка потвърдете с нас наличността, цената и
+        конкретното оборудване.</b> Обвързващо е само това, което сме потвърдили
+        писмено за конкретния автомобил. Обявените цени са в евро с включени
+        всички данъци и се отнасят за автомобила в описаното състояние.</p>
+
+      <h3>3. Лизинг и застраховане</h3>
+      <p>Показаните лизингови вноски са <b>ориентировъчна сметка, не оферта и не
+        одобрение</b>. Изчислени са при <b data-tbd>годишна лихва</b>,
+        <b data-tbd>първоначална вноска</b> и срок до
+        <b data-tbd>брой месеца</b>.</p>
+      <p><b>Одобрението за финансиране зависи изцяло от лизинговата институция,
+        не от AutoHaus.</b> Тя определя окончателната лихва, вноската, срока и
+        изискванията към Вас, и тя решава дали да одобри искането. Същото важи
+        за застрахователните оферти и премии, които се определят от
+        застрахователя. Ние подготвяме документите и Ви придружаваме; решението
+        не е наше.</p>
+
+      <h3>4. Запазване и замяна</h3>
+      <p>Автомобил се запазва за <b data-tbd>48 часа</b> след капаро, при
+        условия, договорени писмено. Замяна с Ваш автомобил е възможна след
+        оглед и писмена оферта; оценката е валидна за срока, посочен в нея.</p>
+
+      <h3>5. Отговорност и интелектуална собственост</h3>
+      <p>Полагаме грижа информацията да е вярна и актуална, но не отговаряме за
+        вреди от ползването на сайта, освен при умисъл или груба небрежност и
+        доколкото законът не предвижда друго. Текстовете, фотографиите и марките
+        на този сайт са обект на закрила и не могат да се използват без писмено
+        съгласие. Марките на производителите принадлежат на техните
+        притежатели и се използват само за обозначаване на автомобилите.</p>
+
+      <h3>6. Приложимо право и спорове</h3>
+      <p>Прилага се българското право. Спорове решаваме по споразумение, а при
+        невъзможност — компетентният български съд. Като потребител можете да се
+        обърнете и към Комисията за защита на потребителите
+        (<a href="https://kzp.bg" target="_blank" rel="noopener">kzp.bg</a>) или
+        към платформата на ЕС за онлайн решаване на спорове
+        (<a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">ec.europa.eu/consumers/odr</a>).</p>
+    </article>
+
+    <!-- THE DOCUMENT THAT WAS MISSING.
+         Every marque site carries one and this one did not: the plain
+         statement of who the company legally is. It also stops the same
+         eight facts from being re-typed in a footer, a privacy policy and a
+         set of terms and drifting apart — this is where they live now. -->
+    <article class="lg-doc" id="imprint">
+      <h2 class="lg-h">Фирмени данни</h2>
+      <p class="lg-upd">Последна редакция: 5 август 2026 г.</p>
+
+      <p>Този сайт се поддържа от:</p>
+
+      <dl class="lg-dl">
+        <div><dt>Фирма</dt><dd>Аутохаус България ЕООД</dd></div>
+        <div><dt>На латиница</dt><dd>Autohaus Bulgaria Ltd.</dd></div>
+        <div><dt>Правна форма</dt><dd>Еднолично дружество с ограничена отговорност</dd></div>
+        <div><dt>ЕИК</dt><dd>200771286</dd></div>
+        <div><dt>ДДС номер</dt><dd>BG200771286</dd></div>
+        <div><dt>Седалище</dt><dd>ул. „Нестор Абаджиев“ №24, Асеновградско шосе,<br>4023 Пловдив, България</dd></div>
+        <div><dt>Управител</dt><dd><b data-tbd>име на управителя, както е вписано в Търговския регистър</b></dd></div>
+        <div><dt>Регистрация</dt><dd>Търговски регистър и регистър на ЮЛНЦ при Агенцията по вписванията</dd></div>
+        <div><dt>Телефон</dt><dd><a href="tel:+359884777147">+359 884 777 147</a></dd></div>
+        <div><dt>Електронна поща</dt><dd><a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a></dd></div>
+      </dl>
+
+      <h3>Отговорност за съдържанието</h3>
+      <p>За съдържанието на този сайт отговаря Аутохаус България ЕООД на
+        посочения по-горе адрес. Сайтът съдържа препратки към външни страници
+        (Google Maps, Facebook, Instagram, Комисията за защита на
+        потребителите); за тяхното съдържание отговарят техните оператори.</p>
+
+      <h3>Надзорни органи</h3>
+      <ul class="lg-list">
+        <li><b>Комисия за защита на потребителите</b> — гр. София 1000,
+          пл. „Славейков“ №4A,
+          <a href="https://kzp.bg" target="_blank" rel="noopener">kzp.bg</a>.</li>
+        <li><b>Комисия за защита на личните данни</b> — гр. София 1592,
           бул. „Проф. Цветан Лазаров“ №2,
           <a href="https://cpdp.bg" target="_blank" rel="noopener">cpdp.bg</a>.</li>
+        <li><b data-tbd>Ако дружеството е вписано като застрахователен брокер
+          или посредник — регистрационният номер и надзорният орган (КФН) се
+          посочват тук</b>.</li>
       </ul>
     </article>
 
@@ -361,59 +579,59 @@
 <!-- ==================== FOOTER ==================== -->
 <footer class="ft" id="kontakt">
   <div class="grid">
+    <!-- THE FOOTER, SUBTRACTED.
+         It carried five blocks: two loose link pairs either side of the
+         wordmark (Новини, Калкулатор, Намерете ни, Запази оглед), four
+         columns, a meta row and a financing footnote. Of those, "Новини"
+         was a mailto with a subject line and no newsletter behind it,
+         "Калкулатор" and "Намерете ни" were third and second copies of
+         links already in the columns, and "Запази оглед" was a fourth way
+         into the concierge on a page that already had three.
+
+         The two inventory columns went with them. "Автомобили" listed one
+         car by name — which dates the moment it sells — and four chapter
+         links the catalogue's own filter row does better; "Вашият AutoHaus"
+         listed five services the service carousel three screens above
+         already opens in full. A footer that repeats the page is not a
+         footer, it is a second page nobody reads.
+
+         What is left is what a footer is actually for: how to reach the
+         building, where to follow it, and the documents. -->
     <div class="row">
       <div class="col span-12 ft-top">
-        <div class="ft-main">
-          <div class="ft-main-sec">
-            <a href="mailto:autohausbg@gmail.com?subject=Новини от AutoHaus">Новини</a>
-            <a href="#lizing">Калкулатор</a>
-          </div>
-          <a class="ft-logo" href="#top" aria-label="AutoHaus — начало">
-            <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
-          </a>
-          <div class="ft-main-sec">
-            <a href="https://maps.google.com/?q=ул.+Нестор+Абаджиев+24,+Пловдив" target="_blank" rel="noopener">Намерете ни</a>
-            <a href="concierge.html?visit=1">Запази оглед</a>
-          </div>
-        </div>
-        <ul class="social social--foot" aria-label="AutoHaus в социалните мрежи">
-          <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
-          <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
-        </ul>
+        <a class="ft-logo" href="index.html#top" aria-label="AutoHaus — начало">
+          <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
+        </a>
       </div>
     </div>
 
     <div class="row">
       <div class="col offset-1 span-10 ft-cols">
-        <nav class="ft-col" aria-label="Автомобили">
-          <p class="ft-h">Автомобили</p>
-          <a href="index.html#avtomobili">Всички <b data-count="all">87</b> в наличност</a>
-          <a href="vehicle.html?id=911-targa-4-gts">Porsche 911 Targa 4 GTS</a>
-          <a href="index.html?chapter=chauffeur">Представителен клас</a>
-          <a href="index.html?chapter=performance">Performance</a>
-          <a href="index.html?chapter=utility">Терен</a>
-        </nav>
-        <nav class="ft-col" aria-label="Вашият AutoHaus">
-          <p class="ft-h">Вашият AutoHaus</p>
-          <a href="#lizing">Лизинг от 6.9%</a>
-          <a href="concierge.html?intent=source">Внос по поръчка</a>
-          <a href="concierge.html?intent=trade">Изкупуване и бартер</a>
-          <a href="#uslugi">Застраховки и регистрация</a>
-          <a href="#care">Auto Spa и детайлинг</a>
-        </nav>
         <nav class="ft-col" aria-label="Контакт">
           <p class="ft-h">Контакт</p>
-          <a href="https://maps.google.com/?q=ул.+Нестор+Абаджиев+24,+Пловдив" target="_blank" rel="noopener">ул. „Нестор Абаджиев“ №24, Пловдив</a>
+          <!-- [data-contact] opens the contact panel over whatever page the
+               reader is on; the href is the no-JS floor and lands here, in
+               this column, which is why the address and the office line are
+               still printed rather than only living in the panel. -->
+          <a href="index.html#kontakt" data-contact>ул. „Нестор Абаджиев“ №24, 4023 Пловдив</a>
           <a href="tel:+359884777147">+359 884 777 147</a>
           <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
-          <span>Пон – Пет 09:00 – 18:00</span>
+          <span>Пон – Пет · 09:00 – 18:00</span>
+          <a href="index.html#kontakt" data-contact>Всички телефони и картата</a>
+        </nav>
+        <nav class="ft-col" aria-label="Последвайте ни">
+          <p class="ft-h">Последвайте ни</p>
+          <ul class="ft-social">
+            <li><a href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg>Facebook</a></li>
+            <li><a href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg>Instagram</a></li>
+          </ul>
         </nav>
         <nav class="ft-col" aria-label="Правни">
           <p class="ft-h">Правни</p>
           <a href="legal.html#privacy">Политика за поверителност</a>
           <a href="legal.html#cookies">Политика за бисквитки</a>
           <a href="legal.html#terms">Общи условия</a>
-          <a href="legal.html#gdpr">Вашите права по GDPR</a>
+          <a href="legal.html#imprint">Фирмени данни</a>
         </nav>
       </div>
     </div>
@@ -425,13 +643,8 @@
           <li><a href="legal.html#privacy">Поверителност</a></li>
           <li><a href="legal.html#cookies">Бисквитки</a></li>
           <li><a href="legal.html#terms">Общи условия</a></li>
+          <li><a href="legal.html#imprint">Фирмени данни</a></li>
         </ul>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col span-12">
-        <p class="ft-reg">Обявените цени са крайни. Лизинг от 6.9% годишно при 20% първоначална вноска и срок до 60 месеца; месечната вноска е ориентировъчна и подлежи на одобрение от партньорска лизингова институция. Автомобил се запазва за 48 часа след капаро. Възможен бартер с вашия автомобил.</p>
       </div>
     </div>
   </div>

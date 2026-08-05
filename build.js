@@ -83,9 +83,37 @@ function stripCss(src) {
 const k = b => (b / 1024).toFixed(1) + "KB";
 let built = [];
 
+/* ---- THE ONE CHECK WORTH MAKING ---------------------------------------
+   An unbalanced CSS comment marker — the tail of a comment whose opener was
+   deleted, or a paragraph left sitting outside the comment it was meant to
+   be inside — is legal text to write and fatal to read. The CSS parser
+   treats it as garbage, discards up to the next boundary it can recover at,
+   and takes whatever rules were sitting there with it. Nothing throws, the
+   page still loads, and the only symptom is that a handful of declarations
+   have quietly stopped applying. That happened here once: the loss was
+   found by measuring computed styles in a browser, because nothing in the
+   toolchain had an opinion about it.
+
+   stripCss() removes every WELL-FORMED comment, so a marker surviving into
+   its output can only mean the source had an unbalanced one. Two lines, and
+   no false positives.
+
+   (Written with the markers assembled from parts, because a comment that
+   contains a literal comment terminator is the same bug one file over —
+   which is exactly how this one was written the first time.) */
 for (const f of SHEETS) {
   const src = fs.readFileSync(path.join(ROOT, f), "utf8");
   const out = stripCss(src);
+  const OPEN = "/" + "*", CLOSE = "*" + "/";
+  const at = Math.max(out.indexOf(CLOSE), out.indexOf(OPEN));
+  if (at !== -1) {
+    console.error("\n  " + f + ": unbalanced comment — a " + out.substr(at, 2) +
+      " survived stripping, after:\n    …" +
+      out.slice(Math.max(0, at - 96), at + 2).replace(/\s+/g, " ") +
+      "\n\n  The CSS parser discards that and the rules following it." +
+      "\n  Nothing was written; fix the comment and run again.\n");
+    process.exit(1);
+  }
   const dest = f.replace(/\.css$/, ".min.css");
   fs.writeFileSync(path.join(ROOT, dest), out, "utf8");
   built.push({ f, dest, a: Buffer.byteLength(src), b: Buffer.byteLength(out) });
@@ -96,6 +124,18 @@ const h = crypto.createHash("sha1");
 for (const f of SHEETS.concat(SCRIPTS)) {
   const p = path.join(ROOT, f);
   if (fs.existsSync(p)) h.update(fs.readFileSync(p));
+}
+/* data/eq/ is 83 per-car equipment files that vehicle.js requests by name at
+   runtime, so their URLs are built in the browser and never appear in the
+   HTML for the stamping pass below to find. vehicle.js copies the version off
+   whatever script tag it can see — which only works if re-scraping a car
+   MOVES that version, so the equipment goes into the hash here. Without this
+   a corrected list would sit behind `immutable` for a year. */
+const EQ = path.join(ROOT, "data", "eq");
+if (fs.existsSync(EQ)) {
+  for (const f of fs.readdirSync(EQ).sort()) {
+    if (f.endsWith(".js")) h.update(fs.readFileSync(path.join(EQ, f)));
+  }
 }
 const V = h.digest("hex").slice(0, 8);
 

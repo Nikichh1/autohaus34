@@ -35,6 +35,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-5.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-5.jpg"
   ],
+  "notes": ["Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/760i-protection-xdrive/"
  },
  {
@@ -67,6 +68,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/03/7-14.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/03/8-14.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/maybach-s-600-guard-vr10/"
  },
  {
@@ -99,6 +101,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/09/7.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/09/8.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/maybach-s-600-guard-vr9/"
  },
  {
@@ -131,6 +134,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/11/7-10.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/11/8-9.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/s-600-guard-b7-vr9/"
  },
  {
@@ -163,6 +167,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/06/7-11.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/06/8-11.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/a8l-6-3-w12-fsi-quattro-security/"
  },
  {
@@ -194,6 +199,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-10.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-10.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/maybach-gls-600-4matic-8/"
  },
  {
@@ -256,6 +262,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/06/7-1.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/06/8-1.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/maybach-gls-600-4matic-7/"
  },
  {
@@ -287,6 +294,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/08/7-12.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/08/8-12.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/v-300-d-4m-long-vip/"
  },
  {
@@ -316,6 +324,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/10/5-9.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/10/6-9.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/v-300-d-4matic-vip/"
  },
  {
@@ -347,6 +356,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-15.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-15.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/rs6-4-0-tfsi-quattro-2/"
  },
  {
@@ -378,6 +388,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-14.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-14.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/rs6-4-0-tfsi-quattro/"
  },
  {
@@ -394,7 +405,7 @@ window.AH_VEHICLES = [
   "fuel": "diesel",
   "gear": "auto",
   "colour": "Бял",
-  "price": null,
+  "price": 30000,
   "chapter": "performance",
   "tags": [
    "performance"
@@ -409,6 +420,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-7.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-7.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/m550d-xdrive/"
  },
  {
@@ -441,6 +453,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-4.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-4.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/g-63-amg-11/"
  },
  {
@@ -472,6 +485,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/06/7-20.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/06/8-20.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/s8-4-0-tfsi-quattro-7/"
  },
  {
@@ -504,6 +518,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/05/7-13.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/05/8-12.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Фабрично нов автомобил!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/amalfi-f169m/"
  },
  {
@@ -535,6 +550,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/11/7-12.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/11/8-12.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/amg-gt-r-pro/"
  },
  {
@@ -564,6 +580,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/11/5-4.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/11/6-4.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/911-targa-4-gts/"
  },
  {
@@ -594,6 +611,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/05/6-12.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/05/7-12.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/911-turbo-s-coupe-4/"
  },
  {
@@ -626,6 +644,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-12.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-12.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/amg-gt-63-s-e-performance/"
  },
  {
@@ -655,6 +674,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2022/12/5-10.jpg",
    "https://autohaus.bg/wp-content/uploads/2022/12/6-10.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/911-carrera-4s-coupe-2/"
  },
  {
@@ -686,6 +706,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/04/7-2.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/04/8-2.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!","Автомобилът е цялостно облепен в предпазно фолио с матиращ ефект!"],
   "src": "https://autohaus.bg/car/amg-s-63-4matic-brabus/"
  },
  {
@@ -717,6 +738,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/05/7-15.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/05/8-14.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/granturismo-mc/"
  },
  {
@@ -749,6 +771,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/03/7-4.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/03/8-4.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/panamera-turbo-s-e-hybrid-4/"
  },
  {
@@ -778,6 +801,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/10/5-11.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/10/6-11.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/rs6-4-0-v8-tfsi-quattro/"
  },
  {
@@ -807,6 +831,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/04/5-7.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/04/6-7.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/sl-63-amg-3/"
  },
  {
@@ -839,6 +864,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/04/7-2.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/04/8-2.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/g-63-amg-10/"
  },
  {
@@ -871,6 +897,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/05/7-14.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/05/8-13.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/ix-m60/"
  },
  {
@@ -900,6 +927,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/01/5-19.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/01/6-19.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/panamera-turbo-sport-turismo/"
  },
  {
@@ -931,6 +959,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/04/7-20.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/04/8-16.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/m850i-xdrive-coupe-3/"
  },
  {
@@ -962,6 +991,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/06/7-10.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/06/8-10.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/s-63-amg-l-4matic-7/"
  },
  {
@@ -991,6 +1021,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/10/5-13.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/10/6-13.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/grancabrio/"
  },
  {
@@ -1020,6 +1051,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/02/5-19.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/02/6-19.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/m550i-xdrive-g30-lci/"
  },
  {
@@ -1049,6 +1081,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/07/5-12.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/07/6-12.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен бартер!","Възможен лизинг!","Добавена е спортна изпускателна система MILLTEK Sport!","Автомобилът е с електроника и компоненти за повишаване на мощността до 800 к.с.!"],
   "src": "https://autohaus.bg/car/rs6-5-0-v10-tfsi-quattro/"
  },
  {
@@ -1078,6 +1111,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/08/5-25.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/08/6-25.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/s-63-l-amg-4matic/"
  },
  {
@@ -1109,6 +1143,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/06/77.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/06/88.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/tt-rs-coupe-2-5-tfsi-quattro/"
  },
  {
@@ -1169,6 +1204,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/09/7.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/09/8.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/gl-63-amg-4matic/"
  },
  {
@@ -1200,6 +1236,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/09/7-3.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/09/8-2.jpg"
   ],
+  "notes": ["Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/g-350-bluetec-3/"
  },
  {
@@ -1216,7 +1253,7 @@ window.AH_VEHICLES = [
   "fuel": "diesel",
   "gear": "auto",
   "colour": "Бял",
-  "price": null,
+  "price": 22000,
   "chapter": "utility",
   "tags": [
    "utility"
@@ -1231,6 +1268,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-9.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-9.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/caddy-maxi-2-0-tdi-comfortline/"
  },
  {
@@ -1247,7 +1285,7 @@ window.AH_VEHICLES = [
   "fuel": "petrol",
   "gear": "auto",
   "colour": "Черен металик",
-  "price": null,
+  "price": 56000,
   "chapter": "utility",
   "tags": [
    "utility"
@@ -1262,6 +1300,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-8.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-8.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/rr-sport-p525-autobio/"
  },
  {
@@ -1293,6 +1332,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/12/7-10.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/12/8-10.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/g-400-d-amg-3/"
  },
  {
@@ -1322,6 +1362,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2022/07/5.jpg",
    "https://autohaus.bg/wp-content/uploads/2022/07/6.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!","Добавен екстериорен пакет от G63 AMG!"],
   "src": "https://autohaus.bg/car/g-350-cdi-amg-cabrio/"
  },
  {
@@ -1353,6 +1394,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/05/7-8.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/05/8-8.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/g-450-d/"
  },
  {
@@ -1384,6 +1426,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/03/7-15.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/03/8-15.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/rr-p530-autobiography-2/"
  },
  {
@@ -1413,6 +1456,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/04/5-13.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/04/6-13.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/rr-sport-d350-autobiography/"
  },
  {
@@ -1444,6 +1488,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2019/06/7.jpg",
    "https://autohaus.bg/wp-content/uploads/2019/06/8.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен бартер!","Възможен лизинг!","Сертификат N1 за товарен автомобил!"],
   "src": "https://autohaus.bg/car/mercedes-benz-g-350-d-professional/"
  },
  {
@@ -1475,6 +1520,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/03/7-5.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/03/8-5.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/g-500-amg-11/"
  },
  {
@@ -1506,6 +1552,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/11/7.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/11/8.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/g-55-amg-2/"
  },
  {
@@ -1535,6 +1582,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/03/5-12.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/03/6-12.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/tundra-3-5-4x4-limited-trd/"
  },
  {
@@ -1566,6 +1614,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/07/7.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/07/8.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/land-cruiser-200-v8-4/"
  },
  {
@@ -1597,6 +1646,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/10/7-20.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/10/8-20.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/sprinter-516-cdi-freezer/"
  },
  {
@@ -1628,6 +1678,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/11/7-9.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/11/8-9.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/land-cruiser-150-2-8d/"
  },
  {
@@ -1660,6 +1711,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/11/7-11.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/11/8-12.jpg"
   ],
+  "notes": ["Фабрично нов автомобил!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/land-cruiser-70-hardtop-lx/"
  },
  {
@@ -1691,6 +1743,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/06/7-4.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/06/8-4.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/rr-sport-p525-v8/"
  },
  {
@@ -1720,6 +1773,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/06/5-1.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/06/6-1.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/x-250-d-4matic-power-edition/"
  },
  {
@@ -1749,6 +1803,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2019/08/5-24.jpg",
    "https://autohaus.bg/wp-content/uploads/2019/08/6-23.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/rr-4-4-sdv8-autobiography/"
  },
  {
@@ -1780,6 +1835,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/04/7-21.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/04/8-17.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/rr-sport-sdv6/"
  },
  {
@@ -1811,6 +1867,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/06/7-14.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/06/8-14.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/mazda-6-skyactiv-g-2-0-2/"
  },
  {
@@ -1842,6 +1899,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/12/7-2.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/12/8-2.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/lr-discovery-4-sdv6-landmark/"
  },
  {
@@ -1873,6 +1931,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-11.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-11.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/a6-e-tron-avant-performance/"
  },
  {
@@ -1904,6 +1963,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/05/7-10.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/05/8-10.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/x5-xdrive40e-iperformance/"
  },
  {
@@ -1933,6 +1993,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/02/5-8.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/02/6-9.jpg"
   ],
+  "notes": ["Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/420-sel/"
  },
  {
@@ -1980,7 +2041,7 @@ window.AH_VEHICLES = [
   "fuel": "petrol",
   "gear": "auto",
   "colour": "Черен металик",
-  "price": null,
+  "price": 130000,
   "chapter": "saloon",
   "tags": [
    "delivery"
@@ -1995,6 +2056,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/07/7-13.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/07/8-13.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Фабрично нов автомобил!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/escalade-600-premium/"
  },
  {
@@ -2024,6 +2086,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/06/7-17.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/06/8-17.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/a6-allroad-3-0-tdi-quattro-13/"
  },
  {
@@ -2053,6 +2116,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/04/7-5.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/04/8-5.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/levante-v6-q4/"
  },
  {
@@ -2082,6 +2146,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/03/7-7.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/03/8-7.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!","Фабрична гаранция до 07.2026 г. или 200 000 км.!"],
   "src": "https://autohaus.bg/car/s-580-l-4matic/"
  },
  {
@@ -2109,6 +2174,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/04/5-9.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/04/6-9.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/x5-m50i-xdrive/"
  },
  {
@@ -2138,6 +2204,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/09/7-6.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/09/8-6.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/gls-580-4matic-amg-6/"
  },
  {
@@ -2194,6 +2261,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2022/09/5-3.jpg",
    "https://autohaus.bg/wp-content/uploads/2022/09/6-3.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/cayenne-s-3/"
  },
  {
@@ -2221,6 +2289,7 @@ window.AH_VEHICLES = [
    "http://autohaus.bg/wp-content/uploads/2022/03/5-13.jpg",
    "http://autohaus.bg/wp-content/uploads/2022/03/6-13.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/s-560-l-4matic-amg-6/"
  },
  {
@@ -2250,6 +2319,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/09/77.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/09/88.jpg"
   ],
+  "notes": ["Цена без начислен 20% ДДС!","Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/x5-xdrive30d-m-sport-2/"
  },
  {
@@ -2277,6 +2347,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2022/08/5-20.jpg",
    "https://autohaus.bg/wp-content/uploads/2022/08/6-20.jpg"
   ],
+  "notes": ["Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/continental-gt-diamond-series/"
  },
  {
@@ -2335,6 +2406,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/11/7.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/11/8.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/s-500-l-4matic-amg-17/"
  },
  {
@@ -2364,6 +2436,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2024/12/7-9.jpg",
    "https://autohaus.bg/wp-content/uploads/2024/12/8-9.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/cayenne-turbo-8/"
  },
  {
@@ -2391,6 +2464,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/03/5-10.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/03/6-10.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/sl-350/"
  },
  {
@@ -2420,6 +2494,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2023/11/7-3.jpg",
    "https://autohaus.bg/wp-content/uploads/2023/11/8-3.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/a6-allroad-3-0-bitdi-quattro/"
  },
  {
@@ -2449,6 +2524,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/06/7-13.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/06/8-13.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/s-350-d-l-amg/"
  },
  {
@@ -2478,6 +2554,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/05/7-3.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/05/8-3.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/a6-allroad-3-0-bitdi-quattro-2/"
  },
  {
@@ -2507,6 +2584,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/10/7-22.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/10/8-22.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/glc-250-d-4matic-amg-2/"
  },
  {
@@ -2536,6 +2614,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/01/7-2.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/01/8-2.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/x5-xdrive30d-4/"
  },
  {
@@ -2565,6 +2644,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2026/06/7-13.jpg",
    "https://autohaus.bg/wp-content/uploads/2026/06/8-13.jpg"
   ],
+  "notes": ["Пълна сервизна история!","Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/530d-xdrive-touring-lci/"
  },
  {
@@ -2592,6 +2672,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2021/10/5-5-1.jpg",
    "https://autohaus.bg/wp-content/uploads/2021/10/6-5-1.jpg"
   ],
+  "notes": ["Възможен лизинг!","Възможен бартер!"],
   "src": "https://autohaus.bg/car/e-350-bt-4matic-edition-e/"
  },
  {
@@ -2621,6 +2702,7 @@ window.AH_VEHICLES = [
    "https://autohaus.bg/wp-content/uploads/2025/12/7-14.jpg",
    "https://autohaus.bg/wp-content/uploads/2025/12/8-14.jpg"
   ],
+  "notes": ["Възможен бартер!","Възможен лизинг!"],
   "src": "https://autohaus.bg/car/530d-gran-turismo/"
  }
 ];
