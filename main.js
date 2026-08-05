@@ -690,7 +690,19 @@
        one of these changes, the other has to change with it — the comment on
        --wall-dur in style.css explains why they are no longer the source's
        own .3s linear. cubic-bezier(.62,.02,.16,1) is --e-move. */
-    var WALL_DUR = 520, WALL_BEZ = [.62, .02, .16, 1];
+    /* READ, NOT REPEATED. --wall-dur is .52s, and on a device that reported
+       itself short of cores or memory the stylesheet overrides it to .32s to
+       shorten the window in which the expand is doing layout work. A number
+       typed here as well would silently disagree with that override and the
+       rail would finish travelling 200ms after the card finished growing —
+       which is the exact desync the shared curve exists to prevent. */
+    var WALL_DUR = (function () {
+      var v = getComputedStyle(document.documentElement).getPropertyValue("--wall-dur");
+      var n = parseFloat(v);
+      if (!isFinite(n) || n <= 0) return 520;
+      return /ms/.test(v) ? n : n * 1000;
+    })();
+    var WALL_BEZ = [.62, .02, .16, 1];
     var bez = (function (p) {
       var cx = 3 * p[0], bx = 3 * (p[2] - p[0]) - cx, ax = 1 - cx - bx;
       var cy = 3 * p[1], by = 3 * (p[3] - p[1]) - cy, ay = 1 - cy - by;
@@ -1261,37 +1273,104 @@
   var nativeTimeline = window.CSS && CSS.supports && CSS.supports("animation-timeline", "view()");
   var para = all(".teaser-decor, .cta-img");
   if (para.length && !reduce && !nativeTimeline) {
+    /* ---- THIS IS THE WINDOWS 7 PATH, AND IT WAS THE EXPENSIVE ONE ----
+       `animation-timeline: view()` is Chrome 115. Windows 7 tops out at
+       Chrome 109 and Firefox 115 ESR, so on exactly the machines with the
+       least to spare, the CSS does nothing and this fallback runs instead.
+
+       It used to call getBoundingClientRect() on every parallax element on
+       every scrolled frame and write a transform straight after each read —
+       read, write, read, write — which is the textbook way to force the
+       engine to re-run layout once per element per frame. Five elements,
+       sixty frames a second, on the hardware least able to do it.
+
+       A rect is only needed to answer "where is this element relative to
+       the viewport", and that is `documentTop - scrollY`. documentTop does
+       not change while scrolling, so it is measured ONCE and re-measured
+       only when something could have moved it: a resize, a late image, a
+       font swap. The frame is then pure arithmetic and two writes — no
+       layout read at all, at any point, ever.
+
+       Elements outside the viewport are skipped by an observer rather than
+       by a rect test, so a page with five of these does the work for the
+       one or two actually on screen. `will-change` is granted on the way in
+       and taken back on the way out: a standing hint on five elements is
+       five retained layers for the whole session. */
     var num = function (el, prop, dflt) {
       var v = parseFloat(getComputedStyle(el).getPropertyValue(prop));
       return isNaN(v) ? dflt : v;
     };
     var conf = para.map(function (el) {
-      return { el: el,
+      return { el: el, live: false, top: 0, h: 0,
         xs: num(el, "--px-s", 0), xe: num(el, "--px-e", 0),
         ys: num(el, "--py-s", 0), ye: num(el, "--py-e", 0),
         ss: num(el, "--ps-s", 1), se: num(el, "--ps-e", 1) };
     });
+
+    /* one batched read pass, never inside the frame loop */
+    var remeasure = function () {
+      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+      for (var i = 0; i < conf.length; i++) {
+        var c = conf[i], r = c.el.getBoundingClientRect();
+        /* the element is mid-transform; its own translate has to come back
+           out or every re-measure would drift by the last frame's offset */
+        var ty = c.lastY || 0;
+        c.top = r.top + y - ty;
+        c.h = r.height;
+      }
+    };
+
     var queued = false;
     var frame = function () {
       queued = false;
       var vh = innerHeight;
-      conf.forEach(function (c) {
-        var r = c.el.getBoundingClientRect();
-        if (r.bottom < -100 || r.top > vh + 100) return;
-        var p = (vh - r.top) / (vh + r.height);
+      var sy = window.pageYOffset || document.documentElement.scrollTop || 0;
+      for (var i = 0; i < conf.length; i++) {
+        var c = conf[i];
+        if (!c.live) continue;
+        var top = c.top - sy;                       /* arithmetic, not layout */
+        var p = (vh - top) / (vh + c.h);
         p = p < 0 ? 0 : p > 1 ? 1 : p;
         var x = c.xs + (c.xe - c.xs) * p;
         var y = c.ys + (c.ye - c.ys) * p;
         var s = c.ss + (c.se - c.ss) * p;
-        c.el.style.transform = "translateX(" + x.toFixed(2) + "px) translateY(" + y.toFixed(2) + "px) scale(" + s.toFixed(4) + ")";
-      });
+        c.lastY = y;
+        c.el.style.transform =
+          "translate3d(" + x.toFixed(1) + "px," + y.toFixed(1) + "px,0) scale(" + s.toFixed(4) + ")";
+      }
     };
-    addEventListener("scroll", function () {
+    var tick = function () {
       if (queued) return;
       queued = true; requestAnimationFrame(frame);
-    }, { passive: true });
-    addEventListener("resize", frame);
-    frame();
+    };
+
+    remeasure();
+    if ("IntersectionObserver" in window) {
+      var pio = new IntersectionObserver(function (es) {
+        for (var i = 0; i < es.length; i++) {
+          for (var j = 0; j < conf.length; j++) {
+            if (conf[j].el !== es[i].target) continue;
+            conf[j].live = es[i].isIntersecting;
+            conf[j].el.style.willChange = es[i].isIntersecting ? "transform" : "";
+          }
+        }
+        tick();
+      }, { rootMargin: "120px 0px" });
+      para.forEach(function (el) { pio.observe(el); });
+    } else {
+      conf.forEach(function (c) { c.live = true; });
+    }
+
+    addEventListener("scroll", tick, { passive: true });
+    /* a resize, a late image or a swapped webfont can all move these; each
+       is a batched read outside the frame loop */
+    var settle = function () { remeasure(); tick(); };
+    addEventListener("resize", settle);
+    addEventListener("load", settle);
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(settle, function () {});
+    }
+    tick();
   }
 
   /* ============================================================
@@ -1654,12 +1733,22 @@
   var sticky = $("vd-sticky");
   if (sticky) {
     var foot = document.querySelector(".foot");
+    /* THE FOOTER TEST IS AN OBSERVER, NOT A RECT PER FRAME.
+       This read foot.getBoundingClientRect() on every scrolled frame to
+       answer one yes/no question — is the footer near — which is precisely
+       what an IntersectionObserver answers for free, off the main thread.
+       What is left in the frame is a scrollY comparison. */
+    var footerUp = false;
+    if (foot && "IntersectionObserver" in window) {
+      new IntersectionObserver(function (e) {
+        footerUp = e[0].isIntersecting;
+        onStick();
+      }, { rootMargin: "0px 0px -40px 0px" }).observe(foot);
+    }
     var queuedStick = false;
     var onStick = function () {
       queuedStick = false;
-      var past = scrollY > innerHeight * 0.5;
-      var footerUp = foot ? foot.getBoundingClientRect().top < innerHeight - 40 : false;
-      sticky.classList.toggle("show", past && !footerUp);
+      sticky.classList.toggle("show", scrollY > innerHeight * 0.5 && !footerUp);
     };
     addEventListener("scroll", function () {
       if (queuedStick) return;

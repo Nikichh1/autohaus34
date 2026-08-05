@@ -1524,3 +1524,25 @@
     clip-path:none!important;transform:none!important;
   }
 }
+
+/* ============================================================
+   THE LOW-POWER PATH, HERE TOO
+
+   style.css has carried one since v52; this file never did, and it holds
+   the two surfaces the dossier keeps FIXED on a phone — the title strip
+   under the masthead and the ask bar at the foot. Both were blurring the
+   page behind them on every scrolled frame of every vehicle page, on
+   exactly the devices that cannot spare it.
+
+   Set by main.js from deviceMemory / hardwareConcurrency / saveData. The
+   layout, the palette and the timing are untouched; only the compositing
+   goes. See "LOW-POWER PATH" in style.css.
+   ============================================================ */
+.lo-fx .dbar,.lo-fx .dmini{
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  background:var(--paper);
+}
+.lo-fx .dgal__all{
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  background:rgba(5,5,5,.82);
+}

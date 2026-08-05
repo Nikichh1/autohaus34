@@ -649,8 +649,12 @@ body:not(.ah) .btn--secondary:active:not(:disabled){--btn-fill:rgba(20,19,18,.16
      competing: the content it covers is still faintly legible underneath, so
      the eye treats it as chrome instead of as a second page. */
   background:linear-gradient(180deg,rgba(16,16,16,.86) 0%,rgba(6,6,6,.92) 58%,rgba(4,4,4,.94) 100%);
-  -webkit-backdrop-filter:blur(16px) saturate(1.15);
-  backdrop-filter:blur(16px) saturate(1.15);
+  /* 12px, not 16. The fill above runs 86-94% opaque, so the last four
+     pixels of radius are doing no visible work and a blur's cost climbs
+     with its radius — this is a fixed element being re-sampled on every
+     scrolled frame. */
+  -webkit-backdrop-filter:blur(12px) saturate(1.12);
+  backdrop-filter:blur(12px) saturate(1.12);
   color:var(--white);
   clip-path:polygon(0 0,var(--plate-cut) 0,0 100%,0 100%);
   /* visibility is DISCRETE — instantly on the way in, only at the very end of
@@ -2232,7 +2236,7 @@ html:not(.js) .wcard-text > *{opacity:1}
   padding-block:15px;margin-block:-15px;
 }
 .ft-logo .logo{width:80px}
-.ft-social{display:flex;flex-direction:column;gap:12px}
+.ft-social{display:flex;justify-content:center;gap:8px 32px;flex-wrap:wrap}
 .ft-social a{
   display:inline-flex;align-items:center;gap:10px;
   font-size:11px;line-height:16px;font-weight:400;letter-spacing:.11px;
@@ -2243,16 +2247,19 @@ html:not(.js) .wcard-text > *{opacity:1}
   opacity:.55;transition:opacity var(--t-ui) var(--e-ui);
 }
 .ft-social a:hover svg,.ft-social a:focus-visible svg{opacity:1}
-.ft-cols{display:flex;flex-direction:column;gap:8px;margin-bottom:40px}
-.ft-col{display:flex;flex-direction:column;gap:12px;flex:1 1 0;min-width:0}
-/* source footer headings run their own scale (16/22 · 20/28 · 22/30), one
-   step under the h6 the card titles use */
-.ft-h{font-size:var(--fs-fth);line-height:var(--lh-fth);font-weight:300;letter-spacing:.01em;margin-bottom:4px}
-.ft-col a,.ft-col span{font-size:11px;line-height:16px;font-weight:400;letter-spacing:.11px}
-/* 11/16 links give a 16px-tall hit box, under the 24px WCAG 2.2 minimum.
-   Padding grows the target and the negative margin cancels it in layout, so
-   the measured column rhythm is unchanged. */
-.ft-col a,.ft-meta a{padding-block:4px;margin-block:-4px}
+/* THE COLUMNS ARE GONE. Three of them held six inventory links, five
+   service links and an address; the last pass took the first two away and
+   this one takes the address, so what remained was a flex grid holding two
+   lists of two. The mark, the two social marks and the four documents are
+   one line each now — .ft-end lays the first two out and .ft-meta already
+   held the third.
+   .ft-h, .ft-col and .ft-cols went with them: nothing on the site uses a
+   footer column heading any more. */
+.ft-end{
+  display:flex;flex-direction:column;align-items:center;gap:28px;
+  margin-bottom:40px;
+}
+.ft-meta a{padding-block:4px;margin-block:-4px}
 /* the meta row's links are inline, so their hit box follows the font's content
    area (13px) rather than the 16px line box — inline-block makes the padding
    actually count, taking them to 24px */
@@ -2389,7 +2396,6 @@ html:not(.js) [data-reveal],html:not(.js) .wcard-item{opacity:1;transform:none}
   .teaser .btn{width:unset}
   .cta-media{width:calc(5 / 12 * 100% - var(--gutter));margin-inline-start:calc(var(--gutter) / 2)}
   .cta-text{width:calc(6 / 12 * 100% - var(--gutter));margin-inline-start:calc(var(--gutter) / 2)}
-  .ft-cols{flex-direction:row;gap:32px}
   .ft-meta{flex-direction:row;align-items:center;justify-content:space-between}
   .stage-pag{justify-content:center}
 }
@@ -3293,35 +3299,57 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
   /* the article teaser headline is the h3 scale on mobile, not h4 */
   .teaser-headline{font-size:var(--fs-h3);line-height:var(--lh-h3)}
 
-  /* ---------- 1b. THE MARK, AND WHAT IT IS STANDING NEXT TO ----------
-     Measured at 375 before this: the wordmark was 104px wide and 19.3px
-     tall, and the two labels sharing its row — "АВТОМОБИЛИ" on the left,
-     "МЕНЮ" on the right — were 13px on 1.3px of tracking, i.e. the same
-     13/1.3 the 1440 bar uses. So on the one screen where the mark has the
-     least room, it was ALSO competing with the heaviest labels the system
-     has: 101px of tracked capitals ending 18px short of it. On a desktop
-     the mark reads as the middle zone of a three-zone bar; here it read as
-     the third item in a row of three.
+  /* ---------- 1b. THE MARK IS THE HEADER ----------
+     Two passes were spent making the wordmark bigger and it kept reading as
+     the third item in a row of three. Measuring the reference finally
+     explained why, and the answer is not a size — it is a RATIO.
 
-     Two moves, and they are the same move. The labels drop to the mobile
-     label scale this block already sets for buttons — 11/20 on 1.1px,
-     which the source uses for every nav item on a phone — and the mark
-     takes the room that releases: 104 -> 124px, so it is a third of the
-     viewport rather than a quarter, with ~25px of clearance either side
-     instead of 18 and 0.
+     Bentley's mobile bar, measured at 375: the nav is a three-column grid,
+     `127.6px 88px 127.6px`, with the mark in the middle cell at 88 x 44.
+     The LEFT CELL IS EMPTY. There is one label in the whole bar — "Menu",
+     11/20 on 1.1px, 37.6 x 20 — and the mark's painted area is 3872px²
+     against that label's 752px². The mark is FIVE TIMES the largest piece
+     of type in the bar, and it is more than twice the height of anything
+     else on the line.
 
-     The shadow is not decoration. The mark sits directly on a photograph
-     whose luminance changes every ten seconds, and the header veil above
-     it is a graded scrim, not a fill — on the sunlit showroom frame a
-     white wordmark on a pale ceiling had nothing to stand on. One wide
-     soft shadow is the site's own elevation idea (see ELEVATION), applied
-     to the one element that is genuinely floating over an image. */
-  :root{--logo-w:124px}
+     Ours, measured the same way: mark 124 x 23 = 2850px², and beside it
+     "АВТОМОБИЛИ" occupying a 44px hit box, 85.7 x 44 = 3771px². A ratio of
+     0.76 — the wordmark was the SMALLEST painted thing in its own header.
+     That is the whole complaint, and no amount of growing the logo fixes
+     it while there is a second label standing next to it.
+
+     So, three moves:
+
+       1. "Автомобили" leaves the bar. The reference has nothing on that
+          side, and the link is already the first row of the menu — which
+          is now the only thing the trigger opens onto.
+       2. The mark goes to 148px, i.e. 27.4 tall on our 356:66 wordmark.
+          That is 4055px² against the menu label's 772px² — a ratio of 5.3,
+          which is the reference's 5.1 to within a rounding error. It is
+          also 39% of the viewport where theirs is 23.5%, and that is
+          correct rather than greedy: a wordmark five characters long has
+          to carry its presence in WIDTH, where a winged badge carries it
+          in height. Same mass, different axis.
+       3. The mark moves to the TOP line. The reference puts the logo on
+          row one and its actions on row two; ours had it the other way
+          round, so the first thing on the page was a button.
+
+     The rule-icon comes to 13px with it — the reference's is 12 — because
+     an 18px glyph beside an 11px word is an icon someone forgot to resize.
+
+     The shadow stays and is not decoration: the mark sits on a photograph
+     whose luminance changes every ten seconds, and the veil above it is a
+     graded scrim rather than a fill, so on the sunlit showroom frame a
+     white wordmark on a pale ceiling has nothing to stand on. */
+  :root{--logo-w:148px}
   .lnk,.hd-menu{font-size:11px;line-height:20px;letter-spacing:1.1px}
   .hd-logo .logo{filter:drop-shadow(0 2px 14px rgba(0,0,0,.55))}
-  /* the burger's rule-icon comes down with its label, or a 18px glyph beside
-     an 11px word reads as an icon that has been left at the old size */
-  .hd-menu svg{width:16px;height:16px}
+  .hd-menu svg{width:13px;height:13px}
+  .hd-menu{gap:9px}
+  /* row 1 is the mark, flanked; row 2 is the two actions, full width */
+  .hd-logo{grid-column:2 / 3;grid-row:1}
+  .hd-zone--start{grid-column:3 / 4;grid-row:1;justify-content:flex-end}
+  .hd-zone--end{grid-column:1 / -1;grid-row:2}
 
   /* ---------- 2. HEADER — Bentley's three-zone mobile bar ----------
      Row 1 is a single full-width outlined action. Row 2 is
@@ -3331,13 +3359,15 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
   .hd-zone--end{justify-content:stretch}
   .hd-zone--end > li:first-child{flex:1 1 auto}
   .hd-zone--end .btn--secondary{width:100%;margin-inline-start:0}
-  /* row 1 is Concierge + the language switch: the button takes whatever is
-     left after the switch, which is a fixed 90px and must not be squeezed */
+  /* the actions row: Consierge + the language switch. The button takes
+     whatever is left after the switch, which is a fixed 90px and must not
+     be squeezed. */
   .hd-lang{flex:0 0 auto}
   .lang{margin-inline-start:12px}
-  .hd-zone--start{justify-content:space-between}
-  .hd-zone--start > .lnk{display:inline-flex}
-  .hd-menu{order:9}                       /* МЕНЮ moves to the right edge */
+  /* "Автомобили" is NOT in this bar — see 1b. It stayed here for two
+     passes and it is the reason the wordmark never became the focal
+     point; the base rule already hides it and this block used to switch
+     it back on. */
 
   /* ---------- 3. HERO ----------
      The media is a square inset box, the copy sits under it, centred, and
@@ -3486,52 +3516,22 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
       to the exact pixel you left.
    ============================================================ */
 
-/* ---------- 1. THE WALL ---------- */
-.pcol{padding-block:var(--sp-m) var(--sp-s);overflow:hidden}
-.pcol-head{margin-bottom:var(--sp-s)}
-.pcol-eyebrow{
-  font-size:var(--fs-eyebrow);line-height:var(--lh-eyebrow);font-weight:300;
-  letter-spacing:.01em;color:var(--primary);margin-bottom:16px;
-}
-.pcol-head .h4{margin-bottom:16px;max-width:18ch}
-.pcol-head .body-s{max-width:52ch;color:rgba(255,255,255,.72)}
+/* ---------- 1. THE WALL — REMOVED ----------
+   The drifting photo wall (.pcol-*) lived here: two rails of plates
+   travelling in opposite directions on 72s and 96s infinite linear
+   animations. Nothing has referenced it in any HTML or JS for some time —
+   verified against every page and every script — so it was ~9KB of rules
+   matched against every element on every style recalculation, for markup
+   that is never built.
 
-/* Two rails, opposite directions, different speeds. The offset is what makes
-   it read as a wall of pictures rather than a carousel: nothing lines up, so
-   the eye keeps finding a new frame. */
-.pcol-wall{display:flex;flex-direction:column;gap:var(--gutter);user-select:none}
-.pcol-row{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
-          mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
-.pcol-track{display:flex;gap:var(--gutter);width:max-content;will-change:transform}
-.pcol-row--a .pcol-track{animation:pcol-drift-a 72s linear infinite}
-.pcol-row--b .pcol-track{animation:pcol-drift-b 96s linear infinite}
-/* holding a finger or a cursor on the wall stops it — you are looking at
-   something, so it should stop moving */
-.pcol-wall:hover .pcol-track,
-.pcol-wall:focus-within .pcol-track{animation-play-state:paused}
-/* and it never runs while it is off screen */
-.pcol:not(.is-live) .pcol-track{animation-play-state:paused}
-
-@keyframes pcol-drift-a{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
-@keyframes pcol-drift-b{from{transform:translate3d(-50%,0,0)}to{transform:translate3d(0,0,0)}}
-
-.pcol-fig{position:relative;flex:none;overflow:hidden;background:#111}
-.pcol-fig img{width:100%;height:100%;object-fit:cover;display:block}
-/* three plate sizes, dealt out so the rail never falls into a rhythm */
-.pcol-fig--s{width:180px;height:120px}
-.pcol-fig--m{width:270px;height:180px}
-.pcol-fig--l{width:400px;height:266px}
-.pcol-fig__tag{
-  position:absolute;inset:auto 0 0 0;padding:24px 12px 10px;
-  background:linear-gradient(transparent,rgba(0,0,0,.72));
-  font-size:11px;line-height:16px;letter-spacing:.11px;color:rgba(255,255,255,.9);
-  opacity:0;transition:opacity var(--t-in) var(--e-mass);
-}
-.pcol-fig:hover .pcol-fig__tag{opacity:1}
-
-.pcol-foot{margin-top:var(--sp-s);display:flex;flex-wrap:wrap;align-items:center;gap:24px}
-.pcol-foot .body-s{color:rgba(255,255,255,.55)}
-.pcol-count{font-variant-numeric:tabular-nums}
+   It also carried the two things this pass is looking for: a permanent
+   will-change on both tracks, which is a retained compositor layer for the
+   whole session whether or not the element exists, and an infinite
+   animation, which on a phone is a layer being recomposited for as long as
+   the tab is open. It was well built — it paused on hover
+   and when off-screen — but the cheapest version of an element nobody can
+   see is the one that is not in the stylesheet.
+   ---------- */
 
 /* ---------- 2. THE SHOWROOM ---------- */
 /* The landing page does not go anywhere. It recedes: a small scale-down and
@@ -3645,11 +3645,6 @@ html.shw-open body{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 /* Vertical snap, one car per screen, full-bleed. Holding the phone should
    feel like turning pages, not scrolling a list. */
 @media(max-width:767px){
-  .pcol-fig--s{width:132px;height:88px}
-  .pcol-fig--m{width:200px;height:133px}
-  .pcol-fig--l{width:280px;height:186px}
-  .pcol-row--a .pcol-track{animation-duration:52s}
-  .pcol-row--b .pcol-track{animation-duration:68s}
 
   .shw-bar{padding:12px var(--margin)}
   .shw-close span{display:none}
@@ -3684,13 +3679,66 @@ html.shw-open body{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 
 /* ---------- reduced motion / low power ---------- */
 @media(prefers-reduced-motion:reduce){
-  .pcol-track{animation:none!important}
   .shw-behind,html.shw-open .shw-behind{transition:none;transform:none;filter:none}
   .shw-panel{transition:none;transform:none}
 }
-.lo-fx .pcol-track{animation-duration:140s}
 .lo-fx .shw-scrim{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(3,3,3,.9)}
+/* ---------- THE PAGE RECEDING ----------
+   .shw-behind transitions a filter across the WHOLE document — every band,
+   every photograph, the footer — for 950ms each time the collection layer
+   opens. A filter cannot be composited from a cached texture the way a
+   transform or an opacity can: the entire page has to be re-rasterised
+   into a filtered layer, and then again for every frame of the ramp. It is
+   the single most expensive moment on the site and it is triggered by the
+   most-used control on it.
+
+   Where the device has already said it is short of cores or memory, the
+   dim is done with opacity instead. Opacity IS composited from the cached
+   texture — the page is drawn once and then faded — so the same gesture
+   costs one raster rather than sixty. It is a slightly flatter dim than
+   brightness(.45) and nobody looking at the layer above it will find the
+   difference; the scale-down, the timing and the curve are identical. */
+.lo-fx .shw-behind{
+  transition:transform var(--t-mass) var(--e-mass),
+             opacity var(--t-mass) var(--e-mass);
+}
+html.lo-fx.shw-open .shw-behind{filter:none;opacity:.38}
+
+/* ---------- THE CARD EXPAND, ON A SLOW MACHINE ----------
+   The expand deliberately animates GEOMETRY — grid tracks, flex-basis and
+   the card ratio — because growing the box keeps the photograph and the
+   type pin-sharp where a scale() would soften both. That is the right
+   trade and it stays. What it costs is a layout pass per frame, and on
+   weak hardware the honest lever is not to change what moves but to
+   shorten the window in which it is moving: back to the source's own .3s,
+   which is 220ms less layout per open. */
+.lo-fx{--wall-dur:.32s}
 .lo-fx .shw-bar{backdrop-filter:none;-webkit-backdrop-filter:none;background:#050505}
+
+/* ---------- THE THREE THAT WERE MISSING ----------
+   A `backdrop-filter` on a `position:fixed` element is the most expensive
+   thing a page can carry, and it is expensive in the worst possible way:
+   the compositor has to re-sample and re-blur whatever is behind it on
+   EVERY scrolled frame, forever, whether or not anything about the element
+   changed. Everything else here blurs something static.
+
+   .plate__in is exactly that — fixed, full width, on screen for the whole
+   of every page below the hero — and it was the one surface with no
+   fallback. On a machine that reported itself short of memory or cores it
+   was still asking the GPU for a 16px blur of the moving page, 60 times a
+   second, behind a plate that is already 86-94% opaque.
+
+   The other two only ever run with the page scroll locked behind them, so
+   they cost one frame rather than every frame — but a phone that cannot
+   afford the plate cannot afford a full-screen blur either. */
+.lo-fx .plate__in{
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  background:linear-gradient(180deg,#0f0f0f 0%,#070707 58%,#040404 100%);
+}
+.lo-fx .mob__scrim,.lo-fx .ctc__scrim{
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  background:linear-gradient(100deg,rgba(4,4,4,.86),rgba(4,4,4,.72) 48%,rgba(4,4,4,.8));
+}
 html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 
 /* ============================================================

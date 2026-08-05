@@ -1838,3 +1838,173 @@ It is invisible to a casual reader because those pages have no visible copy
 of their own, and it is the reason those five pages parse as empty here. It
 looks like a compromised WordPress install. None of it was used as source
 material. It wants a look from whoever maintains that site.
+
+
+### v56 — the mark, the frame budget, and a lighter foot
+
+#### The mobile header, measured rather than adjusted
+
+Two passes were spent making the wordmark bigger and it kept reading as the
+third item in a row of three. Measuring the reference finally explained why,
+and the answer was never a size — it is a **ratio**.
+
+Bentley's mobile bar at 375, measured: the nav is a three-column grid,
+`127.6px 88px 127.6px`, mark in the middle cell at 88 × 44. **The left cell
+is empty.** There is one label in the whole bar — "Menu", 11/20 on 1.1px,
+37.6 × 20 — and the mark's painted area is 3872px² against that label's
+752px². The mark is **five times** the largest piece of type in the bar and
+more than twice the height of anything else on the line.
+
+Ours, measured the same way: mark 124 × 23 = 2850px², and beside it
+"АВТОМОБИЛИ" in a 44px hit box, 85.7 × 44 = 3771px². **A ratio of 0.76** —
+the wordmark was the smallest painted thing in its own header. No amount of
+growing it fixes that while a second label stands next to it.
+
+- **"Автомобили" left the bar.** The reference has nothing on that side, and
+  the link is already the first row of the menu.
+- **The mark went to 148px**, i.e. 27.4 tall on our 356:66 wordmark —
+  4055px² against the menu label's 772px², a ratio of **5.25** against the
+  reference's 5.1. It is 39% of the viewport where theirs is 23.5%, and that
+  is right rather than greedy: a wordmark carries presence in WIDTH where a
+  winged badge carries it in height. Same mass, different axis.
+- **The mark moved to the top line.** The reference puts the logo on row one
+  and its actions on row two; ours had it the other way round, so the first
+  thing on the page was a button.
+- The rule-icon came to 13px with it (theirs is 12).
+
+#### Performance
+
+**The parallax fallback was the Windows 7 path, and it was the expensive
+one.** `animation-timeline: view()` is Chrome 115; Windows 7 tops out at
+Chrome 109. So on exactly the machines with the least to spare, the CSS does
+nothing and the JS fallback runs — and it was calling
+`getBoundingClientRect()` on every parallax element and writing a transform
+straight after each read. Read, write, read, write: the textbook way to force
+layout once per element per frame, sixty times a second.
+
+A rect only answers "where is this relative to the viewport", which is
+`documentTop − scrollY`, and documentTop does not change while scrolling. It
+is measured once now, re-measured only on a resize, a late image or a font
+swap, and **the frame does no layout read at all** — verified by inspecting
+the emitted function body. An observer keeps the working set to what is on
+screen, and `will-change` is granted on the way in and taken back on the way
+out rather than standing on five elements for the session.
+
+**Three fixed surfaces were blurring the page on every scrolled frame.** A
+`backdrop-filter` on a `position:fixed` element is the worst kind of
+expensive: the compositor re-samples and re-blurs whatever is behind it every
+frame, forever, whether or not anything changed. `.plate__in` is exactly that
+— fixed, full width, on screen for the whole of every page below the hero —
+and it had no low-power fallback at all. Nor did the two panel scrims, nor
+`.dbar`/`.dmini`, the two bars a phone keeps fixed on the vehicle page.
+`catalog.css` had no low-power path whatsoever; it has one now. The plate's
+own radius came 16 → 12px: behind a fill that runs 86–94% opaque the last
+four pixels do no visible work, and blur cost climbs with radius.
+
+**A filter across the whole document.** Opening the collection transitions
+`filter: brightness(.45) saturate(.8)` on `.shw-behind` — every band, every
+photograph, the footer — for 950ms. A filter cannot be composited from a
+cached texture the way a transform or an opacity can: the entire page is
+re-rasterised, then again for every frame. Where the device has said it is
+short of cores or memory the dim is done with opacity instead, which IS
+composited from the cached texture: one raster instead of sixty, same scale,
+same timing, same curve.
+
+**Two per-frame rect reads became observers.** The dossier's phone bars were
+doing three expensive things per scrolled tick — a rect for the gallery, a
+rect for the footer, and a `getComputedStyle()` on `<body>` to re-read a
+padding that only changes at a breakpoint. All three answered questions an
+IntersectionObserver answers off the main thread; the scroll handler is gone
+with them. The homepage's sticky CTA lost its footer rect the same way.
+
+**The card expand keeps its geometry and loses time on slow machines.** It
+animates grid tracks, flex-basis and the card ratio deliberately — growing
+the box keeps the photograph and the type pin-sharp where a `scale()` would
+soften both — and that trade stays. What it costs is a layout pass per frame,
+so on low-power the honest lever is the window, not the mechanism:
+`--wall-dur` drops to the source's own .32s, 200ms less layout per open.
+`main.js` now READS that token instead of repeating the number, because a
+second copy would silently disagree with the override and leave the rail
+travelling 200ms after the card stopped growing.
+
+**One dead component removed.** The drifting photo wall (`.pcol-*`) — two
+rails on 72s and 96s infinite animations, with a permanent `will-change` on
+both tracks. Nothing has referenced it in any HTML or JS for some time. A
+retained compositor layer and an infinite recomposite, for markup that is
+never built.
+
+**Images needed nothing.** 16 of 18 lazy, `decoding="async"` throughout,
+`fetchpriority="high"` on the hero pair only, and not one image oversized for
+its box at DPR 2 — the blurred backdrop deliberately loads the 320px
+rendition because it is blurred 16px and resolution cannot show.
+
+#### The footer
+
+Contact is gone — it is a panel now, reachable from every header and every
+menu, and printing the address again at the bottom of every page was the last
+thing keeping the footer at the size of a page. **The column grid went with
+it**: two columns holding four and two links is a layout that exists to hold
+columns. What is left is a mark, two social marks and four documents, and
+that is a line rather than a grid. 336px on a phone, 276 on a desktop.
+
+The no-JS fallback for `[data-contact]` moved from `#kontakt` — which now
+lands on nothing in particular — to `legal.html#imprint`, which is the page
+that actually holds the address, the phone and the email.
+
+#### A sweep that was reverted, and why it is worth recording
+
+22KB of the stylesheet matches nothing in any page or script — mostly the
+legacy dossier components (`.vd-hero`, `.vd-aside`, `.vd-specs`, `.vd-lede`,
+`.vd-table`, `.vg-thumbs`) left behind when the dossier was rebuilt. An
+automated pass removed 163 rules of it, and the computed-style comparison ran
+afterwards caught what happened next: `.hd-links{display:none}` went with
+them. That class IS in index.html — the tokeniser in the stripper was wrong,
+not the rule — and the result was a header 278px tall with a 0-width menu
+icon.
+
+It was reverted whole. The measurable prize was ~10% of the rule count; the
+risk was a class of silent breakage across 121 removed selectors that one
+verification pass had already found one instance of. Only `.pcol` was
+removed, by hand, because it was checked by hand. **The remaining ~19KB is
+still there and still dead** — worth doing, worth doing carefully, and not
+worth doing at the end of a session on a stylesheet whose comments are the
+most valuable thing in the repository.
+
+#### The bug the quality pass found
+
+The console carried a TypeError from `i18n.js` — *Failed to execute 'observe'
+on 'MutationObserver': parameter 1 is not of type 'Node'*. It had been there
+for a while, it was intermittent, and it is the most consequential thing in
+this pass.
+
+Three pages start their scripts through a loader in `<head>` that waits for
+the render-blocking stylesheet and then injects them with
+`script.async = false`. A comment there described that as "the exact
+equivalent of defer". **It is not.** `async = false` guarantees ORDER between
+dynamically inserted scripts and nothing more: each one runs the moment it
+has been fetched. On a warm cache `css.sheet` is already truthy on the
+loader's very first line, so `boot()` ran synchronously — inside `<head>`,
+with no `<body>` in existence yet.
+
+Downstream of that: i18n's MutationObserver threw outright, so nothing
+rendered by a script afterwards was ever translated; and `main.js`'s
+`querySelectorAll` calls matched an empty document, so the hero, the rail and
+the reveals bound to nothing at all. On a **cold** cache the stylesheet's load
+event happens to fire after `</body>` and none of it shows — which is exactly
+why it survived this long. The failure only appears on a second visit, and a
+hard reload hides it again.
+
+`readyState` is the gate that was missing. The ordering, the 3s floor and
+staying off `window.load` are all unchanged. Verified by loading the same URL
+three times in a row against a warm cache: zero errors, hero bound, i18n
+alive on every one.
+
+#### The quality pass
+
+Every page at 375 and at 1440: no horizontal overflow anywhere
+(`scrollWidth === innerWidth` on all four, both widths), no collapsed icons
+outside `display:none` ancestors, header 129px on mobile and 127 on desktop,
+no console errors. Every low-power override verified to fire by forcing the
+class and re-reading the computed values: `--wall-dur` .52 → .32s, the plate
+blur to none, both scrims to none, the page recede from
+`transform, filter, opacity` to `transform, opacity`.
