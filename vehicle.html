@@ -7,16 +7,55 @@
 <link rel="mask-icon" href="favicon.svg" color="#c9a25a">
 <title>Автомобил — AutoHaus Пловдив</title>
 <meta name="description" content="Пълно досие на автомобила: спецификация, галерия, произход, лизинг и запитване към AutoHaus Пловдив.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=155">
-<link rel="stylesheet" href="catalog.css?v=155">
-<script defer src="data/vehicles.js?v=155"></script>
-<script defer src="main.js?v=155"></script>
-<script defer src="catalog.js?v=155"></script>
-<script defer src="vehicle.js?v=155"></script>
-<script defer src="i18n.js?v=155"></script>
+<!-- THE CRITICAL PATH.
+     Measured on a 1.6Mbps link with 300ms RTT: first paint was gated by
+     160KB arriving before it, of which only 83KB draws anything. The rest
+     — the catalog stylesheet and five scripts — merely shared the pipe with
+     the one file that decides when the page appears.
+
+     So: style.css is the ONLY render-blocking request. catalog.css loads
+     non-blocking (it styles the collection grid, which is below the hero,
+     and the catalog layer, which is closed). The scripts start when
+     style.css lands, in document order, via the loader at the end of this
+     head. `script.async = false` on a dynamically inserted script is the
+     exact equivalent of `defer`: it does not block the parser and it runs
+     in insertion order, so the data -> main -> catalog -> showroom -> i18n
+     chain is preserved.
+
+     Exo 2 is self-hosted (see "THE TYPEFACE" in style.css) and deliberately
+     NOT preloaded: preloading the weight-300 pair put 59KB in front of the
+     stylesheet and pushed first paint 150ms LATER. font-display:swap covers
+     the gap. -->
+<link rel="stylesheet" href="style.min.css?v=fc6f82db" id="ah-css">
+<!-- BLOCKING here, unlike the landing page. On index.html this stylesheet
+     draws the collection grid (below the hero) and the catalog layer
+     (closed), so it can arrive late. On THIS page it draws the dossier
+     itself — .dtitle, .dsec, .dgal, .dprose are all defined in it — and
+     letting it arrive late reflowed the title by a whole 42px line at
+     ~1.9s: 0.097 CLS, measured. -->
+<link rel="stylesheet" href="catalog.min.css?v=fc6f82db">
+<script>
+/* Starts the app the moment the render-blocking stylesheet is in — not
+   before (it would share the pipe with it) and not on window.load (that
+   waits for every photograph). The timeout is a floor, never a ceiling: a
+   stylesheet that stalls must not take the site down with it. */
+(function () {
+  var q = ["data/vehicles.js?v=fc6f82db","main.js?v=fc6f82db","catalog.js?v=fc6f82db","vehicle.js?v=fc6f82db","i18n.js?v=fc6f82db"], fired = false;
+  function boot() {
+    if (fired) return; fired = true;
+    for (var i = 0; i < q.length; i++) {
+      var s = document.createElement("script");
+      s.src = q[i]; s.async = false;      /* = defer: ordered, non-blocking */
+      document.head.appendChild(s);
+    }
+  }
+  var css = document.getElementById("ah-css");
+  if (!css || css.sheet) boot();
+  else { css.addEventListener("load", boot); css.addEventListener("error", boot); }
+  setTimeout(boot, 3000);
+})();
+</script>
+
 </head>
 <body>
 

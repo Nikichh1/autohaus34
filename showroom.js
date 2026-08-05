@@ -220,8 +220,14 @@
     var S = AH.newFilterState();
     S.sort = pvSortKey;
     var list = AH.filterResults(S);
-    pvGrid.innerHTML = list.slice(0, PREVIEW).map(function (v, i) {
-      return AH.card(v, { eager: i < 3 });
+    /* NOT eager. `eager` means fetchpriority="high" and no lazy attribute,
+       which is right for the layer — its first row IS the first screen — and
+       exactly wrong here: this grid sits below a full-height hero, so on a
+       phone the first three cards are off screen at load. Measured on a
+       1.6Mbps link they pulled 206KB at high priority against the 49KB of
+       render-blocking CSS that gates first paint. Below the fold, so lazy. */
+    pvGrid.innerHTML = list.slice(0, PREVIEW).map(function (v) {
+      return AH.card(v, {});
     }).join("");
     if (AH.rendered) AH.rendered(pvGrid);
   }
@@ -241,7 +247,20 @@
     });
   }
   if (pvMore) pvMore.textContent = "Виж всички " + PLURAL(AH.all.length);
-  paintPreview();
+
+  /* The first paint of this grid is the single longest task on the landing
+     page: filter 87 records, sort them, build six cards of markup, parse it
+     into ~90 nodes and lay them out — measured at 226-251ms on a 4x-
+     throttled phone, all of it inside the window that decides whether the
+     page feels responsive. And every pixel of it is below the hero.
+
+     So it waits for the first idle moment. The `timeout` is what makes this
+     safe rather than optimistic: on a device that never goes idle it runs
+     anyway, a quarter-second in, still long before anyone has scrolled a
+     full screen. Re-sorting later calls paintPreview() directly — that IS
+     the user waiting for something, and it must not be deferred. */
+  if (typeof requestIdleCallback === "function") requestIdleCallback(paintPreview, { timeout: 250 });
+  else setTimeout(paintPreview, 1);
 
   /* ============================================================
      3. THE LAYER

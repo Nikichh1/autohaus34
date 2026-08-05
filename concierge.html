@@ -7,16 +7,54 @@
 <link rel="mask-icon" href="favicon.svg" color="#c9a25a">
 <title>AutoHaus Concierge — заявка за автомобил</title>
 <meta name="description" content="Опишете автомобила, който търсите. Заявката се разглежда лично от Иван Манев и получава отговор до 24 часа.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<!-- THE CRITICAL PATH.
+     Measured on a 1.6Mbps link with 300ms RTT: first paint was gated by
+     160KB arriving before it, of which only 83KB draws anything. The rest
+     — the catalog stylesheet and five scripts — merely shared the pipe with
+     the one file that decides when the page appears.
+
+     So: style.css is the ONLY render-blocking request. catalog.css loads
+     non-blocking (it styles the collection grid, which is below the hero,
+     and the catalog layer, which is closed). The scripts start when
+     style.css lands, in document order, via the loader at the end of this
+     head. `script.async = false` on a dynamically inserted script is the
+     exact equivalent of `defer`: it does not block the parser and it runs
+     in insertion order, so the data -> main -> catalog -> showroom -> i18n
+     chain is preserved.
+
+     Exo 2 is self-hosted (see "THE TYPEFACE" in style.css) and deliberately
+     NOT preloaded: preloading the weight-300 pair put 59KB in front of the
+     stylesheet and pushed first paint 150ms LATER. font-display:swap covers
+     the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.css?v=155">
+<link rel="stylesheet" href="style.min.css?v=fc6f82db" id="ah-css">
 <meta name="robots" content="noindex">
-<script defer src="data/vehicles.js?v=155"></script>
-<script defer src="main.js?v=155"></script>
-<script defer src="concierge.js?v=155"></script>
-<script defer src="i18n.js?v=155"></script>
+<!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
+     index/vehicle/legal start their scripts only once the stylesheet is
+     in, so nothing competes with the file that gates first paint. That is
+     wrong here: concierge.js DRAWS the first screen — the spine, Иван's
+     line, the record above the action bar, the chosen-car card. Held back,
+     the room painted and then grew under the reader: 0.29 CLS on
+     /concierge.html?v=<car>, where that card is tallest, against 0.03
+     without it.  runs them after parsing and before first paint, so
+     the furniture is there from the first frame. The page can afford it:
+     18KB of CSS, no hero photograph to compete with. -->
+<script defer src="data/vehicles.js?v=fc6f82db"></script>
+<script defer src="main.js?v=fc6f82db"></script>
+<script defer src="concierge.js?v=fc6f82db"></script>
+<script defer src="i18n.js?v=fc6f82db"></script>
+<script>
+/* RESERVE WHAT THE SCRIPTS ARE ABOUT TO DRAW.
+   `defer` holds a script until after parsing, but it does NOT hold first
+   paint — so the room painted, and then concierge.js added the chosen-car
+   card and the record above the action bar and pushed everything down.
+   Measured at 390: 0.29 CLS on /concierge.html?v=<car>. The URL already
+   knows what is coming, so the space is booked before anything is drawn.
+   Two classes, both removed again the moment the real content lands. */
+(function(){var q=location.search;var c=document.documentElement.classList;
+if(/[?&]v=/.test(q))c.add("cg-has-pick");
+if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");})();
+</script>
 </head>
 <body class="ah">
 

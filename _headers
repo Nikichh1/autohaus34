@@ -1,0 +1,24 @@
+# Netlify / Cloudflare Pages read this file directly. For Apache or nginx,
+# the same rules are in DEPLOY.md.
+#
+# Asset URLs carry ?v=<hash> stamped by build.js, so a file's URL changes
+# whenever its contents do. That makes it safe — and correct — to cache them
+# forever. HTML is never cached, so a returning visitor always learns about
+# a new version immediately and then re-uses everything that did not change.
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+/img/*
+  Cache-Control: public, max-age=31536000, immutable
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.html
+  Cache-Control: no-cache
+/
+  Cache-Control: no-cache

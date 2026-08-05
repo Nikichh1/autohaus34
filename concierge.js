@@ -406,7 +406,13 @@
     box.innerHTML =
       '<div class="cg-picked">' +
         '<span class="cg-picked-photo">' +
-          AH.picture(v.shots[0], { alt: v.full, src: 400, sizes: "160px" }) +
+          /* width/height are not cosmetic here: without them the browser has
+             no ratio to reserve and the photograph's box is zero-height until
+             the bytes land, which drops the whole card on the reader. The CSS
+             still decides the rendered size (cover fill); these only supply
+             the placeholder. */
+          AH.picture(v.shots[0], { alt: v.full, src: 400, sizes: "160px",
+                                   width: 160, height: 100 }) +
         "</span>" +
         '<span class="cg-picked-body">' +
           '<span class="cg-sub">' + v.ref + " · избран автомобил</span>" +

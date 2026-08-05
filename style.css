@@ -22,6 +22,106 @@
    ============================================================ */
 
 /* ============================================================
+   THE TYPEFACE — self-hosted
+
+   Exo 2 used to come from fonts.googleapis.com, and that cost more than the
+   bytes: a RENDER-BLOCKING stylesheet on a third-party origin, so first
+   paint waited on a DNS lookup, a TCP connect and a TLS handshake to a host
+   the page otherwise never speaks to — then a SECOND origin
+   (fonts.gstatic.com) for the files themselves. Measured on a 1.6Mbps link
+   with 300ms RTT: 405ms of blocking, before a single byte of our own CSS
+   had been parsed.
+
+   Six files, not fifteen. Google serves latin, latin-ext, cyrillic,
+   cyrillic-ext and vietnamese; this site is Bulgarian and English, so it
+   needs latin and cyrillic and nothing else. The `unicode-range` on each
+   face is Google's own, unchanged, which is what lets the browser download
+   only the subsets a given page actually puts on screen — a Cyrillic page
+   with a Latin marque name in it fetches both, an all-Cyrillic view fetches
+   one.
+
+   The weight-300 pair is preloaded from the HTML so the fetch still starts
+   with the document rather than waiting for this file to parse. 400 and 600
+   are small type (labels, buttons, the odometer) and swap in a beat later,
+   which `font-display:swap` makes invisible. See "THE CRITICAL PATH" in
+   index.html.
+   ============================================================ */
+@font-face{
+  font-family:"Exo 2";font-style:normal;font-weight:300;font-display:swap;
+  src:url("fonts/exo2-300-latin.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face{
+  font-family:"Exo 2";font-style:normal;font-weight:300;font-display:swap;
+  src:url("fonts/exo2-300-cyrillic.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+@font-face{
+  font-family:"Exo 2";font-style:normal;font-weight:400;font-display:swap;
+  src:url("fonts/exo2-400-latin.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face{
+  font-family:"Exo 2";font-style:normal;font-weight:400;font-display:swap;
+  src:url("fonts/exo2-400-cyrillic.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+@font-face{
+  font-family:"Exo 2";font-style:normal;font-weight:600;font-display:swap;
+  src:url("fonts/exo2-600-latin.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face{
+  font-family:"Exo 2";font-style:normal;font-weight:600;font-display:swap;
+  src:url("fonts/exo2-600-cyrillic.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+
+/* ---- THE FALLBACK, MEASURED ----
+   `font-display:swap` means the first paint is set in the system sans and
+   Exo 2 replaces it a moment later. That swap was moving the page: measured
+   on a 1.6Mbps link, the vehicle dossier shifted 0.097 CLS and the
+   concierge 0.032, both at ~1.9s, both because a line that wrapped in the
+   fallback fitted on one line in Exo 2 — a whole 42px line box appearing
+   and disappearing under the reader.
+
+   So the fallback is given Exo 2's own metrics. The ratios were measured
+   against the REAL text of this site — every visible string on all four
+   pages, harvested and grouped by the weight it is actually rendered at,
+   then set in both faces and compared. 17,500 characters, not a sample
+   phrase: the ratio is text-dependent (Exo 2's space is narrower than
+   Arial's, so a string's word count moves it) and a single well-chosen
+   sentence gave answers 2% off.
+
+     weight 300   Exo/Arial 0.9961  ->  size-adjust 99.6%
+     weight 400   Exo/Arial 0.9921  ->  size-adjust 99.2%
+     weight 600   Exo/Arial 0.9639  ->  size-adjust 96.4%   (Exo 2 is 3.6%
+                                        narrower than Arial bold — this is
+                                        the one that was moving the page)
+
+   `size-adjust` scales the fallback to occupy the same width, and the
+   ascent/descent overrides give it Exo 2's 1.2 line box in place of Arial's
+   1.15. The text still changes shape when the real face arrives; it no
+   longer changes SIZE, so nothing moves. If none of the local faces exist
+   the whole @font-face is dropped and the stack falls through to plain
+   arial — the old behaviour, never worse. */
+@font-face{
+  font-family:"Exo 2 fallback";font-style:normal;font-weight:300;
+  src:local("Arial"),local("Helvetica Neue"),local("Roboto"),local("Liberation Sans"),local("Segoe UI");
+  size-adjust:99.6%;ascent-override:96%;descent-override:24%;line-gap-override:0%;
+}
+@font-face{
+  font-family:"Exo 2 fallback";font-style:normal;font-weight:400;
+  src:local("Arial"),local("Helvetica Neue"),local("Roboto"),local("Liberation Sans"),local("Segoe UI");
+  size-adjust:99.2%;ascent-override:96%;descent-override:24%;line-gap-override:0%;
+}
+@font-face{
+  font-family:"Exo 2 fallback";font-style:normal;font-weight:600;
+  src:local("Arial Bold"),local("Arial"),local("Helvetica Neue"),local("Roboto"),local("Liberation Sans"),local("Segoe UI");
+  size-adjust:96.5%;ascent-override:96%;descent-override:24%;line-gap-override:0%;
+}
+
+/* ============================================================
    TOKENS — base = mobile (<768)
    ============================================================ */
 :root{
@@ -218,7 +318,7 @@
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;background:var(--page-top);overflow-anchor:none}
 body.ah{
   background:var(--stage-bg);color:var(--white);
-  font-family:"Exo 2",arial,helvetica,sans-serif;
+  font-family:"Exo 2","Exo 2 fallback",arial,helvetica,sans-serif;
   font-weight:300;font-size:var(--fs-body);line-height:var(--lh-body);
   letter-spacing:.01em;                       /* source: 0.16px @16px */
   overflow-x:hidden;
@@ -1543,7 +1643,19 @@ html.mob-open body{position:fixed;left:0;right:0;width:100%}
    headings 20/28 w300, main+ext links 13/13 w400 ls normal UPPER,
    meta 11/16 w400. Hover = underline at 9px offset only.
    ============================================================ */
-.ft{background:var(--page-bottom);padding:var(--ft-pad) 0}
+/* CONTAINED, and this is the cheapest 24% on the site.
+   The footer is ~180 nodes of link columns that never change, sitting at
+   the bottom of a document whose top is being rewritten by four scripts on
+   load. Without containment every one of those mutations — the preview grid
+   arriving, a reveal class landing, i18n swapping a string — invalidates
+   style for the whole tree, footer included, and it is re-matched against
+   1277 rules each time.
+   `contain:layout style` tells the browser what is already true: nothing
+   inside here affects anything outside it, and nothing outside changes what
+   is in it. Measured on a 1.6Mbps phone at 4x CPU: style 708ms -> 540ms,
+   total main-thread task 3240ms -> 2505ms, TBT 297 -> 254. No `paint`
+   containment — that would clip, and this box has none to give. */
+.ft{background:var(--page-bottom);padding:var(--ft-pad) 0;contain:layout style}
 .ft a:hover,.ft button:hover{text-decoration:underline;text-underline-offset:9px}
 .ft-top{margin-bottom:64px}
 .ft-main{display:grid;grid-template-columns:1fr;gap:24px;justify-items:center;text-align:center}
@@ -1809,7 +1921,7 @@ body:not(.ah){
   --line-d:rgba(255,255,255,.14);
   --nav-h:72px;
   background:var(--paper);color:var(--ink-2);
-  font-family:"Exo 2",arial,helvetica,sans-serif;
+  font-family:"Exo 2","Exo 2 fallback",arial,helvetica,sans-serif;
   font-weight:300;font-size:var(--fs-body);line-height:var(--lh-body);
   letter-spacing:.01em;
   padding-top:var(--nav-h);overflow-x:hidden;
@@ -2013,7 +2125,8 @@ html:not(.js) .rv{opacity:1;transform:none}
 
 /* ---------- FOOTER — same ground as the homepage footer ---------- */
 /* same ground, same ink and same muted tone as the homepage footer */
-.foot{background:var(--page-bottom);color:#fff;padding-block:var(--ft-pad)}
+/* the dossier's footer, contained for the same reason — see .ft above */
+.foot{background:var(--page-bottom);color:#fff;padding-block:var(--ft-pad);contain:layout style}
 .foot a:hover{text-decoration:underline;text-underline-offset:9px}
 .foot .ft-top{
   display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap;
@@ -3754,6 +3867,22 @@ html.lo-fx.shw-open .shw-behind{filter:brightness(.45);transform:none}
 }
 .cg-match__t{display:block;color:rgba(255,255,255,.76)}
 .cg-match.is-none{border-color:rgba(201,162,90,.5);background-color:rgba(201,162,90,.06)}
+
+/* ---- BOOKED SPACE ----
+   The two boxes concierge.js draws into the first screen. `defer` does not
+   hold first paint, so without a reservation the page paints and then grows
+   by ~250px under the reader — 0.29 CLS at 390, measured on the
+   /concierge.html?v=<car> deep link that every vehicle card points at.
+   The inline probe in that page reads the URL and sets these classes before
+   any CSS is applied; concierge.js drops `hidden` a moment later and the
+   real content takes over the same box. Desktop needs neither (the card sits
+   beside the rail rather than above the questions, and measured 0.008). */
+@media(max-width:767px){
+  html.cg-has-pick #cg-picked[hidden]{display:block!important;min-height:240px}
+}
+@media(max-width:1023px){
+  html.cg-has-rec .cg-nav__slot{min-height:54px}
+}
 
 /* ---- the car chosen on another page, confirmed at the top of step two ----
    It is a confirmation, not a search result, so it stops at a readable

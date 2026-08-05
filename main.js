@@ -450,8 +450,25 @@
       });
     };
 
+    /* The NEXT slide is primed one idle period later, never in the same
+       breath as the current one. Both at once put a second full-bleed
+       photograph (93KB) on the wire while the stylesheet that gates first
+       paint was still arriving — for a frame nobody sees for ten seconds.
+       Priming stays one step ahead of the carousel; it just stops racing
+       the first screen to get there. */
+    var primeSoon = function (n) {
+      var go = function () { prime(n); };
+      if (typeof requestIdleCallback === "function") requestIdleCallback(go, { timeout: 2500 });
+      else setTimeout(go, 1200);
+    };
+
     var paint = function (from) {
-      prime(i); prime(i + 1);                 /* current, and the one after */
+      prime(i);                               /* the frame on screen, now */
+      /* `from` is undefined only on the very first paint, which is the one
+         that must not compete with the first screen. Every later call comes
+         from go(), where the carousel is already running and the next frame
+         is genuinely needed soon. */
+      if (from === undefined) primeSoon(i + 1); else prime(i + 1);
       slides.forEach(function (s, n) {
         s.classList.toggle("is-active", n === i);
         s.classList.toggle("is-past", from !== undefined && n === from && n !== i);

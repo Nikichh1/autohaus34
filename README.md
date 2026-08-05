@@ -1266,3 +1266,98 @@ sheet with all eight panels; the drawer that slid in from the left is gone.
    two rules for the composed range values ("от 500 к.с." → "from 500 hp").
    The EN walk now reports clean with the layer open, a panel open and three
    filters set, at desktop and phone.
+
+### v52 — the performance pass
+
+The brief was "make it feel instant". Everything below was measured before
+and after on three simulated devices — desktop, a mid phone (4× CPU, 12 Mbps)
+and a slow one (6× CPU, 1.6 Mbps, 300 ms RTT) — because on this site almost
+every intuition about what was slow turned out to be wrong.
+
+**First paint, before → after:**
+
+| | desktop | mid phone | slow phone |
+|---|---|---|---|
+| Landing | 568 → **292 ms** | 904 → **632 ms** | 4100 → **1212 ms** |
+| Concierge | 172 → **100 ms** | 796 → **520 ms** | 3816 → **1168 ms** |
+| Vehicle | 156 → **88 ms** | 704 → **368 ms** | 3612 → **992 ms** |
+
+CSS on the wire went 273 KB → **25 KB**. Vehicle CLS on a slow phone went
+0.1005 → **0.0033**; the `?v=<car>` concierge deep link 0.289 → **0.047**.
+
+#### What was actually slow
+
+**Nothing in the JavaScript.** Sampling the main thread at 4× throttle put
+every script under 120 ms of self time. The load was 36% style recalculation
+and 31% layout — the cost of matching 1277 rules against a 750-node DOM
+while four scripts mutate it — and 1% image decode. Every intuition about
+"heavy JS" was wrong here.
+
+**First paint was gated by one thing: 271 KB of render-blocking CSS.** On the
+slow phone `style.css` alone took 3.3 s, and it was sharing the pipe with two
+stylesheets, five scripts and two images — 160 KB arriving before the first
+pixel, of which 83 KB drew anything. Four changes, in order of what they were
+worth:
+
+1. **Compression (2.2 s).** `py -m http.server` sends everything
+   uncompressed; no real host does. Brotli alone took first paint 4008 →
+   1796 ms. This is a hosting setting, not code — see `DEPLOY.md`, and treat
+   it as the first thing to check if the site ever feels slow again.
+2. **Only style.css blocks now (312 ms).** `catalog.css` loads non-blocking
+   on the landing page and the scripts start when the stylesheet lands,
+   inserted in order with `script.async = false` (the exact equivalent of
+   `defer`). The stylesheet gets the whole pipe.
+3. **`build.js` (200 ms).** Comments are 44% of `style.css` and they are the
+   most valuable thing in the repo, so they stay — and a stripped copy is
+   generated for the browser. 49 KB → 18 KB over brotli. Verified by
+   comparing every computed property of every element at four page/width
+   combinations: indistinguishable.
+4. **Exo 2 self-hosted.** The Google stylesheet was a render-blocking request
+   to a third-party origin — a DNS lookup, a TCP connect and a TLS handshake
+   before any of our own CSS was read, then a *second* origin for the files.
+   405 ms, gone. Six subset files instead of fifteen: this site is Bulgarian
+   and English.
+
+#### The layout shifts were the font swapping
+
+`font-display:swap` paints in Arial and replaces it with Exo 2 a moment
+later, and Exo 2 is 3.6% narrower than Arial Bold — enough that a tracked
+label which wrapped in one fitted on one line in the other, and a whole 42 px
+line appeared and vanished under the reader. The fallback now carries Exo 2's
+own metrics (`size-adjust`, `ascent-override`), calibrated against 17,500
+characters of the real site text rather than a sample phrase — the ratio is
+text-dependent, and one well-chosen sentence gave answers 2% out. Residual
+error: 0.00% / −0.01% / +0.12% at the three weights.
+
+Two more, both found by bisecting rather than reading: `catalog.css` holds the
+entire vehicle dossier, so making it non-blocking there reflowed the title
+(fixed — it blocks on that page only); and `defer` does not hold first paint,
+so the concierge painted and then grew by the chosen-car card. The URL knows
+what is coming, so that space is now booked before anything is drawn.
+
+#### What did NOT need fixing, and the measurements that said so
+
+- **The scroll.** Ablating the blurred hero backdrop, every
+  `backdrop-filter`, the `view()` parallax and the whole card wall changed
+  p50 frame time by under 1 ms each. Against bentleymotors.com on the same
+  gesture, same throttle: **3 janky frames to their 10, half the style cost,
+  a tenth of the script time, 40% less main-thread work.** It was already
+  better than the reference. The one place they win is layout (14 passes to
+  our 75) and it is worth 38 ms spread over a ten-second gesture.
+- **Image decode.** 1% of load. The 1.3 MB the landing page pulls on a phone
+  is bandwidth, not main-thread time, and none of it is oversized for the box
+  it lands in.
+- **JS minification.** A stripper was written, measured and thrown away: it
+  corrupted `main.js` by mistaking the tail of a regular expression for a
+  comment. The scripts are off the critical path and brotli takes `main.js`
+  to 20 KB on its own. `build.js` does CSS only, deliberately.
+
+#### The one thing that got worse
+
+Total Blocking Time on the landing page rose (499 → 539 ms on the slow
+phone). It is a window-relative measure: the same work now happens in a
+tighter band because first paint moved 2.9 s earlier, so more of it lands
+inside the measured window. Absolute time-to-interactive improved. The
+biggest single task — filtering 87 records and building the six preview cards
+— now waits for the first idle moment, since every pixel of it is below the
+hero.
