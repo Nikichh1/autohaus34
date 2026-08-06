@@ -1298,7 +1298,14 @@
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:10px var(--margin);
   background:rgba(247,246,242,.96);border-bottom:1px solid var(--line);
-  transform:translateY(-110%);transition:transform var(--t-in) var(--e-exit);
+  /* HIDDEN MEANS ABOVE THE VIEWPORT, NOT PEEKING OVER THE MASTHEAD.
+     The strip is anchored at top:var(--nav-h) — directly under the nav — and
+     -110% lifted it by only its OWN height (~43px), so at rest it sat at
+     y:21..60 ON TOP of the nav (z:70 over the nav's z:50): the model and the
+     price covered the logo at the top of the page, and the header read as
+     "gone". It has to travel its own height PLUS the nav's to clear the
+     screen, which is exactly what calc(-100% - var(--nav-h)) does. */
+  transform:translateY(calc(-100% - var(--nav-h)));transition:transform var(--t-in) var(--e-exit);
 }
 @supports (backdrop-filter:blur(12px)){
   .dmini{background:rgba(247,246,242,.82);backdrop-filter:blur(12px)}

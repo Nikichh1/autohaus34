@@ -28,12 +28,12 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=0529d540" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=1adfb9e1" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
-<link rel="stylesheet" href="catalog.min.css?v=0529d540" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="catalog.min.css?v=0529d540"></noscript>
+<link rel="stylesheet" href="catalog.min.css?v=1adfb9e1" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="catalog.min.css?v=1adfb9e1"></noscript>
 <script>
 /* Starts the app the moment the render-blocking stylesheet is in — not
    before (it would share the pipe with it) and not on window.load (that
@@ -59,7 +59,7 @@
    readyState is the missing gate. Everything else — the ordering, the
    3s floor, staying off window.load — is unchanged. */
 (function () {
-  var q = ["data/vehicles.js?v=0529d540","main.js?v=0529d540","catalog.js?v=0529d540","showroom.js?v=0529d540","i18n.js?v=0529d540"], fired = false;
+  var q = ["data/vehicles.js?v=1adfb9e1","main.js?v=1adfb9e1","catalog.js?v=1adfb9e1","showroom.js?v=1adfb9e1","i18n.js?v=1adfb9e1"], fired = false;
   function boot() {
     if (fired) return; fired = true;
     for (var i = 0; i < q.length; i++) {
@@ -574,9 +574,9 @@
         <div class="wcard">
           <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_autospa-400.webp 400w, img/autohaus_autospa-800.webp 800w, img/autohaus_autospa-1080.webp 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/autohaus_autospa-800.jpg" srcset="img/autohaus_autospa-400.jpg 400w, img/autohaus_autospa-800.jpg 800w, img/autohaus_autospa-1080.jpg 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил пред входа на AutoSpa в базата на AutoHaus"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label">Собствено ателие</span>
+            <span class="wcard-label">Детайлинг ателие</span>
             <a class="wcard-anchor" href="#cw-care" aria-expanded="false" aria-controls="cw-care"><span class="h6 wcard-h">AutoSpa</span></a>
-            <span class="body-s wcard-body">Ръчно измиване, детайлинг, полиране и защита — на място в базата.</span>
+            <span class="body-s wcard-body">Ръчна грижа за всеки детайл — измиване, детайлинг и защита на лака.</span>
           </span>
         </div>
         <div class="wcard-panel" id="cw-care" role="group" aria-label="AutoSpa">
@@ -585,8 +585,8 @@
             <div class="wcard-scroll">
               <h3 class="wcard-panel-h">AutoSpa</h3>
               <div class="body-s">
-                <p>Ръчно измиване, детайлинг, полиране, керамично покритие и защитно фолио — в собствено ателие в базата, не при подизпълнител.</p>
-                <p>Ателието е на разположение и след покупката — за автомобил, купен от нас или не.</p>
+                <p>Собствено ателие в базата — не подизпълнител. Ръчно измиване, детайлинг, полиране, керамика и защитно фолио, изпълнени с внимание към всеки детайл.</p>
+                <p>На разположение и след покупката — за автомобил от нашата колекция или Ваш собствен.</p>
               </div>
               <ul class="wcard-list">
                 <li>Ръчно измиване и сушене</li>
@@ -599,7 +599,6 @@
             </div>
             <div class="btn-group wcard-cta">
               <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запази час</span></a>
-              <a class="btn btn--s btn--secondary" href="tel:+359884777147"><span class="btn__label">+359 884 777 147</span></a>
             </div>
           </div>
         </div>
@@ -610,9 +609,9 @@
         <div class="wcard">
           <span class="wcard-photo"><picture><source type="image/webp" srcset="img/v/2026-07_1-16-400.webp 400w, img/v/2026-07_1-16-800.webp 800w, img/v/2026-07_1-16-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/v/2026-07_1-16-800.jpg" srcset="img/v/2026-07_1-16-400.jpg 400w, img/v/2026-07_1-16-800.jpg 800w, img/v/2026-07_1-16-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил след механична подготовка пред сервиза"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label">Собствен сервиз</span>
+            <span class="wcard-label">Сервиз в базата</span>
             <a class="wcard-anchor" href="#cw-servis" aria-expanded="false" aria-controls="cw-servis"><span class="h6 wcard-h">Сервиз</span></a>
-            <span class="body-s wcard-body">Диагностика, обслужване и поддръжка — в базата в Пловдив.</span>
+            <span class="body-s wcard-body">Диагностика, обслужване и поддръжка — от собствен екип в Пловдив.</span>
           </span>
         </div>
         <div class="wcard-panel" id="cw-servis" role="group" aria-label="Сервиз">
@@ -621,8 +620,8 @@
             <div class="wcard-scroll">
               <h3 class="wcard-panel-h">Сервиз</h3>
               <div class="body-s">
-                <p>Компютърна диагностика, планово обслужване, окачване, спирачки, климатик и гуми — в собствен сервиз в базата в Пловдив.</p>
-                <p>Сервизът поема и поддръжката след покупката.</p>
+                <p>Компютърна диагностика, планово обслужване, окачване, спирачки, климатик и гуми — в собствен сервиз, по заводски стандарт.</p>
+                <p>Поддръжката продължава и след покупката — за автомобил от нас или Ваш.</p>
               </div>
               <ul class="wcard-list">
                 <li>Компютърна диагностика</li>
@@ -633,12 +632,11 @@
                 <li>Подготовка за годишен преглед</li>
               </ul>
               <div class="body-s">
-                <p>Час се запазва по телефона или през обслужването — за автомобил, купен от нас или не.</p>
+                <p>Часът се запазва предварително — за автомобил от нас или Ваш собствен.</p>
               </div>
             </div>
             <div class="btn-group wcard-cta">
               <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запази час</span></a>
-              <a class="btn btn--s btn--secondary" href="tel:+359884777147"><span class="btn__label">+359 884 777 147</span></a>
             </div>
           </div>
         </div>
@@ -674,7 +672,7 @@
           <span class="wcard-text">
             <span class="wcard-label" data-tbd>Условия при запитване</span>
             <a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h">Лизинг и застраховане</span></a>
-            <span class="body-s wcard-body">Финансиране, каско и гражданска отговорност — подготвени на едно място.</span>
+            <span class="body-s wcard-body">Финансиране и застраховане — подготвени на едно място.</span>
           </span>
         </div>
         <div class="wcard-panel" id="cw-lizing" role="group" aria-label="Лизинг и застраховане">
@@ -683,7 +681,7 @@
             <div class="wcard-scroll">
               <h3 class="wcard-panel-h">Лизинг и застраховане</h3>
               <div class="body-s">
-                <p>Финансирането и застраховките се уреждат при нас, с партньорски институции. Документите се подготвят на място, заедно с регистрацията.</p>
+                <p>Лизинг и застраховане се уреждат при нас, с партньорски институции. Документите и регистрацията — на място.</p>
               </div>
 
               <p class="wcard-sub">Лизинг</p>
@@ -739,7 +737,7 @@
           <span class="wcard-text">
             <span class="wcard-label">На терасата</span>
             <a class="wcard-anchor" href="#cw-cafe" aria-expanded="false" aria-controls="cw-cafe"><span class="h6 wcard-h">Кафе бар</span></a>
-            <span class="body-s wcard-body">Кафе, закуски и маса за разговора — с изглед към витрината.</span>
+            <span class="body-s wcard-body">Кафе, разговор и изглед към витрината — на терасата.</span>
           </span>
         </div>
         <div class="wcard-panel" id="cw-cafe" role="group" aria-label="Кафе бар">
@@ -748,8 +746,8 @@
             <div class="wcard-scroll">
               <h3 class="wcard-panel-h">Кафе бар</h3>
               <div class="body-s">
-                <p>В повечето шоуруми кафето идва от автомат в ъгъла. Тук е част от сградата — тераса с изглед към витрината, маси навън и вътре.</p>
-                <p>Отворен е за всеки, не само за клиенти. Разговорът за автомобил върви по-добре на маса, отколкото прав до колата — и голяма част от огледите и документите минават именно оттук.</p>
+                <p>Кафе барът е част от сградата, не автомат в ъгъла — тераса с изглед към витрината, маси навън и вътре.</p>
+                <p>Отворен за всеки. Разговорът за автомобил върви по-добре на маса — както и голяма част от огледите и документите.</p>
               </div>
               <ul class="wcard-list">
                 <li>Кафе и напитки</li>
@@ -762,7 +760,6 @@
             </div>
             <div class="btn-group wcard-cta">
               <a class="btn btn--s btn--primary" href="legal.html#imprint" data-contact><span class="btn__label">Как да стигнете</span></a>
-              <a class="btn btn--s btn--secondary" href="tel:+359884777147"><span class="btn__label">+359 884 777 147</span></a>
             </div>
           </div>
         </div>
@@ -835,7 +832,7 @@
           </div>
           <div class="btn-group">
             <a class="btn btn--s btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Колекцията</span></a>
-            <a class="btn btn--s btn--secondary" href="#razdeli"><span class="btn__label">Отделите</span></a>
+            <a class="btn btn--s btn--secondary" href="#razdeli"><span class="btn__label">Услугите</span></a>
           </div>
         </div>
       </div>

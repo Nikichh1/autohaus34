@@ -604,7 +604,7 @@
            type=range> and the browser drags it natively; without the guard
            one thumb would move both it and the stack. Same reason the
            source stops propagation on its own pagination. */
-    if (stage && "ontouchstart" in window) {
+    if (stage) {
       var sw = { on: false, x0: 0, y0: 0, x: 0, axis: 0, pos: 0, moved: false };
       var span = function () { return Math.max(120, innerWidth * .34); };
       var settleSwipe = function (to) {
@@ -666,10 +666,66 @@
       };
       stage.addEventListener("touchend", swEnd, { passive: true });
       stage.addEventListener("touchcancel", swEnd, { passive: true });
+
+      /* ---- THE HERO, DRAGGED WITH A MOUSE ----------------------------------
+         The phone gets the gesture off the finger; a desktop pointer should
+         get exactly the same thing off the mouse. Same model precisely — the
+         drag moves `position`, the stack crossfades to wherever it lands, the
+         line and the number track it live, and release rounds to the nearest
+         frame — only the input differs.
+
+         Guarded to pointerType 'mouse', because a touch device fires pointer
+         events as WELL as touch ones and would otherwise turn every swipe
+         twice; the scrubber, the arrows and the CTAs are left to their own
+         clicks. Pointer capture keeps the drag alive when the cursor leaves
+         the frame, so a fast throw off the edge still lands. */
+      var mdown = false;
+      stage.addEventListener("pointerdown", function (e) {
+        if (e.pointerType !== "mouse" || e.button !== 0) return;
+        var t = e.target;
+        if (t && t.closest && t.closest(".pag-range,.pag-btn,a,button,input,select,textarea,label")) return;
+        mdown = true; sw.on = true; sw.axis = 0; sw.moved = false; sw.pos = i;
+        sw.x0 = sw.x = e.clientX; sw.y0 = e.clientY;
+        try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+      stage.addEventListener("pointermove", function (e) {
+        if (!mdown || !sw.on) return;
+        var x = e.clientX, y = e.clientY;
+        if (!sw.axis) {
+          var ax = Math.abs(x - sw.x0), ay = Math.abs(y - sw.y0);
+          if (ax < 6 && ay < 6) return;
+          /* a drag that begins mostly vertical is the page's scroll, not a
+             frame change — the same axis lock the finger gets */
+          sw.axis = ax > ay ? 1 : -1;
+          if (sw.axis !== 1) { sw.on = false; mdown = false; return; }
+          clearInterval(timer);
+          stage.classList.add("is-swiping");
+          if (range) range.step = "any";
+        }
+        sw.moved = true;
+        sw.pos = Math.max(0, Math.min(slides.length - 1,
+                 sw.pos + (sw.x - x) / span()));
+        sw.x = x;
+        place(sw.pos);
+        if (range) range.value = String(sw.pos + 1);
+        stage.style.setProperty("--drag",
+          String(Math.min(1, Math.abs(sw.pos - Math.round(sw.pos)) * 2).toFixed(3)));
+        e.preventDefault();
+      });
+      var mUp = function (e) {
+        if (!mdown) return;
+        mdown = false;
+        try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
+        var was = sw.axis; sw.on = false; sw.axis = 0;
+        if (was === 1) settleSwipe(Math.round(sw.pos));
+      };
+      stage.addEventListener("pointerup", mUp);
+      stage.addEventListener("pointercancel", mUp);
+
       /* the click that ends a drag. Capture phase, so it is gone before it
-         reaches the CTA the finger happens to have been let go over — a
-         swipe must never also open the catalogue. `moved` is cleared here
-         rather than on touchstart because this fires after touchend. */
+         reaches the CTA the finger — or the cursor — happens to have been let
+         go over: a swipe must never also open the catalogue. `moved` is
+         cleared here rather than on start because this fires after the end. */
       stage.addEventListener("click", function (e) {
         if (!sw.moved) return;
         sw.moved = false;
@@ -959,7 +1015,7 @@
        panel so :target still opens it with JS disabled. Same here. Only one
        card may be open, and opening a second closes the first. */
     var items = all(".wcard-item", wall);
-    var openItem = null, settleT = 0, lockY = 0, locked = false;
+    var openItem = null, settleT = 0, lockY = 0, locked = false, railLeft0 = 0;
 
     /* Full-screen mode below 1024 has to freeze the page behind it, but
        `overflow:hidden` on <html> alone collapses the scroll position — open a
@@ -1073,6 +1129,11 @@
 
       if (on) {
         var p = wide ? plan(items.indexOf(item)) : null;
+        /* remember where the rail was: opening a card below 1024 pulls it out
+           of the rail's flow, which shifts its neighbours across. The rail is
+           put back to exactly here on close, so it can never reveal the wrong
+           card as the sheet comes down. */
+        if (!wide) railLeft0 = wall.scrollLeft;
         item.classList.add("is-open");
         openItem = item;
         if (p) { setPad(p.lead, p.trail); glide(p.target, WALL_DUR); }
@@ -1085,22 +1146,41 @@
         return;
       }
 
-      item.classList.remove("is-open");
-      if (openItem === item) openItem = null;
       if (anchor) anchor.setAttribute("aria-expanded", "false");
       if (panel) panel.setAttribute("inert", "");
+
+      /* ---- THE CLOSE, ON A PHONE ----
+         The open card is a full-screen sheet OUT of the rail's flow, so the
+         rail behind it has slid its neighbours across. Tearing the sheet down
+         in one frame (a) snapped instead of easing and (b) let that neighbour
+         flash in from the left before the rail could be corrected — the "it
+         jumps to the next card" bug. So the CONTENT sinks out over the still-
+         opaque white sheet for 200ms, and only then is the sheet removed AND
+         the rail put back to railLeft0 in the SAME frame, so what it returns
+         to is the card you opened, never its neighbour. */
+      if (!wide) {
+        item.classList.add("cw-closing");
+        setTimeout(function () {
+          item.classList.remove("is-open", "cw-closing");
+          if (openItem === item) openItem = null;
+          wall.scrollLeft = railLeft0;
+          lockScroll(false);
+          if (focusBack && anchor) anchor.focus({ preventScroll: true });
+        }, 200);
+        return;
+      }
+
+      item.classList.remove("is-open");
+      if (openItem === item) openItem = null;
       if (focusBack && anchor) anchor.focus({ preventScroll: true });
       if (!openItem) lockScroll(false);
-
-      if (wide) {
-        /* Release the leading room — it rides its own transition and carries
-           the rail back — and ease the scroll inside the range it will have
-           once the trailing room goes, so trim() has nothing left to clamp. */
-        var closedMax = plan(0).closedMax;
-        setPad(0, pad.trail);
-        if (wall.scrollLeft > closedMax) glide(closedMax, WALL_DUR);
-        settle();
-      }
+      /* Release the leading room — it rides its own transition and carries
+         the rail back — and ease the scroll inside the range it will have
+         once the trailing room goes, so trim() has nothing left to clamp. */
+      var closedMax = plan(0).closedMax;
+      setPad(0, pad.trail);
+      if (wall.scrollLeft > closedMax) glide(closedMax, WALL_DUR);
+      settle();
     };
 
     items.forEach(function (item) {

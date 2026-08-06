@@ -405,6 +405,10 @@ section[id],footer[id]{scroll-margin-top:96px}
 /* source .bm-e-image: width 100%, height auto, display block, font-size 0 */
 .logo{width:var(--logo-w);aspect-ratio:356/66;height:auto;color:currentColor}
 .ic{width:16px;height:16px;flex:none;stroke:currentColor;stroke-width:1.4;fill:none}
+/* the WhatsApp glyph is a SOLID mark, not a stroked one — .ic's fill:none
+   would leave it invisible — and it carries its own brand green so it reads
+   as WhatsApp instantly while the label beside it stays in the button's ink */
+.ic-wa{fill:#25d366;stroke:none}
 
 /* ============================================================
    GRID — 12 col. Source: .row margin -gutter/2, .col margin +gutter/2,
@@ -1361,6 +1365,16 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
   animation:ah-entry-timer 4s step-end both;
 }
 .stage.is-ready{--entry-state:running}
+/* a mouse can drag the hero now (see THE HERO, DRAGGED WITH A MOUSE in
+   main.js), so on a fine pointer the frame offers the grab it honours — and
+   closes to a grabbing fist while a drag is live. The marks that have their
+   own job keep their own cursor. */
+@media(hover:hover) and (pointer:fine){
+  .stage{cursor:grab}
+  .stage.is-swiping,.stage.is-swiping *{cursor:grabbing}
+  .stage a,.stage button,.stage label{cursor:pointer}
+  .stage .pag-range{cursor:pointer}
+}
 .stage-item{
   grid-area:1 / 1;position:relative;width:100%;overflow:clip;
   padding:var(--item-pad-top) var(--margin) var(--item-pad-bottom);
@@ -2295,6 +2309,17 @@ html:not(.js) .wcard-text > *{opacity:1}
   }
   .wcard-item.is-open .wcard{grid-area:1 / 1 / 2 / 2;aspect-ratio:var(--card-aspect-open);transition:none}
   .wcard-item.is-open .wcard-panel{grid-area:2 / 1 / 3 / 2}
+  /* ---- THE SHEET RISES, IT DOES NOT SNAP ----
+     The full-screen card used to appear and vanish in a single frame — the
+     "not smooth when I click a card". The card's WHITE is instant, so the
+     rail behind is covered from frame one and never flashes through; what
+     animates is the photo banner and the panel, which rise and fade INTO
+     the white. On the way out (.cw-closing, held 200ms by main.js) they
+     sink back over the same white before the sheet is torn down. */
+  .wcard-item.is-open > .wcard{animation:cw-rise .44s var(--e-enter) both}
+  .wcard-item.is-open > .wcard-panel{animation:cw-rise .44s var(--e-enter) 70ms both}
+  .wcard-item.is-open.cw-closing > .wcard,
+  .wcard-item.is-open.cw-closing > .wcard-panel{animation:cw-sink .2s var(--e-exit) both}
   .wcard-item.is-open .wcard-panel-in{padding:24px var(--margin) 0}
   .wcard-item.is-open .wcard-cta{width:100%;padding:24px var(--margin) 32px}
   .wcard-item.is-open .wcard-close{
@@ -2305,6 +2330,13 @@ html:not(.js) .wcard-text > *{opacity:1}
   html.cw-open{overflow:hidden}
   html.cw-open body{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 }
+@keyframes cw-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes cw-sink{from{opacity:1;transform:none}to{opacity:0;transform:translateY(12px)}}
+@media(prefers-reduced-motion:reduce){
+  .wcard-item.is-open > .wcard,.wcard-item.is-open > .wcard-panel,
+  .wcard-item.is-open.cw-closing > .wcard,.wcard-item.is-open.cw-closing > .wcard-panel{animation:none}
+}
+.lo-fx .wcard-item.is-open > .wcard,.lo-fx .wcard-item.is-open > .wcard-panel{animation:none}
 .wall-pag{display:flex;align-items:center;gap:24px;padding-inline:calc(var(--wall-pad) + var(--gutter) / 2)}
 /* same hairline-and-mark as the hero scrubber, so the two scroll indicators
    on the page are visibly the same instrument */
@@ -2400,6 +2432,17 @@ html:not(.js) .wcard-text > *{opacity:1}
 .cta-img--2{inset-block-start:0;inset-inline-end:0;--py-s:279;--py-e:-58;opacity:.55}
 .cta-text{display:flex;flex-direction:column;justify-content:center;gap:16px}
 .cta-text .btn-group{margin-top:24px}
+@media(max-width:767px){
+  /* THE ACCOUNT SAT IN A HOLE. On a phone the wall's 48px bottom and the
+     section's own 40px top stacked to 88px of dead space above "За AutoHaus"
+     — a gap wide enough that the section read as having come loose from the
+     one before it rather than following it. Halved and balanced to ~40px,
+     with the image pair pulled closer to its copy, so the transition is a
+     considered beat instead of a void. */
+  .wall{padding-bottom:24px}
+  .cta{padding-top:16px}
+  .cta-row{row-gap:28px}
+}
 
 /* ============================================================
    FOOTER — measured type: col links 11/16 w400 ls.11px,
@@ -2928,11 +2971,21 @@ html:not(.js) .rv{opacity:1;transform:none}
   body:not(.ah){--nav-h:64px}
   .nav{column-gap:16px}
   .nav .logo{width:124px}
-  /* with the number hidden the link is only the 14px glyph — widen the target */
-  .nav .tel span{display:none}
-  .nav .tel{min-width:44px;justify-content:flex-end}
+  /* THE PHONE LEAVES THE MASTHEAD ON A PHONE. The ask already lives in the
+     .dbar that rises with the title strip (its round call button), so a third
+     phone affordance here only crowded the switch and the two marks against
+     the edge. Dropping it is what buys them room to sit as a tidy pair. */
+  .nav .tel{display:none}
   .nav .burger span{display:none}
   .nav .burger{gap:0;min-width:44px}
+  /* the switch and the marks, resized to the home header's own mobile scale
+     so the two mastheads read as one family rather than two sizes of the same
+     controls — smaller options, smaller icons, a little breathing room. */
+  .nav .util{gap:2px}
+  .nav .lang__o{min-width:30px;height:22px;padding:0 5px;font-size:12px;letter-spacing:1.1px}
+  .nav .social--nav{margin-inline-start:8px;margin-inline-end:0}
+  .nav .social--nav .social__a{width:30px;height:30px}
+  .nav .social--nav .social__a svg{width:15px;height:15px}
   /* max() with svh is Chrome 108; the px floor keeps it sane if svh is
      unknown, and the vh line before it is the whole-value fallback */
   .vd-hero{height:auto;min-height:0;--vd-h:max(46vh,260px);--vd-h:max(46svh,260px)}
@@ -3089,6 +3142,24 @@ html:not(.js) .rv{opacity:1;transform:none}
   /* and the button loses the label\'s breathing room it does not need at
      this size — the icon and the count carry it */
   .ftools.is-condensed .fsel--all{padding-inline:13px}
+
+  /* ---- ON THE POPUP, THE FILTER IS BESIDE THE SEARCH FROM THE START ----
+     The owner asked for it always there rather than arriving on scroll:
+     "make it always to be there, it would be easier like that." So the
+     one-row layout the condensed state used becomes the RESTING layout of
+     the layer's bar — the control is complete the moment the layer opens,
+     and because rest and condensed are now the same arrangement the scroll
+     morph measures a zero difference and plays nothing. Scoped to
+     .cat__tools so the collection band on the landing page is untouched. */
+  .cat__tools .ftools{
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"search pills";
+    padding-block:8px;row-gap:0;column-gap:10px;
+  }
+  .cat__tools .ftools .fsearch input{min-height:40px;padding-block:9px}
+  .cat__tools .ftools .fbar2{padding-block:0;overflow:visible}
+  .cat__tools .ftools .fbar2-wrap{flex:none}
+  .cat__tools .ftools .fsel--all{padding-inline:13px}
 }
 @media(prefers-reduced-motion:reduce){.ftools{transition:none}}
 
@@ -3570,8 +3641,11 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
      ~62px from the left edge and the switch ~54px from the right, so the
      mark has (vw - 32 - 116) between them and must be centred in it.
        320: mark 144, clear 11px  ·   360: mark 162, clear 20px
-       375: mark 169, clear 24px  ·   414: mark 184, clear 33px */
-  :root{--logo-w:min(170px, 43vw)}
+       375: mark 169, clear 24px  ·   414: mark 184, clear 33px
+     Brought down ~15% again at the owner's ask — the mark had grown
+     dominant enough that a little air around it reads as more composed,
+     not less present. min(145px, 37vw): 320 -> 118, 375 -> 139, 414 -> 145. */
+  :root{--logo-w:min(145px, 37vw)}
   .lnk,.hd-menu{font-size:11px;line-height:20px;letter-spacing:1.1px}
   .hd-logo .logo{filter:drop-shadow(0 2px 14px rgba(0,0,0,.55))}
   .hd-menu svg{width:13px;height:13px}

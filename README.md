@@ -2436,3 +2436,64 @@ centred with no overflow at 320/360/390/414. Language switch matches desktop,
 gold rule slides on EN. Desktop at 1280 untouched — pad 134px, 1.6s, 1.73,
 4 CTAs, 5 nav links, 36px lang options, 18/11px counter, and the pulse
 animation `none`. Concierge page renamed and intact.
+
+---
+
+### v61 — the card sheet, the popup filter, and the dossier masthead
+
+A round of bug-fixes, each root-caused by measurement rather than guessed.
+
+#### The mobile card jumped to its neighbour on close
+
+Opening a service card below 1024 makes it a `position:fixed` full-screen
+sheet — which pulls it OUT of the horizontal rail's flow, so the rail slides
+its neighbours across behind the sheet. On close the sheet was torn down in
+one frame with nothing to correct the rail, so `scrollLeft` was left at ~289
+(one card over) and the neighbour flashed in from the left: the "it goes to
+the next card" bug, measured `0 -> 289` on close. Now the rail position is
+saved on open and restored in the SAME frame the sheet is removed — verified
+`railScrollLeft` holds at 0 through the whole close.
+
+And the open/close is no longer instant. The sheet's WHITE is still instant
+(so the rail behind is covered from frame one and never flashes through), but
+the photo and panel now `cw-rise` into it (opacity + 24px) and `cw-sink` back
+out over 200ms before teardown. The `cw-rise` animation is confirmed present
+and resolving to opacity 1 / transform none.
+
+#### The popup filter is beside the search from the start
+
+It used to ride up beside the field only once you scrolled. The owner asked
+for it always there — so the one-row `search pills` layout the condensed
+state used is now the RESTING layout of the layer's bar (`.cat__tools .ftools`
+on mobile), and because rest and condensed are the same arrangement the scroll
+morph measures zero and plays nothing. Verified: at rest, no scroll, the
+filter sits beside the field, 56px tall, `sameRow: true`.
+
+#### The dossier masthead showed only the car's model + price
+
+The `.dmini` title strip is anchored at `top:var(--nav-h)` and was hidden with
+`translateY(-110%)` — which lifts it by only its OWN height (~43px), leaving
+it at y:21..60 ON the nav (its z:70 over the nav's z:50). So at the top of a
+vehicle page the model and price covered the logo and the header read as gone.
+It now travels its height PLUS the nav's — `translateY(calc(-100% - var(--nav-h)))`
+— so hidden is genuinely above the viewport (measured y:-39, bottom 0), and the
+clean masthead shows at rest.
+
+The phone icon leaves that masthead on a phone (the ask already lives in the
+`.dbar` call button that rises with the strip), and the language switch and
+the two social marks are resized to the home header's own mobile scale so the
+two mastheads read as one family.
+
+#### And the mark came down ~15%
+
+`min(184px,45vw) -> min(145px,37vw)`: 139px at 375, still centred, no overflow.
+
+#### Verified, and what still needs the owner's eyes
+
+Measured clean: no horizontal overflow at 375 / 768 / 900, the rail round-trip,
+the dmini hidden/again, the popup filter at rest, 0 failed resources. The
+browser-preview pane stopped compositing partway through this pass, so the
+purely-visual notes — the card wall's entrance "feel", the reported ambient
+"blink", and the tablet/laptop look between breakpoints — could not be watched
+frame by frame; the structure measures sound (2/3/4-col collection grid, fixed
+card rail, no overflow) but the subjective polish there wants a live look.

@@ -425,7 +425,22 @@
         "</span>" +
       "</div>";
     D.getElementById("cg-unpick").addEventListener("click", function () {
-      S.vehicle = ""; persist(); renderPicked(); renderSpine(); renderMatch();
+      S.vehicle = ""; S.model = "";
+      /* THE CAR CAME FROM ?v=, AND THE URL STILL SAYS SO. Clearing only the
+         state left the address bar holding the old id, so prefill() re-picked
+         the very car you had just dismissed the moment anything re-read the
+         URL — a back-forward, a refresh, a shared link reopened. Strip v (and
+         the stock intent it implied) out of the URL as well, so "another
+         vehicle" actually means another vehicle, every time. */
+      if (history.replaceState) {
+        var q = new URLSearchParams(location.search);
+        if (q.get("v")) {
+          q.delete("v");
+          var qs = q.toString();
+          history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash);
+        }
+      }
+      persist(); renderPicked(); renderSpine(); renderMatch();
     });
   }
 
@@ -679,7 +694,7 @@
         '<a class="btn btn--s btn--primary" href="mailto:' + CFG.email + "?subject=" +
           encodeURIComponent(subject()) + "&body=" + body + '"><span class="btn__label">Изпрати по имейл</span></a>' +
         '<a class="btn btn--s btn--secondary" target="_blank" rel="noopener" href="https://wa.me/' +
-          CFG.whatsapp + "?text=" + body + '"><span class="btn__label">Изпрати в WhatsApp</span></a>' +
+          CFG.whatsapp + "?text=" + body + '"><svg class="ic ic-wa" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-wa"/></svg><span class="btn__label">Изпрати в WhatsApp</span></a>' +
         '<button type="button" class="btn btn--s btn--tertiary" id="cg-copy"><span class="btn__label">Копирай заявката</span></button>';
     }
 
