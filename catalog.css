@@ -767,29 +767,12 @@
   .chead > .chead__sort,
   .cat__tools .chead__sort{flex:1 0 100%;justify-content:flex-end}
 
-  /* THE SAME ROW, THE OTHER WAY IT IS BUILT.
-     The landing preview wraps these two in a flex `.chead`; the popup and the
-     collection page place them as GRID areas inside `.ftools`, where the count
-     shared its row with the sort and lost its last word to an ellipsis. Same
-     answer, stated in grid: the count takes a row of its own and the sort takes
-     the one under it, ranged right.
-
-     SCOPED TO THE POPUP, and that is not an oversight. The collection page's
-     copy of this bar is the one that pins, and its spacer reserves its RESTING
-     height — so changing that height by a row destabilised the swap: measured
-     at 390 it put 22px of slip back into the grid and refused nine scrolls out
-     of the release. The popup's tools overlay and reserve nothing, so the same
-     row costs nothing there. The collection page keeps its single row until
-     that bar can afford a taller rest. */
-  .cat__tools .ftools{
-    grid-template-areas:
-      "search search search"
-      "pills  pills  pills"
-      "count  count  count"
-      "sort   sort   sort";
-  }
-  .cat__tools .ftools > .chead__sort{justify-self:end}
-  .chead__sort > span{display:none}
+  /* The four-row grid that stood here gave the count and the sort a line
+     each, because on a phone they could not share one. Both are gone from
+     the markup, so the rows they needed are gone with them and .ftools
+     keeps the two-area grid it declares in style.css — which is also what
+     lets the condensed state put the field and the filter button on one
+     line. */
   .cat__bar{justify-content:space-between}
   /* the .cat__x overrides used to live here and did nothing: the base rule
      is declared 60 lines BELOW this block at equal specificity, so source

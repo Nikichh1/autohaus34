@@ -28,12 +28,12 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" type="image/webp" href="img/autohaus_outside-1280.webp" imagesrcset="img/autohaus_outside-768.webp 768w, img/autohaus_outside-1280.webp 1280w, img/autohaus_outside-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=1ff54e75" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=0109007f" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
-<link rel="stylesheet" href="catalog.min.css?v=1ff54e75" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="catalog.min.css?v=1ff54e75"></noscript>
+<link rel="stylesheet" href="catalog.min.css?v=0109007f" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="catalog.min.css?v=0109007f"></noscript>
 <script>
 /* Starts the app the moment the render-blocking stylesheet is in — not
    before (it would share the pipe with it) and not on window.load (that
@@ -59,7 +59,7 @@
    readyState is the missing gate. Everything else — the ordering, the
    3s floor, staying off window.load — is unchanged. */
 (function () {
-  var q = ["data/vehicles.js?v=1ff54e75","main.js?v=1ff54e75","catalog.js?v=1ff54e75","showroom.js?v=1ff54e75","i18n.js?v=1ff54e75"], fired = false;
+  var q = ["data/vehicles.js?v=0109007f","main.js?v=0109007f","catalog.js?v=0109007f","showroom.js?v=0109007f","i18n.js?v=0109007f"], fired = false;
   function boot() {
     if (fired) return; fired = true;
     for (var i = 0; i < q.length; i++) {
@@ -372,7 +372,7 @@
 <!-- ==================== HERO STAGE ==================== -->
 <!-- source: .bm-m-full-width-slider — inset 1344x702 media box over a blurred
      full-bleed backdrop of the same frame. 8 slides = the 8 cars in stock. -->
-<section class="stage" id="top" aria-roledescription="carousel" aria-label="Автомобили в наличност">
+<section class="stage" id="top" aria-roledescription="carousel" aria-label="AutoHaus Пловдив">
 
   <div class="stage-pag">
     <!-- the current number is an odometer: main.js builds a descending digit
@@ -381,10 +381,10 @@
     <!-- The separator is an ELEMENT rather than a "/" in the text, because it
          is drawn on the house angle — see THE FRAME COUNTER in style.css. So
          the whole visible run is aria-hidden and one .sr-only line carries the
-         position instead: "1 / 3" was read aloud as "one slash three", which
+         position instead: "1 / 4" was read aloud as "one slash four", which
          is not what the counter says. main.js keeps this line in step. -->
-    <span class="pag-pos"><span class="sr-only" id="pag-cur-a11y">Кадър 1 от 3</span><span class="cnt" id="pag-cur" aria-hidden="true"><span class="cnt-d"><span>1</span></span></span><i class="pag-sep" aria-hidden="true"></i><span class="pag-tot" id="pag-tot" aria-hidden="true">3</span></span>
-    <input class="pag-range" id="pag-range" type="range" min="1" max="3" value="1" step="1" aria-label="Кадър">
+    <span class="pag-pos"><span class="sr-only" id="pag-cur-a11y">Кадър 1 от 4</span><span class="cnt" id="pag-cur" aria-hidden="true"><span class="cnt-d"><span>1</span></span></span><i class="pag-sep" aria-hidden="true"></i><span class="pag-tot" id="pag-tot" aria-hidden="true">4</span></span>
+    <input class="pag-range" id="pag-range" type="range" min="1" max="4" value="1" step="1" aria-label="Кадър">
     <button class="btn btn--s btn--tertiary pag-btn" id="pag-prev" aria-label="Предишен">
       <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-l"/></svg>
     </button>
@@ -393,24 +393,28 @@
     </button>
   </div>
 
+  <!-- FOUR ROOMS, IN THE ORDER YOU MEET THEM.
+       The frames used to be three arguments — "Един стандарт, 87 пъти",
+       "Достъп, а не обяви" — headlines telling a visitor what to think about
+       a photograph they had not finished looking at. They are now four
+       PLACES, named: the building you drive up to, the wall inside the door,
+       the detailing bay, the workshop. Nobody needs persuading that a
+       building exists, which is why this reads as arrival and not as a pitch.
+
+       No buttons live on these frames on a phone; see NO BUTTONS AT ALL in
+       style.css. The kicker is the room, the headline is its name. -->
+
   <div class="stage-item is-active" data-i="0">
     <div class="stage-bg"><img width="320" height="125" decoding="async" alt="" aria-hidden="true" fetchpriority="high" src="img/autohaus_outside-320.jpg"></div>
     <div class="stage-box"><div class="stage-frame">
       <div class="stage-media">
-        <picture><source type="image/webp" srcset="img/autohaus_outside-768.webp 768w, img/autohaus_outside-1280.webp 1280w, img/autohaus_outside-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Шоурумът на AutoHaus в Пловдив по здрач, с осветена фасада" fetchpriority="high" src="img/autohaus_outside-1280.jpg" srcset="img/autohaus_outside-768.jpg 768w, img/autohaus_outside-1280.jpg 1280w, img/autohaus_outside-1920.jpg 1920w"></picture>
+        <picture><source type="image/webp" srcset="img/autohaus_outside-768.webp 768w, img/autohaus_outside-1280.webp 1280w, img/autohaus_outside-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Шоурумът на AutoHaus в Пловдив по здрач, с осветена фасада и надпис AutoHaus" fetchpriority="high" src="img/autohaus_outside-1280.jpg" srcset="img/autohaus_outside-768.jpg 768w, img/autohaus_outside-1280.jpg 1280w, img/autohaus_outside-1920.jpg 1920w" style="object-position:12% 50%"></picture>
         <div class="grad grad--t" aria-hidden="true"></div>
         <div class="grad grad--b" aria-hidden="true"></div>
       </div>
-      <!-- HEADLINE AND ACTIONS ONLY.
-           A paragraph of copy used to sit under every one of these headlines
-           — "87 подбрани автомобила под един покрив…", and one each on the
-           two frames below. All three are gone, and the reason is the same
-           reason the source carries almost no copy over its own hero: a
-           1344x702 photograph of the building is the argument, and a
-           sentence laid over it is a second one competing with the first.
-           What is left is a name, a way in and a way to ask. -->
       <div class="stage-content">
         <div class="stage-text">
+          <p class="stage-kicker">Базата</p>
           <h1 class="h3">AutoHaus Пловдив</h1>
         </div>
         <div class="btn-group btn-group--stage">
@@ -422,16 +426,17 @@
   </div>
 
   <div class="stage-item" data-i="1">
-    <div class="stage-bg"><img width="320" height="233" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/autohaus_inside-320.jpg"></div>
+    <div class="stage-bg"><img width="320" height="180" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/welcome_to_autohaus-320.jpg"></div>
     <div class="stage-box"><div class="stage-frame">
       <div class="stage-media">
-        <picture><source type="image/webp" data-srcset="img/autohaus_inside-768.webp 768w, img/autohaus_inside-1280.webp 1280w, img/autohaus_inside-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Витрината на AutoHaus — автомобили в шоурума при залез" loading="lazy" data-src="img/autohaus_inside-1280.jpg" data-srcset="img/autohaus_inside-768.jpg 768w, img/autohaus_inside-1280.jpg 1280w, img/autohaus_inside-1920.jpg 1920w"></picture>
+        <picture><source type="image/webp" data-srcset="img/welcome_to_autohaus-768.webp 768w, img/welcome_to_autohaus-1280.webp 1280w, img/welcome_to_autohaus-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Надписът „Welcome to www.AutoHaus.bg“ на стената в приемната" loading="lazy" data-src="img/welcome_to_autohaus-1280.jpg" data-srcset="img/welcome_to_autohaus-768.jpg 768w, img/welcome_to_autohaus-1280.jpg 1280w, img/welcome_to_autohaus-1920.jpg 1920w" style="object-position:71% 50%"></picture>
         <div class="grad grad--t" aria-hidden="true"></div>
         <div class="grad grad--b" aria-hidden="true"></div>
       </div>
       <div class="stage-content">
         <div class="stage-text">
-          <h2 class="h3">Един стандарт, 87 пъти</h2>
+          <p class="stage-kicker">Приемната</p>
+          <h2 class="h3">Добре дошли</h2>
         </div>
         <div class="btn-group btn-group--stage">
           <a class="btn btn--l btn--primary" href="index.html#razdeli"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg><span class="btn__label">Как работим</span></a>
@@ -442,24 +447,47 @@
   </div>
 
   <div class="stage-item" data-i="2">
-    <div class="stage-bg"><img width="320" height="233" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/autohaus_inside2-320.jpg"></div>
+    <div class="stage-bg"><img width="320" height="533" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/autohaus_autospa-400.jpg"></div>
     <div class="stage-box"><div class="stage-frame">
       <div class="stage-media">
-        <picture><source type="image/webp" data-srcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Шоурумът на AutoHaus отвътре, със слънце през остъклената фасада" loading="lazy" data-src="img/autohaus_inside2-1280.jpg" data-srcset="img/autohaus_inside2-768.jpg 768w, img/autohaus_inside2-1280.jpg 1280w, img/autohaus_inside2-1920.jpg 1920w"></picture>
+        <picture><source type="image/webp" data-srcset="img/autohaus_autospa-400.webp 400w, img/autohaus_autospa-800.webp 800w, img/autohaus_autospa-1080.webp 1080w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Автомобил пред ателието AutoSpa в базата на AutoHaus" loading="lazy" data-src="img/autohaus_autospa-800.jpg" data-srcset="img/autohaus_autospa-400.jpg 400w, img/autohaus_autospa-800.jpg 800w, img/autohaus_autospa-1080.jpg 1080w" style="object-position:50% 50%"></picture>
         <div class="grad grad--t" aria-hidden="true"></div>
         <div class="grad grad--b" aria-hidden="true"></div>
       </div>
       <div class="stage-content">
         <div class="stage-text">
-          <h2 class="h3">Достъп, а не обяви</h2>
+          <p class="stage-kicker">Ателието</p>
+          <h2 class="h3">AutoSpa</h2>
         </div>
         <div class="btn-group btn-group--stage">
-          <a class="btn btn--l btn--primary" href="concierge.html?intent=source"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg><span class="btn__label">Заявка за търсене</span></a>
+          <a class="btn btn--l btn--primary" href="index.html#care"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg><span class="btn__label">Към AutoSpa</span></a>
           <a class="btn btn--l btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Цялата колекция</span></a>
         </div>
       </div>
     </div></div>
   </div>
+
+  <div class="stage-item" data-i="3">
+    <div class="stage-bg"><img width="320" height="250" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/v/2026-07_1-16-400.jpg"></div>
+    <div class="stage-box"><div class="stage-frame">
+      <div class="stage-media">
+        <picture><source type="image/webp" data-srcset="img/v/2026-07_1-16-400.webp 400w, img/v/2026-07_1-16-800.webp 800w, img/v/2026-07_1-16-1280.webp 1280w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Автомобил след механична подготовка пред сервиза на AutoHaus" loading="lazy" data-src="img/v/2026-07_1-16-800.jpg" data-srcset="img/v/2026-07_1-16-400.jpg 400w, img/v/2026-07_1-16-800.jpg 800w, img/v/2026-07_1-16-1280.jpg 1280w" style="object-position:50% 50%"></picture>
+        <div class="grad grad--t" aria-hidden="true"></div>
+        <div class="grad grad--b" aria-hidden="true"></div>
+      </div>
+      <div class="stage-content">
+        <div class="stage-text">
+          <p class="stage-kicker">Работилницата</p>
+          <h2 class="h3">Сервиз</h2>
+        </div>
+        <div class="btn-group btn-group--stage">
+          <a class="btn btn--l btn--primary" href="index.html#servis"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg><span class="btn__label">Към сервиза</span></a>
+          <a class="btn btn--l btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Цялата колекция</span></a>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
 </section>
 
 <!-- ==================== PAGE GRADIENT CONTAINER ==================== -->
@@ -504,14 +532,12 @@
 
     <div class="fbar2" id="pv-bar" role="group" aria-label="Филтри"></div>
 
-    <div class="chead">
-      <p class="chead__count"><b data-count="all">87</b> <span>автомобила в наличност</span></p>
-      <div class="chead__sort">
-        <span>Подредба</span>
-        <label class="sr-only" for="pv-sort">Подредба</label>
-        <select class="sortplain" id="pv-sort"></select>
-      </div>
-    </div>
+    <!-- The count and the sort stood here. The count said "87 автомобила в
+         наличност" directly under a heading that says Колекцията and above
+         a grid of them, which is the third time the page makes the same
+         statement; the sort offered six orderings of six preview cards,
+         where the ordering only means anything over all eighty-seven — and
+         the catalogue those cards open into had its own copy of both. -->
 
     <div class="cgrid" id="pv-grid"></div>
 
@@ -923,12 +949,9 @@
           <div class="fpop" id="cat-pop" role="dialog" aria-label="Филтър" hidden></div>
         </div>
 
-        <p class="chead__count" id="cat-chead"><b>87</b> <span>автомобила в наличност</span></p>
-        <div class="chead__sort">
-          <span>Подредба</span>
-          <label class="sr-only" for="cat-sort">Подредба</label>
-          <select class="sortplain" id="cat-sort"></select>
-        </div>
+        <!-- the count and the sort are gone from here too; the filter row
+             above is the whole instrument now, and the result count still
+             reads out of the filter button's own badge -->
       </div>
     </div>
 

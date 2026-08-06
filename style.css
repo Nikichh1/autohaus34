@@ -1442,6 +1442,23 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
    16/8/16/0. Without these the headline sat flush against the strapline. */
 .stage-text{display:flex;flex-direction:column;min-width:0;margin-bottom:32px}
 .stage-text .h3{margin-bottom:16px}
+
+/* ---- THE KICKER ----
+   The room, named above its own name. It is the same 11px tracked
+   uppercase the header labels use, so the top and the bottom of the
+   screen are set in one voice, and it is deliberately the quietest type
+   on the frame: a title card announces the place, it does not sell it.
+
+   .34 opacity rather than a grey, because the frame underneath changes
+   luminance every ten seconds and a fixed grey goes muddy on the sunlit
+   showroom and chalky on the dusk facade; white at low alpha tracks the
+   picture instead of fighting it. */
+.stage-kicker{
+  font-size:11px;line-height:20px;font-weight:600;letter-spacing:1.6px;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.62);
+  margin:0 0 10px;
+}
 .btn-group--stage{flex-direction:column;align-items:flex-end;gap:16px}
 .btn-group--stage .btn{width:100%}
 
@@ -1523,7 +1540,7 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
   transform:skewX(calc(atan(var(--shear)) * -1));
 }
 @supports not (transform:skewX(calc(atan(.46)))){
-  .pag-sep{transform:skewX(-24.7deg)}
+  .pag-sep,.stage-kicker::before{transform:skewX(-24.7deg)}
 }
 /* ODOMETER. The source renders the current slide number as a clipped strip of
    digits and rolls it: translateY(calc(-100% + 1lh)) -> 0 over 2s on
@@ -1574,6 +1591,170 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
 }
 .pag-btn:disabled{opacity:.3;pointer-events:none}
 #pag-prev{margin-inline-start:auto}
+
+
+/* ============================================================
+   THE HERO'S CONTROLS, ON A PHONE — BACK ON THE INSTRUMENT
+
+   Last pass took the counter and the scrubber off the phone and put three
+   hairline segments there instead, on the argument that a track with a
+   sliding mark reads as machinery. Measuring the reference's PHONE
+   properly says the argument was wrong, and the owner said so first: it
+   is not machinery, it is an instrument, and it was the best thing on
+   the page. Segments were a website component wearing a luxury coat.
+
+   THE REFERENCE, MEASURED AT 375 (360 once the scrollbar is out):
+     the row sits INSIDE the picture — 4px below its top edge, 20px in
+     the counter is a 41x24 plate, "3 / 8" at 14/24/400
+     the track is a real <input type=range> filling the rest of the row
+     the bright mark is --visible-fraction (1/n) of the track and SLIDES
+     the reel is ELEVEN digits, 0 9 8 7 6 5 4 3 2 1 0, one lh apart, and
+       because the strip DESCENDS the next number arrives from ABOVE
+     and the line SWELLS under a finger. --pagination-scale, transitioned
+       over .1s ease-out, measured live through a real drag:
+       1 -> 1.041 at 110px of travel -> 1.180 on release -> 1 once landed
+
+   EVERY ONE OF THOSE ALREADY EXISTS HERE, on the desktop, built from the
+   same measurements two passes ago: the plates, the glass under them,
+   the odometer, the 1/n thumb, the hairline track. The phone was the one
+   place that had thrown it away. So this is a DELETION, not a rewrite —
+   the override goes, the instrument comes back, and it arrives at the
+   phone's own scale because it was always written in relative units.
+
+   What is added is the one thing a desktop cannot have: the swell. A
+   pointer has no pressure and no travel, so the reference only spends it
+   where there is a finger, and so do we.
+   ============================================================ */
+@media(max-width:767px){
+  .stage-pag{
+    /* INSIDE the picture. The reference puts the row 4px below the top
+       edge of its media box, not in a band above it — which is what
+       makes the counter read as printed on the photograph rather than
+       as a caption sitting near one. */
+    padding:calc(var(--item-pad-top) + 4px) var(--margin) 0;
+    height:auto;gap:8px;
+    display:flex;align-items:center;
+  }
+  /* the plate keeps its glass. The reference lays a flat 40% black; ours
+     carries the photograph through underneath, and over a frame that
+     changes luminance every ten seconds a blur reads as chrome laid on
+     the image where a flat tint reads as a hole cut out of it. That was
+     argued and measured in THE FRAME COUNTER above and it still holds. */
+  .pag-range{flex:1 1 auto;min-width:0}
+  .pag-btn{display:none}      /* the gesture is the photograph */
+
+  /* ---- THE COUNTER AT THE REFERENCE'S OWN PROPORTIONS ----
+     Ours set the current frame in the display face at 18/300 against an
+     11/600 total — a hierarchy we invented, and at phone scale it reads
+     as two unrelated pieces of type sharing a plate rather than as one
+     instrument. Theirs is 14/24/400 for BOTH halves, letter-spacing
+     normal, and the only difference between the number you are on and
+     the number of frames is opacity.
+
+     So both halves come to 14/24/400 and the distinction moves to
+     colour. What stays ours is the separator: a hairline on the house
+     angle where theirs is a slash. One glyph's worth of signature, and
+     it is the only thing in the instrument that is not measured. */
+  .cnt{font-size:14px;line-height:24px;font-weight:400;letter-spacing:.01em}
+  .pag-tot{font-size:14px;line-height:24px;font-weight:400;letter-spacing:.01em;
+           color:rgba(255,255,255,.5)}
+  .pag-pos{padding-inline:12px 13px;gap:8px}
+  .pag-sep{height:12px;opacity:.4}
+}
+
+/* ---- THE SWELL ----
+   The LINE thickens under the finger and relaxes when the frame lands.
+
+   The first attempt did it the cheap way — scaleY on the whole input —
+   and it was wrong twice in the same frame. The input is not a line, it
+   is a 24px box carrying the glass plate, so scaling it grew the PLATE:
+   at 1.7 the 24px box became 41px, which put 8px of it above the top of
+   the photograph it is supposed to be printed inside, and left it
+   standing a head taller than the counter plate 8px to its left. A
+   composited transform was the right instinct and the wrong element.
+
+   So the swell moves to the only thing that should move: the two
+   gradient stops that draw the hairline. --hair is its half-thickness,
+   1px at rest (the 2px rule the reference uses) and 1.7px under a
+   finger. The plate never changes size, the row never changes height,
+   and the repaint is a 279x6 band — smaller than the text caret. */
+/* the resting weight. The thickening under a finger used to live here as
+   a flat `.stage.is-swiping .pag-range{--hair:1.7px}` — one step, on or
+   off. It is now proportional to how undecided the gesture is, and that
+   rule had to go rather than stay: at (0,2,0) it outranked the calc that
+   replaced it and pinned the line at its maximum for the whole drag. */
+.pag-range{--hair:1px}
+.pag-range::-webkit-slider-runnable-track{
+  background:linear-gradient(180deg,
+    transparent calc(3px - var(--hair)),var(--track-color) 0,
+    var(--track-color) calc(3px + var(--hair)),transparent 0);
+}
+.pag-range::-moz-range-track{
+  background:linear-gradient(180deg,
+    transparent calc(3px - var(--hair)),var(--track-color) 0,
+    var(--track-color) calc(3px + var(--hair)),transparent 0);
+}
+.pag-range::-webkit-slider-thumb{
+  background-image:linear-gradient(
+    transparent calc(3px - var(--hair)),currentcolor 0,
+    currentcolor calc(3px + var(--hair)),transparent 0);
+}
+.pag-range::-moz-range-thumb{
+  background-image:linear-gradient(
+    transparent calc(3px - var(--hair)),currentcolor 0,
+    currentcolor calc(3px + var(--hair)),transparent 0);
+}
+/* ---- THE LINE IS ALIVE, AND THIS IS THE WHOLE OF IT ----
+   Sampling the reference through a real drag, one frame at a time, was
+   the thing that finally explained why their swipe feels like an object
+   and ours felt like a slider. --pagination-scale is not a swell. It is
+   a PULSE, and its shape is precise:
+
+     rest                    1
+     45px of drag            1
+     85px                    1.031
+     165px                   1.112
+     release                 1.238
+     +105ms                  1.997   <- the peak, and the exact frame on
+                                        which the range value steps
+     +200ms                  1
+
+   So the line tightens under the finger in proportion to how far you
+   have pulled, and then, at the instant the frame commits, it SNAPS —
+   a hard 100ms rise to double weight and a slower 200ms fall back. The
+   number has already changed by then. The line is what tells you it is
+   done, and the reason the gesture feels satisfying is that the release
+   is rewarded rather than merely obeyed.
+
+   Both halves are here. --drag is written by main.js on every touchmove
+   as the distance to the nearest frame (0 at a resting point, 1 halfway
+   between two), so the hairline is heaviest exactly when the outcome is
+   least decided. .is-pulse is added on every frame change, whatever
+   caused it, so the instrument breathes on autoplay and on the arrows
+   too, not only under a thumb.
+
+   --hair has to be REGISTERED or none of this interpolates: an unknown
+   custom property is a token, and a token cannot be animated. @property
+   is Chrome 85, comfortably inside the Chrome 109 floor Windows 7 sets.
+   The whole effect is two gradient stops on a 6px band. */
+@property --hair{syntax:"<length>";inherits:true;initial-value:1px}
+
+.pag-range{--hair:calc(1px + var(--drag,0) * .7px)}
+.stage.is-pulse .pag-range{animation:ah-pag-pulse 305ms linear both}
+@keyframes ah-pag-pulse{
+  0%{--hair:1px}
+  34%{--hair:2px}        /* 105ms of 305 — the reference's rise, exactly */
+  100%{--hair:1px}
+}
+/* a hand that is not moving the carousel should not be told that it is */
+@media(prefers-reduced-motion:reduce){
+  .pag-range{--hair:1px}
+  .stage.is-pulse .pag-range{animation:none}
+}
+/* a device short of cores keeps the instrument and loses the flourish */
+.lo-fx .stage-media::after,.lo-fx .stage-media::before{display:none}
+.lo-fx .pag-range{--hair:1px}
+.lo-fx .stage.is-pulse .pag-range{animation:none}
 
 /* ============================================================
    PAGE — ONE gradient behind every band below the stage
@@ -2797,12 +2978,14 @@ html:not(.js) .rv{opacity:1;transform:none}
    1440 that is 118px down to 60px, and nothing was taken away to get there. */
 .ftools{
   display:grid;align-items:center;
-  grid-template-columns:1fr auto auto;
+  /* two things now. The count and the order were the other two areas and
+     both are gone: the count restated a heading two lines above it, and an
+     ordering of eighty-seven cars is a preference nobody arrives with. */
+  grid-template-columns:minmax(0,1fr) auto;
   grid-template-areas:
-    "search search search"
-    "pills  pills  pills"
-    "count  count  sort";
-  column-gap:16px;row-gap:10px;
+    "search search"
+    "pills  pills";
+  column-gap:12px;row-gap:10px;
   padding-block:14px;
   /* No transition on the padding. It is 5px of the bar's height, and on the
      way OUT of the condensed state the bar is back in the flow — so those
@@ -2814,8 +2997,6 @@ html:not(.js) .rv{opacity:1;transform:none}
 /* the popup wraps its row so a control's panel can hang outside the
    scroller; the grid area belongs to whichever of the two is the child */
 .ftools > .fbar2,.ftools > .fbar2-wrap{grid-area:pills;min-width:0}
-.ftools > .chead__count{grid-area:count}
-.ftools > .chead__sort{grid-area:sort;justify-self:end}
 .fsentinel{height:1px;margin-bottom:-1px;pointer-events:none}
 /* The bar leaves the flow the moment it engages, and this holds its place.
    Height is set by collection.js from the bar's own measured at-rest height,
@@ -2832,8 +3013,8 @@ html:not(.js) .rv{opacity:1;transform:none}
 @media(min-width:768px){
   .ftools{
     grid-template-areas:
-      "search count sort"
-      "pills  pills pills";
+      "search search"
+      "pills  pills";
     row-gap:12px;
   }
   /* the field is an input, not a banner — past ~520px it stops reading as one
@@ -2847,8 +3028,8 @@ html:not(.js) .rv{opacity:1;transform:none}
    the sticky bar, the layer watches its own scrolling body. */
 @media(min-width:768px){
   .ftools.is-condensed{
-    grid-template-columns:minmax(200px,260px) minmax(0,1fr) auto auto;
-    grid-template-areas:"search pills count sort";
+    grid-template-columns:minmax(200px,260px) minmax(0,1fr);
+    grid-template-areas:"search pills";
     padding-block:9px;row-gap:0;column-gap:24px;
   }
   /* the condensed field has to hold the same placeholder in less room, so it
@@ -2860,21 +3041,38 @@ html:not(.js) .rv{opacity:1;transform:none}
   .ftools.is-condensed .fbar2{padding-block:0}
 }
 @media(max-width:767px){
-  /* Two lines on a phone, not four, and both of them fully usable.
-     Squeezing the search and the sort onto one line was tried and abandoned:
-     358px of usable width minus a 200px "Подредба Препоръчани" left the field
-     at 100px, which shows an icon and no prompt — a control that looks broken
-     rather than compact. Search and filters stay pinned because they are what
-     you reach for mid-scroll; the count and the order are one flick back up. */
+  /* ---- ONE LINE, AND THE FILTER BUTTON COMES UP TO MEET THE FIELD ----
+     Condensing used to keep two rows: the field on one, the Филтри button
+     on the next. So the bar shrank in height and the button stayed exactly
+     where it was, directly under the search — which is the arrangement the
+     bar has at rest, only tighter. Nothing appeared to move except a gap.
+
+     The one thing the phone has that the desktop does not is a filter row
+     that is a SINGLE BUTTON. It does not need a row of its own. So the
+     field gives up the width the button needs and the button rides up
+     beside it: two rows become one, the search narrows, and the movement
+     is a real movement rather than a change of padding.
+
+     The morph in showroom.js is what makes it a movement. It measures the
+     field and the button before the class flips and again after, then
+     plays the difference — so the button travels from under the field to
+     beside it along one curve instead of teleporting between two grids.
+     Both are grid ITEMS, which is why the morph is handed the wrapper and
+     not the scroller inside it. */
   .ftools.is-condensed{
-    grid-template-columns:minmax(0,1fr);
-    grid-template-areas:"search" "pills";
-    padding-block:8px;row-gap:8px;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"search pills";
+    padding-block:8px;row-gap:0;column-gap:10px;
   }
-  .ftools.is-condensed .chead__count,
-  .ftools.is-condensed .chead__sort{display:none}
   .ftools.is-condensed .fsearch input{min-height:40px;padding-block:9px}
   .ftools.is-condensed .fbar2{padding-block:0}
+  /* the row stops scrolling once it is one button wide, or the button can
+     be flicked out of its own container */
+  .ftools.is-condensed .fbar2{overflow:visible}
+  .ftools.is-condensed .fbar2-wrap{flex:none}
+  /* and the button loses the label\'s breathing room it does not need at
+     this size — the icon and the count carry it */
+  .ftools.is-condensed .fsel--all{padding-inline:13px}
 }
 @media(prefers-reduced-motion:reduce){.ftools{transition:none}}
 
@@ -3341,29 +3539,94 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
      whose luminance changes every ten seconds, and the veil above it is a
      graded scrim rather than a fill, so on the sunlit showroom frame a
      white wordmark on a pale ceiling has nothing to stand on. */
-  :root{--logo-w:148px}
+  /* ---- THE MARK, GIVEN THE ROOM IT WAS ASKING FOR ----
+     148px was sized when a language switch stood on the mark's left and a
+     menu on its right, and it had to fit between them. The switch has gone
+     to the menu it already lives in (see below), so the only thing sharing
+     the line now is an 11px word — and the mark can take the width back.
+
+     min(184px, 46vw) rather than a flat number, because the constraint is
+     the MENU, not the viewport: the label sits 16px off the right edge and
+     the mark is centred, so the clearance is (vw/2 - logo/2) - (vw - 16 -
+     menu). At 46vw that stays positive down to 320, where a flat 184 would
+     have driven the wordmark straight through "Меню".
+     Re-derived now that there is a control on BOTH sides: the menu takes
+     ~62px from the left edge and the switch ~54px from the right, so the
+     mark has (vw - 32 - 116) between them and must be centred in it.
+       320: mark 144, clear 11px  ·   360: mark 162, clear 20px
+       375: mark 169, clear 24px  ·   414: mark 184, clear 33px */
+  :root{--logo-w:min(184px, 45vw)}
   .lnk,.hd-menu{font-size:11px;line-height:20px;letter-spacing:1.1px}
   .hd-logo .logo{filter:drop-shadow(0 2px 14px rgba(0,0,0,.55))}
   .hd-menu svg{width:13px;height:13px}
   .hd-menu{gap:9px}
-  /* row 1 is the mark, flanked; row 2 is the two actions, full width */
+
+  /* ---- ONE ROW. LANGUAGE, MARK, MENU. ----
+     The mark was already 5.25x the largest label in the bar — the ratio the
+     reference is built on — and it still did not read as the focal point,
+     because the ratio was being measured against the wrong thing. Directly
+     under it sat a 259px Concierge button and an 84px language switch: a
+     second row whose combined painted area was larger than the mark itself,
+     touching it, and arriving first in the reading order on the way down.
+
+     The reference's mobile bar is a three-column grid with the logo in the
+     middle cell and NOTHING ELSE in the row but a "Menu" trigger. That is
+     the composition, and it is the composition because a brand mark cannot
+     be the focus of a screen it is sharing.
+
+     So the second row is gone. The language switch — the one control with
+     nowhere else to live — moves up to flank the mark on the left, the menu
+     flanks it on the right, and the mark sits between them, centred, with
+     nothing above or below it. Three items, one line, symmetric.
+
+     The Concierge button LEAVES the bar entirely. It is not lost: it is the
+     second row of the menu this trigger opens, and on the landing page it
+     is the hero's own action. What it was doing here was competing with the
+     mark for the top of the screen and winning. */
+  /* ---- MENU · MARK · LANGUAGE, AND ROOM TO BREATHE ----
+     v58 took the language switch out of the bar entirely. That was a
+     mistake — it removed a control people use rather than moving it, and
+     it left the mark hanging off-balance against a single word on the
+     right. The composition the owner asked for is the symmetrical one:
+     a way IN on the left, the mark in the middle, a choice on the right.
+     Two small controls of near-equal weight, and the mark between them
+     with nothing else on the line.
+
+     AND THE BAR COMES DOWN THE PAGE. This is the measurement that
+     explains why the old hero read as a responsive website rather than
+     as a brand: the reference's logo row sits 74px below the top edge
+     and its BOTTOM is 10px above the photograph. Ours started 16px from
+     the edge and then left a SIXTY-PIXEL dead band before the picture —
+     so the header was simultaneously cramped against the glass and
+     marooned from everything it belongs to. 152px of undifferentiated
+     black, which is exactly what "empty and unbalanced" looks like.
+
+     34px above the mark, 18px below it, and the picture follows 12px
+     later (see --item-pad-top). The bar now has air above it and sits
+     ON the hero instead of floating over a gap. */
+  .hd-nav{grid-template-rows:auto;padding:34px var(--margin) 18px}
   .hd-logo{grid-column:2 / 3;grid-row:1}
-  .hd-zone--start{grid-column:3 / 4;grid-row:1;justify-content:flex-end}
-  .hd-zone--end{grid-column:1 / -1;grid-row:2}
+  /* the way in, on the left */
+  .hd-zone--start{grid-column:1 / 2;grid-row:1;justify-content:flex-start;gap:0}
+  .hd-zone--start > .lnk{display:none}
+  /* the choice, on the right */
+  .hd-zone--end{display:flex;grid-column:3 / 4;grid-row:1;justify-content:flex-end;gap:0}
+  .hd-zone--end > li:not(.hd-lang){display:none}
+  .hd-lang{flex:0 0 auto}
+  .lang{margin-inline-start:0}
+  /* both flanks at the same weight, so the mark is the only thing with
+     any mass on the line */
+  .hd-zone--end .lang__o{height:26px;min-width:26px;padding:0 4px;font-size:10px;letter-spacing:.9px}
+  .hd-zone--end .lang::before{top:5px;bottom:5px}
 
   /* ---------- 2. HEADER — Bentley's three-zone mobile bar ----------
      Row 1 is a single full-width outlined action. Row 2 is
      link | wordmark | menu, balanced left and right. Ours had a small pill
      floating top-right and the burger alone on the left, which reads
      lopsided the moment you compare them. */
-  .hd-zone--end{justify-content:stretch}
-  .hd-zone--end > li:first-child{flex:1 1 auto}
-  .hd-zone--end .btn--secondary{width:100%;margin-inline-start:0}
-  /* the actions row: Consierge + the language switch. The button takes
-     whatever is left after the switch, which is a fixed 90px and must not
-     be squeezed. */
-  .hd-lang{flex:0 0 auto}
-  .lang{margin-inline-start:12px}
+  /* the header is one row now and holds three things — see 1b above. The
+     rules that stretched a full-width Concierge button across the end zone
+     went with the button. */
   /* "Автомобили" is NOT in this bar — see 1b. It stayed here for two
      passes and it is the reason the wordmark never became the focal
      point; the base rule already hides it and this block used to switch
@@ -3375,6 +3638,120 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
      What was wrong: the copy waited on a 1.6s delay behind an entrance gate
      that can itself take 4s, so on a slow phone the headline and both CTAs
      were invisible for the best part of six seconds. */
+  /* ---- ONE ACTION, NOT TWO ----
+     The reference's mobile hero carries a single button. Ours carried two,
+     stacked full width — 139px of button under a 46px headline, which
+     inverts the hierarchy of the frame: the thing you are looking at is the
+     photograph, and the thing with the most ink on it was the pair of
+     controls beneath it. The secondary goes; every one of them (Консиерж,
+     Цялата колекция) is a row of the menu the mark now sits beside. */
+  /* ---- NO BUTTONS AT ALL ----
+     Last pass cut the pair to one. The owner cut the one: "i don't need a
+     button on the top for something - i need just the logo, menu, the
+     images". That is the right instinct and it is the reference's own
+     when it is being serious — a title card carries a title.
+
+     Everything the buttons went to is one tap away in the menu the mark
+     is standing beside, and the whole frame is a link. What is left on
+     this screen is a wordmark, a photograph, a number and a line. */
+  .btn-group--stage{display:none}
+
+  /* ---- THE DEAD BAND, CLOSED ----
+     128px of item padding was written when the bar was two rows tall and
+     a Concierge button stood under the mark. The bar is one row now and
+     it has moved down the page, so the picture can come up to meet it:
+     header bottom lands at 86, the frame at 98, and the 60px of black
+     between them becomes 12. The reference's own gap is 10.
+
+     The bottom comes in with it. 44px under a headline that no longer
+     has a paragraph or two buttons beneath it was holding the stage open
+     around nothing. */
+  :root{--item-pad-top:98px;--item-pad-bottom:34px}
+
+  /* the frame's ratio and the transition's speed are set further down this
+     same media query, next to the rules they replace — see THE FRAME IS
+     TALLER THAN IT IS WIDE. Declaring them here as well only created two
+     places to look. */
+
+  /* ============================================================
+     RICH WITHOUT BUSY — three details, no new words
+
+     The brief asked for depth, lighting, geometry and branded language
+     rather than more copy, and the honest reading of "it feels empty" is
+     that a flat photograph on flat black has no material to it. None of
+     the three below adds an element to the page; each one gives an
+     element that is already there something to sit on.
+
+     1. THE PHOTOGRAPH IS GRADED AND VIGNETTED. The same treatment the
+        card wall already uses, so the hero and the cards are lit by the
+        same hand: a mild saturation and contrast lift, a radial fall-off
+        to 42% black at the corners, and a short wash off the top edge.
+        The corners going down is what makes the middle come forward —
+        it is the difference between a picture ON the page and a picture
+        IN it, and it costs one composited layer.
+
+     2. THE FRAME IS MOUNTED. A 1px inset hairline at 7% white. Almost
+        invisible on its own; what it does is end the photograph
+        deliberately instead of letting it dissolve into the background,
+        which is the whole difference between a print and a JPEG.
+
+     3. THE HOUSE ANGLE SIGNS IT. A 1px gold tick above the kicker,
+        leaning on the same 24.7 degrees as every other cut on this site.
+        It is the smallest possible place to put a maker's mark, it is
+        the one element here that is not derived from the reference, and
+        at 12px tall it reads as punctuation rather than decoration. */
+  .stage-media img{filter:saturate(1.05) contrast(1.06) brightness(.97)}
+  .stage-media::after{
+    content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:
+      radial-gradient(122% 86% at 50% 42%, transparent 38%, rgba(6,6,6,.44) 100%),
+      linear-gradient(180deg, rgba(6,6,6,.16), transparent 28%);
+  }
+  .stage-media::before{
+    content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
+  }
+  .stage-kicker::before{
+    content:"";display:block;width:1px;height:12px;margin:0 auto 12px;
+    background:#c9a25a;
+    transform:skewX(calc(atan(var(--shear)) * -1));
+  }
+
+  /* ---- THE FRAME TRANSITION, QUICKENED ----
+     1.6s was measured off the reference's DESKTOP. On the phone the
+     gesture ends in the hand, and a frame that takes a second and a half
+     to arrive after the finger has already let go feels disconnected
+     from it — the swipe stops being the cause of the movement. Sampling
+     their phone through a real drag: the media boxes are ~74% of the way
+     home at 500ms and settling around 900. 1.05s, on the entry curve. */
+  /* `.js .stage` — matching the specificity of the 1.6s declaration this
+     replaces (line ~337). A bare `.stage` here loses to it and the frame
+     keeps travelling for a second and a half; that cost one measurement
+     to find and is exactly the sort of thing this file exists to record. */
+  .js .stage{--slide-dur:1.05s}
+
+  /* ---- THE FRAME IS TALLER THAN IT IS WIDE ----
+     The reference holds a 1/1 media box and fills 778 of an 812 screen with
+     it. Ours was square too and reached 689, because two of the things
+     stacked under it — a paragraph and a second button — are gone. Square
+     was never the point; FILLING THE SCREEN is, and a hero that stops 123px
+     short reads as a banner with a gap under it rather than as the first
+     room of the building.
+     4/5 now, not 5/6: the picture also starts 30px higher than it used to
+     (see THE DEAD BAND, CLOSED), so it can afford to be a little taller
+     without pushing the headline off the screen. The crop stays gentle
+     enough that the showroom still reads as architecture. */
+  .stage-media{aspect-ratio:4 / 5}
+
+  /* ---- AND THE HEADLINE STOPS FLOATING ----
+     32px under .stage-text plus 16px under the h3 is 48px of space that
+     was holding a paragraph and two buttons apart. Both are gone from the
+     phone, so the space was holding nothing apart — it just pushed the
+     stage 48px taller than its own content and put the void the brief
+     complained about underneath the last line of type. */
+  .stage-text{margin-bottom:0}
+  .stage-text .h3{margin-bottom:0}
+
   .stage{animation-duration:2.4s}          /* gate fallback 4s -> 2.4s */
   .stage-item[data-i="0"] .stage-content{animation-delay:.8s}
   .stage-item[data-i="0"] .stage-media{animation-duration:1.6s}

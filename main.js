@@ -516,6 +516,26 @@
       if (prev) prev.disabled = i === 0;
       if (next) next.disabled = i === slides.length - 1;
     };
+    /* ---- THE PULSE ----
+       The reference's progress line snaps to double weight at the exact
+       frame the position commits and falls back over 200ms — see THE LINE
+       IS ALIVE in style.css for the sampled numbers. It is what makes a
+       swipe feel answered rather than merely obeyed.
+
+       It is fired here, in go(), rather than in the touch handler, because
+       every frame change deserves it: a thumb, an arrow, the keyboard, the
+       ten-second clock. The class is removed on animationend so a change
+       arriving mid-pulse can restart it cleanly. */
+    var pulseT = 0;
+    var pulse = function () {
+      if (!stage || reduce) return;
+      stage.classList.remove("is-pulse");
+      void stage.offsetWidth;                 /* restart, not resume */
+      stage.classList.add("is-pulse");
+      clearTimeout(pulseT);
+      pulseT = setTimeout(function () { stage.classList.remove("is-pulse"); }, 340);
+    };
+
     var go = function (n, user) {
       var len = slides.length, from = i;
       n = ((n % len) + len) % len;
@@ -523,6 +543,7 @@
       i = n;
       paint(from);
       roll(i + 1, from + 1);
+      pulse();
       if (user) restart();
     };
     var restart = function () {
@@ -585,6 +606,7 @@
       var span = function () { return Math.max(120, innerWidth * .34); };
       var settleSwipe = function (to) {
         stage.classList.remove("is-swiping");
+        stage.style.setProperty("--drag", "0");
         /* place() is called either way: go() bails when the frame has not
            changed, and a half-swipe that falls back still has to travel.
            go(…, true) restarts the clock the drag stopped; the fall-back
@@ -616,6 +638,14 @@
                  sw.pos + (sw.x - x) / span()));
         sw.x = x;
         place(sw.pos);
+        /* DISTANCE TO THE NEAREST FRAME, 0..1. Not distance travelled:
+           the hairline should be heaviest where the outcome is least
+           decided — halfway between two frames — and back to its resting
+           weight as the drag settles onto either one. The stylesheet
+           turns this into the line's thickness; nothing here touches a
+           style that costs layout. */
+        stage.style.setProperty("--drag",
+          String(Math.min(1, Math.abs(sw.pos - Math.round(sw.pos)) * 2).toFixed(3)));
       }, { passive: true });
       var swEnd = function () {
         if (!sw.on) return;

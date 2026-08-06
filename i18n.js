@@ -116,6 +116,22 @@
     "Цялата колекция": "The whole collection",
     "Достъп, а не обяви": "Access, not listings",
     "Заявка за търсене": "Request a search",
+    /* the hero's four rooms. The kicker names the place and the headline
+       names it again in the house's own words, so both have to travel —
+       and "Ателието" is the same word the AutoSpa card uses, deliberately. */
+    "Към AutoSpa": "To AutoSpa",
+    "Към сервиза": "To the workshop",
+    "Базата": "The premises",
+    "Приемната": "Reception",
+    "Ателието": "The studio",
+    "Работилницата": "The workshop",
+    "Добре дошли": "Welcome",
+    "Шоурумът на AutoHaus в Пловдив по здрач, с осветена фасада и надпис AutoHaus":
+      "The AutoHaus showroom in Plovdiv at dusk, its facade lit and the AutoHaus sign above it",
+    "Надписът „Welcome to www.AutoHaus.bg“ на стената в приемната":
+      "The \"Welcome to www.AutoHaus.bg\" lettering on the reception wall",
+    "Автомобил пред ателието AutoSpa в базата на AutoHaus":
+      "A car outside the AutoSpa studio at the AutoHaus premises",
     "Шоурумът на AutoHaus в Пловдив по здрач, с осветена фасада":
       "The AutoHaus showroom in Plovdiv at dusk, its facade lit",
     "Витрината на AutoHaus — автомобили в шоурума при залез":
@@ -1178,6 +1194,16 @@
   }
   function watch() {
     if (!("MutationObserver" in window)) return;
+    /* THE OBSERVER CANNOT WATCH A BODY THAT IS NOT THERE YET.
+       This threw once already, and the way it threw is worth keeping: a
+       loader in <head> decided the stylesheet was ready — true on a warm
+       cache on its very first line — and called boot() before the parser
+       had opened <body>. observe(null) throws, i18n died on the spot, and
+       because it died the page rendered untranslated with no other symptom.
+       The loader was gated on readyState afterwards, which fixed it at the
+       three call sites that existed. This fixes it here, where the
+       assumption actually lives, so a fourth page cannot reintroduce it. */
+    if (!D.body) { addEventListener("DOMContentLoaded", watch); return; }
     new MutationObserver(function (muts) {
       if (busy) return;
       for (var i = 0; i < muts.length; i++) {
@@ -1190,8 +1216,11 @@
 
   function reapply() {
     if (lang !== "en") return;
+    /* same reason as watch(): the <head> is translatable before the body
+       exists, so the title still gets done on an early call and the body
+       is picked up by the DOMContentLoaded pass a moment later */
     busy = true;
-    applyTo(D.body);
+    if (D.body) applyTo(D.body);
     applyHead();
     busy = false;
   }

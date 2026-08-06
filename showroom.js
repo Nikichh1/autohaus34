@@ -274,7 +274,11 @@
   var catPag = $("cat-pag"), catMore = $("cat-more"), catNote = $("cat-note");
   var catEmpty = $("cat-empty"), catSort = $("cat-sort");
   var catQ = $("cat-q"), catQX = $("cat-qx"), catX = $("cat-x");
-  var headN = catHead.querySelector("b"), headT = catHead.querySelector("span");
+  /* the stock count used to live here. It is gone from the markup, so
+     everything that wrote to it is guarded rather than deleted — the
+     filter button's badge is the count now. */
+  var headN = catHead ? catHead.querySelector("b") : null;
+  var headT = catHead ? catHead.querySelector("span") : null;
 
   var catTools = $("cat-tools");
 
@@ -316,9 +320,12 @@
          item is the wrapper now, not the scroller inside it — animating the
          child while its parent jumps to a new grid area is two movements
          where the morph assumes one */
+      /* two of the four things this used to morph — the count and the
+         sort — are no longer in the bar. What is left is the field and the
+         filter row, and they are exactly the two that MOVE: the field
+         shrinks and the row rides up beside it. */
       AH.morph(catTools, [catTools.querySelector(".fsearch"),
-                          catTools.querySelector(".fbar2-wrap") || catTools.querySelector(".fbar2"),
-                          catTools.querySelector(".chead__count"), catTools.querySelector(".chead__sort")],
+                          catTools.querySelector(".fbar2-wrap") || catTools.querySelector(".fbar2")],
         function () { catTools.classList.toggle("is-condensed", want); });
       if (AH.catEdge) AH.catEdge();
     };
@@ -439,7 +446,7 @@
     }, 640);
   }
 
-  sortSelect(catSort, S.sort);
+  if (catSort) sortSelect(catSort, S.sort);
 
   function paintGrid() {
     catGrid.innerHTML = results.slice(0, shown).map(function (v, i) {
@@ -478,8 +485,8 @@
     shown = PAGE;
     catBar.innerHTML = barHTML(S);
     catCount.textContent = PLURAL(results.length);
-    headN.textContent = String(results.length);
-    headT.textContent = AH.plural(results.length) + " в наличност";
+    if (headN) headN.textContent = String(results.length);
+    if (headT) headT.textContent = AH.plural(results.length) + " в наличност";
     paintGrid();
     /* whatever panel is open follows the state: the counts inside it are all
        "how many would this give me", and they change with every other
@@ -515,7 +522,7 @@
     apply();
   }
 
-  catSort.addEventListener("change", function () {
+  if (catSort) catSort.addEventListener("change", function () {
     S.sort = catSort.value;
     apply();
   });
@@ -845,9 +852,9 @@
       if (o.tag) S.tag = o.tag;
     }
     if (catQ) { catQ.value = S.q; catQX.hidden = !S.q; }
-    catSort.value = S.sort;
+    if (catSort) catSort.value = S.sort;
     /* a hand-edited ?sort= must not leave the control blank */
-    if (catSort.value !== S.sort) { S.sort = "curated"; catSort.value = S.sort; }
+    if (catSort && catSort.value !== S.sort) { S.sort = "curated"; catSort.value = S.sort; }
 
     lastY = window.scrollY || window.pageYOffset || 0;
     D.body.style.top = (-lastY) + "px";

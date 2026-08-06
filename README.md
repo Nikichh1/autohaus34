@@ -2008,3 +2008,342 @@ no console errors. Every low-power override verified to fire by forcing the
 class and re-reading the computed values: `--wall-dur` .52 → .32s, the plate
 blur to none, both scrims to none, the page recede from
 `transform, filter, opacity` to `transform, opacity`.
+
+---
+
+### v57 — the phone's hero, and an instrument that condenses
+
+#### The header was one row short
+
+v56 got the ratio right — the mark at 5.25× the largest label, against the
+reference's 5.1 — and the mark still did not read as the focal point. The
+ratio was being measured against the wrong thing. Directly under the mark sat
+a 259px Concierge button and an 84px language switch: **a second row whose
+combined painted area was larger than the mark itself**, touching it, and
+arriving first on the way down the screen.
+
+The reference's mobile bar is three columns with the mark in the middle and
+nothing else in the row but a Menu trigger. That is the composition, and it is
+the composition because a brand mark cannot be the focus of a screen it is
+sharing.
+
+So the second row is gone. The language switch — the one control with nowhere
+else to live — moved up to flank the mark on the left, the menu flanks it on
+the right, and the mark sits between them with nothing above or below.
+Measured at 390: nav 69px tall, switch 54px at x16, mark **148px centred at
+195 in a 390 viewport** (dead centre), menu label 62px ending at 374. All
+three sit on one optical axis — mid-heights 32.5 / 32.5 / 33. Symmetric 16px
+insets both sides.
+
+**The Concierge button left the bar entirely.** It is not lost: it is the
+second row of the menu the trigger opens, and on the landing page it is the
+hero's own action. What it was doing in the header was competing with the mark
+for the top of the screen and winning.
+
+#### The controls read as a website component because they were one
+
+Three grey chips — a plate for the number, a plate for the scrubber, a plate
+for each arrow — floating over a photograph at slightly different lengths,
+none aligned to anything else on screen. Chips are how you give type a ground
+when the image underneath has none. Ours already has one: `.grad--t` lays a
+black-to-transparent ramp over the top quarter of every frame, and three
+rectangles were doing that job worse on top of it.
+
+The plates go. What is left aligns to the one edge that matters — the
+picture's. Measured: frame `x:16 → r:374`, progress row `x:16 → r:374`.
+**The progress line is exactly the width of the photograph**, 358px, not a bar
+of arbitrary length sitting near it.
+
+**And the scrubber became segments.** A continuous track with a sliding thumb
+is a slider — machinery you are invited to operate. Three hairlines read as
+three chapters. The reference uses a track because it has eight frames and
+segments would be confetti; at three, segments are both more legible and more
+still. The active one fills over the ten seconds the frame is held, so the bar
+is also the clock. One composited `scaleX` on a 1px box, 44px touch targets
+cancelled out of layout with `margin-block:-21px` so the row stays 1px tall,
+paused whenever the carousel pauses, solid where motion is reduced or the
+device reported itself short of cores.
+
+The `<input type=range>` stays in the DOM, visually hidden, for the keyboard.
+
+Verified: segments track `ON · ·` → `past past ON`; swipe engages
+`is-swiping`, left 1→2, right 2→0 (a 210px drag over a 133px span is 1.6
+frames and rounds to 2 — proportional by design), a 3px drag is ignored, and a
+vertical drag hands the gesture to the page with the axis locked once at 8px.
+
+#### The catalogue lost two controls and gained a movement
+
+The count said "87 автомобила в наличност" directly under a heading that says
+Колекцията and above a grid of them — the third time the page makes the same
+statement. The sort offered six orderings of six preview cards, where the
+ordering only means anything across all eighty-seven. Both are gone from the
+landing section and from the popup; every JS reference is guarded rather than
+deleted, and the filter button's own badge is the count now.
+
+**The condensed bar was the real defect.** It kept two rows: the field on one,
+the Филтри button on the next — which is the arrangement it has at rest, only
+tighter. The bar shrank and nothing appeared to move except a gap.
+
+The phone has one thing the desktop does not: a filter row that is a *single
+button*. It does not need a row of its own. So the field gives up the width
+the button needs and the button rides up beside it. Measured at 390:
+
+| | at rest | condensed |
+|---|---|---|
+| bar height | 142px | **55px** |
+| search field | 353px wide | 240px wide |
+| Филтри button | x:19, y:140 | x:269, y:66 |
+
+87px saved, a 10px gap, and the button's right edge lands flush with where the
+field's was. Desktop: 146 → 58, field 520 → 260. The FLIP in `AH.morph` plays
+the difference over 340ms on `cubic-bezier(.32,.72,0,1)` — three animations
+per toggle (root height, field width + translate, wrapper translate) — so the
+button travels rather than teleporting between two grids. The grid still
+snaps; nobody sees it snap. Round-trip verified byte-identical at both widths.
+
+#### Two things caught on the way through
+
+**The vehicle page still had the old footer.** The other three were subtracted
+a pass ago; this one kept `.foot` and so kept both things the subtraction was
+for — it printed the full postal address, phone and mailbox a second time, on
+the one page that already carries a phone bar, and it was the only footer on
+the site with no Последвайте ни. It is now the same footer as everywhere else.
+
+**`watch()` observed a body it never checked for.** The warm-cache boot bug
+from v56 was fixed at the three call sites that existed by gating on
+`readyState`. The assumption itself lived in `i18n.js`, which called
+`.observe(D.body, …)` unguarded — so a fourth page could reintroduce it. Both
+`watch()` and `reapply()` now defer to `DOMContentLoaded` when there is no
+body yet, which also means the `<head>` still gets translated on an early
+call. Fixed where the assumption lives, not where it happened to surface.
+
+#### Measurement note
+
+Every number here was read from computed styles and live geometry. The
+preview pane's animation clock does not advance, which made the first four
+attempts at measuring the condensed bar report nonsense — a button at
+`x:-203`, heights that never changed — because Web Animations were frozen
+mid-flight and `style.transform = ""` does not clear them. `getAnimations()
+.forEach(a => a.cancel())` on the container **and** its children before every
+read is what made the geometry legible. Worth knowing before trusting a
+measurement taken during a morph.
+
+---
+
+### v58 — the phone's hero, put back on the instrument
+
+**This pass exists because v57 was wrong about one thing**, and the owner
+caught it: *"the swipe to the next image also looks incredible with animation
+on the line and the numbers — i want them fully the same."*
+
+#### What v57 got wrong
+
+v57 argued that a track with a sliding mark "reads as machinery" and replaced
+it, on the phone, with three hairline segments. Opening the reference's actual
+phone homepage — not its desktop, which is what every earlier pass had
+measured — showed the argument was backwards. **The instrument is the best
+thing on their hero**, and every piece of it already existed in this
+stylesheet, on the desktop, built from the same measurements two passes
+earlier. The phone was the only surface that had thrown it away.
+
+So v58 is mostly a **deletion**. The mobile override goes; the desktop
+instrument comes back and lands at the phone's own scale because it was
+always written in relative units.
+
+#### The reference, measured on a phone this time (375, 360 effective)
+
+| | |
+|---|---|
+| pagination row | `padding:132px 20px 0`, flex, `gap:8px` — **inside** the picture, 4px below its top edge |
+| counter plate | 41 × 24, `rgba(4,4,4,.4)`, `padding-left:12px`, 14/24/400, reads `3 / 8` |
+| digit reel | eleven digits **`0 9 8 7 6 5 4 3 2 1 0`**, 1lh apart, `translateY(-(10 − D) lh)` |
+| track | real `<input type=range>`, `--visible-fraction: .125` → the bright mark is **1/n** of the track and slides |
+| the live bit | `--pagination-scale`, `transition .1s ease-out` |
+
+The reel descends, so advancing a frame translates it **down** and the next
+number arrives **from above**. Verified against the a11y text at three
+positions: D=5 → −120px, D=8 → −48px, D=1 → −216px.
+
+`--pagination-scale` was measured through a real drag rather than guessed:
+**1 → 1.041 at ~110px of travel → 1.180 on release → back to 1 once landed.**
+The line swells under a finger. The range *value* only moves on settle, so the
+mark steps while the scale is live.
+
+#### Ours, now
+
+Everything above, at our numbers, measured at 375: the row sits at y:132
+against a frame top of y:128 — **the reference's 4px, exactly** — and the
+track's right edge lands on 359, flush with the picture. `--visible-fraction`
+is 0.25 because there are four frames.
+
+**The swell took two attempts.** The first did it the obvious way, `scaleY` on
+the whole input, and was wrong twice in one frame: the input is not a line, it
+is a 24px box carrying the glass plate, so scaling it grew the *plate* — at
+1.7 the 24px box became 41px, which put 8px of it above the top of the
+photograph it is supposed to be printed inside, and left it standing a head
+taller than the counter plate 8px to its left. A composited transform was the
+right instinct on the wrong element. The swell now moves the only thing that
+should move: the two gradient stops that draw the hairline. `--hair` is its
+half-thickness, 1px at rest and 1.7px under a finger. Verified across a real
+drag — the plate stays at y:132 h:24 throughout, both plates stay equal, and
+only `--hair` changes.
+
+#### The header, and the four rooms
+
+The language switch has left the bar. v57 put it on the mark's left for
+symmetry — switch | mark | menu — and it was balanced and still wrong, because
+a mark flanked on both sides is a mark in a row of controls. The reference
+survives on one label beside its logo, and so does this.
+
+The mark took the width back: `min(184px, 46vw)`, because the constraint is
+the *menu*, not the viewport. Measured: 320 → 147px with 16px of clearance,
+360 → 166/19, 375 → 173/24, 414 → 184/38. Centred at every one, no overflow at
+any.
+
+The frames were three arguments — "Един стандарт, 87 пъти", "Достъп, а не
+обяви" — headlines telling a visitor what to think about a photograph they had
+not finished looking at. They are now **four places, named**: Базата (the
+building, with the sign lit), Приемната (the Welcome wall), Ателието
+(AutoSpa), Работилницата (Сервиз). Nobody needs persuading that a building
+exists, which is why it now reads as arrival rather than as a pitch.
+
+And **no buttons on the phone** — the owner's call, and the right one. They
+are still in the markup and still on the desktop; only the phone hides them.
+An earlier cut of this pass deleted the elements outright and took them off
+the desktop too, which is the one thing the brief said not to touch.
+
+#### Crops
+
+Three of the four sources are wider than the 5/6 frame, so `object-position`
+is per slide and was tuned by arithmetic, not by eye: for `cover`, the window's
+left edge is `X% × (scaledWidth − boxWidth)`, not `X%` of the image.
+- **Базата** 12% — at 25% the window opened at 17.2% of the source and cut the
+  AutoHaus sign, which sits at 12.9–22.7%.
+- **Приемната** 71% — puts the window at 37.6–84.4% against the word
+  "AutoHaus" at 38–84%. It fits to within half a percent, which is why it
+  reads edge to edge.
+
+#### One thing that is not solved
+
+**There is no photograph of the workshop.** Слайд 4 borrows a vehicle shot
+(`img/v/2026-07_1-16-*`) exactly as the Сервиз card already does. It is not a
+false claim — AutoHaus has its own service, with its own line and ГТП — but it
+is a car in a showroom standing in for a workshop, and one real photograph of
+the bay would make that frame the strongest of the four.
+
+#### Verified
+
+Four slides, segments gone, CTA groups hidden on the phone and present on the
+desktop, `--visible-fraction` 0.25, counter reading `1 / 4`, a11y line "Кадър 1
+от 4" → "Frame 1 of 4". Swipe: index 0 → 1, `is-swiping` on and off, `--hair`
+1px → 1.7px → 1px, range value follows to "2". No horizontal overflow at 320,
+360, 375, 390 or 414. Desktop untouched at 1280: both plates still
+`rgba(6,6,6,.34)`, arrows `flex`, counter 18px, logo 136px, media 1.73, four
+CTA groups. Zero console errors, zero untranslated strings in English.
+
+---
+
+### v59 — why their swipe feels like an object and ours felt like a slider
+
+v58 matched the reference's *positions*. The owner's note was that matching
+positions had not bought the feeling, and they were right. This pass sampled
+the reference's phone **one animation frame at a time** through a real drag,
+which is the only way the answer was ever going to show up.
+
+#### The finding: `--pagination-scale` is not a swell, it is a pulse
+
+| moment | value |
+|---|---|
+| rest | 1 |
+| 45px of drag | 1 |
+| 85px | 1.031 |
+| 165px | 1.112 |
+| release | 1.238 |
+| **+105ms** | **1.997** ← the peak, on the exact frame the range value steps |
+| +200ms | 1 |
+
+The line tightens under the finger in proportion to how far you have pulled,
+and then, at the instant the frame commits, it **snaps** — a hard ~100ms rise
+to double weight and a slower ~200ms fall. The digit has already changed by
+then; it flips crisply during the gesture rather than rolling.
+
+So the grammar is: **the number tells you where you are going while you are
+still dragging, and the line tells you it is done when you let go.** The
+gesture feels satisfying because the release is *rewarded*, not merely obeyed.
+That is the whole thing, and no amount of matching a 24px plate to a 24px
+plate was ever going to produce it.
+
+Ours now has both halves. `--drag` is written on every `touchmove` as the
+distance to the *nearest* frame — 0 at a resting point, 1 halfway between two
+— so the hairline is heaviest exactly when the outcome is least decided.
+Measured through a real drag: `--hair` 1 → 1.330 → **1.697** → 1.346 → 1.006px,
+then the pulse on commit. `.is-pulse` is fired in `go()` rather than in the
+touch handler, so the instrument breathes on autoplay and on the arrows too.
+
+`--hair` had to be **registered** with `@property` or none of it interpolates:
+an unknown custom property is a token, and a token cannot be animated.
+Chrome 85, comfortably inside the Chrome 109 floor Windows 7 sets.
+
+#### The other finding: 152px of undifferentiated black
+
+The "empty and unbalanced" complaint had a number behind it.
+
+| | Bentley | ours (v58) | ours now |
+|---|---|---|---|
+| top edge → logo | 27px | **16px** | 34px |
+| header bottom → image | **10px** | **60px** | 13px |
+| headline → stage end | ~0 | **92px** | 34px |
+
+The bar was simultaneously *cramped against the glass* and *marooned from
+everything it belongs to*. Their logo row sits 74px down the page and its
+bottom is 10px above the photograph; ours started 16px from the edge and then
+left a sixty-pixel void. Closing both gaps is most of what changed.
+
+The 92px at the bottom was `.stage-text{margin-bottom:32px}` plus
+`.h3{margin-bottom:16px}` — 48px that used to hold a paragraph and two buttons
+apart, holding nothing apart since v58, plus 44px of item padding.
+
+Also: the frame went 5/6 → **4/5**, and the transition 1.6s → **1.05s**.
+1.6s was measured off their *desktop*; on a phone the gesture ends in the hand,
+and a frame still travelling a second and a half after the finger has let go
+stops being caused by it. Their media boxes are ~74% home at 500ms.
+
+**Two specificity traps cost a measurement each.** `.js .stage{--slide-dur:1.6s}`
+at (0,2,0) beat a bare `.stage` override, so the frame kept travelling for 1.6s
+while the stylesheet said 1.05. And v58's `.stage.is-swiping .pag-range{--hair:1.7px}`
+outranked the calc that replaced it, pinning the line at maximum for the whole
+drag instead of tracking it. Both are recorded in the CSS next to the fix.
+
+#### The header the owner asked for
+
+Menu on the left, mark centred and dominant, language on the right. v58 had
+removed the switch entirely, which took away a control people use rather than
+moving it. Two small flanks of near-equal weight with the mark between them is
+the symmetrical reading, and the mark was re-sized against *two* constraints
+now rather than one: `min(184px, 45vw)`. At 320 — the tightest case — menu
+16..72, mark 88..232 centred, switch 252..304, gaps of 16 and 20.
+
+#### Rich without busy — three details, no new words
+
+The brief asked for depth rather than copy. A flat photograph on flat black
+has no material to it.
+
+1. **The photograph is graded and vignetted** — the same treatment the card
+   wall already uses, so hero and cards are lit by the same hand. The corners
+   going down is what brings the middle forward.
+2. **The frame is mounted** — a 1px inset hairline at 7% white. It ends the
+   photograph deliberately instead of letting it dissolve into the background.
+3. **The house angle signs it** — a 1px gold tick above the kicker on the same
+   24.7°, verified in the computed transform as `matrix(1,0,-0.46,1,0,0)`. The
+   one element here not derived from the reference.
+
+All three are mobile-only and all three drop out under `.lo-fx`.
+
+#### Verified
+
+`--drag` and `--hair` tracked live through a drag (values above), pulse on
+commit, index 1 → 2. Logo centred with no overflow at 320, 360, 375, 390, 414.
+Desktop at 1280 untouched: 134px pad, 1.6s, 1.73 ratio, absolute media, 4 CTA
+groups, 5 nav links, arrows, the 18/11px counter hierarchy, and
+`imgFilter: none` / `vignette: none` / `kickerTick: none` — none of the mobile
+treatment leaks. Zero console errors.
