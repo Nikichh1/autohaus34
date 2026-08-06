@@ -710,8 +710,8 @@
      feel is that the ground is a place. */
   background-image:
     linear-gradient(180deg,rgba(16,16,16,.93) 0%,rgba(6,6,6,.96) 58%,rgba(4,4,4,.97) 100%),
-    image-set(url("img/autohaus_outside-768.webp") type("image/webp"),
-              url("img/autohaus_outside-768.jpg") type("image/jpeg"));
+    image-set(url("img/outside_autohaus-768.webp") type("image/webp"),
+              url("img/outside_autohaus-768.jpg") type("image/jpeg"));
   background-size:cover,cover;
   background-position:center 62%,center 62%;
   clip-path:polygon(0 0,100% 0,calc(100% - var(--plate-cut)) 100%,0 100%);
