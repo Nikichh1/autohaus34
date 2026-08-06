@@ -28,12 +28,12 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" type="image/webp" href="img/autohaus_outside-1280.webp" imagesrcset="img/autohaus_outside-768.webp 768w, img/autohaus_outside-1280.webp 1280w, img/autohaus_outside-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=0109007f" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=189c09d0" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
-<link rel="stylesheet" href="catalog.min.css?v=0109007f" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="catalog.min.css?v=0109007f"></noscript>
+<link rel="stylesheet" href="catalog.min.css?v=189c09d0" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="catalog.min.css?v=189c09d0"></noscript>
 <script>
 /* Starts the app the moment the render-blocking stylesheet is in — not
    before (it would share the pipe with it) and not on window.load (that
@@ -59,7 +59,7 @@
    readyState is the missing gate. Everything else — the ordering, the
    3s floor, staying off window.load — is unchanged. */
 (function () {
-  var q = ["data/vehicles.js?v=0109007f","main.js?v=0109007f","catalog.js?v=0109007f","showroom.js?v=0109007f","i18n.js?v=0109007f"], fired = false;
+  var q = ["data/vehicles.js?v=189c09d0","main.js?v=189c09d0","catalog.js?v=189c09d0","showroom.js?v=189c09d0","i18n.js?v=189c09d0"], fired = false;
   function boot() {
     if (fired) return; fired = true;
     for (var i = 0; i < q.length; i++) {
@@ -143,7 +143,7 @@
     </a>
 
     <ul class="hd-zone hd-zone--end">
-      <li><a class="btn btn--s btn--secondary" href="concierge.html"><span class="btn__label">Консиерж</span></a></li>
+      <li><a class="btn btn--s btn--secondary" href="concierge.html"><span class="btn__label">Обслужване</span></a></li>
       <!-- Колекцията and Калкулатор used to sit here and both were already in
            the bar twice over — Автомобили on the left, Лизинг on the left, and
            the menu behind the burger. The language switch is the one control
@@ -231,7 +231,7 @@
       </button>
       <nav aria-label="Меню">
         <a href="#avtomobili">Автомобили</a>
-        <a href="concierge.html">Консиерж</a>
+        <a href="concierge.html">Обслужване</a>
         <a href="#razdeli">Услуги</a>
         <a href="#lizing">Лизинг</a>
         <a href="#about">За нас</a>
@@ -405,10 +405,10 @@
        style.css. The kicker is the room, the headline is its name. -->
 
   <div class="stage-item is-active" data-i="0">
-    <div class="stage-bg"><img width="320" height="125" decoding="async" alt="" aria-hidden="true" fetchpriority="high" src="img/autohaus_outside-320.jpg"></div>
+    <div class="stage-bg"><img width="320" height="161" decoding="async" alt="" aria-hidden="true" fetchpriority="high" src="img/outside_autohaus-320.jpg"></div>
     <div class="stage-box"><div class="stage-frame">
       <div class="stage-media">
-        <picture><source type="image/webp" srcset="img/autohaus_outside-768.webp 768w, img/autohaus_outside-1280.webp 1280w, img/autohaus_outside-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Шоурумът на AutoHaus в Пловдив по здрач, с осветена фасада и надпис AutoHaus" fetchpriority="high" src="img/autohaus_outside-1280.jpg" srcset="img/autohaus_outside-768.jpg 768w, img/autohaus_outside-1280.jpg 1280w, img/autohaus_outside-1920.jpg 1920w" style="object-position:12% 50%"></picture>
+        <picture><source type="image/webp" srcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="645" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Сградата на AutoHaus в Пловдив през деня, с надпис AutoHaus на фасадата" fetchpriority="high" src="img/outside_autohaus-1280.jpg" srcset="img/outside_autohaus-768.jpg 768w, img/outside_autohaus-1280.jpg 1280w, img/outside_autohaus-1920.jpg 1920w" style="object-position:20% 50%"></picture>
         <div class="grad grad--t" aria-hidden="true"></div>
         <div class="grad grad--b" aria-hidden="true"></div>
       </div>
@@ -419,24 +419,24 @@
         </div>
         <div class="btn-group btn-group--stage">
           <a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg><span class="btn__label">Виж колекцията</span></a>
-          <a class="btn btn--l btn--secondary" href="concierge.html"><span class="btn__label">Консиерж</span></a>
+          <a class="btn btn--l btn--secondary" href="concierge.html"><span class="btn__label">Обслужване</span></a>
         </div>
       </div>
     </div></div>
   </div>
 
   <div class="stage-item" data-i="1">
-    <div class="stage-bg"><img width="320" height="180" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/welcome_to_autohaus-320.jpg"></div>
+    <div class="stage-bg"><img width="320" height="233" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/indoor_cars-320.jpg"></div>
     <div class="stage-box"><div class="stage-frame">
       <div class="stage-media">
-        <picture><source type="image/webp" data-srcset="img/welcome_to_autohaus-768.webp 768w, img/welcome_to_autohaus-1280.webp 1280w, img/welcome_to_autohaus-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Надписът „Welcome to www.AutoHaus.bg“ на стената в приемната" loading="lazy" data-src="img/welcome_to_autohaus-1280.jpg" data-srcset="img/welcome_to_autohaus-768.jpg 768w, img/welcome_to_autohaus-1280.jpg 1280w, img/welcome_to_autohaus-1920.jpg 1920w" style="object-position:71% 50%"></picture>
+        <picture><source type="image/webp" data-srcset="img/indoor_cars-768.webp 768w, img/indoor_cars-1280.webp 1280w, img/indoor_cars-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="934" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Автомобили в шоурума на AutoHaus на златна светлина" loading="lazy" data-src="img/indoor_cars-1280.jpg" data-srcset="img/indoor_cars-768.jpg 768w, img/indoor_cars-1280.jpg 1280w, img/indoor_cars-1920.jpg 1920w" style="object-position:50% 50%"></picture>
         <div class="grad grad--t" aria-hidden="true"></div>
         <div class="grad grad--b" aria-hidden="true"></div>
       </div>
       <div class="stage-content">
         <div class="stage-text">
-          <p class="stage-kicker">Приемната</p>
-          <h2 class="h3">Добре дошли</h2>
+          <p class="stage-kicker">Шоурумът</p>
+          <h2 class="h3">Отблизо</h2>
         </div>
         <div class="btn-group btn-group--stage">
           <a class="btn btn--l btn--primary" href="index.html#razdeli"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg><span class="btn__label">Как работим</span></a>
@@ -447,10 +447,10 @@
   </div>
 
   <div class="stage-item" data-i="2">
-    <div class="stage-bg"><img width="320" height="533" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/autohaus_autospa-400.jpg"></div>
+    <div class="stage-bg"><img width="320" height="320" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/autospa_night-400.jpg"></div>
     <div class="stage-box"><div class="stage-frame">
       <div class="stage-media">
-        <picture><source type="image/webp" data-srcset="img/autohaus_autospa-400.webp 400w, img/autohaus_autospa-800.webp 800w, img/autohaus_autospa-1080.webp 1080w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Автомобил пред ателието AutoSpa в базата на AutoHaus" loading="lazy" data-src="img/autohaus_autospa-800.jpg" data-srcset="img/autohaus_autospa-400.jpg 400w, img/autohaus_autospa-800.jpg 800w, img/autohaus_autospa-1080.jpg 1080w" style="object-position:50% 50%"></picture>
+        <picture><source type="image/webp" data-srcset="img/autospa_night-400.webp 400w, img/autospa_night-800.webp 800w, img/autospa_night-1080.webp 1080w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1080" height="1080" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Порше 911 Turbo S влиза в AutoSpa през нощта, надпис AUTO SPA на стената" loading="lazy" data-src="img/autospa_night-800.jpg" data-srcset="img/autospa_night-400.jpg 400w, img/autospa_night-800.jpg 800w, img/autospa_night-1080.jpg 1080w" style="object-position:40% 50%"></picture>
         <div class="grad grad--t" aria-hidden="true"></div>
         <div class="grad grad--b" aria-hidden="true"></div>
       </div>
@@ -468,20 +468,20 @@
   </div>
 
   <div class="stage-item" data-i="3">
-    <div class="stage-bg"><img width="320" height="250" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/v/2026-07_1-16-400.jpg"></div>
+    <div class="stage-bg"><img width="320" height="240" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/outside-flags-320.jpg"></div>
     <div class="stage-box"><div class="stage-frame">
       <div class="stage-media">
-        <picture><source type="image/webp" data-srcset="img/v/2026-07_1-16-400.webp 400w, img/v/2026-07_1-16-800.webp 800w, img/v/2026-07_1-16-1280.webp 1280w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Автомобил след механична подготовка пред сервиза на AutoHaus" loading="lazy" data-src="img/v/2026-07_1-16-800.jpg" data-srcset="img/v/2026-07_1-16-400.jpg 400w, img/v/2026-07_1-16-800.jpg 800w, img/v/2026-07_1-16-1280.jpg 1280w" style="object-position:50% 50%"></picture>
+        <picture><source type="image/webp" data-srcset="img/outside-flags-768.webp 768w, img/outside-flags-1280.webp 1280w, img/outside-flags-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="960" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Три знамена AutoHaus над площадката пред шоурума" loading="lazy" data-src="img/outside-flags-1280.jpg" data-srcset="img/outside-flags-768.jpg 768w, img/outside-flags-1280.jpg 1280w, img/outside-flags-1920.jpg 1920w" style="object-position:55% 50%"></picture>
         <div class="grad grad--t" aria-hidden="true"></div>
         <div class="grad grad--b" aria-hidden="true"></div>
       </div>
       <div class="stage-content">
         <div class="stage-text">
-          <p class="stage-kicker">Работилницата</p>
-          <h2 class="h3">Сервиз</h2>
+          <p class="stage-kicker">Локацията</p>
+          <h2 class="h3">Заповядайте</h2>
         </div>
         <div class="btn-group btn-group--stage">
-          <a class="btn btn--l btn--primary" href="index.html#servis"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg><span class="btn__label">Към сервиза</span></a>
+          <a class="btn btn--l btn--primary" href="legal.html#imprint" data-contact><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg><span class="btn__label">Свържете се</span></a>
           <a class="btn btn--l btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Цялата колекция</span></a>
         </div>
       </div>
@@ -633,7 +633,7 @@
                 <li>Подготовка за годишен преглед</li>
               </ul>
               <div class="body-s">
-                <p>Час се запазва по телефона или през Консиерж — за автомобил, купен от нас или не.</p>
+                <p>Час се запазва по телефона или през обслужването — за автомобил, купен от нас или не.</p>
               </div>
             </div>
             <div class="btn-group wcard-cta">
@@ -670,7 +670,7 @@
            ============================================================ -->
       <div class="wcard-item" id="lizing" style="--i:2">
         <div class="wcard">
-          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/v/2026-07_1-11-400.webp 400w, img/v/2026-07_1-11-800.webp 800w, img/v/2026-07_1-11-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/v/2026-07_1-11-800.jpg" srcset="img/v/2026-07_1-11-400.jpg 400w, img/v/2026-07_1-11-800.jpg 800w, img/v/2026-07_1-11-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Mercedes-Maybach GLS пред шоурума на AutoHaus"></picture></span>
+          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/three-cars-400.webp 400w, img/three-cars-800.webp 800w, img/three-cars-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/three-cars-800.jpg" srcset="img/three-cars-400.jpg 400w, img/three-cars-800.jpg 800w, img/three-cars-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Три спортни автомобила в шоурума на AutoHaus вечер"></picture></span>
           <span class="wcard-text">
             <span class="wcard-label" data-tbd>Условия при запитване</span>
             <a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h">Лизинг и застраховане</span></a>
@@ -735,7 +735,7 @@
       <!-- 4. КАФЕ БАР -->
       <div class="wcard-item" id="cafe" style="--i:3">
         <div class="wcard">
-          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_coffeebar-320.webp 320w, img/autohaus_coffeebar-768.webp 768w, img/autohaus_coffeebar-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/autohaus_coffeebar-768.jpg" srcset="img/autohaus_coffeebar-320.jpg 320w, img/autohaus_coffeebar-768.jpg 768w, img/autohaus_coffeebar-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Терасата на кафе бара на AutoHaus при залез"></picture></span>
+          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/coffee_bar-new-320.webp 320w, img/coffee_bar-new-768.webp 768w, img/coffee_bar-new-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="800" src="img/coffee_bar-new-768.jpg" srcset="img/coffee_bar-new-320.jpg 320w, img/coffee_bar-new-768.jpg 768w, img/coffee_bar-new-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Терасата на кафе бара на AutoHaus с 3D графит на автомобил, пробиващ бетонна стена"></picture></span>
           <span class="wcard-text">
             <span class="wcard-label">На терасата</span>
             <a class="wcard-anchor" href="#cw-cafe" aria-expanded="false" aria-controls="cw-cafe"><span class="h6 wcard-h">Кафе бар</span></a>

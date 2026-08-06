@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="mask-icon" href="favicon.svg" color="#c9a25a">
-<title>AutoHaus Консиерж — заявка за автомобил</title>
+<title>AutoHaus Обслужване — заявка за автомобил</title>
 <meta name="description" content="Опишете автомобила, който търсите. Заявката стига до екипа на AutoHaus в Пловдив.">
 <!-- THE CRITICAL PATH.
      Measured on a 1.6Mbps link with 300ms RTT: first paint was gated by
@@ -27,7 +27,7 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.min.css?v=0109007f" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=189c09d0" id="ah-css">
 <meta name="robots" content="noindex">
 <!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
      index/vehicle/legal start their scripts only once the stylesheet is
@@ -39,10 +39,10 @@
      without it.  runs them after parsing and before first paint, so
      the furniture is there from the first frame. The page can afford it:
      18KB of CSS, no hero photograph to compete with. -->
-<script defer src="data/vehicles.js?v=0109007f"></script>
-<script defer src="main.js?v=0109007f"></script>
-<script defer src="concierge.js?v=0109007f"></script>
-<script defer src="i18n.js?v=0109007f"></script>
+<script defer src="data/vehicles.js?v=189c09d0"></script>
+<script defer src="main.js?v=189c09d0"></script>
+<script defer src="concierge.js?v=189c09d0"></script>
+<script defer src="i18n.js?v=189c09d0"></script>
 <script>
 /* RESERVE WHAT THE SCRIPTS ARE ABOUT TO DRAW.
    `defer` holds a script until after parsing, but it does NOT hold first
@@ -119,7 +119,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
       <svg class="logo" role="img" aria-label="AutoHaus"><use href="#ah-logo"/></svg>
     </a>
     <ul class="hd-zone hd-zone--end">
-      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Консиерж</span></a></li>
+      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Обслужване</span></a></li>
       <li class="hd-lang">
         <div class="lang" id="lang" role="group" aria-label="Език / Language">
           <i class="lang__ind" aria-hidden="true"></i>
@@ -173,7 +173,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
       </button>
       <nav aria-label="Меню">
         <a href="index.html#avtomobili">Автомобили</a>
-        <a href="concierge.html">Консиерж</a>
+        <a href="concierge.html">Обслужване</a>
         <a href="index.html#razdeli">Услуги</a>
         <a href="index.html#lizing">Лизинг</a>
         <a href="index.html#about">За нас</a>
@@ -356,15 +356,15 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
     <div class="cgr__row">
 
       <!-- ---------- THE HOST ---------- -->
-      <aside class="cgs" id="cg-aside" aria-label="AutoHaus Консиерж">
+      <aside class="cgs" id="cg-aside" aria-label="AutoHaus Обслужване">
         <div class="cgs__in">
-          <p class="cgs__tag">AutoHaus Консиерж</p>
+          <p class="cgs__tag">AutoHaus Обслужване</p>
           <h1 class="cgs__h">Седнете за момент.</h1>
           <p class="cgs__lede body-s">Няколко въпроса, около две минути. Толкова, колкото да разберем какво търсите — и да го намерим вместо Вас.</p>
 
           <div class="cgs__host">
             <span class="cgs__host-n">Иван Манев</span>
-            <span class="cgs__host-r">Консиерж · AutoHaus Пловдив</span>
+            <span class="cgs__host-r">Обслужване · AutoHaus Пловдив</span>
           </div>
           <p class="cgs__say" id="cg-say" role="status" aria-live="polite"></p>
 

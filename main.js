@@ -384,35 +384,33 @@
        translateY(0), i.e. showing the FIRST child, so the strip is built
        new-first. Collapsed back to a single digit once it has settled. */
     var cntD = cur ? cur.querySelector(".cnt-d") : null, rollT = 0;
-    var roll = function (to, from) {
+    /* ONE STEP, IN THE DIRECTION OF TRAVEL.  The old reel walked the whole
+       path from `from` to `to`, so a swipe that jumped two frames — or a wrap
+       that is one step but numerically far, like 1 -> 4 — rolled through every
+       number in between and read as a bug. It now shows exactly two digits,
+       the one you leave and the one you land on, and rolls between them once:
+       forward the new number drops in from the top, backward it rises from the
+       bottom (the same keyframe played in reverse over a [from, to] strip).
+       `dir` is +1 forward / -1 backward, worked out in go(). */
+    var roll = function (to, from, dir) {
       if (!cntD) return;
-      var N = slides.length, snap = function () {
+      var snap = function () {
         cntD.innerHTML = "<span>" + to + "</span>";
+        cur.classList.remove("is-rolling", "is-rolling-rev");
       };
+      var N = slides.length;
       if (reduce || to === from || N < 2 || to > 9 || from > 9) return snap();
-      /* THE WHEEL'S CYCLE IS THE SLIDE COUNT, not base ten. This stepped the
-         strip with (d + 9) % 10, which is right for an odometer and wrong for
-         a carousel: with three slides, wrapping 3 -> 1 rolled 3,4,5,6,7,8,9,0,1
-         — six numbers this carousel can never be on, and a zero. Walking back
-         through 1..N instead makes that same wrap two digits, 3 -> 1, and no
-         reachable position is ever skipped. */
-      var strip = [to], d = to, guard = 0, ok = true;
-      while (d !== from) {
-        if (guard++ >= N) { ok = false; break; }   /* `from` outside 1..N */
-        d = d > 1 ? d - 1 : N;
-        if (d > 9) { ok = false; break; }          /* the strip clips one glyph */
-        strip.push(d);
-      }
-      if (!ok) return snap();
-      cntD.innerHTML = strip.map(function (x) { return "<span>" + x + "</span>"; }).join("");
-      cur.classList.remove("is-rolling");
+      var back = dir < 0;
+      cntD.innerHTML = (back ? [from, to] : [to, from])
+        .map(function (x) { return "<span>" + x + "</span>"; }).join("");
+      cur.classList.remove("is-rolling", "is-rolling-rev");
       void cur.offsetWidth;                       /* restart the animation */
-      cur.classList.add("is-rolling");
+      cur.classList.add(back ? "is-rolling-rev" : "is-rolling");
       clearTimeout(rollT);
       rollT = setTimeout(function () {
-        cur.classList.remove("is-rolling");
+        cur.classList.remove("is-rolling", "is-rolling-rev");
         cntD.innerHTML = "<span>" + to + "</span>";
-      }, 2000);
+      }, 560);
     };
 
     /* ---- THE CONVEYOR, AS ONE FORMULA ----------------------------------
@@ -533,16 +531,21 @@
       void stage.offsetWidth;                 /* restart, not resume */
       stage.classList.add("is-pulse");
       clearTimeout(pulseT);
-      pulseT = setTimeout(function () { stage.classList.remove("is-pulse"); }, 340);
+      pulseT = setTimeout(function () { stage.classList.remove("is-pulse"); }, 480);
     };
 
     var go = function (n, user) {
       var len = slides.length, from = i;
       n = ((n % len) + len) % len;
       if (n === i) return;
+      /* shortest cyclic direction, so a wrap rolls the way it actually moved:
+         3 -> 0 is forward (+1), 0 -> 3 is backward (-1) */
+      var d = n - from;
+      if (d > len / 2) d -= len;
+      if (d < -len / 2) d += len;
       i = n;
       paint(from);
-      roll(i + 1, from + 1);
+      roll(i + 1, from + 1, d >= 0 ? 1 : -1);
       pulse();
       if (user) restart();
     };
@@ -607,12 +610,14 @@
       var settleSwipe = function (to) {
         stage.classList.remove("is-swiping");
         stage.style.setProperty("--drag", "0");
+        if (range) range.step = "1";       /* keyboard steps one frame again */
         /* place() is called either way: go() bails when the frame has not
            changed, and a half-swipe that falls back still has to travel.
            go(…, true) restarts the clock the drag stopped; the fall-back
-           branch has to restart it by hand or the carousel is dead until
-           the next scroll or tab switch. */
-        if (to === i) { place(i); restart(); } else go(to, true);
+           branch has to restart it by hand — and put the thumb back on the
+           frame it fell back to, since go() never ran to do it. */
+        if (to === i) { place(i); if (range) range.value = String(i + 1); restart(); }
+        else go(to, true);
       };
       stage.addEventListener("touchstart", function (e) {
         if (e.touches.length !== 1) return;
@@ -632,12 +637,19 @@
           if (sw.axis !== 1) { sw.on = false; return; }   /* the page's, now */
           clearInterval(timer);                           /* hands beat clocks */
           stage.classList.add("is-swiping");
+          if (range) range.step = "any";     /* let the thumb sit anywhere */
         }
         sw.moved = true;
         sw.pos = Math.max(0, Math.min(slides.length - 1,
                  sw.pos + (sw.x - x) / span()));
         sw.x = x;
         place(sw.pos);
+        /* THE THUMB FOLLOWS THE FINGER.  The bright block used to jump only
+           on release; now range.value tracks the fractional position live, so
+           the line slides under the drag — right as you pull to the next
+           frame, left as you pull back — which is the direction feedback the
+           reference has and a stepped slider cannot. */
+        if (range) range.value = String(sw.pos + 1);
         /* DISTANCE TO THE NEAREST FRAME, 0..1. Not distance travelled:
            the hairline should be heaviest where the outcome is least
            decided — halfway between two frames — and back to its resting

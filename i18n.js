@@ -103,8 +103,8 @@
        person sitting down with you was the one thing on the site that never
        spoke Bulgarian. The pages now say Консиерж and this table carries it
        back the other way. */
-    "Консиерж": "Concierge",
-    "AutoHaus Консиерж": "AutoHaus Concierge",
+    "Обслужване": "Personal service",
+    "AutoHaus Обслужване": "AutoHaus Personal Service",
 
     /* ---- the hero ---- */
     "AutoHaus Пловдив": "AutoHaus Plovdiv",
@@ -121,6 +121,27 @@
        and "Ателието" is the same word the AutoSpa card uses, deliberately. */
     "Към AutoSpa": "To AutoSpa",
     "Към сервиза": "To the workshop",
+    "Пространството": "The space",
+    "Място за събития": "A place for events",
+    "Модно ревю в шоурума на AutoHaus, Ламборгини на преден план":
+      "A fashion show in the AutoHaus showroom, a Lamborghini in the foreground",
+    "Порше 911 Turbo S влиза в AutoSpa през нощта, надпис AUTO SPA на стената":
+      "A Porsche 911 Turbo S entering AutoSpa at night, the AUTO SPA sign on the wall",
+    "Терасата на кафе бара на AutoHaus с 3D графит на автомобил, пробиващ бетонна стена":
+      "The AutoHaus cafe bar terrace with a 3D mural of a car breaking through a concrete wall",
+    "Шоурумът": "The showroom",
+    "Отблизо": "Up close",
+    "Локацията": "The location",
+    "Заповядайте": "Welcome",
+    "Свържете се": "Get in touch",
+    "Сградата на AutoHaus в Пловдив през деня, с надпис AutoHaus на фасадата":
+      "The AutoHaus building in Plovdiv by day, the AutoHaus sign on its facade",
+    "Автомобили в шоурума на AutoHaus на златна светлина":
+      "Cars in the AutoHaus showroom in golden light",
+    "Три знамена AutoHaus над площадката пред шоурума":
+      "Three AutoHaus banners above the forecourt in front of the showroom",
+    "Три спортни автомобила в шоурума на AutoHaus вечер":
+      "Three sports cars in the AutoHaus showroom in the evening",
     "Базата": "The premises",
     "Приемната": "Reception",
     "Ателието": "The studio",
@@ -388,8 +409,8 @@
     "Климатик и електроника": "Air conditioning and electronics",
     "Гуми и реглаж": "Tyres and alignment",
     "Подготовка за годишен преглед": "Preparation for the annual test",
-    "Час се запазва по телефона или през Консиерж — за автомобил, купен от нас или не.":
-      "Book by phone or through the Concierge — for a car bought from us or not.",
+    "Час се запазва по телефона или през обслужването — за автомобил, купен от нас или не.":
+      "Book by phone or through our service — for a car bought from us or not.",
     "Автомобил след механична подготовка пред сервиза":
       "A car outside the workshop after mechanical preparation",
 
@@ -629,7 +650,7 @@
     "Седнете за момент.": "Take a seat.",
     "Няколко въпроса, около две минути. Толкова, колкото да разберем какво търсите — и да го намерим вместо Вас.":
       "A few questions, about two minutes. Just enough for us to understand what you are looking for — and to go and find it for you.",
-    "Консиерж · AutoHaus Пловдив": "Concierge · AutoHaus Plovdiv",
+    "Обслужване · AutoHaus Пловдив": "Personal service · AutoHaus Plovdiv",
     "Хода на разговора": "The shape of the conversation",
     "Отговор до 24 часа в работни дни": "An answer within 24 hours on working days",
     "Дотук": "So far",
@@ -693,7 +714,7 @@
     ". Изберете как да стигне до нас — текстът вече е попълнен.":
       ". Choose how it should reach us — the text is already written for you.",
 
-    "AutoHaus Консиерж — заявка за автомобил": "AutoHaus Concierge — vehicle enquiry",
+    "AutoHaus Обслужване — заявка за автомобил": "AutoHaus Personal Service — vehicle enquiry",
     "Кажете ни какво търсите.": "Tell us what you are looking for.",
     "Няколко въпроса, около две минути. Заявките с описан автомобил, бюджет и срок се разглеждат лично от Иван Манев и получават отговор до 24 часа в работни дни.":
       "A few questions, about two minutes. Enquiries that describe the car, the budget and the timescale are reviewed personally by Ivan Manev and answered within 24 hours on working days.",

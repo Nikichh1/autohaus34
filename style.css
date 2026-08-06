@@ -1547,7 +1547,12 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
    cubic-bezier(0,0,.09,1.02). 24px is the pre-`lh` fallback height. */
 .cnt{display:inline-flex;height:24px;height:1lh;overflow:clip;vertical-align:bottom}
 .cnt-d{display:flex;flex-direction:column;height:max-content}
-.cnt.is-rolling .cnt-d{animation:ah-counter 2s cubic-bezier(0,0,.09,1.02) both}
+.cnt.is-rolling .cnt-d{animation:ah-counter .5s cubic-bezier(.2,.7,0,1) both}
+/* backward — prev, or a wrap that is really one step down — enters from the
+   bottom instead of the top, so the number falls when the carousel goes back
+   and rises when it goes on. Same keyframe, played in reverse over the
+   strip main.js orders [from, to] for this case. */
+.cnt.is-rolling-rev .cnt-d{animation:ah-counter .5s cubic-bezier(.2,.7,0,1) reverse both}
 
 /* the "range" is a real input whose THUMB is a --visible-fraction-wide bar */
 .pag-range{
@@ -1739,11 +1744,22 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
    The whole effect is two gradient stops on a 6px band. */
 @property --hair{syntax:"<length>";inherits:true;initial-value:1px}
 
-.pag-range{--hair:calc(1px + var(--drag,0) * .7px)}
-.stage.is-pulse .pag-range{animation:ah-pag-pulse 305ms linear both}
+/* the drag-time strengthening and the commit pulse are the phone's, and
+   only the phone's — on the desktop --drag is never written and the pulse
+   would be a change to a hero the brief says to leave alone. */
+@media(max-width:767px){
+  /* heavier under the finger, and it climbs faster — up to ~2.4px at the
+     undecided midpoint where the old line reached only 1.7 */
+  .pag-range{--hair:calc(1px + var(--drag,0) * 1.4px)}
+  /* the commit pulse: a hard climb to nearly triple weight in ~105ms and a
+     longer, slower fall — the "strengthen, goes longer" the reference has
+     and the segments never did. Coordinated with the 480ms hold in
+     main.js's pulse(), which must outlast this or the animation is cut. */
+  .stage.is-pulse .pag-range{animation:ah-pag-pulse 440ms cubic-bezier(.2,.8,.2,1) both}
+}
 @keyframes ah-pag-pulse{
   0%{--hair:1px}
-  34%{--hair:2px}        /* 105ms of 305 — the reference's rise, exactly */
+  24%{--hair:2.7px}      /* ~105ms of 440 — the reference's rise */
   100%{--hair:1px}
 }
 /* a hand that is not moving the carousel should not be told that it is */
@@ -3555,7 +3571,7 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
      mark has (vw - 32 - 116) between them and must be centred in it.
        320: mark 144, clear 11px  ·   360: mark 162, clear 20px
        375: mark 169, clear 24px  ·   414: mark 184, clear 33px */
-  :root{--logo-w:min(184px, 45vw)}
+  :root{--logo-w:min(170px, 43vw)}
   .lnk,.hd-menu{font-size:11px;line-height:20px;letter-spacing:1.1px}
   .hd-logo .logo{filter:drop-shadow(0 2px 14px rgba(0,0,0,.55))}
   .hd-menu svg{width:13px;height:13px}
@@ -3613,11 +3629,13 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
   .hd-zone--end{display:flex;grid-column:3 / 4;grid-row:1;justify-content:flex-end;gap:0}
   .hd-zone--end > li:not(.hd-lang){display:none}
   .hd-lang{flex:0 0 auto}
-  .lang{margin-inline-start:0}
-  /* both flanks at the same weight, so the mark is the only thing with
-     any mass on the line */
-  .hd-zone--end .lang__o{height:26px;min-width:26px;padding:0 4px;font-size:10px;letter-spacing:.9px}
-  .hd-zone--end .lang::before{top:5px;bottom:5px}
+  /* the switch keeps the desktop control exactly — hairline, sliding gold
+     rule, the labels only trading weight — at a slightly smaller size so it
+     balances the menu word on the opposite flank. The ::before hairline and
+     the .lang__ind gold rule are left untouched; the previous override
+     mangled both. */
+  .lang{margin-inline-start:0;padding-bottom:6px}
+  .hd-zone--end .lang__o{min-width:30px;height:20px;padding:0 5px;font-size:12px;letter-spacing:1.1px}
 
   /* ---------- 2. HEADER — Bentley's three-zone mobile bar ----------
      Row 1 is a single full-width outlined action. Row 2 is
