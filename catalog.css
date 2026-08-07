@@ -1272,9 +1272,16 @@
 .drail__div{height:1px;background:var(--line);margin-block:24px}
 
 /* mobile: their fixed bottom bar. Ours sends the concierge, not a chat. */
+/* THE FLOATING ENQUIRE/CALL BAR IS GONE. The owner asked for it removed on
+   the phone — a fixed bar with "Запитване" and a round call button covered
+   the last of the content and did not read as premium. The enquiry lives in
+   the page itself (the rail below the dossier), which is where a considered
+   buyer is already heading. Kept in the markup and simply not displayed, so
+   nothing that references #dbar throws. */
 .dbar{
+  display:none;
   position:fixed;inset:auto 0 0 0;z-index:80;
-  display:flex;gap:8px;padding:10px var(--margin);
+  gap:8px;padding:10px var(--margin);
   padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
   background:rgba(247,246,242,.96);border-top:1px solid var(--line);
   transform:translateY(110%);transition:transform var(--t-in) var(--e-exit);

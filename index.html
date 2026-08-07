@@ -28,12 +28,12 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=1adfb9e1" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=5d906dda" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
-<link rel="stylesheet" href="catalog.min.css?v=1adfb9e1" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="catalog.min.css?v=1adfb9e1"></noscript>
+<link rel="stylesheet" href="catalog.min.css?v=5d906dda" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="catalog.min.css?v=5d906dda"></noscript>
 <script>
 /* Starts the app the moment the render-blocking stylesheet is in — not
    before (it would share the pipe with it) and not on window.load (that
@@ -59,7 +59,7 @@
    readyState is the missing gate. Everything else — the ordering, the
    3s floor, staying off window.load — is unchanged. */
 (function () {
-  var q = ["data/vehicles.js?v=1adfb9e1","main.js?v=1adfb9e1","catalog.js?v=1adfb9e1","showroom.js?v=1adfb9e1","i18n.js?v=1adfb9e1"], fired = false;
+  var q = ["data/vehicles.js?v=5d906dda","main.js?v=5d906dda","catalog.js?v=5d906dda","showroom.js?v=5d906dda","i18n.js?v=5d906dda"], fired = false;
   function boot() {
     if (fired) return; fired = true;
     for (var i = 0; i < q.length; i++) {
@@ -574,9 +574,9 @@
         <div class="wcard">
           <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_autospa-400.webp 400w, img/autohaus_autospa-800.webp 800w, img/autohaus_autospa-1080.webp 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/autohaus_autospa-800.jpg" srcset="img/autohaus_autospa-400.jpg 400w, img/autohaus_autospa-800.jpg 800w, img/autohaus_autospa-1080.jpg 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил пред входа на AutoSpa в базата на AutoHaus"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label">Детайлинг ателие</span>
+            <span class="wcard-label">В комплекса</span>
             <a class="wcard-anchor" href="#cw-care" aria-expanded="false" aria-controls="cw-care"><span class="h6 wcard-h">AutoSpa</span></a>
-            <span class="body-s wcard-body">Ръчна грижа за всеки детайл — измиване, детайлинг и защита на лака.</span>
+            <span class="body-s wcard-body">Грижа за автомобила в комплекса на AutoHaus.</span>
           </span>
         </div>
         <div class="wcard-panel" id="cw-care" role="group" aria-label="AutoSpa">
@@ -585,20 +585,11 @@
             <div class="wcard-scroll">
               <h3 class="wcard-panel-h">AutoSpa</h3>
               <div class="body-s">
-                <p>Собствено ателие в базата — не подизпълнител. Ръчно измиване, детайлинг, полиране, керамика и защитно фолио, изпълнени с внимание към всеки детайл.</p>
-                <p>На разположение и след покупката — за автомобил от нашата колекция или Ваш собствен.</p>
+                <p>AutoSpa е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.</p>
               </div>
-              <ul class="wcard-list">
-                <li>Ръчно измиване и сушене</li>
-                <li>Детайлинг на интериора</li>
-                <li>Полиране и корекция на лака</li>
-                <li>Керамично покритие</li>
-                <li>Защитно фолио</li>
-                <li>Подготовка преди продажба</li>
-              </ul>
             </div>
             <div class="btn-group wcard-cta">
-              <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запази час</span></a>
+              <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запитване</span></a>
             </div>
           </div>
         </div>
@@ -609,9 +600,9 @@
         <div class="wcard">
           <span class="wcard-photo"><picture><source type="image/webp" srcset="img/v/2026-07_1-16-400.webp 400w, img/v/2026-07_1-16-800.webp 800w, img/v/2026-07_1-16-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/v/2026-07_1-16-800.jpg" srcset="img/v/2026-07_1-16-400.jpg 400w, img/v/2026-07_1-16-800.jpg 800w, img/v/2026-07_1-16-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил след механична подготовка пред сервиза"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label">Сервиз в базата</span>
+            <span class="wcard-label">В комплекса</span>
             <a class="wcard-anchor" href="#cw-servis" aria-expanded="false" aria-controls="cw-servis"><span class="h6 wcard-h">Сервиз</span></a>
-            <span class="body-s wcard-body">Диагностика, обслужване и поддръжка — от собствен екип в Пловдив.</span>
+            <span class="body-s wcard-body">Обслужване и поддръжка в комплекса на AutoHaus.</span>
           </span>
         </div>
         <div class="wcard-panel" id="cw-servis" role="group" aria-label="Сервиз">
@@ -620,23 +611,11 @@
             <div class="wcard-scroll">
               <h3 class="wcard-panel-h">Сервиз</h3>
               <div class="body-s">
-                <p>Компютърна диагностика, планово обслужване, окачване, спирачки, климатик и гуми — в собствен сервиз, по заводски стандарт.</p>
-                <p>Поддръжката продължава и след покупката — за автомобил от нас или Ваш.</p>
-              </div>
-              <ul class="wcard-list">
-                <li>Компютърна диагностика</li>
-                <li>Планово обслужване</li>
-                <li>Окачване и спирачки</li>
-                <li>Климатик и електроника</li>
-                <li>Гуми и реглаж</li>
-                <li>Подготовка за годишен преглед</li>
-              </ul>
-              <div class="body-s">
-                <p>Часът се запазва предварително — за автомобил от нас или Ваш собствен.</p>
+                <p>Сервизът е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.</p>
               </div>
             </div>
             <div class="btn-group wcard-cta">
-              <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запази час</span></a>
+              <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запитване</span></a>
             </div>
           </div>
         </div>
@@ -670,9 +649,9 @@
         <div class="wcard">
           <span class="wcard-photo"><picture><source type="image/webp" srcset="img/three-cars-400.webp 400w, img/three-cars-800.webp 800w, img/three-cars-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/three-cars-800.jpg" srcset="img/three-cars-400.jpg 400w, img/three-cars-800.jpg 800w, img/three-cars-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Три спортни автомобила в шоурума на AutoHaus вечер"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label" data-tbd>Условия при запитване</span>
+            <span class="wcard-label">Условия при запитване</span>
             <a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h">Лизинг и застраховане</span></a>
-            <span class="body-s wcard-body">Финансиране и застраховане — подготвени на едно място.</span>
+            <span class="body-s wcard-body">Лизинг и застраховане при покупка на автомобил.</span>
           </span>
         </div>
         <div class="wcard-panel" id="cw-lizing" role="group" aria-label="Лизинг и застраховане">
@@ -681,45 +660,7 @@
             <div class="wcard-scroll">
               <h3 class="wcard-panel-h">Лизинг и застраховане</h3>
               <div class="body-s">
-                <p>Лизинг и застраховане се уреждат при нас, с партньорски институции. Документите и регистрацията — на място.</p>
-              </div>
-
-              <p class="wcard-sub">Лизинг</p>
-              <!-- data-rate / data-deposit / data-term ARE the calculator.
-                   main.js reads them here — change them and the instrument
-                   follows, with no script to edit. -->
-              <div class="lz" data-rate="0.069" data-deposit="0.2" data-term="60">
-                <label class="sr-only" for="lz-car">Автомобил</label>
-                <select id="lz-car"><option value="147000">Porsche 911 Targa 4 GTS — 147 000 €</option></select>
-                <!-- "Срок в месеци", not "Срок": the bare word is the
-                     concierge's timescale question everywhere else on the
-                     site, and one dictionary key cannot be both a leasing
-                     term and a delivery timescale -->
-                <div class="lz-terms" role="group" aria-label="Срок в месеци">
-                  <button type="button" class="lz-term" data-term="24">24</button>
-                  <button type="button" class="lz-term" data-term="36">36</button>
-                  <button type="button" class="lz-term" data-term="48">48</button>
-                  <button type="button" class="lz-term is-on" data-term="60" aria-pressed="true">60</button>
-                </div>
-                <p class="lz-out" id="lz-out" role="status" aria-live="polite">≈ 2 323 € / месец</p>
-              </div>
-              <dl class="wcard-dl">
-                <div><dt>Лихва</dt><dd data-tbd>6.9% годишно</dd></div>
-                <div><dt>Първоначална вноска</dt><dd data-tbd>от 20%</dd></div>
-                <div><dt>Срок на лизинга</dt><dd data-tbd>до 60 месеца</dd></div>
-                <div><dt>Одобрение</dt><dd data-tbd>до два работни дни</dd></div>
-              </dl>
-
-              <p class="wcard-sub">Застраховане</p>
-              <dl class="wcard-dl">
-                <div><dt>Каско</dt><dd data-tbd>условия при запитване</dd></div>
-                <div><dt>Гражданска отговорност</dt><dd data-tbd>условия при запитване</dd></div>
-                <div><dt>Асистанс</dt><dd data-tbd>условия при запитване</dd></div>
-                <div><dt>Гаранция</dt><dd data-tbd>условия при запитване</dd></div>
-              </dl>
-
-              <div class="body-s">
-                <p data-tbd>Показаните условия са примерни и подлежат на потвърждение от партньорска лизингова и застрахователна институция.</p>
+                <p>Лизинг и застраховане се уреждат при покупка на автомобил от AutoHaus. Условията се уточняват индивидуално — свържете се с нас за оферта.</p>
               </div>
             </div>
             <div class="btn-group wcard-cta">
@@ -737,7 +678,7 @@
           <span class="wcard-text">
             <span class="wcard-label">На терасата</span>
             <a class="wcard-anchor" href="#cw-cafe" aria-expanded="false" aria-controls="cw-cafe"><span class="h6 wcard-h">Кафе бар</span></a>
-            <span class="body-s wcard-body">Кафе, разговор и изглед към витрината — на терасата.</span>
+            <span class="body-s wcard-body">Кафе бар на терасата в комплекса.</span>
           </span>
         </div>
         <div class="wcard-panel" id="cw-cafe" role="group" aria-label="Кафе бар">
@@ -746,17 +687,8 @@
             <div class="wcard-scroll">
               <h3 class="wcard-panel-h">Кафе бар</h3>
               <div class="body-s">
-                <p>Кафе барът е част от сградата, не автомат в ъгъла — тераса с изглед към витрината, маси навън и вътре.</p>
-                <p>Отворен за всеки. Разговорът за автомобил върви по-добре на маса — както и голяма част от огледите и документите.</p>
+                <p>Кафе барът е на терасата в комплекса на AutoHaus.</p>
               </div>
-              <ul class="wcard-list">
-                <li>Кафе и напитки</li>
-                <li>Закуски</li>
-                <li>Тераса с изглед</li>
-                <li>Безплатен Wi-Fi</li>
-                <li>Паркинг пред входа</li>
-                <li>Отворено и за гости</li>
-              </ul>
             </div>
             <div class="btn-group wcard-cta">
               <a class="btn btn--s btn--primary" href="legal.html#imprint" data-contact><span class="btn__label">Как да стигнете</span></a>
@@ -822,13 +754,9 @@
               тях, той се издирва и внася — марка, оборудване, състояние и бюджет
               се уточняват предварително. Приемаме автомобил и насрещно, за
               изкупуване или като част от плащането.</p>
-            <p>Финансирането и застраховането се уреждат на място, с партньорски
-              институции; одобрението остава тяхно решение. В базата са и
-              собственият сервиз — диагностика и обслужване — и AutoSpa за
-              измиване, детайлинг и защита на лака. И двата остават на
-              разположение и след покупката.</p>
-            <p>Кафе барът на терасата е отворен и за хора, които просто минават.
-              Разговорът за автомобил върви по-добре на маса.</p>
+            <p>Финансирането и застраховането се уреждат с партньорски институции;
+              одобрението остава тяхно решение. В комплекса са и сервиз, и AutoSpa.</p>
+            <p>На терасата в комплекса има и кафе бар.</p>
           </div>
           <div class="btn-group">
             <a class="btn btn--s btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Колекцията</span></a>

@@ -879,7 +879,340 @@
     "Фабрично брониран автомобил. Нивото на защита и документацията към бронирането се преглеждат лично при огледа, не се описват в обява.":
       "A factory-armoured car. The protection level and the documentation for the armouring are reviewed in person at the viewing, not described in a listing.",
     "Документите — справка за произход, сервизни книжки и фактури — са на разположение при огледа, преди да е поет какъвто и да било ангажимент.":
-      "The documents — provenance report, service books and invoices — are available at the viewing, before any commitment is made."
+      "The documents — provenance report, service books and invoices — are available at the viewing, before any commitment is made.",
+
+    /* ---- the legal document, the service cards and two product lines,
+            added in the production-readiness pass ---- */
+    "екипа на AutoHaus": "the AutoHaus team",
+    "Екипът на AutoHaus": "The AutoHaus team",
+    "За екипа на AutoHaus": "For the AutoHaus team",
+    "Обслужване · Пловдив": "Personal service · Plovdiv",
+    "Заявката стига до екипа на AutoHaus. За въпроси по телефона:": "The enquiry reaches the AutoHaus team. For questions by phone:",
+    "Въпросът се добавя към заявката и стига до екипа на AutoHaus.": "Your question is added to the enquiry and reaches the AutoHaus team.",
+    "В комплекса":
+      "At the complex",
+    "Грижа за автомобила в комплекса на AutoHaus.":
+      "Car care at the AutoHaus complex.",
+    "AutoSpa е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.":
+      "AutoSpa is part of the AutoHaus complex. For the range of services and to book, get in touch.",
+    "Обслужване и поддръжка в комплекса на AutoHaus.":
+      "Servicing and maintenance at the AutoHaus complex.",
+    "Сервизът е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.":
+      "The workshop is part of the AutoHaus complex. For the range of services and to book, get in touch.",
+    "Условия при запитване":
+      "Terms on request",
+    "Лизинг и застраховане при покупка на автомобил.":
+      "Leasing and insurance when buying a car.",
+    "Лизинг и застраховане се уреждат при покупка на автомобил от AutoHaus. Условията се уточняват индивидуално — свържете се с нас за оферта.":
+      "Leasing and insurance are arranged when you buy a car from AutoHaus. Terms are agreed individually — get in touch for an offer.",
+    "Кафе бар на терасата в комплекса.":
+      "A café bar on the terrace at the complex.",
+    "Кафе барът е на терасата в комплекса на AutoHaus.":
+      "The café bar is on the terrace at the AutoHaus complex.",
+    "Запитване":
+      "Enquiry",
+    "Финансирането и застраховането се уреждат с партньорски институции; одобрението остава тяхно решение. В комплекса са и сервиз, и AutoSpa.":
+      "Financing and insurance are arranged through partner institutions; approval remains their decision. The complex also houses a workshop and an AutoSpa.",
+    "На терасата в комплекса има и кафе бар.":
+      "There is also a café bar on the terrace at the complex.",
+    "Лизинг и застраховане се уреждат чрез партньорски институции. Сайтът не публикува лихви, вноски или срокове и не съдържа оферта за финансиране.":
+      "Leasing and insurance are arranged through partner institutions. The site publishes no interest rates, instalments or terms and contains no financing offer.",
+    "Тя определя лихвата, вноската, срока и изискванията към Вас и решава дали да одобри искането. Същото важи за застрахователните оферти и премии, които се определят от застрахователя. Ние подготвяме документите и Ви придружаваме; решението не е наше.":
+      "It sets the interest rate, the instalment, the term and the requirements on you, and decides whether to approve the application. The same applies to insurance quotes and premiums, which are set by the insurer. We prepare the documents and accompany you; the decision is not ours.",
+    "Автомобил може да бъде запазен при условия, договорени писмено. Замяна с Ваш автомобил е възможна след оглед и писмена оферта; оценката е валидна за срока, посочен в нея.":
+      "A car may be reserved on terms agreed in writing. Part-exchange with your car is possible after an inspection and a written offer; the valuation is valid for the period stated in it.",
+    "Детайлинг ателие":
+      "Detailing studio",
+    "Ръчна грижа за всеки детайл — измиване, детайлинг и защита на лака.":
+      "Hand care for every detail — washing, detailing and paint protection.",
+    "Собствено ателие в базата — не подизпълнител. Ръчно измиване, детайлинг, полиране, керамика и защитно фолио, изпълнени с внимание към всеки детайл.":
+      "Our own studio on site, not a subcontractor — hand washing, detailing, polishing, ceramic coating and protective film, carried out with care for every detail.",
+    "На разположение и след покупката — за автомобил от нашата колекция или Ваш собствен.":
+      "Available after the sale as well — for a car from our collection or your own.",
+    "Сервиз в базата":
+      "Workshop on site",
+    "Диагностика, обслужване и поддръжка — от собствен екип в Пловдив.":
+      "Diagnostics, servicing and maintenance — by our own team in Plovdiv.",
+    "Компютърна диагностика, планово обслужване, окачване, спирачки, климатик и гуми — в собствен сервиз, по заводски стандарт.":
+      "Computer diagnostics, scheduled servicing, suspension, brakes, air conditioning and tyres — in our own workshop, to factory standard.",
+    "Поддръжката продължава и след покупката — за автомобил от нас или Ваш.":
+      "Maintenance continues after the sale — for a car from us or your own.",
+    "Часът се запазва предварително — за автомобил от нас или Ваш собствен.":
+      "Appointments are booked in advance — for a car from us or your own.",
+    "Финансиране и застраховане — подготвени на едно място.":
+      "Financing and insurance — arranged in one place.",
+    "Лизинг и застраховане се уреждат при нас, с партньорски институции. Документите и регистрацията — на място.":
+      "Leasing and insurance are arranged with us, through partner institutions. The paperwork and the registration — on site.",
+    "Кафе, разговор и изглед към витрината — на терасата.":
+      "Coffee, conversation and a view of the showroom — on the terrace.",
+    "Кафе барът е част от сградата, не автомат в ъгъла — тераса с изглед към витрината, маси навън и вътре.":
+      "The café bar is part of the building, not a machine in the corner — a terrace overlooking the showroom, with tables outside and in.",
+    "Отворен за всеки. Разговорът за автомобил върви по-добре на маса — както и голяма част от огледите и документите.":
+      "Open to everyone. A conversation about a car goes better at a table — as do many of the viewings and much of the paperwork.",
+    "Услугите":
+      "The services",
+    "Въпросът се добавя към заявката и стига до Иван Манев.":
+      "Your question is added to the enquiry and reaches Ivan Manev.",
+    "Заявката стига до Иван Манев. За въпроси по телефона:":
+      "The enquiry reaches Ivan Manev. For questions by phone:",
+    "Правна информация":
+      "Legal information",
+    "Четири документа: какво правим с личните Ви данни, какво този сайт оставя на устройството Ви, при какви условия го ползвате и кой стои зад него. Написани са, за да бъдат прочетени.":
+      "Four documents: what we do with your personal data, what this site leaves on your device, the terms on which you use it, and who stands behind it. Written to be read.",
+    "Бележка за собственика.":
+      "A note for the owner.",
+    "Фирмените данни по-долу са действителните и текстовете са готови за публикуване. Полетата с":
+      "The company details below are the real ones and the texts are ready to publish. The fields with",
+    "пунктирано подчертаване":
+      "a dotted underline",
+    "не са пропуски — те са решения, които трябва да вземете Вие или юрист, преди страницата да влезе в сила. Решенията са осем: длъжностно лице по защита на данните, срок за съхранение на запитванията, списък на доставчиците, лизинговите условия, срокът на запазване след капаро, името на управителя, регистрацията като застрахователен посредник и — само ако някога бъдат добавени — таблицата с бисквитки.":
+      "are not omissions — they are decisions to be taken by you or a lawyer before the page goes live. There are eight: the data protection officer, the retention period for enquiries, the list of processors, the leasing terms, the reservation period after a deposit, the manager's name, the registration as an insurance intermediary and — only if any are ever added — the cookie table.",
+    "Последна редакция: 5 август 2026 г.":
+      "Last revised: 5 August 2026.",
+    "Този документ казва кои Ваши данни стигат до нас, защо, за колко време остават и какво можете да поискате по всяко време. Ако нещо в него не е ясно, обадете се — телефонът е в дъното на страницата.":
+      "This document sets out which of your data reaches us, why, how long it is kept and what you may request at any time. If anything in it is unclear, call us — the number is at the foot of the page.",
+    "1. Кой обработва данните":
+      "1. Who processes the data",
+    ", ЕИК 200771286, ДДС № BG200771286, със седалище и адрес на управление ул. „Нестор Абаджиев“ №24, Асеновградско шосе, 4023 Пловдив. Дружеството е администратор на лични данни по смисъла на Регламент (ЕС) 2016/679 (GDPR) и Закона за защита на личните данни.":
+      ", UIC 200771286, VAT No. BG200771286, with its registered office and address of management at 24 Nestor Abadzhiev St, Asenovgradsko Shose, 4023 Plovdiv. The company is a controller of personal data within the meaning of Regulation (EU) 2016/679 (GDPR) and the Bulgarian Personal Data Protection Act.",
+    "По всички въпроси за лични данни:":
+      "For all personal-data matters:",
+    "или":
+      "or",
+    ". Длъжностно лице по защита на данните:":
+      ". Data protection officer:",
+    "предстои да се определи дали дружеството е задължено да назначи такова; ако да — име и контакт, ако не — изричното посочване, че не е назначено":
+      "it remains to be determined whether the company is required to appoint one; if so — name and contact, if not — an explicit statement that none has been appointed",
+    "2. Какви данни събираме и на какво основание":
+      "2. What data we collect and on what basis",
+    "Когато ни пишете.":
+      "When you write to us.",
+    "Име, телефон, електронен адрес и това, което сами опишете в заявка през обслужването или в запитване за автомобил — търсен модел, бюджет, срок, автомобил за замяна. Обработваме ги, за да отговорим и да подготвим сделката, която сами сте поискали (чл. 6 §1 б. „б“).":
+      "Name, phone, email and whatever you describe yourself in a request through the service or in a vehicle enquiry — the model sought, the budget, the timeframe, a car for part-exchange. We process them in order to reply and to prepare the transaction you have asked for (Art. 6(1)(b)).",
+    "Когато купувате.":
+      "When you buy.",
+    "Данни от документ за самоличност, данни за автомобила и за плащането — толкова, колкото договорът, регистрацията и счетоводството изискват (чл. 6 §1 б. „б“ и б. „в“).":
+      "Identity-document data, vehicle data and payment data — as much as the contract, the registration and the accounting require (Art. 6(1)(b) and (c)).",
+    "Докато разглеждате.":
+      "While you browse.",
+    "Технически данни — вижте „Политика за бисквитки“ по-долу. За строго необходимото основанието е нашият легитимен интерес сайтът да работи (чл. 6 §1 б. „е“); за всичко останало — Вашето съгласие.":
+      "Technical data — see the “Cookie Policy” below. For what is strictly necessary the basis is our legitimate interest in the site working (Art. 6(1)(f)); for everything else — your consent.",
+    "Не събираме чувствителни данни. Не вземаме решения за Вас автоматично и не Ви профилираме.":
+      "We do not collect sensitive data. We take no automated decisions about you and do not profile you.",
+    "3. Колко дълго ги пазим":
+      "3. How long we keep them",
+    "Запитване, което не е довело до сделка —":
+      "An enquiry that did not lead to a transaction —",
+    "12 месеца":
+      "12 months",
+    "от последния контакт. Документи по сключена сделка — 10 години, колкото изисква счетоводното и данъчното законодателство. Съгласие за маркетинг — докато не го оттеглите.":
+      "from the last contact. Documents relating to a concluded transaction — 10 years, as accounting and tax law require. Marketing consent — until you withdraw it.",
+    "4. С кого ги споделяме":
+      "4. Who we share them with",
+    "Само когато е необходимо и само в необходимия обем:":
+      "Only when necessary and only to the extent necessary:",
+    "Лизингови и застрахователни партньори":
+      "Leasing and insurance partners",
+    "— единствено ако сами поискате оферта от тях.":
+      "— solely if you request an offer from them yourself.",
+    "Счетоводител и правен консултант":
+      "Accountant and legal adviser",
+    "— по договор и при задължение за поверителност.":
+      "— under contract and bound by confidentiality.",
+    "Държавни органи":
+      "State authorities",
+    "— когато закон го изисква.":
+      "— where the law requires it.",
+    "Доставчици на хостинг и комуникации":
+      "Hosting and communications providers",
+    ", действащи като обработващи по писмен договор:":
+      ", acting as processors under a written contract:",
+    "да се впишат конкретните дружества — хостинг, електронна поща, формуляри":
+      "the specific companies to be entered here — hosting, email, forms",
+    "Не продаваме и не отдаваме под наем лични данни. Никога.":
+      "We do not sell or rent personal data. Ever.",
+    "5. Данни извън Европейския съюз":
+      "5. Data outside the European Union",
+    "Едно нещо на този сайт е чуждо:":
+      "One thing on this site is third-party:",
+    "вградената карта на Google":
+      "the embedded Google map",
+    "в панела „Контакт“. Тя не се зарежда, докато не отворите този панел — до този момент никакви данни не напускат сайта. Когато го отворите, Google Ireland Limited получава IP адреса Ви и може да постави свои бисквитки, при своите условия. Прехвърлянето към САЩ, ако възникне, се извършва на основание Стандартните договорни клаузи на Европейската комисия и Рамката за защита на личните данни ЕС–САЩ.":
+      "in the “Contact” panel. It does not load until you open that panel — until then no data leaves the site. When you open it, Google Ireland Limited receives your IP address and may set its own cookies, on its own terms. Any transfer to the USA, should it occur, is made on the basis of the European Commission's Standard Contractual Clauses and the EU–US Data Privacy Framework.",
+    "6. Вашите права":
+      "6. Your rights",
+    "Правата по-долу са Ваши по силата на GDPR. Упражняват се безплатно — пишете на":
+      "The rights below are yours under the GDPR. They are exercised free of charge — write to",
+    "и отговаряме в срок до един месец.":
+      "and we reply within one month.",
+    "Достъп":
+      "Access",
+    "— да разберете какви данни обработваме за Вас и защо.":
+      "— to learn what data we process about you and why.",
+    "Коригиране":
+      "Rectification",
+    "— да поправим неточното или непълното.":
+      "— to correct what is inaccurate or incomplete.",
+    "Изтриване":
+      "Erasure",
+    "— да заличим данните Ви, когато вече не са необходими и законът не ни задължава да ги пазим.":
+      "— to erase your data when it is no longer needed and the law does not require us to keep it.",
+    "Ограничаване":
+      "Restriction",
+    "— да спрем обработването, докато се изясни спор.":
+      "— to halt processing while a dispute is resolved.",
+    "Преносимост":
+      "Portability",
+    "— да получите данните си в машинно четим формат.":
+      "— to receive your data in a machine-readable format.",
+    "Възражение":
+      "Objection",
+    "— срещу обработване на основание легитимен интерес.":
+      "— to processing based on legitimate interest.",
+    "Оттегляне на съгласие":
+      "Withdrawal of consent",
+    "— по всяко време, без това да засяга законосъобразността на обработването преди оттеглянето.":
+      "— at any time, without affecting the lawfulness of processing before the withdrawal.",
+    "Жалба":
+      "Complaint",
+    "— до Комисията за защита на личните данни, гр. София 1592, бул. „Проф. Цветан Лазаров“ №2,":
+      "— to the Commission for Personal Data Protection, 2 Prof. Tsvetan Lazarov Blvd, 1592 Sofia,",
+    "7. Сигурност":
+      "7. Security",
+    "Достъпът до данни е на принципа „необходимост да се знае“, връзката към сайта е криптирана, а обработващите са обвързани договорно. Никоя мярка не дава абсолютна гаранция; ако възникне нарушение с висок риск за Вас, ще бъдете уведомени лично, както изисква чл. 34 GDPR.":
+      "Access to data is on a need-to-know basis, the connection to the site is encrypted, and the processors are bound by contract. No measure offers an absolute guarantee; should a breach arise with a high risk to you, you will be notified personally, as Art. 34 GDPR requires.",
+    "1. Този сайт не Ви проследява":
+      "1. This site does not track you",
+    "Няма рекламни бисквитки, няма аналитични бисквитки, няма пиксели. Не измерваме поведението Ви и не го препродаваме.":
+      "No advertising cookies, no analytics cookies, no pixels. We do not measure your behaviour and do not resell it.",
+    "Това, което сайтът наистина оставя на устройството Ви, е локално съхранение за две неща:":
+      "What the site does leave on your device is local storage for two things:",
+    "избрания език":
+      "your chosen language",
+    "(BG или EN) и, ако сте започнали заявка през обслужването,":
+      "(BG or EN) and, if you have begun a request through the service,",
+    "нейното съдържание":
+      "its contents",
+    "— за да не въвеждате всичко отново, ако затворите страницата. И двете остават на Вашето устройство и не се изпращат към нас, докато сами не изпратите заявката. Изтриват се от настройките на браузъра Ви по всяко време, без това да наруши работата на сайта.":
+      "— so that you need not enter everything again if you close the page. Both remain on your device and are not sent to us until you submit the request yourself. They can be cleared from your browser settings at any time, without disrupting the site.",
+    "2. Едно изключение: картата":
+      "2. One exception: the map",
+    "Панелът „Контакт“ съдържа вградена карта на Google. Тя е единственото чуждо съдържание тук и":
+      "The “Contact” panel contains an embedded Google map. It is the only third-party content here and",
+    "се зарежда само в момента, в който отворите панела":
+      "loads only at the moment you open the panel",
+    "— не при отваряне на сайта и не при разглеждане на автомобилите. Ако не го отворите, никаква връзка с Google не се осъществява. Ако го отворите, важат условията на Google, включително възможността да постави свои бисквитки.":
+      "— not when the site opens and not while you browse the cars. If you do not open it, no connection to Google is made. If you do open it, Google's terms apply, including the possibility of it setting its own cookies.",
+    "Бутонът „Отвори в Google Maps“ е обикновена препратка — тя не зарежда нищо, докато не я натиснете.":
+      "The “Open in Google Maps” button is an ordinary link — it loads nothing until you click it.",
+    "3. Ако това се промени":
+      "3. If this changes",
+    "Ако някога бъдат добавени аналитични или маркетингови бисквитки, те ще се зареждат":
+      "If analytics or marketing cookies are ever added, they will load",
+    "само след Ваше изрично съгласие":
+      "only after your explicit consent",
+    ", дадено чрез банер, който позволява и отказ, и последващо оттегляне.":
+      ", given through a banner that allows both refusal and later withdrawal.",
+    "При внедряване: тук се описват името, целта, срокът и доставчикът на всяка бисквитка":
+      "On implementation: the name, purpose, duration and provider of each cookie are described here",
+    "Общи условия за ползване":
+      "Terms of use",
+    "1. Предмет":
+      "1. Subject",
+    "Тези условия уреждат ползването на сайта на Аутохаус България ЕООД. С използването му ги приемате в актуалната им редакция.":
+      "These terms govern the use of the website of Autohaus Bulgaria EOOD. By using it you accept them in their current version.",
+    "2. Автомобилите, цените и снимките":
+      "2. The cars, prices and photographs",
+    "Наличността, цените, техническите характеристики и фотографиите могат да се променят без предизвестие.":
+      "Availability, prices, technical specifications and photographs may change without notice.",
+    "Публикуваното е вярно към момента на публикуване и нищо повече: то не е оферта и не е публична покана по смисъла на чл. 290 от Търговския закон.":
+      "What is published is accurate as at the time of publication and nothing more: it is not an offer and not a public invitation within the meaning of Art. 290 of the Commercial Act.",
+    "Наличността се променя ежедневно и продаден автомобил се сваля от сайта в деня на продажбата. Фотографиите показват конкретния автомобил, но цвят, оборудване и детайли могат да изглеждат различно на екран. Възможни са техническа грешка и разминаване.":
+      "Availability changes daily and a sold car is removed from the site on the day of sale. The photographs show the specific car, but colour, equipment and detail may look different on a screen. Technical errors and discrepancies are possible.",
+    "Затова: преди покупка потвърдете с нас наличността, цената и конкретното оборудване.":
+      "Therefore: before purchase, confirm the availability, the price and the specific equipment with us.",
+    "Обвързващо е само това, което сме потвърдили писмено за конкретния автомобил. Обявените цени са в евро с включени всички данъци и се отнасят за автомобила в описаното състояние.":
+      "Only what we have confirmed in writing for the specific car is binding. The prices quoted are in euros, inclusive of all taxes, and refer to the car in the condition described.",
+    "3. Лизинг и застраховане":
+      "3. Leasing and insurance",
+    "Показаните лизингови вноски са":
+      "The leasing instalments shown are",
+    "ориентировъчна сметка, не оферта и не одобрение":
+      "an indicative calculation, not an offer and not an approval",
+    ". Изчислени са при":
+      ". They are calculated at",
+    "годишна лихва":
+      "annual interest",
+    "първоначална вноска":
+      "a down payment",
+    "и срок до":
+      "and a term of up to",
+    "брой месеца":
+      "months",
+    "Одобрението за финансиране зависи изцяло от лизинговата институция, не от AutoHaus.":
+      "Approval for financing depends entirely on the leasing institution, not on AutoHaus.",
+    "Тя определя окончателната лихва, вноската, срока и изискванията към Вас, и тя решава дали да одобри искането. Същото важи за застрахователните оферти и премии, които се определят от застрахователя. Ние подготвяме документите и Ви придружаваме; решението не е наше.":
+      "It sets the final interest rate, the instalment, the term and the requirements on you, and it decides whether to approve the application. The same applies to insurance quotes and premiums, which are set by the insurer. We prepare the documents and accompany you; the decision is not ours.",
+    "4. Запазване и замяна":
+      "4. Reservation and part-exchange",
+    "Автомобил се запазва за":
+      "A car is reserved for",
+    "48 часа":
+      "48 hours",
+    "след капаро, при условия, договорени писмено. Замяна с Ваш автомобил е възможна след оглед и писмена оферта; оценката е валидна за срока, посочен в нея.":
+      "after a deposit, on terms agreed in writing. Part-exchange with your car is possible after an inspection and a written offer; the valuation is valid for the period stated in it.",
+    "5. Отговорност и интелектуална собственост":
+      "5. Liability and intellectual property",
+    "Полагаме грижа информацията да е вярна и актуална, но не отговаряме за вреди от ползването на сайта, освен при умисъл или груба небрежност и доколкото законът не предвижда друго. Текстовете, фотографиите и марките на този сайт са обект на закрила и не могат да се използват без писмено съгласие. Марките на производителите принадлежат на техните притежатели и се използват само за обозначаване на автомобилите.":
+      "We take care that the information is accurate and current, but we are not liable for damages arising from the use of the site, save in cases of intent or gross negligence and to the extent the law does not provide otherwise. The texts, photographs and marks on this site are protected and may not be used without written consent. The manufacturers' marks belong to their owners and are used only to identify the cars.",
+    "6. Приложимо право и спорове":
+      "6. Governing law and disputes",
+    "Прилага се българското право. Спорове решаваме по споразумение, а при невъзможност — компетентният български съд. Като потребител можете да се обърнете и към Комисията за защита на потребителите (":
+      "Bulgarian law applies. Disputes are resolved by agreement, and where that is not possible — by the competent Bulgarian court. As a consumer you may also turn to the Consumer Protection Commission (",
+    ") или към платформата на ЕС за онлайн решаване на спорове (":
+      ") or to the EU online dispute resolution platform (",
+    "Този сайт се поддържа от:":
+      "This site is operated by:",
+    "Фирма":
+      "Company",
+    "На латиница":
+      "In Latin script",
+    "Правна форма":
+      "Legal form",
+    "Еднолично дружество с ограничена отговорност":
+      "Single-member limited liability company",
+    "ЕИК":
+      "UIC",
+    "ДДС номер":
+      "VAT number",
+    "Седалище":
+      "Registered office",
+    "ул. „Нестор Абаджиев“ №24, Асеновградско шосе,":
+      "24 Nestor Abadzhiev St, Asenovgradsko Shose,",
+    "Управител":
+      "Manager",
+    "име на управителя, както е вписано в Търговския регистър":
+      "the manager's name, as entered in the Commercial Register",
+    "Търговски регистър и регистър на ЮЛНЦ при Агенцията по вписванията":
+      "Commercial Register and Register of Non-Profit Legal Entities at the Registry Agency",
+    "Електронна поща":
+      "Email",
+    "Отговорност за съдържанието":
+      "Responsibility for the content",
+    "За съдържанието на този сайт отговаря Аутохаус България ЕООД на посочения по-горе адрес. Сайтът съдържа препратки към външни страници (Google Maps, Facebook, Instagram, Комисията за защита на потребителите); за тяхното съдържание отговарят техните оператори.":
+      "Responsibility for the content of this site lies with Autohaus Bulgaria EOOD at the address given above. The site contains links to external pages (Google Maps, Facebook, Instagram, the Consumer Protection Commission); their content is the responsibility of their operators.",
+    "Надзорни органи":
+      "Supervisory authorities",
+    "Комисия за защита на потребителите":
+      "Consumer Protection Commission",
+    "— гр. София 1000, пл. „Славейков“ №4A,":
+      "— 4A Slaveykov Sq, 1000 Sofia,",
+    "Комисия за защита на личните данни":
+      "Commission for Personal Data Protection",
+    "— гр. София 1592, бул. „Проф. Цветан Лазаров“ №2,":
+      "— 2 Prof. Tsvetan Lazarov Blvd, 1592 Sofia,",
+    "Ако дружеството е вписано като застрахователен брокер или посредник — регистрационният номер и надзорният орган (КФН) се посочват тук":
+      "If the company is registered as an insurance broker or intermediary — the registration number and the supervisory authority (FSC) are stated here",
   };
 
   /* ============================================================

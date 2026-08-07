@@ -299,8 +299,11 @@
       '<section class="dsec">' +
         '<h2 class="dsec__h">Въпрос към AutoHaus</h2>' +
         '<div class="dseller">' +
-          '<span class="dseller__av" aria-hidden="true" style="font-size:18px;font-weight:600">' +
-            initials(CFG.expert) + "</span>" +
+          /* the mark, not a person's initials: the contact is the team now
+             (content audit), and "AH" reads as the house rather than an
+             individual who may not exist */
+          '<span class="dseller__av" aria-hidden="true" style="font-size:15px;font-weight:600;letter-spacing:.06em">' +
+            "AH</span>" +
           "<div>" +
             '<p class="dseller__n">' + AH.esc(CFG.expert) + "</p>" +
             '<p class="dseller__m">AutoHaus Пловдив</p>' +

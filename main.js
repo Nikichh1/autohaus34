@@ -57,7 +57,9 @@
     endpoint: "",
     email: "autohausbg@gmail.com",
     salonPhone: "+359884777147",
-    expert: "Иван Манев",
+    /* was a named individual; the content audit replaced the invented person
+       with the team, since AutoHaus has not published a personal contact */
+    expert: "екипа на AutoHaus",
     expertPhone: "+359884777045",
     whatsapp: "359884777045"
   }, window.AH_CONFIG || {});
@@ -154,16 +156,13 @@
   var priceTxt = function (v) { return v == null ? null : fmt(v) + " €"; };
   var kmTxt = function (v) { return v == null ? "—" : fmt(v) + " км"; };
   var yrTxt = function (v) { return v.unreg ? "Нов" : (v.year || "—"); };
-  /* annuity on 80% of price at 6.9% nominal — the homepage calculator's maths */
-  var lease = function (p, term) {
-    if (!p) return null;
-    var fin = p * 0.8, r = 0.069 / 12;
-    return fin * r / (1 - Math.pow(1 + r, -(term || 60)));
-  };
+  /* the lease() annuity helper was removed in the content audit: AutoHaus has
+     not published a rate or a deposit, so any "from X €/month" figure was
+     invented. Leasing is now stated as available, never quoted. */
 
   var AH = window.AH = {
     cfg: CFG, all: V, chapters: CHAPTERS, chapterName: CH_NAME, fuel: FUEL,
-    fmt: fmt, price: priceTxt, km: kmTxt, yr: yrTxt, lease: lease, esc: esc,
+    fmt: fmt, price: priceTxt, km: kmTxt, yr: yrTxt, esc: esc,
     img: img, srcset: srcset, webpset: webpset, picture: picture,
     byId: function (id) { return V.filter(function (v) { return v.id === id; })[0] || null; },
     count: function (fn) { return V.filter(fn).length; },
@@ -1496,64 +1495,14 @@
   }
 
   /* ============================================================
-     5. LEASING CONTROL (inside the "Лизинг и застраховане" card)
+     5. LEASING CONTROL — REMOVED (content audit)
 
-     An annuity on (1 - deposit) of the price. Indicative only — the card
-     says so, in a sentence that is itself marked provisional.
-
-     THE THREE NUMBERS ARE NOT HERE ANY MORE. They used to be hard-coded on
-     the next line, which meant the card could say one rate and the
-     calculator could compute another, and the owner — who is the person
-     who actually knows what the rate is — would have had to open a script
-     to fix it. They now live on the `.lz` element in index.html, beside the
-     figures they belong to, marked [data-tbd] like everything else on that
-     card that is waiting for the real terms. This reads them and falls back
-     to what was previously hard-coded, so a missing attribute degrades to
-     the old behaviour rather than to NaN.
+     The card used to carry a working monthly-payment calculator driven by a
+     rate, a deposit and a term. AutoHaus has published none of those, so the
+     whole instrument was an invented figure dressed as a fact. The card now
+     states only that leasing is available and sends the reader to ask for
+     terms; there is nothing here to wire up.
      ============================================================ */
-  var lzCar = $("lz-car"), lzOut = $("lz-out");
-  if (lzCar && lzOut) {
-    var lzBox = lzCar.closest ? lzCar.closest(".lz") : null;
-    var lzNum = function (name, dflt) {
-      var v = lzBox ? parseFloat(lzBox.getAttribute("data-" + name)) : NaN;
-      return isFinite(v) && v > 0 ? v : dflt;
-    };
-    var RATE = lzNum("rate", 0.069), DEPOSIT = lzNum("deposit", 0.2);
-    var term = lzNum("term", 60);
-    /* Was eight hard-coded cars. Now the priced part of the real collection,
-       most expensive first — so the calculator can never quote a car that
-       has been sold, and never miss one that has just arrived. */
-    var cars = V.filter(function (v) { return v.price; })
-      .sort(function (a, b) { return b.price - a.price; })
-      .map(function (v) { return [v.full, v.price]; });
-    if (!cars.length) cars = [["Porsche 911 Targa 4 GTS", 142000]];
-    lzCar.innerHTML = "";
-    cars.forEach(function (c) {
-      var o = document.createElement("option");
-      o.value = String(c[1]);
-      o.textContent = c[0] + " — " + fmt(c[1]) + " €";
-      lzCar.appendChild(o);
-    });
-    var recalc = function () {
-      var price = parseInt(lzCar.value, 10) || 0;
-      var fin = price * (1 - DEPOSIT), r = RATE / 12;
-      var pay = fin * r / (1 - Math.pow(1 + r, -term));
-      lzOut.textContent = "≈ " + fmt(pay) + " € / месец";
-    };
-    all(".lz-term").forEach(function (b) {
-      b.addEventListener("click", function () {
-        term = parseInt(b.dataset.term, 10) || 60;
-        all(".lz-term").forEach(function (o) {
-          var on = o === b;
-          o.classList.toggle("is-on", on);
-          o.setAttribute("aria-pressed", on ? "true" : "false");
-        });
-        recalc();
-      });
-    });
-    lzCar.addEventListener("change", recalc);
-    recalc();
-  }
 
   /* ============================================================
      6. HEADER + MOBILE NAV
@@ -1914,7 +1863,8 @@
         b.addEventListener("click", function () { fShot = n; paintShot(); });
       });
 
-      var l = lease(v.price, 60);
+      /* no computed leasing figure here any more — AutoHaus has not published
+         rates, so a "from X €/month" line would be invented (content audit) */
       fBody.innerHTML = '' +
         '<p class="focus-label">' + v.ref + " · " + esc(v.make) + "</p>" +
         '<h2 class="focus-h">' + esc(v.model) + "</h2>" +
@@ -1929,8 +1879,7 @@
         (v.price == null
           ? '<p class="focus-price">Цена при запитване</p>' +
             '<p class="body-s focus-note">Този автомобил се предлага дискретно. Цената се съобщава при заявка.</p>'
-          : '<p class="focus-price">' + priceTxt(v.price) + "</p>" +
-            '<p class="body-s focus-note">Лизинг от ' + fmt(l) + " € / месец при 20% първоначална вноска.</p>") +
+          : '<p class="focus-price">' + priceTxt(v.price) + "</p>") +
         '<div class="btn-group focus-cta">' +
           '<a class="btn btn--s btn--primary" href="' + AH.vehicleUrl(v) + '"><span class="btn__label">Пълно досие</span></a>' +
           '<a class="btn btn--s btn--secondary" href="' + AH.conciergeUrl({ v: v.id }) + '"><span class="btn__label">Запитване</span></a>' +

@@ -2995,7 +2995,9 @@ html:not(.js) .rv{opacity:1;transform:none}
   .vd-hero .kick{color:var(--ink-3)}
   .vd-hero h1{color:var(--ink)}
   .vd-hero .hero-sub{color:var(--ink-2)}
-  .vd-body{padding-bottom:160px}
+  /* was 160px to clear the floating .dbar; the bar is gone (see catalog.css),
+     so the dossier only needs a normal tail before the footer */
+  .vd-body{padding-bottom:48px}
   .vd-sticky{display:grid}
   .gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
   .lb .nav-a{width:48px;height:48px}

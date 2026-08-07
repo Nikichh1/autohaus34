@@ -27,7 +27,7 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.min.css?v=1adfb9e1" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=5d906dda" id="ah-css">
 <meta name="robots" content="noindex">
 <!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
      index/vehicle/legal start their scripts only once the stylesheet is
@@ -39,10 +39,10 @@
      without it.  runs them after parsing and before first paint, so
      the furniture is there from the first frame. The page can afford it:
      18KB of CSS, no hero photograph to compete with. -->
-<script defer src="data/vehicles.js?v=1adfb9e1"></script>
-<script defer src="main.js?v=1adfb9e1"></script>
-<script defer src="concierge.js?v=1adfb9e1"></script>
-<script defer src="i18n.js?v=1adfb9e1"></script>
+<script defer src="data/vehicles.js?v=5d906dda"></script>
+<script defer src="main.js?v=5d906dda"></script>
+<script defer src="concierge.js?v=5d906dda"></script>
+<script defer src="i18n.js?v=5d906dda"></script>
 <script>
 /* RESERVE WHAT THE SCRIPTS ARE ABOUT TO DRAW.
    `defer` holds a script until after parsing, but it does NOT hold first
@@ -367,8 +367,8 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
           <p class="cgs__lede body-s">Няколко въпроса, около две минути. Толкова, колкото да разберем какво търсите — и да го намерим вместо Вас.</p>
 
           <div class="cgs__host">
-            <span class="cgs__host-n">Иван Манев</span>
-            <span class="cgs__host-r">Обслужване · AutoHaus Пловдив</span>
+            <span class="cgs__host-n">Екипът на AutoHaus</span>
+            <span class="cgs__host-r">Обслужване · Пловдив</span>
           </div>
           <p class="cgs__say" id="cg-say" role="status" aria-live="polite"></p>
 
