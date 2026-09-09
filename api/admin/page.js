@@ -55,6 +55,7 @@ module.exports = async function handler(req, res) {
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/data/vehicles.base.js?v=fe83b016"></script>
+<script src="/admin/admin-guards.js?v=20260909-admin1"></script>
 <script src="/admin/admin.js?v=20260909-admin1" defer></script>
 </body>
 </html>`);
