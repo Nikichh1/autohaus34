@@ -14,7 +14,7 @@ async function readJson(r) {
   try { return JSON.parse(text); } catch (_) { return text; }
 }
 
-function legacyToRow(v) {
+function legacyToRow(v, index) {
   const normalized = normalizeVehicle({
     slug: v.id,
     ref: v.ref,
@@ -31,7 +31,7 @@ function legacyToRow(v) {
     unregistered: !!v.unreg,
     horsepower: v.hp,
     price: v.price,
-    chapter: v.chapter,
+    chapter: v.chapter === "guard" ? "chauffeur" : v.chapter,
     tags: v.tags,
     notes: v.notes,
     images: (v.shots || []).map((url, i) => ({
@@ -45,7 +45,15 @@ function legacyToRow(v) {
     published: true
   });
   if (normalized.error) return null;
+  normalized.row.sort_order = Number(index || 0) + 1;
   return normalized.row;
+}
+
+async function nextSortOrder() {
+  const r = await db("vehicles?select=sort_order&order=sort_order.desc&limit=1", { method: "GET" });
+  const data = await readJson(r);
+  if (!r.ok || !Array.isArray(data) || !data.length) return 1;
+  return Math.max(1, Number(data[0].sort_order || 0) + 1);
 }
 
 module.exports = async function handler(req, res) {
@@ -93,7 +101,7 @@ module.exports = async function handler(req, res) {
     if (req.method === "POST") {
       const normalized = normalizeVehicle(req.body);
       if (normalized.error) return apiError(res, 400, normalized.error);
-      const row = Object.assign({ created_at: new Date().toISOString() }, normalized.row);
+      const row = Object.assign({ created_at: new Date().toISOString(), sort_order: await nextSortOrder() }, normalized.row);
       const r = await db("vehicles", {
         method: "POST",
         headers: { Prefer: "return=representation" },
