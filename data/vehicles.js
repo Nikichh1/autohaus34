@@ -18,4 +18,5 @@
   }
   load("data/vehicles.phase1.js?v=20260909b", "data/vehicles.phase1.js");
   load("data/phase2.js?v=20260909b", "data/phase2.js");
+  load("data/phase3.js?v=20260909-admin1", "data/phase3.js");
 })();
