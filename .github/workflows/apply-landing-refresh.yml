@@ -1,0 +1,374 @@
+name: Apply scoped landing refresh
+
+on:
+  push:
+    branches:
+      - codex/landing-navigation-listing
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/landing-navigation-listing
+          fetch-depth: 0
+
+      - name: Apply requested landing, navigation and listing changes
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          def read(path):
+              return Path(path).read_text(encoding='utf-8')
+
+          def write(path, text):
+              Path(path).write_text(text, encoding='utf-8')
+
+          def replace_once(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(f'Missing expected source for {label}')
+              return text.replace(old, new, 1)
+
+          # ---------------- index.html ----------------
+          p = Path('index.html')
+          s = read(p)
+          s = replace_once(s, '<title>AutoHaus Пловдив</title>', '<title>Auto House</title>', 'page title')
+          s = replace_once(s, '<meta name="description" content="AutoHaus Plovdiv">', '<meta name="description" content="Auto House">', 'meta description')
+
+          old_desktop = '''      <ul class="hd-links">
+        <li><a class="lnk" href="#razdeli">Услуги</a></li>
+        <li><a class="lnk" href="#lizing">Лизинг</a></li>
+        <li><a class="lnk" href="#about">За нас</a></li>
+        <li><a class="lnk" href="legal.html#imprint" data-contact>Контакт</a></li>
+      </ul>'''
+          new_desktop = '''      <ul class="hd-links">
+        <li><a class="lnk" href="#zastrahovki">Застраховки</a></li>
+        <li><a class="lnk" href="#lizing">Лизинг</a></li>
+        <li><a class="lnk" href="#servis">Сервиз</a></li>
+        <li><a class="lnk" href="legal.html#imprint" data-contact>Контакти</a></li>
+      </ul>'''
+          s = replace_once(s, old_desktop, new_desktop, 'desktop navigation')
+          s = replace_once(s, '<span class="btn__label">Обслужване</span>', '<span class="btn__label">Запитване</span>', 'header enquiry CTA')
+
+          old_mobile = '''      <nav aria-label="Меню">
+        <a href="#avtomobili">Автомобили</a>
+        <a href="concierge.html">Обслужване</a>
+        <a href="#razdeli">Услуги</a>
+        <a href="#lizing">Лизинг</a>
+        <a href="#about">За нас</a>
+        <a href="legal.html#imprint" data-contact>Контакт</a>
+      </nav>'''
+          new_mobile = '''      <nav aria-label="Меню">
+        <a href="#avtomobili">Автомобили</a>
+        <a href="#zastrahovki">Застраховки</a>
+        <a href="#lizing">Лизинг</a>
+        <a href="#servis">Сервиз</a>
+        <a href="#care">Auto Spa</a>
+        <a href="#cafe">Кафе бар</a>
+        <a href="legal.html">Политика</a>
+        <a href="legal.html#imprint" data-contact>Контакти</a>
+        <a href="concierge.html">Запитване</a>
+      </nav>'''
+          s = replace_once(s, old_mobile, new_mobile, 'mobile menu')
+
+          hero = '''<section class="stage" id="top" aria-roledescription="carousel" aria-label="Auto House">
+
+  <div class="stage-pag">
+    <span class="pag-pos"><span class="sr-only" id="pag-cur-a11y">Кадър 1 от 5</span><span class="cnt" id="pag-cur" aria-hidden="true"><span class="cnt-d"><span>1</span></span></span><i class="pag-sep" aria-hidden="true"></i><span class="pag-tot" id="pag-tot" aria-hidden="true">5</span></span>
+    <input class="pag-range" id="pag-range" type="range" min="1" max="5" value="1" step="1" aria-label="Кадър">
+    <button class="btn btn--s btn--tertiary pag-btn" id="pag-prev" aria-label="Предишен">
+      <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-l"/></svg>
+    </button>
+    <button class="btn btn--s btn--tertiary pag-btn" id="pag-next" aria-label="Следващ">
+      <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-r"/></svg>
+    </button>
+  </div>
+
+  <div class="stage-item is-active" data-i="0">
+    <div class="stage-bg"><img width="320" height="161" decoding="async" alt="" aria-hidden="true" fetchpriority="high" src="img/outside_autohaus-320.jpg"></div>
+    <div class="stage-box"><div class="stage-frame">
+      <div class="stage-media">
+        <picture><source type="image/webp" srcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="645" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Сградата на AutoHaus през деня" fetchpriority="high" src="img/outside_autohaus-1280.jpg" srcset="img/outside_autohaus-768.jpg 768w, img/outside_autohaus-1280.jpg 1280w, img/outside_autohaus-1920.jpg 1920w" style="object-position:20% 50%"></picture>
+        <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+      </div>
+      <div class="stage-content">
+        <div class="stage-text"><h1 class="h3">Auto House</h1></div>
+        <div class="btn-group btn-group--stage"><a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><span class="btn__label">Автомобили</span></a></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="stage-item" data-i="1">
+    <div class="stage-bg"><img width="320" height="233" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/indoor_cars-320.jpg"></div>
+    <div class="stage-box"><div class="stage-frame">
+      <div class="stage-media">
+        <picture><source type="image/webp" data-srcset="img/indoor_cars-768.webp 768w, img/indoor_cars-1280.webp 1280w, img/indoor_cars-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="934" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Автомобили в шоурума на AutoHaus" loading="lazy" data-src="img/indoor_cars-1280.jpg" data-srcset="img/indoor_cars-768.jpg 768w, img/indoor_cars-1280.jpg 1280w, img/indoor_cars-1920.jpg 1920w" style="object-position:50% 50%"></picture>
+        <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+      </div>
+      <div class="stage-content">
+        <div class="stage-text"><h2 class="h3">Шоурум</h2></div>
+        <div class="btn-group btn-group--stage"><a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><span class="btn__label">Автомобили</span></a></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="stage-item" data-i="2">
+    <div class="stage-bg"><img width="320" height="320" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/autospa_night-400.jpg"></div>
+    <div class="stage-box"><div class="stage-frame">
+      <div class="stage-media">
+        <picture><source type="image/webp" data-srcset="img/autospa_night-400.webp 400w, img/autospa_night-800.webp 800w, img/autospa_night-1080.webp 1080w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1080" height="1080" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Auto Spa" loading="lazy" data-src="img/autospa_night-800.jpg" data-srcset="img/autospa_night-400.jpg 400w, img/autospa_night-800.jpg 800w, img/autospa_night-1080.jpg 1080w" style="object-position:40% 50%"></picture>
+        <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+      </div>
+      <div class="stage-content">
+        <div class="stage-text"><h2 class="h3">Auto Spa</h2></div>
+        <div class="btn-group btn-group--stage"><a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><span class="btn__label">Автомобили</span></a></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="stage-item" data-i="3">
+    <div class="stage-bg"><img width="400" height="250" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/v/2026-07_1-16-400.jpg"></div>
+    <div class="stage-box"><div class="stage-frame">
+      <div class="stage-media">
+        <picture><source type="image/webp" data-srcset="img/v/2026-07_1-16-400.webp 400w, img/v/2026-07_1-16-800.webp 800w, img/v/2026-07_1-16-1280.webp 1280w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Сервиз AutoHaus" loading="lazy" data-src="img/v/2026-07_1-16-800.jpg" data-srcset="img/v/2026-07_1-16-400.jpg 400w, img/v/2026-07_1-16-800.jpg 800w, img/v/2026-07_1-16-1280.jpg 1280w" style="object-position:50% 50%"></picture>
+        <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+      </div>
+      <div class="stage-content">
+        <div class="stage-text"><h2 class="h3">Сервиз</h2></div>
+        <div class="btn-group btn-group--stage"><a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><span class="btn__label">Автомобили</span></a></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="stage-item" data-i="4">
+    <div class="stage-bg"><img width="320" height="320" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/coffee_bar-new-320.jpg"></div>
+    <div class="stage-box"><div class="stage-frame">
+      <div class="stage-media">
+        <picture><source type="image/webp" data-srcset="img/coffee_bar-new-320.webp 320w, img/coffee_bar-new-768.webp 768w, img/coffee_bar-new-1280.webp 1280w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="1280" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Кафе бар AutoHaus" loading="lazy" data-src="img/coffee_bar-new-768.jpg" data-srcset="img/coffee_bar-new-320.jpg 320w, img/coffee_bar-new-768.jpg 768w, img/coffee_bar-new-1280.jpg 1280w" style="object-position:50% 50%"></picture>
+        <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+      </div>
+      <div class="stage-content"><div class="stage-text"><h2 class="h3">Кафе бар</h2></div></div>
+    </div></div>
+  </div>
+
+</section>'''
+          s2, n = re.subn(r'<section class="stage" id="top".*?</section>', hero, s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('Could not replace hero stage')
+          s = s2
+
+          s = replace_once(s, '<h2 class="csec__h">Колекцията</h2>', '<h2 class="csec__h">Автомобили</h2>', 'cars heading')
+          s = s.replace('aria-label="Колекцията на AutoHaus"', 'aria-label="Автомобили AutoHaus"')
+          s = s.replace('<span class="btn__label">Целият каталог</span>', '<span class="btn__label">Виж всички</span>')
+          s = s.replace('<span class="btn__label">Целия каталог</span>', '<span class="btn__label">Виж всички</span>')
+          s = s.replace('<span class="btn__label">Цялата колекция</span>', '<span class="btn__label">Виж всички</span>')
+          s = s.replace('Колекцията се движи бързо.', 'Автомобилите се сменят често.')
+
+          finance_block = '''      <!-- 3. ЛИЗИНГ -->
+      <div class="wcard-item" id="lizing" style="--i:2">
+        <div class="wcard">
+          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/three-cars-400.webp 400w, img/three-cars-800.webp 800w, img/three-cars-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/three-cars-800.jpg" srcset="img/three-cars-400.jpg 400w, img/three-cars-800.jpg 800w, img/three-cars-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Три автомобила в шоурума на AutoHaus"></picture></span>
+          <span class="wcard-text">
+            <span class="wcard-label">Финансиране</span>
+            <a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h">Лизинг</span></a>
+            <span class="body-s wcard-body">Лизинг при покупка на автомобил.</span>
+          </span>
+        </div>
+        <div class="wcard-panel" id="cw-lizing" role="group" aria-label="Лизинг">
+          <div class="wcard-panel-in">
+            <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
+            <div class="wcard-scroll"><h3 class="wcard-panel-h">Лизинг</h3><div class="body-s"><p>Условията за лизинг се уточняват индивидуално при запитване.</p></div></div>
+            <div class="btn-group wcard-cta"><a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запитване</span></a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. ЗАСТРАХОВКИ -->
+      <div class="wcard-item" id="zastrahovki" style="--i:3">
+        <div class="wcard">
+          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_inside-320.webp 320w, img/autohaus_inside-768.webp 768w, img/autohaus_inside-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="800" src="img/autohaus_inside-768.jpg" srcset="img/autohaus_inside-320.jpg 320w, img/autohaus_inside-768.jpg 768w, img/autohaus_inside-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Шоурум AutoHaus"></picture></span>
+          <span class="wcard-text">
+            <span class="wcard-label">Покритие</span>
+            <a class="wcard-anchor" href="#cw-zastrahovki" aria-expanded="false" aria-controls="cw-zastrahovki"><span class="h6 wcard-h">Застраховки</span></a>
+            <span class="body-s wcard-body">Застраховане при покупка на автомобил.</span>
+          </span>
+        </div>
+        <div class="wcard-panel" id="cw-zastrahovki" role="group" aria-label="Застраховки">
+          <div class="wcard-panel-in">
+            <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
+            <div class="wcard-scroll"><h3 class="wcard-panel-h">Застраховки</h3><div class="body-s"><p>Условията за застраховане се уточняват индивидуално при запитване.</p></div></div>
+            <div class="btn-group wcard-cta"><a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запитване</span></a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. КАФЕ БАР -->'''
+          s2, n = re.subn(r'      <!-- 3\. ЛИЗИНГ И ЗАСТРАХОВАНЕ.*?      <!-- 4\. КАФЕ БАР -->', finance_block, s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('Could not split leasing and insurance card')
+          s = s2.replace('id="cafe" style="--i:3"', 'id="cafe" style="--i:4"', 1)
+
+          s2, n = re.subn(r'\n  <section class="cta" id="about">.*?</section>', '', s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('Could not remove About AutoHaus section')
+          s = s2
+          write(p, s)
+
+          # ---------------- catalog.js ----------------
+          p = Path('catalog.js')
+          s = read(p)
+          old_meta = '''  function metaLine(v) {
+    var bits = [];
+    bits.push(AH.km(v.km));
+    if (v.hp) bits.push(v.hp + " к.с.");
+    bits.push(AH.fuel[v.fuel] || "");
+    return bits.filter(Boolean).join(" · ");
+  }'''
+          new_meta = '''  function metaLine(v) {
+    var gear = v.gear === "auto" ? "Автоматична" : (v.gear === "manual" ? "Ръчна" : "—");
+    var fuel = AH.fuel[v.fuel] || "—";
+    var km = v.km == null ? "—" : AH.km(v.km);
+    var reg;
+    if (v.unreg || !v.year) reg = '<span class="lc__meta-item">Без първа регистрация</span>';
+    else {
+      var date = (v.month ? (v.month < 10 ? "0" : "") + v.month + "/" : "") + v.year;
+      reg = '<span class="lc__meta-item"><span class="lc__meta-label">Първа регистрация</span> ' + AH.esc(date) + '</span>';
+    }
+    return '<span class="lc__meta">' +
+      '<span class="lc__meta-item">' + AH.esc(gear) + '</span>' +
+      '<span class="lc__meta-item">' + AH.esc(fuel) + '</span>' +
+      '<span class="lc__meta-item">' + AH.esc(km) + '</span>' + reg +
+      '</span>';
+  }'''
+          s = replace_once(s, old_meta, new_meta, 'car quick specs')
+          s = replace_once(s, "          '<span class=\"lc__meta\">' + AH.esc(metaLine(v)) + \"</span>\" +", "          metaLine(v) +", 'card meta renderer')
+          s = replace_once(s, '    opts = opts || {};\n', '    opts = opts || {};\n    opts.act = false;             /* cards link to the vehicle; no enquiry action on cards */\n', 'remove card enquiry actions')
+          write(p, s)
+
+          # ---------------- showroom.js ----------------
+          p = Path('showroom.js')
+          s = read(p)
+          s = replace_once(s, 'var CONTROLS = [{ key: "make", label: "Марка", kind: "list" }];', 'var CONTROLS = [{ key: "make", label: "Филтри", kind: "list" }];', 'catalog filter label')
+          s = replace_once(s, 'if (pvMore) pvMore.textContent = "Виж всички " + PLURAL(AH.all.length);', 'if (pvMore) pvMore.textContent = "Виж всички";', 'preview see all CTA')
+          write(p, s)
+
+          # ---------------- catalog.css ----------------
+          p = Path('catalog.css')
+          s = read(p)
+          marker = '/* AUTO HOUSE REQUESTED LISTING REFINEMENTS */'
+          if marker not in s:
+              s += '''\n\n/* AUTO HOUSE REQUESTED LISTING REFINEMENTS */
+/* The card action is intentionally removed, so the body can use the full width. */
+.lc__body{padding-right:var(--cat-inset)}
+.lc__meta{white-space:normal;display:flex;flex-wrap:wrap;gap:0 6px;align-items:baseline}
+.lc__meta-item{min-width:0}
+.lc__meta-item:not(:last-child)::after{content:" ·";opacity:.6}
+.lc__meta-label{font-weight:inherit}
+
+/* Mobile inventory is deliberately two-up on both the landing preview and full listing. */
+@media(max-width:599px){
+  .cgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 8px}
+  .lc__body{padding:8px 8px 10px}
+  .lc__price{font-size:13px;line-height:18px}
+  .lc__name{font-size:11.5px;line-height:17px}
+  .lc__meta{font-size:10.5px;line-height:15px;gap:0 4px}
+  .lc__cue{display:none}
+}
+'''
+          write(p, s)
+
+          # ---------------- i18n.js ----------------
+          p = Path('i18n.js')
+          s = read(p)
+          anchor = '    "Автомобили": "Vehicles",\n'
+          if anchor not in s:
+              raise SystemExit('Could not locate i18n navigation anchor')
+          entries = [
+              ('Застраховки', 'Insurance'), ('Политика', 'Policy'), ('Контакти', 'Contacts'),
+              ('Сервиз', 'Service'), ('Auto Spa', 'Auto Spa'), ('Кафе бар', 'Cafe bar'),
+              ('Шоурум', 'Showroom'), ('Виж всички', 'See all'),
+              ('Автоматична', 'Automatic'), ('Ръчна', 'Manual'),
+              ('Първа регистрация', 'First registration'), ('Без първа регистрация', 'Unregistered'),
+              ('Финансиране', 'Financing'), ('Покритие', 'Insurance'),
+              ('Лизинг при покупка на автомобил.', 'Leasing for a vehicle purchase.'),
+              ('Застраховане при покупка на автомобил.', 'Insurance for a vehicle purchase.'),
+              ('Условията за лизинг се уточняват индивидуално при запитване.', 'Leasing terms are confirmed individually on enquiry.'),
+              ('Условията за застраховане се уточняват индивидуално при запитване.', 'Insurance terms are confirmed individually on enquiry.'),
+              ('Три автомобила в шоурума на AutoHaus', 'Three vehicles in the AutoHaus showroom'),
+              ('Шоурум AutoHaus', 'AutoHaus showroom'),
+              ('Сградата на AutoHaus през деня', 'The AutoHaus building by day'),
+              ('Автомобили в шоурума на AutoHaus', 'Vehicles in the AutoHaus showroom'),
+              ('Сервиз AutoHaus', 'AutoHaus service'),
+              ('Кафе бар AutoHaus', 'AutoHaus cafe bar')
+          ]
+          insertion = ''
+          for bg, en in entries:
+              key = '    ' + repr(bg).replace("'", '"') + ':'
+              # repr-based presence check is intentionally simple; all entries here contain no quotes.
+              if f'    "{bg}":' not in s:
+                  insertion += f'    "{bg}": "{en}",\n'
+          s = s.replace(anchor, anchor + insertion, 1)
+          write(p, s)
+
+          # Acceptance checks before build.
+          idx = read('index.html')
+          assert idx.count('class="stage-item') == 5
+          assert '<h2 class="csec__h">Автомобили</h2>' in idx
+          assert 'id="zastrahovki"' in idx and 'id="lizing"' in idx
+          assert 'id="about"' not in idx
+          assert '>Обслужване</span></a></li>' not in idx
+          assert 'href="#about"' not in idx
+          cat = read('catalog.js')
+          assert 'v.hp + " к.с."' not in cat
+          assert 'opts.act = false' in cat
+          show = read('showroom.js')
+          assert 'label: "Филтри"' in show
+          assert 'pvMore.textContent = "Виж всички"' in show
+          PY
+
+      - name: Build production assets
+        run: node build.js
+
+      - name: Validate JavaScript and requested invariants
+        shell: bash
+        run: |
+          node --check main.js
+          node --check catalog.js
+          node --check showroom.js
+          node --check i18n.js
+          node --check vehicle.js
+          node --check concierge.js
+          node --check data/vehicles.js
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+          idx = Path('index.html').read_text(encoding='utf-8')
+          css = Path('catalog.min.css').read_text(encoding='utf-8')
+          cat = Path('catalog.js').read_text(encoding='utf-8')
+          menu = re.search(r'<div class="mob".*?<nav aria-label="Меню">(.*?)</nav>', idx, re.S).group(1)
+          labels = re.findall(r'<a[^>]*>([^<]+)</a>', menu)
+          assert labels == ['Автомобили','Застраховки','Лизинг','Сервиз','Auto Spa','Кафе бар','Политика','Контакти','Запитване'], labels
+          assert idx.count('class="stage-item') == 5
+          assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in css
+          assert 'lc__act' in cat  # renderer structure remains documented; opts.act forces it off
+          assert 'opts.act = false' in cat
+          assert 'Първа регистрация' in cat and 'Без първа регистрация' in cat
+          print('Acceptance checks passed')
+          PY
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          rm -f .github/workflows/apply-landing-refresh.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: polish landing navigation and vehicle listing [landing-refresh]"
+          git push origin HEAD:codex/landing-navigation-listing
