@@ -1,0 +1,78 @@
+name: Apply landing refresh
+
+on:
+  push:
+    branches:
+      - codex/landing-navigation-listing
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/landing-navigation-listing
+          fetch-depth: 0
+
+      - name: Apply requested changes
+        run: python3 tools/apply_landing_refresh.py
+
+      - name: Build production assets
+        run: node build.js
+
+      - name: Validate JavaScript
+        run: |
+          node --check main.js
+          node --check catalog.js
+          node --check showroom.js
+          node --check i18n.js
+          node --check vehicle.js
+          node --check concierge.js
+          node --check data/vehicles.js
+
+      - name: Validate acceptance criteria
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          idx = Path('index.html').read_text(encoding='utf-8')
+          css = Path('catalog.min.css').read_text(encoding='utf-8')
+          cat = Path('catalog.js').read_text(encoding='utf-8')
+          show = Path('showroom.js').read_text(encoding='utf-8')
+          menu = re.search(r'<div class="mob".*?<nav aria-label="Меню">(.*?)</nav>', idx, re.S)
+          assert menu, 'mobile menu missing'
+          labels = re.findall(r'<a[^>]*>([^<]+)</a>', menu.group(1))
+          expected = ['Автомобили','Застраховки','Лизинг','Сервиз','Auto Spa','Кафе бар','Политика','Контакти','Запитване']
+          assert labels == expected, (labels, expected)
+          assert idx.count('class="stage-item') == 5
+          assert '<h1 class="h3">Auto House</h1>' in idx
+          assert '<h2 class="h3">Шоурум</h2>' in idx
+          assert '<h2 class="h3">Auto Spa</h2>' in idx
+          assert '<h2 class="h3">Сервиз</h2>' in idx
+          assert '<h2 class="h3">Кафе бар</h2>' in idx
+          assert '<h2 class="csec__h">Автомобили</h2>' in idx
+          assert 'id="about"' not in idx
+          assert 'id="zastrahovki"' in idx and 'id="lizing"' in idx
+          assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in css
+          assert 'opts.act = false' in cat
+          assert 'v.hp + " к.с."' not in cat
+          assert 'Първа регистрация' in cat and 'Без първа регистрация' in cat
+          assert 'label: "Филтри"' in show
+          assert 'pvMore.textContent = "Виж всички"' in show
+          print('Acceptance checks passed')
+          PY
+
+      - name: Commit implementation
+        run: |
+          rm -f .github/workflows/apply-landing-refresh.yml
+          rm -f .github/workflows/apply-landing-refresh-v2.yml
+          rm -f tools/apply_landing_refresh.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: polish landing navigation and vehicle listing [skip ci]"
+          git push origin HEAD:codex/landing-navigation-listing
