@@ -57,6 +57,7 @@ module.exports = async function handler(req, res) {
 <script src="/data/vehicles.base.js?v=fe83b016"></script>
 <script src="/admin/admin-guards.js?v=20260909-admin1"></script>
 <script src="/admin/admin.js?v=20260909-admin1" defer></script>
+<script src="/admin/local-ai.js?v=20260909-local1" defer></script>
 </body>
 </html>`);
 };
