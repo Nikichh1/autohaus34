@@ -26,10 +26,12 @@ module.exports = async function handler(req, res) {
 <html lang="bg">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#171717">
 <title>Auto House Admin</title>
 <link rel="stylesheet" href="/admin/admin.css?v=20260909-admin1">
+<link rel="stylesheet" href="/admin/mobile.css?v=20260909-mobile1">
 </head>
 <body class="ah-admin">
 <div class="app-shell">
@@ -56,8 +58,10 @@ module.exports = async function handler(req, res) {
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/data/vehicles.base.js?v=fe83b016"></script>
 <script src="/admin/admin-guards.js?v=20260909-admin1"></script>
+<script src="/admin/ai-router.js?v=20260909-ai1"></script>
+<script src="/admin/local-ai.js?v=20260909-local2"></script>
 <script src="/admin/admin.js?v=20260909-admin1" defer></script>
-<script src="/admin/local-ai.js?v=20260909-local1" defer></script>
+<script src="/admin/mobile.js?v=20260909-mobile1" defer></script>
 </body>
 </html>`);
 };
