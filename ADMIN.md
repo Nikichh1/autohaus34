@@ -32,16 +32,24 @@ CLOUDINARY_API_SECRET=...
 
 Uploads are signed by `/api/admin/images`; the API secret never reaches the browser. Staff can upload normal phone/camera files directly. Delivery variants are automatically generated at 400, 800 and 1280 px in JPEG + WebP, with auto orientation, quality optimization and a site-compatible 800:490 crop without stretching the vehicle.
 
-## 3. Description processor
+## 3. Description processor — free local AI
 
-Set:
+No OpenAI API key is required.
 
-```text
-OPENAI_API_KEY=...
-OPENAI_MODEL=gpt-5
-```
+The admin uses Chrome's built-in local AI and Translator APIs when available. The model runs on the admin employee's computer, so vehicle text is not sent to an external AI provider and there is no per-request AI charge.
 
-The processor uses the Responses API with a strict JSON schema. It is explicitly instructed to preserve source facts, remove noise/duplicates, produce BG + EN in aligned order and never invent equipment/specifications. The employee must still review the result before saving.
+Recommended environment for the full AI workflow:
+
+- desktop Google Chrome
+- Windows 10/11, macOS 13+, Linux or supported ChromeOS hardware
+- enough local RAM/storage for Chrome's built-in model
+- internet connection only when Chrome initially downloads the required local model(s)
+
+The workflow stays: **paste → process → review → save**. Source text is cleaned and structured in English locally, then Chrome's local Translator produces Bulgarian. The processor is instructed never to invent equipment/specifications. Human review before saving remains mandatory.
+
+If the generative local model is unavailable, the admin automatically falls back to safe local cleanup/deduplication and uses the local Translator when available. The UI warns the employee that the fallback result needs review.
+
+The old `/api/admin/description` OpenAI endpoint remains unused by the default admin workflow and no `OPENAI_API_KEY` is required.
 
 ## 4. Existing inquiry email
 
@@ -58,7 +66,7 @@ Vehicle enquiries are delivered to `autohousesell@gmail.com`.
 
 Recommended deployment:
 
-1. Add all environment variables in **Vercel → Project → Settings → Environment Variables** for Production and Preview as appropriate.
+1. Add the Supabase, Cloudinary and Resend environment variables in **Vercel → Project → Settings → Environment Variables** for Production and Preview as appropriate.
 2. Deploy the repo normally. No framework conversion or public-site rebuild is required.
 3. Open `/admin/login.html`, sign in, then `/admin`.
 4. Run the one-click current-inventory import if this is the first setup.
@@ -83,7 +91,7 @@ Keep all secrets in the hosting environment, never in Git or public files.
 - **Автомобили** — search, edit, publish/unpublish.
 - **Добави** — create a structured vehicle.
 - **Снимки** — multi-upload, automatic processing, drag reorder, remove.
-- **Описание** — paste source → process → review BG/EN → save.
+- **Описание** — paste source → local process → review BG/EN → save.
 - **Публикуван / Чернова** — explicit state; saving a draft never publishes it accidentally.
 
 ## Data model
