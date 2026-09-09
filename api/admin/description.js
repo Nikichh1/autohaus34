@@ -15,15 +15,25 @@ const SCHEMA = {
   required: ["description_bg", "description_en", "equipment_bg", "equipment_en", "review_notes"]
 };
 
-function outputText(data) {
-  if (typeof data.output_text === "string") return data.output_text;
-  const out = [];
-  (data.output || []).forEach((item) => {
-    (item.content || []).forEach((part) => {
-      if (part.type === "output_text" && part.text) out.push(part.text);
-    });
-  });
-  return out.join("\n");
+function responseText(data) {
+  const candidate = data && Array.isArray(data.candidates) ? data.candidates[0] : null;
+  const parts = candidate && candidate.content && Array.isArray(candidate.content.parts) ? candidate.content.parts : [];
+  return parts.map((part) => typeof part.text === "string" ? part.text : "").join("\n").trim();
+}
+
+function safeJson(text) {
+  const normalized = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  return JSON.parse(normalized);
+}
+
+function validResult(parsed) {
+  return parsed && typeof parsed === "object" &&
+    typeof parsed.description_bg === "string" &&
+    typeof parsed.description_en === "string" &&
+    Array.isArray(parsed.equipment_bg) &&
+    Array.isArray(parsed.equipment_en) &&
+    Array.isArray(parsed.review_notes) &&
+    parsed.equipment_bg.length === parsed.equipment_en.length;
 }
 
 module.exports = async function handler(req, res) {
@@ -31,9 +41,9 @@ module.exports = async function handler(req, res) {
   if (!user) return json(res, 401, { ok: false, error: "Authentication required" });
   if (req.method !== "POST") return json(res, 405, { ok: false, error: "Method not allowed" });
 
-  const apiKey = env("OPENAI_API_KEY");
-  const model = env("OPENAI_MODEL") || "gpt-5";
-  if (!apiKey) return json(res, 503, { ok: false, error: "OPENAI_API_KEY is not configured" });
+  const apiKey = env("GEMINI_API_KEY");
+  const model = clean(env("GEMINI_MODEL") || "gemini-3.1-flash-lite", 80);
+  if (!apiKey) return json(res, 503, { ok: false, error: "GEMINI_API_KEY is not configured", code: "AI_NOT_CONFIGURED" });
 
   const body = req.body && typeof req.body === "object" ? req.body : {};
   const raw = clean(body.source, 30000);
@@ -43,69 +53,79 @@ module.exports = async function handler(req, res) {
   const context = {
     brand: clean(known.make, 120),
     model: clean(known.model, 220),
+    body_type: clean(known.body_type, 60),
     year: known.first_registration_year || null,
+    month: known.first_registration_month || null,
     fuel: clean(known.fuel, 40),
     transmission: clean(known.transmission, 40),
-    mileage: known.mileage == null ? null : Number(known.mileage),
-    horsepower: known.horsepower == null ? null : Number(known.horsepower),
+    mileage: known.mileage == null || known.mileage === "" ? null : Number(known.mileage),
+    horsepower: known.horsepower == null || known.horsepower === "" ? null : Number(known.horsepower),
     colour: clean(known.colour, 120)
   };
 
   const instructions = [
-    "You clean and structure vehicle listing text for Auto House.",
-    "Absolute rule: preserve factual information from SOURCE and KNOWN STRUCTURED DATA, and never invent, infer or embellish a specification, option, condition, history, warranty, ownership claim or feature.",
-    "If a fact is ambiguous, omit it from the polished description and mention the ambiguity briefly in review_notes.",
-    "Remove source-site boilerplate, duplicated lines, phone numbers, seller promotion, navigation fragments and obvious formatting noise.",
-    "Keep equipment codes exactly when present. Deduplicate only exact or clearly duplicate entries; do not merge two different facts.",
-    "description_bg must be concise professional Bulgarian prose made only from explicit facts. description_en must faithfully translate the same facts into English.",
-    "equipment_bg and equipment_en must be line-for-line aligned arrays with the same number and order of items. Bulgarian is the primary cleaned equipment list; English is its faithful translation.",
-    "Do not translate brand/model names, OEM option codes, trim names or product names unless there is a conventional localized form.",
-    "The result is reviewed by a human before saving."
+    "Clean and structure vehicle listing text for Auto House.",
+    "ABSOLUTE RULE: preserve only factual information explicitly present in SOURCE or KNOWN STRUCTURED DATA. Never invent, infer, embellish, assume or silently correct a specification, option, condition, history, warranty, ownership claim or feature.",
+    "If something is ambiguous or conflicting, omit it from polished copy and put a short warning in review_notes.",
+    "Remove source-site boilerplate, navigation, cookie text, seller promotion, phone numbers, contacts, repeated blocks and obvious formatting noise.",
+    "Keep OEM option/equipment codes exactly when present. Deduplicate only exact or clearly duplicated facts. Keep different facts separate.",
+    "description_bg: concise professional Bulgarian prose containing only explicit facts.",
+    "description_en: faithful English version of the same facts, not a new description.",
+    "equipment_bg and equipment_en: line-for-line aligned arrays, same count and same order. Each item contains one factual equipment/feature statement.",
+    "Do not translate brand/model/OEM codes/trim or product names unless a conventional localized form exists.",
+    "Do not add marketing adjectives that imply facts not in the source.",
+    "Return only JSON matching the requested schema. A human reviews the result before saving."
   ].join("\n");
 
+  const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent";
+
   try {
-    const r = await fetch("https://api.openai.com/v1/responses", {
+    const r = await fetch(endpoint, {
       method: "POST",
       headers: {
-        Authorization: "Bearer " + apiKey,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey
       },
       body: JSON.stringify({
-        model,
-        store: false,
-        input: [
-          { role: "system", content: [{ type: "input_text", text: instructions }] },
-          { role: "user", content: [{ type: "input_text", text: "KNOWN STRUCTURED DATA:\n" + JSON.stringify(context) + "\n\nSOURCE:\n" + raw }] }
-        ],
-        text: {
-          format: {
-            type: "json_schema",
-            name: "vehicle_description",
-            strict: true,
-            schema: SCHEMA
-          }
+        systemInstruction: { parts: [{ text: instructions }] },
+        contents: [{
+          role: "user",
+          parts: [{ text: "KNOWN STRUCTURED DATA:\n" + JSON.stringify(context) + "\n\nSOURCE:\n" + raw }]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: "application/json",
+          responseJsonSchema: SCHEMA
         }
       })
     });
 
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
-      console.error("OpenAI description error", r.status, data && data.error);
-      return json(res, 502, { ok: false, error: "Description processing failed" });
+      const message = data && data.error && data.error.message ? data.error.message : "Gemini request failed";
+      console.error("Gemini description error", r.status, message);
+      if (r.status === 429) {
+        return json(res, 429, { ok: false, error: "Безплатният AI лимит е достигнат. Опитайте отново по-късно.", code: "AI_FREE_QUOTA" });
+      }
+      return json(res, 502, { ok: false, error: "AI обработката не успя", code: "AI_PROVIDER_ERROR" });
     }
 
-    const text = outputText(data);
     let parsed;
-    try { parsed = JSON.parse(text); }
-    catch (_) { return json(res, 502, { ok: false, error: "AI returned an invalid structured result" }); }
+    try { parsed = safeJson(responseText(data)); }
+    catch (_) { return json(res, 502, { ok: false, error: "AI върна невалиден структуриран резултат", code: "AI_BAD_OUTPUT" }); }
 
-    if (!Array.isArray(parsed.equipment_bg) || !Array.isArray(parsed.equipment_en) || parsed.equipment_bg.length !== parsed.equipment_en.length) {
-      return json(res, 502, { ok: false, error: "AI returned misaligned translations" });
+    if (!validResult(parsed)) {
+      return json(res, 502, { ok: false, error: "AI върна непълен или разминаващ се превод", code: "AI_BAD_OUTPUT" });
     }
 
-    return json(res, 200, { ok: true, result: parsed, model });
+    return json(res, 200, {
+      ok: true,
+      result: parsed,
+      provider: "gemini",
+      model
+    });
   } catch (err) {
     console.error("Description processor failed", err);
-    return json(res, 502, { ok: false, error: "Description service unavailable" });
+    return json(res, 502, { ok: false, error: "AI услугата временно не е достъпна", code: "AI_UNAVAILABLE" });
   }
 };
