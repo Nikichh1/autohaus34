@@ -30,6 +30,7 @@ create table if not exists public.vehicles (
   images jsonb not null default '[]'::jsonb,
   source_url text not null default '',
   published boolean not null default false,
+  sort_order integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint vehicles_month_check check (first_registration_month is null or first_registration_month between 1 and 12),
@@ -39,7 +40,10 @@ create table if not exists public.vehicles (
   constraint vehicles_price_check check (price is null or price >= 0)
 );
 
-create index if not exists vehicles_published_idx on public.vehicles (published, updated_at desc);
+-- Safe when this file is re-run against an earlier version of the table.
+alter table public.vehicles add column if not exists sort_order integer not null default 0;
+
+create index if not exists vehicles_published_idx on public.vehicles (published, sort_order asc, updated_at desc);
 create index if not exists vehicles_make_model_idx on public.vehicles (make, model);
 
 alter table public.vehicles enable row level security;
