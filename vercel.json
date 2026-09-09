@@ -1,4 +1,7 @@
 {
+  "rewrites": [
+    { "source": "/admin", "destination": "/api/admin/page" }
+  ],
   "headers": [
     {
       "source": "/data/vehicles.js",
@@ -19,7 +22,27 @@
       ]
     },
     {
-      "source": "/api/(.*)",
+      "source": "/data/phase3.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/admin/login.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/api/admin/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/api/inquiry",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" }
       ]
