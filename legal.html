@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.jpg" type="image/svg+xml">
+<link rel="mask-icon" href="favicon.jpg" color="#c9a25a">
+<title>Правна информация — AutoHaus Пловдив</title>
+<meta name="description" content="Политика за поверителност, политика за бисквитки, общи условия и права по GDPR на Аутохаус България ЕООД.">
+<!-- THE CRITICAL PATH.
+     Measured on a 1.6Mbps link with 300ms RTT: first paint was gated by
+     160KB arriving before it, of which only 83KB draws anything. The rest
+     — the catalog stylesheet and five scripts — merely shared the pipe with
+     the one file that decides when the page appears.
+
+     So: style.css is the ONLY render-blocking request. catalog.css loads
+     non-blocking (it styles the collection grid, which is below the hero,
+     and the catalog layer, which is closed). The scripts start when
+     style.css lands, in document order, via the loader at the end of this
+     head. `script.async = false` on a dynamically inserted script is the
+     exact equivalent of `defer`: it does not block the parser and it runs
+     in insertion order, so the data -> main -> catalog -> showroom -> i18n
+     chain is preserved.
+
+     Exo 2 is self-hosted (see "THE TYPEFACE" in style.css) and deliberately
+     NOT preloaded: preloading the weight-300 pair put 59KB in front of the
+     stylesheet and pushed first paint 150ms LATER. font-display:swap covers
+     the gap. -->
+<link rel="stylesheet" href="style.min.css?v=fe83b016" id="ah-css">
+<meta name="robots" content="noindex">
+<script>
+/* Starts the app the moment the render-blocking stylesheet is in — not
+   before (it would share the pipe with it) and not on window.load (that
+   waits for every photograph). The timeout is a floor, never a ceiling: a
+   stylesheet that stalls must not take the site down with it.
+
+   AND NOT BEFORE THE DOCUMENT EXISTS, which is the part this was missing.
+   `script.async = false` on a dynamically inserted script was described
+   here as "the exact equivalent of defer". It is not. It guarantees ORDER
+   between such scripts and nothing else: each one runs the moment it has
+   been fetched, which on a warm cache is immediately — and this loader
+   lives in <head>, so `css.sheet` is already truthy on the very first
+   line and every script ran while the parser was still inside <head>.
+
+   With <body> not yet created, i18n's MutationObserver threw outright
+   ("parameter 1 is not of type 'Node'"), so nothing rendered by a script
+   afterwards was ever translated; and main.js's querySelectorAll calls
+   matched an empty document, so the hero, the rail and the reveals bound
+   to nothing. On a cold cache the stylesheet's load event happens to fire
+   after </body> and none of it shows, which is why it survived: the bug
+   only appears on a second visit.
+
+   readyState is the missing gate. Everything else — the ordering, the
+   3s floor, staying off window.load — is unchanged. */
+(function () {
+  var q = ["data/vehicles.js?v=fe83b016","main.js?v=fe83b016","i18n.js?v=fe83b016"], fired = false;
+  function boot() {
+    if (fired) return; fired = true;
+    for (var i = 0; i < q.length; i++) {
+      var s = document.createElement("script");
+      s.src = q[i]; s.async = false;      /* = defer: ordered, non-blocking */
+      document.head.appendChild(s);
+    }
+  }
+  /* the stylesheet is in — now wait for a document to put it on */
+  function ready() {
+    if (document.readyState === "loading")
+      document.addEventListener("DOMContentLoaded", boot, { once: true });
+    else boot();
+  }
+  var css = document.getElementById("ah-css");
+  if (!css || css.sheet) ready();
+  else { css.addEventListener("load", ready); css.addEventListener("error", ready); }
+  setTimeout(ready, 3000);
+})();
+</script>
+</head>
+<body class="ah">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ic-arrow" viewBox="0 0 16 16"><path d="M2,8 L13,8 M9,4 L13,8 L9,12"/></symbol>
+    <symbol id="ic-chev-l" viewBox="0 0 16 16"><path d="M10,3 L5,8 L10,13"/></symbol>
+    <symbol id="ic-chev-r" viewBox="0 0 16 16"><path d="M6,3 L11,8 L6,13"/></symbol>
+    <symbol id="ic-doc" viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12"/><path d="M5.5,5.5 H10.5 M5.5,8 H10.5 M5.5,10.5 H9"/></symbol>
+    <symbol id="ic-pin" viewBox="0 0 16 16"><path d="M8,14 C8,14 12.5,9.6 12.5,6.4 C12.5,4 10.5,2 8,2 C5.5,2 3.5,4 3.5,6.4 C3.5,9.6 8,14 8,14 Z"/><circle cx="8" cy="6.4" r="1.6"/></symbol>
+    <symbol id="ic-x" viewBox="0 0 18 18"><path d="M2,2 L16,16 M16,2 L2,16"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 16 16"><path d="M3,8.5 L6.5,12 L13,4.5"/></symbol>
+    <symbol id="ic-fb" viewBox="0 0 18 18"><path d="M11.9,9.8h2.06l.33-2.6h-2.39V5.53c0-.75.21-1.26,1.29-1.26h1.37V1.95a18.4,18.4,0,0,0-2-.1c-1.98,0-3.33,1.2-3.33,3.42V7.2H7.16V9.8H9.23V16.5h2.67Z"/></symbol>
+    <symbol id="ic-ig" viewBox="0 0 18 18"><path d="M9,3.5c1.79,0,2,0,2.71.04a3.7,3.7,0,0,1,1.25.23,2.23,2.23,0,0,1,1.27,1.27,3.7,3.7,0,0,1,.23,1.25c.03.71.04.92.04,2.71s-.01,2-.04,2.71a3.7,3.7,0,0,1-.23,1.25,2.23,2.23,0,0,1-1.27,1.27,3.7,3.7,0,0,1-1.25.23c-.71.03-.92.04-2.71.04s-2-.01-2.71-.04a3.7,3.7,0,0,1-1.25-.23,2.23,2.23,0,0,1-1.27-1.27,3.7,3.7,0,0,1-.23-1.25C3.51,11,3.5,10.79,3.5,9s.01-2,.04-2.71a3.7,3.7,0,0,1,.23-1.25A2.23,2.23,0,0,1,5.04,3.77a3.7,3.7,0,0,1,1.25-.23C7,3.51,7.21,3.5,9,3.5Zm0,1.49c-1.76,0-1.97.01-2.66.04a2.2,2.2,0,0,0-.74.14,1.24,1.24,0,0,0-.71.71,2.2,2.2,0,0,0-.14.74C4.72,7.31,4.71,7.52,4.71,9s.01,1.69.04,2.38a2.2,2.2,0,0,0,.14.74,1.24,1.24,0,0,0,.71.71,2.2,2.2,0,0,0,.74.14c.69.03.9.04,2.66.04s1.97-.01,2.66-.04a2.2,2.2,0,0,0,.74-.14,1.24,1.24,0,0,0,.71-.71,2.2,2.2,0,0,0,.14-.74c.03-.69.04-.9.04-2.38s-.01-1.69-.04-2.38a2.2,2.2,0,0,0-.14-.74,1.24,1.24,0,0,0-.71-.71,2.2,2.2,0,0,0-.74-.14C10.97,5,10.76,4.99,9,4.99Z"/><path d="M9,11.25A2.25,2.25,0,1,1,11.25,9,2.25,2.25,0,0,1,9,11.25Zm0-5.71A3.46,3.46,0,1,0,12.46,9,3.46,3.46,0,0,0,9,5.54Z"/><circle cx="12.6" cy="5.4" r=".81"/></symbol>
+    <symbol id="ic-menu" viewBox="0 0 18 18"><path d="M1,5 H17 M1,13 H17"/></symbol>
+  </defs>
+</svg>
+
+
+<a class="ah-skip" href="#cg">Към заявката</a>
+
+<header class="hd" id="hd">
+  <nav class="hd-nav" aria-label="Основна навигация">
+    <div class="hd-zone hd-zone--start">
+      <button class="hd-menu" id="hd-menu" aria-expanded="false" aria-controls="mob">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-menu"/></svg><span>Меню</span>
+      </button>
+      <a class="lnk" href="index.html#avtomobili">Автомобили</a>
+      <ul class="hd-links">
+        <li><a class="lnk" href="index.html#razdeli">Услуги</a></li>
+        <li><a class="lnk" href="index.html#lizing">Лизинг</a></li>
+        <li><a class="lnk" href="index.html#about">За нас</a></li>
+        <li><a class="lnk" href="legal.html#imprint" data-contact>Контакт</a></li>
+      </ul>
+    </div>
+    <a class="hd-logo" href="index.html" aria-label="AutoHaus — начало">
+      <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+    </a>
+    <ul class="hd-zone hd-zone--end">
+      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Обслужване</span></a></li>
+      <li class="hd-lang">
+        <div class="lang" id="lang" role="group" aria-label="Език / Language">
+          <i class="lang__ind" aria-hidden="true"></i>
+          <button type="button" class="lang__o is-on" data-lang="bg" lang="bg" aria-pressed="true">BG</button>
+          <button type="button" class="lang__o" data-lang="en" lang="en" aria-pressed="false">EN</button>
+        </div>
+      </li>
+      <li class="hd-social">
+        <ul class="social social--hd" aria-label="AutoHaus в социалните мрежи">
+          <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+          <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<!-- THE BRAND PLATE — the same wedge the landing page carries. Both of these
+     pages have the same `position:absolute` header, so both lost their mark
+     and their menu the moment the reader scrolled. See "THE BRAND PLATE" in
+     style.css; main.js arms it off the first section on the page. -->
+<div class="plate" id="plate">
+  <div class="plate__in">
+    <button type="button" class="plate__menu" id="plate-menu" aria-expanded="false" aria-controls="mob">
+      <span class="plate__bars" aria-hidden="true"><i></i><i></i></span>
+      <span class="plate__menu-l">Меню</span>
+    </button>
+    <a class="plate__mark" href="index.html" aria-label="AutoHaus — начало">
+      <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+    </a>
+    <div class="lang" role="group" aria-label="Език / Language">
+      <i class="lang__ind" aria-hidden="true"></i>
+      <button type="button" class="lang__o is-on" data-lang="bg" lang="bg" aria-pressed="true">BG</button>
+      <button type="button" class="lang__o" data-lang="en" lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</div>
+
+<!-- THE MENU — a panel, not a takeover. See "THE MENU" in style.css. -->
+<div class="mob" id="mob" aria-hidden="true">
+  <div class="mob__scrim" id="mob-scrim"></div>
+  <div class="mob__reveal">
+    <div class="mob__sheet">
+      <a class="mob-mark" href="index.html" aria-label="AutoHaus">
+        <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+      </a>
+      <button class="mob-close" id="mob-close" aria-label="Затвори">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
+      </button>
+      <nav aria-label="Меню">
+        <a href="index.html#avtomobili">Автомобили</a>
+        <a href="concierge.html">Обслужване</a>
+        <a href="index.html#razdeli">Услуги</a>
+        <a href="index.html#lizing">Лизинг</a>
+        <a href="index.html#about">За нас</a>
+        <a href="legal.html#imprint" data-contact>Контакт</a>
+      </nav>
+      <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
+        <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+        <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+      </ul>
+      <div class="mob-foot">
+        <a href="tel:+359884777147">+359 884 777 147</a>
+        <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== THE CONTACT PANEL ====================
+     The menu's sibling, mirrored to the other corner — see "THE CONTACT
+     PANEL" in style.css for why it is a panel and not a page, and
+     "THE HOUSE ANGLE" for why the cut is on the left here and on the right
+     there. Anything carrying [data-contact] opens it; every one of those
+     triggers keeps a real href to #kontakt, so with JS off "Контакт" still
+     lands in the footer, which still holds the address and the office line.
+
+     The figures below are the ones published on autohaus.bg/контакти —
+     six departments, each with its own line and its own hours. They are
+     the only place on this site those numbers appear in full. -->
+<div class="ctc" id="ctc" aria-hidden="true">
+  <div class="ctc__scrim" id="ctc-scrim"></div>
+  <div class="ctc__reveal">
+    <div class="ctc__sheet" role="dialog" aria-modal="true" aria-labelledby="ctc-h">
+      <button class="ctc-close" id="ctc-close" aria-label="Затвори">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
+      </button>
+      <div class="ctc__scroll">
+        <p class="ctc__eyebrow">AutoHaus Пловдив</p>
+        <h2 class="ctc__h" id="ctc-h">Контакт</h2>
+
+        <div class="ctc__where">
+          <address class="ctc__addr">
+            <b>Аутохаус България ЕООД</b><br>
+            ул. „Нестор Абаджиев“ №24<br>
+            Асеновградско шосе<br>
+            4023 Пловдив, България
+          </address>
+          <p class="ctc__co">ЕИК 200771286 · ДДС BG200771286</p>
+
+          <!-- Google Maps opens only after the visitor chooses this local location card. -->
+          <a class="ctc__map"
+             href="https://www.google.com/maps/search/?api=1&amp;query=42.1207222%2C24.7737222"
+             target="_blank" rel="noopener">
+            <span class="ctc__map-copy">
+              <span class="ctc__map-k">Локация</span>
+              <span class="ctc__map-title">Отвори в Google Maps</span>
+              <span class="ctc__map-coords">42°07'14.6&quot;N&nbsp;&nbsp;24°46'25.4&quot;E</span>
+            </span>
+            <svg class="ctc__map-pin" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-pin"/></svg>
+          </a>
+        </div>
+
+        <div class="ctc__depts">
+          <div class="ctc__dept">
+            <p class="ctc__k">Офис</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777147">+359 884 777 147</a>
+              <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Продажби</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777045">+359 884 777 045</a>
+              <a href="tel:+359885725860">+359 885 725 860</a>
+              <a href="mailto:autohaussale@gmail.com">autohaussale@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Застраховане</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777089">+359 884 777 089</a>
+              <a href="tel:+359888850777">+359 888 850 777</a>
+              <span class="ctc__note">Щети</span>
+              <a href="tel:+359884560502">+359 884 560 502</a>
+              <a href="mailto:autohausbroker@gmail.com">autohausbroker@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Сервиз</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777321">+359 884 777 321</a>
+              <span class="ctc__note">ГТП</span>
+              <a href="tel:+359884536361">+359 884 536 361</a>
+              <a href="mailto:autohausservices@gmail.com">autohausservices@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">AutoSpa</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+          <div class="ctc__dept">
+            <p class="ctc__k">Кафе бар</p>
+            <p class="ctc__lines">
+              <a href="tel:+359884777148">+359 884 777 148</a>
+              <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
+            </p>
+            <p class="ctc__hrs">Пон – Нед · 08:00 – 20:00</p>
+          </div>
+        </div>
+
+        <div class="ctc__social">
+          <p class="ctc__k">Последвайте ни</p>
+          <ul class="social" aria-label="AutoHaus в социалните мрежи">
+            <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
+            <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- the language wipe: see i18n.js and "THE LANGUAGE SWITCH" in style.css -->
+<div class="wipe" id="wipe" aria-hidden="true">
+  <i class="wipe__panel"><span class="wipe__word" id="wipe-word"></span></i>
+</div>
+
+<main id="content">
+
+<section class="lg">
+  <div class="grid"><div class="row"><div class="col offset-1 span-10">
+
+    <div class="phead">
+      <p class="phead-eyebrow">AutoHaus</p>
+      <h1 class="h4">Правна информация</h1>
+      <div class="body-s"><p>Четири документа: какво правим с личните Ви данни,
+        какво този сайт оставя на устройството Ви, при какви условия го ползвате
+        и кой стои зад него. Написани са, за да бъдат прочетени.</p></div>
+    </div>
+
+
+    <nav class="lg-toc" aria-label="Съдържание">
+      <a href="#privacy">Поверителност</a>
+      <a href="#cookies">Бисквитки</a>
+      <a href="#terms">Общи условия</a>
+      <a href="#imprint">Фирмени данни</a>
+    </nav>
+
+    <article class="lg-doc" id="privacy">
+      <h2 class="lg-h">Политика за поверителност</h2>
+      <p class="lg-upd">Последна редакция: 30 август 2026 г.</p>
+
+      <p>Тук е описано как обработваме лични данни, когато се свържете с нас или използвате услугите ни.</p>
+
+      <h3>1. Администратор и контакт</h3>
+      <p><b>Аутохаус България ЕООД</b>, ЕИК 200771286, ДДС № BG200771286, със
+        седалище и адрес на управление ул. „Нестор Абаджиев“ №24, Асеновградско
+        шосе, 4023 Пловдив, е администратор на лични данни.</p>
+      <p>За въпроси или искания за лични данни: <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+        или <a href="tel:+359884777147">+359 884 777 147</a>.</p>
+
+      <h3>2. Данни, цели и основание</h3>
+      <p><b>Когато ни изпратите запитване.</b> Обработваме данните, които ни предоставяте — например име, телефон, имейл, автомобил, бюджет и предпочитания — за да отговорим и да предприемем действия по Ваше искане преди сключване на договор (чл. 6, §1, б. „б“ GDPR).</p>
+      <p><b>При сделка.</b> Обработваме данните, необходими за договора, регистрацията, плащането и законовите ни задължения (чл. 6, §1, б. „б“ и „в“ GDPR).</p>
+      <p><b>При посещение на сайта.</b> Хостинг доставчикът може да обработва технически логове, необходими за сигурността и работата на сайта. Не използваме рекламни, аналитични или профилиращи инструменти.</p>
+      <p>Не обработваме специални категории данни чрез сайта и не вземаме автоматизирани решения за Вас.</p>
+
+      <h3>3. Срок на съхранение</h3>
+      <p>Пазим запитванията за времето, необходимо да отговорим, да управляваме отношенията си с Вас и да защитим или предявим правни претенции. Данните и документите по сделка се пазят за приложимите законови срокове.</p>
+
+      <h3>4. Получатели</h3>
+      <p>Споделяме данни само когато това е необходимо:</p>
+      <ul class="lg-list">
+        <li><b>Доставчици на хостинг и електронна поща</b> — за работата на сайта и кореспонденцията.</li>
+        <li><b>Лизингови и застрахователни партньори</b> — само ако поискате конкретна оферта.</li>
+        <li><b>Държавни органи и професионални консултанти</b> — когато законът или защитата на наши права го изисква.</li>
+      </ul>
+      <p>Не продаваме и не отдаваме под наем лични данни.</p>
+
+      <h3>5. Вашите права</h3>
+      <p>Можете да поискате достъп, коригиране, изтриване, ограничаване, преносимост или да възразите срещу обработване. Когато основанието е съгласие, можете да го оттеглите по всяко време. Пишете на <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>; отговаряме в законовия срок.</p>
+      <p>Можете да подадете жалба до <a href="https://cpdp.bg" target="_blank" rel="noopener">Комисията за защита на личните данни</a>.</p>
+
+      <h3>6. Сигурност</h3>
+      <p>Прилагаме подходящи технически и организационни мерки според риска. Достъп до данните имат само лица, за които това е необходимо.</p>
+    </article>
+
+    <article class="lg-doc" id="cookies">
+      <h2 class="lg-h">Политика за бисквитки</h2>
+      <p class="lg-upd">Последна редакция: 30 август 2026 г.</p>
+
+      <h3>1. Без проследяване</h3>
+      <p>Този сайт не използва рекламни, аналитични или проследяващи бисквитки, пиксели или подобни технологии.</p>
+
+      <h3>2. Функционална настройка</h3>
+      <p>След като изберете език, сайтът може да запази избора локално в браузъра Ви, за да го използва при следващо отваряне. Тази настройка не се изпраща до AutoHaus и може да бъде изтрита от настройките на браузъра.</p>
+
+      <h3>3. Външни услуги</h3>
+      <p>Google Maps, Facebook, Instagram и WhatsApp се отварят само чрез обикновени външни препратки след Ваше действие. Сайтът не зарежда тяхно съдържание автоматично.</p>
+
+      <h3>4. Банер за съгласие</h3>
+      <p>За текущата версия на сайта не е нужен банер за съгласие, защото няма незадължителни бисквитки или вградени услуги на трети страни. Ако такива бъдат добавени, те ще се зареждат само след предварително изрично съгласие и ще бъдат описани тук.</p>
+    </article>
+
+    <article class="lg-doc" id="terms">
+      <h2 class="lg-h">Общи условия за ползване</h2>
+      <p class="lg-upd">Последна редакция: 30 август 2026 г.</p>
+
+      <h3>1. Предмет</h3>
+      <p>Тези условия уреждат ползването на сайта на Аутохаус България ЕООД.</p>
+
+      <h3>2. Автомобили, цени и снимки</h3>
+      <p>Наличността, цените, техническите характеристики и фотографиите могат да се променят. Те са с информационна цел и не са потвърждение за продажба.</p>
+      <p>Преди покупка потвърдете с нас наличността, цената и конкретното оборудване. Обвързващо е само писмено потвърденото за конкретния автомобил.</p>
+
+      <h3>3. Лизинг и застраховане</h3>
+      <p>Показаните примерни условия за финансиране са ориентировъчни, не са оферта и не представляват одобрение. Окончателните условия и решението се определят от съответната партньорска институция.</p>
+      <p>Застрахователните оферти и премии се определят от застрахователя.</p>
+
+      <h3>4. Запазване и замяна</h3>
+      <p>Автомобил може да бъде запазен при условия, договорени писмено. Замяна с Ваш автомобил е възможна след оглед и писмена оферта; оценката е валидна за срока, посочен в нея.</p>
+
+      <h3>5. Съдържание и права</h3>
+      <p>Текстовете, фотографиите и материалите в сайта са защитени. Марките на производителите принадлежат на техните притежатели и се използват само за обозначаване на автомобилите.</p>
+      <p>Нищо в тези условия не ограничава права, които законът предоставя на потребителите, или отговорност, която не може да бъде ограничена по закон.</p>
+
+      <h3>6. Приложимо право и спорове</h3>
+      <p>Прилага се българското право. При спор първо търсим решение по споразумение. Като потребител можете да се обърнете и към <a href="https://kzp.bg" target="_blank" rel="noopener">Комисията за защита на потребителите</a>.</p>
+    </article>
+
+    <!-- The company details live in one maintained place so the footer,
+         privacy policy and terms do not drift apart. -->
+    <article class="lg-doc" id="imprint">
+      <h2 class="lg-h">Фирмени данни</h2>
+      <p class="lg-upd">Последна редакция: 30 август 2026 г.</p>
+
+      <p>Този сайт се поддържа от:</p>
+
+      <dl class="lg-dl">
+        <div><dt>Фирма</dt><dd>Аутохаус България ЕООД</dd></div>
+        <div><dt>На латиница</dt><dd>Autohaus Bulgaria Ltd.</dd></div>
+        <div><dt>Правна форма</dt><dd>Еднолично дружество с ограничена отговорност</dd></div>
+        <div><dt>ЕИК</dt><dd>200771286</dd></div>
+        <div><dt>ДДС номер</dt><dd>BG200771286</dd></div>
+        <div><dt>Седалище</dt><dd>ул. „Нестор Абаджиев“ №24, Асеновградско шосе,<br>4023 Пловдив, България</dd></div>
+        <div><dt>Регистрация</dt><dd>Търговски регистър и регистър на ЮЛНЦ при Агенцията по вписванията</dd></div>
+        <div><dt>Телефон</dt><dd><a href="tel:+359884777147">+359 884 777 147</a></dd></div>
+        <div><dt>Електронна поща</dt><dd><a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a></dd></div>
+      </dl>
+
+      <h3>Отговорност за съдържанието</h3>
+      <p>За съдържанието на този сайт отговаря Аутохаус България ЕООД на
+        посочения по-горе адрес. Сайтът съдържа препратки към външни страници
+        (Google Maps, Facebook, Instagram, Комисията за защита на
+        потребителите); за тяхното съдържание отговарят техните оператори.</p>
+
+      <h3>Надзорни органи</h3>
+      <ul class="lg-list">
+        <li><b>Комисия за защита на потребителите</b> — гр. София 1000,
+          пл. „Славейков“ №4A,
+          <a href="https://kzp.bg" target="_blank" rel="noopener">kzp.bg</a>.</li>
+        <li><b>Комисия за защита на личните данни</b> — гр. София 1592,
+          бул. „Проф. Цветан Лазаров“ №2,
+          <a href="https://cpdp.bg" target="_blank" rel="noopener">cpdp.bg</a>.</li>
+      </ul>
+    </article>
+
+  </div></div></div>
+</section>
+
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="ft" id="kontakt">
+  <div class="grid">
+    <!-- THE FOOTER, SUBTRACTED TWICE.
+         Last pass took out the two loose link pairs beside the wordmark and
+         the two inventory columns, leaving three: Контакт, Последвайте ни,
+         Правни. Contact has now gone too — it is a panel, reachable from
+         every header and every menu on the site, and printing the address a
+         second time at the bottom of every page was the last thing keeping
+         this footer at the size of a page.
+
+         The COLUMN GRID went with it. Two columns of four and two links is
+         a layout that only exists to hold columns; what is actually left is
+         a mark, four documents and two social marks, and that is a line —
+         not a grid. The footer is now four elements tall on a phone and
+         three on a desktop, and it reads as the end of a page rather than
+         as another one. -->
+    <div class="row">
+      <div class="col span-12 ft-end">
+        <a class="ft-logo" href="index.html#top" aria-label="AutoHaus — начало">
+          <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+        </a>
+        <ul class="ft-social" aria-label="AutoHaus в социалните мрежи">
+          <li><a href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg>Facebook</a></li>
+          <li><a href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg>Instagram</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col span-12 ft-meta">
+        <p>© 2026 Аутохаус България ЕООД · ЕИК 200771286 · ДДС BG200771286</p>
+        <ul>
+          <li><a href="legal.html#privacy">Поверителност</a></li>
+          <li><a href="legal.html#cookies">Бисквитки</a></li>
+          <li><a href="legal.html#terms">Общи условия</a></li>
+          <li><a href="legal.html#imprint">Фирмени данни</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+</body>
+</html>
