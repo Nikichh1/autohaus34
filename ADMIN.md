@@ -32,24 +32,26 @@ CLOUDINARY_API_SECRET=...
 
 Uploads are signed by `/api/admin/images`; the API secret never reaches the browser. Staff can upload normal phone/camera files directly. Delivery variants are automatically generated at 400, 800 and 1280 px in JPEG + WebP, with auto orientation, quality optimization and a site-compatible 800:490 crop without stretching the vehicle.
 
-## 3. Description processor — free local AI
+## 3. Description processor — free-tier API + local fallback
 
-No OpenAI API key is required.
+The primary processor uses the Gemini Developer API so it works identically from iPhone, Android and desktop browsers.
 
-The admin uses Chrome's built-in local AI and Translator APIs when available. The model runs on the admin employee's computer, so vehicle text is not sent to an external AI provider and there is no per-request AI charge.
+Create a Gemini API/auth key in Google AI Studio and add:
 
-Recommended environment for the full AI workflow:
+```text
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-3.1-flash-lite
+```
 
-- desktop Google Chrome
-- Windows 10/11, macOS 13+, Linux or supported ChromeOS hardware
-- enough local RAM/storage for Chrome's built-in model
-- internet connection only when Chrome initially downloads the required local model(s)
+`gemini-3.1-flash-lite` is selected because it is designed for high-volume translation and simple data processing and is available on the Gemini Free Tier. Keep the Google project on the **Free Tier without a billing account** if the goal is zero AI spend. When the free quota is exhausted the endpoint returns a quota error; it does not silently switch to a paid provider.
 
-The workflow stays: **paste → process → review → save**. Source text is cleaned and structured in English locally, then Chrome's local Translator produces Bulgarian. The processor is instructed never to invent equipment/specifications. Human review before saving remains mandatory.
+The key is server-only in Vercel. It is never exposed to the employee's phone/browser.
 
-If the generative local model is unavailable, the admin automatically falls back to safe local cleanup/deduplication and uses the local Translator when available. The UI warns the employee that the fallback result needs review.
+The workflow remains **paste → process → review → save**. The server requests structured BG + EN output and explicitly forbids inventing equipment, specifications, history, condition or marketing claims. Human review before saving remains mandatory.
 
-The old `/api/admin/description` OpenAI endpoint remains unused by the default admin workflow and no `OPENAI_API_KEY` is required.
+If Gemini is unavailable or the free quota is exhausted, desktop Chrome can fall back to its on-device AI/Translator when supported. If neither AI path is available, the existing safe cleaner still removes obvious noise/duplicates and warns the employee to review manually.
+
+Privacy note: Google's Gemini API Free Tier may use submitted content to improve Google products. If vehicle listing text later becomes sensitive/private business information, use a paid tier or another provider with the required data terms.
 
 ## 4. Existing inquiry email
 
@@ -62,11 +64,25 @@ RESEND_FROM_EMAIL=verified-sender@your-domain.com
 
 Vehicle enquiries are delivered to `autohousesell@gmail.com`.
 
+## Mobile admin
+
+The admin is mobile-first for daily staff work:
+
+- inventory rows become touch-friendly cards on phones;
+- inputs/selects use phone-safe sizes and a single-column editor;
+- image upload works directly from the phone camera/photo library;
+- image reorder/remove controls use larger touch targets;
+- description processing is server-side, so it does not depend on phone hardware;
+- a fixed bottom action bar exposes the important actions: cars, photos, AI text, publish/draft and save;
+- iPhone safe-area padding is included.
+
+Desktop keeps the wider Shopify-like layout.
+
 ## Vercel deployment
 
 Recommended deployment:
 
-1. Add the Supabase, Cloudinary and Resend environment variables in **Vercel → Project → Settings → Environment Variables** for Production and Preview as appropriate.
+1. Add the Supabase, Cloudinary, Gemini and Resend environment variables in **Vercel → Project → Settings → Environment Variables** for Production and Preview as appropriate.
 2. Deploy the repo normally. No framework conversion or public-site rebuild is required.
 3. Open `/admin/login.html`, sign in, then `/admin`.
 4. Run the one-click current-inventory import if this is the first setup.
@@ -90,8 +106,8 @@ Keep all secrets in the hosting environment, never in Git or public files.
 - **Начало** — counts + recently edited cars.
 - **Автомобили** — search, edit, publish/unpublish.
 - **Добави** — create a structured vehicle.
-- **Снимки** — multi-upload, automatic processing, drag reorder, remove.
-- **Описание** — paste source → local process → review BG/EN → save.
+- **Снимки** — multi-upload, automatic processing, reorder, remove.
+- **Описание** — paste source → Gemini/free fallback → review BG/EN → save.
 - **Публикуван / Чернова** — explicit state; saving a draft never publishes it accidentally.
 
 ## Data model
