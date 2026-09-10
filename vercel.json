@@ -9,7 +9,9 @@
   },
   "rewrites": [
     { "source": "/admin", "destination": "/api/admin/page" },
-    { "source": "/admin/", "destination": "/api/admin/page" }
+    { "source": "/admin/", "destination": "/api/admin/page" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/robots.txt", "destination": "/api/robots" }
   ],
   "headers": [
     {
@@ -23,10 +25,7 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" }
       ]
     },
-    {
-      "source": "/(.*).html",
-      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
-    },
+    { "source": "/(.*).html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
     {
       "source": "/admin(.*)",
       "headers": [
@@ -35,14 +34,8 @@
         { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://res.cloudinary.com https://autohaus.bg https://ajoiqomflplhadyhxvfe.supabase.co blob: data:; connect-src 'self' https://api.cloudinary.com https://ajoiqomflplhadyhxvfe.supabase.co https://ajoiqomflplhadyhxvfe.storage.supabase.co; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" }
       ]
     },
-    {
-      "source": "/admin/(.*).css",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
-    },
-    {
-      "source": "/admin/(.*).js",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
-    },
+    { "source": "/admin/(.*).css", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/admin/(.*).js", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
     {
       "source": "/api/admin/(.*)",
       "headers": [
@@ -50,13 +43,7 @@
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
-    {
-      "source": "/data/vehicles.base.js",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
-    },
-    {
-      "source": "/api/inquiry",
-      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
-    }
+    { "source": "/data/vehicles.base.js", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] },
+    { "source": "/api/inquiry", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }
   ]
 }
