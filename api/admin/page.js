@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#17191a">
 <title>AutoHaus Admin</title><link rel="icon" href="/favicon.jpg">
-<link rel="stylesheet" href="/admin/admin.css?v=74ee3b04"><script defer src="/admin/storage-compat.js?v=1"></script><script defer src="/admin/admin.js?v=74ee3b04"></script><script defer src="/admin/sync.js?v=1"></script></head>
+<link rel="stylesheet" href="/admin/admin.css?v=74ee3b04"><script defer src="/admin/storage-compat.js?v=1"></script><script defer src="/admin/admin.js?v=74ee3b04"></script><script defer src="/admin/sync.js?v=1"></script><script defer src="/admin/advanced.js?v=1"></script></head>
 <body class="ah-admin" data-admin-user="${escapeHtml(user.id)}">
 <a class="skip-link" href="#admin-view" data-bg="Към съдържанието" data-en="Skip to content">Към съдържанието</a>
 <div class="app-shell">
