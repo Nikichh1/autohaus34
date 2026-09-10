@@ -1,13 +1,13 @@
 "use strict";
 
-const { json, requireAdmin, requireSameOrigin, parseCookies, refreshSession, ACCESS_COOKIE } = require("../../server/admin-lib");
+const { json, requireAdmin, requireSameOrigin, parseCookies, refreshSession, ACCESS_COOKIE, REFRESH_COOKIE } = require("../../server/admin-lib");
 
 const SUPABASE_URL = "https://ajoiqomflplhadyhxvfe.supabase.co";
 
 function currentAccess(req, res) {
   let access = parseCookies(req)[ACCESS_COOKIE] || "";
   const setCookie = res.getHeader && res.getHeader("Set-Cookie");
-  const values = Array.isArray(setCookie) ? setCookie : setCookie ? [String(setCookie)] : [];
+  const values = Array.isArray(setCookie) ? setCookie : setCookie ? [String(setCookie)];
   for (const value of values) {
     if (!String(value).startsWith(ACCESS_COOKIE + "=")) continue;
     const raw = String(value).slice(ACCESS_COOKIE.length + 1).split(";")[0];
@@ -23,7 +23,7 @@ async function handler(req, res) {
   let access = currentAccess(req, res);
   if (!access) {
     const cookies = parseCookies(req);
-    const refreshed = await refreshSession(cookies.refresh_token || cookies["ah_admin_refresh"]);
+    const refreshed = await refreshSession(cookies[REFRESH_COOKIE]);
     if (refreshed) access = refreshed.access_token;
   }
   if (!access) return json(res, 401, { ok: false, error: "Session expired" });
