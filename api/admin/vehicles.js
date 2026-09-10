@@ -51,8 +51,6 @@ function legacyToRow(v, index, equipment) {
     images: (v.shots || []).map((url, i) => ({
       id: "legacy-" + v.id + "-" + i,
       legacy: true,
-      // Five older official photos use HTTP in the frozen snapshot. Preserve
-      // the same asset while delivering it securely in managed inventory.
       original: String(url).replace(/^http:\/\/(www\.)?autohaus\.bg\//i, "https://autohaus.bg/"),
       position: i,
       variants: staticVariants(url)
@@ -123,16 +121,27 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === "POST" && action === "bootstrap") {
-      // The signed-in browser cannot substitute unverified facts or overwrite
-      // managed edits by replaying the import. The SQL transaction is one-time.
+      // Re-check server-side immediately before importing. The admin JWT is
+      // authorized by RLS and the activation trigger permanently marks the
+      // managed catalogue initialized after the first insert.
+      const existingResponse = await db("vehicles?select=id&limit=1", { method: "GET" });
+      const existing = await readJson(existingResponse);
+      if (!existingResponse.ok || !Array.isArray(existing)) throw new Error("Could not verify inventory state");
+      const stateResponse = await db("inventory_state?select=initialized&singleton=eq.true", { method: "GET" });
+      const inventoryState = await readJson(stateResponse);
+      if (!stateResponse.ok || !Array.isArray(inventoryState) || !inventoryState.length) throw new Error("Inventory schema needs updating");
+      if (inventoryState[0].initialized || existing.length) {
+        return json(res, 409, { ok: false, error: "Initial inventory has already been imported.", code: "ALREADY_INITIALIZED" });
+      }
       const rows = initialInventory();
-      const r = await db("rpc/import_initial_inventory", {
+      const r = await db("vehicles", {
         method: "POST",
-        body: JSON.stringify({ initial_vehicles: rows })
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify(rows)
       });
       const data = await readJson(r);
       if (!r.ok) return apiError(res, r.status, "Import failed", data);
-      return json(res, 200, { ok: true, imported: Number(data) });
+      return json(res, 200, { ok: true, imported: rows.length });
     }
 
     if (action) return apiError(res, 400, "Unknown action");
