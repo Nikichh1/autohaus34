@@ -1,3 +1,4 @@
+(window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
 /* ============================================================
    AUTOHAUS — THE CATALOG ENGINE  (v41)
 
@@ -35,7 +36,7 @@
     '<rect x="1" y="3" width="14" height="10"/><path d="M1,4 L8,9 L15,4"/></svg>';
   /* Drawn inline, NOT as <use href="#arrow">. That is half of why the card's
      old hover arrows were invisible: the `arrow` symbol is only defined in
-     vehicle.html, so on the landing page and in the collection layer every
+     vehicle.html, so on the landing page and in the inventory layer every
      <use> pointing at it resolved to nothing and the
      button rendered an empty 26x8 box over the photograph. This renderer is
      shared by four pages and can only depend on markup it ships itself. */
@@ -54,18 +55,21 @@
      `delivery` tag — sorting by it is fine, advertising it was not. */
 
   /* year make model — their card's middle line, in their order */
-  function nameLine(v) {
-    return (v.unreg ? "" : (v.year ? v.year + " " : "")) + v.make + " " + v.model;
-  }
+  function nameLine(v) { return v.make + " " + v.model; }
 
   /* their third line is a location. Ours is the thing a Bulgarian buyer
      actually needs at a glance, in the same slot with the same weight. */
   function metaLine(v) {
-    var bits = [];
-    bits.push(AH.km(v.km));
-    if (v.hp) bits.push(v.hp + " к.с.");
-    bits.push(AH.fuel[v.fuel] || "");
-    return bits.filter(Boolean).join(" · ");
+    var registration = v.unreg || !v.year ? "Без първа регистрация"
+      : (v.month ? String(v.month).padStart(2, "0") + "/" : "") + v.year;
+    return [
+      ["Трансмисия", v.gear === "manual" ? "Ръчна" : v.gear === "auto" ? "Автоматична" : "—"],
+      ["Гориво", AH.fuel[v.fuel] || "—"],
+      ["Пробег", AH.km(v.km)],
+      ["Първа регистрация", registration]
+    ].map(function (item) {
+      return '<span class="lc__meta-item"><span class="sr-only">' + item[0] + ': </span>' + AH.esc(item[1]) + '</span>';
+    }).join("");
   }
 
   /* opts: { paper:true, sizes:"…", eager:true, act:false } */
@@ -74,7 +78,7 @@
     var shots = v.shots || [];
     var n = shots.length;
     var sizes = opts.sizes ||
-      "(min-width:1600px) 23vw, (min-width:1024px) 31vw, (min-width:600px) 46vw, 92vw";
+      "(min-width:1600px) 23vw, (min-width:1024px) 31vw, 46vw";
     var priceCls = v.price == null ? "lc__price lc__price--ask" : "lc__price";
     var priceTxt = v.price == null ? "Цена при запитване" : AH.price(v.price);
 
@@ -101,11 +105,9 @@
         '<span class="lc__body">' +
           '<span class="' + priceCls + '">' + priceTxt + "</span>" +
           '<span class="lc__name">' + AH.esc(nameLine(v)) + "</span>" +
-          '<span class="lc__meta">' + AH.esc(metaLine(v)) + "</span>" +
+          '<span class="lc__meta">' + metaLine(v) + "</span>" +
         "</span>" +
       "</a>" +
-      (opts.act === false ? "" :
-        '<a class="lc__act" href="' + AH.conciergeUrl({ v: v.id }) + '">' + ENVELOPE + "Запитване</a>") +
     "</article>";
   };
 
@@ -368,3 +370,5 @@
   /* ---- plural helper used by every count line ---- */
   AH.plural = function (n) { return n === 1 ? "автомобил" : "автомобила"; };
 })();
+
+});

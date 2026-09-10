@@ -1,72 +1,36 @@
 "use strict";
-
 const { requireAdmin } = require("../../server/admin-lib");
-
 module.exports = async function handler(req, res) {
-  if (req.method !== "GET") {
-    res.statusCode = 405;
-    res.end("Method not allowed");
-    return;
-  }
-
-  const user = await requireAdmin(req, res);
-  if (!user) {
-    res.statusCode = 302;
-    res.setHeader("Location", "/admin/login.html");
-    res.setHeader("Cache-Control", "no-store");
-    res.end();
-    return;
-  }
-
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Robots-Tag", "noindex, nofollow");
+  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://res.cloudinary.com https://autohaus.bg blob: data:; connect-src 'self' https://api.cloudinary.com; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+  if (req.method !== "GET") { res.statusCode = 405; res.setHeader("Allow", "GET"); res.end("Method not allowed"); return; }
+  const user = await requireAdmin(req, res);
+  if (!user) { res.statusCode = 302; res.setHeader("Location", "/admin/login.html"); res.end(); return; }
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.end(`<!doctype html>
-<html lang="bg">
-<head>
-<meta charset="utf-8">
+<html lang="bg"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#171717">
-<title>Auto House Admin</title>
-<link rel="stylesheet" href="/admin/admin.css?v=20260909-admin1">
-<link rel="stylesheet" href="/admin/mobile.css?v=20260909-mobile1">
-</head>
-<body class="ah-admin">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#171717">
+<title>AutoHaus Admin</title><link rel="icon" href="/favicon.jpg">
+<link rel="stylesheet" href="/admin/admin.css?v=74ee3b04"><script defer src="/admin/admin.js?v=74ee3b04"></script></head>
+<body class="ah-admin" data-admin-user="${escapeHtml(user.id)}">
+<a class="skip-link" href="#admin-view" data-bg="Към съдържанието" data-en="Skip to content">Към съдържанието</a>
 <div class="app-shell">
-  <aside class="side">
-    <a class="side__brand" href="/admin" aria-label="Auto House Admin">AUTO HOUSE <span>Admin</span></a>
-    <nav class="side__nav" aria-label="Admin navigation">
-      <button type="button" data-route="dashboard" class="is-on"><span class="nav-dot"></span>Начало</button>
-      <button type="button" data-route="cars"><span class="nav-dot"></span>Автомобили</button>
-      <button type="button" data-route="new"><span class="nav-plus">+</span>Добави</button>
-    </nav>
-    <div class="side__foot">
-      <span class="side__user">${escapeHtml(user.email || "Admin")}</span>
-      <button type="button" id="logout">Изход</button>
-    </div>
-  </aside>
-  <header class="mobile-head">
-    <a href="/admin">AUTO HOUSE <span>Admin</span></a>
-    <button type="button" id="mobile-menu" aria-expanded="false">Меню</button>
-  </header>
-  <main class="workspace">
-    <div id="admin-view" class="view" aria-live="polite"></div>
-  </main>
-</div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/data/vehicles.base.js?v=fe83b016"></script>
-<script src="/admin/admin-guards.js?v=20260909-admin1"></script>
-<script src="/admin/ai-router.js?v=20260909-ai1"></script>
-<script src="/admin/local-ai.js?v=20260909-local2"></script>
-<script src="/admin/admin.js?v=20260909-admin1" defer></script>
-<script src="/admin/mobile.js?v=20260909-mobile1" defer></script>
-</body>
-</html>`);
+<button type="button" id="menu-backdrop" class="menu-backdrop" aria-label="Close menu" hidden></button>
+<aside class="side" id="admin-navigation">
+<a class="side__brand" href="/admin">AutoHaus <span>Admin</span></a>
+<nav class="side__nav" aria-label="Admin">
+<button type="button" data-route="dashboard" data-bg="Начало" data-en="Overview">Начало</button>
+<button type="button" data-route="cars" data-bg="Автомобили" data-en="Cars">Автомобили</button>
+<button type="button" data-route="new" data-bg="+ Добави автомобил" data-en="+ Add car">+ Добави автомобил</button>
+</nav>
+<div class="side__foot"><div class="admin-language" aria-label="Language"><button data-language="bg" type="button">BG</button><button data-language="en" type="button">EN</button></div>
+<a class="site-link" href="/" target="_blank" rel="noopener" data-bg="Виж сайта ↗" data-en="View website ↗">Виж сайта ↗</a>
+<span class="side__user">${escapeHtml(user.email)}</span><button type="button" id="logout" data-bg="Изход" data-en="Sign out">Изход</button></div></aside>
+<header class="mobile-head"><a href="/admin">AutoHaus <span>Admin</span></a><button type="button" id="mobile-menu" aria-controls="admin-navigation" aria-expanded="false" data-bg="Меню" data-en="Menu">Меню</button></header>
+<main class="workspace"><div id="auth-notice" class="auth-notice" role="alert" hidden></div><div id="admin-view" class="view" tabindex="-1"></div></main>
+</div><div class="toast" id="toast" role="status" aria-live="polite"></div></body></html>`);
 };
-
-function escapeHtml(value) {
-  return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
+function escapeHtml(value) { return String(value || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }

@@ -9,3 +9,13 @@ package-lock.json
 
 # scratch: the one-shot image-derivative generator, recreated when needed
 _gen-derivs.js
+
+# Local configuration and generated verification/deployment output
+.env
+.env.*
+!.env.example
+.vercel/
+dist/
+artifacts/
+playwright-report/
+test-results/

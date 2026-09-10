@@ -167,11 +167,8 @@
 /* --- the text block: price, vehicle, place --- */
 .lc__body{
   padding:var(--cat-pad) var(--cat-inset);
-  display:flex;flex-direction:column;gap:2px;flex:1;
-  /* the concierge action is absolutely placed in this block's right edge,
-     so the three text lines must stop short of it */
-  padding-right:104px;
-  min-width:0;                 /* lets the nowrap lines actually ellipsis */
+  display:flex;flex-direction:column;gap:4px;flex:1;
+  min-width:0;
 }
 .lc,.lc__link{min-width:0}
 .lc__price{
@@ -181,23 +178,14 @@
 .lc__price--ask{font-weight:400;color:rgba(255,255,255,.82)}
 .lc__name{
   font-size:14px;line-height:22px;font-weight:400;color:var(--white);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  overflow-wrap:anywhere;
 }
 .lc__meta{
-  font-size:14px;line-height:22px;font-weight:400;color:rgba(255,255,255,.6);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:flex;flex-wrap:wrap;gap:2px 8px;margin-top:3px;
+  font-size:12px;line-height:18px;font-weight:400;color:rgba(255,255,255,.7);
 }
-/* their card carries a "Contact" action in the text block. Ours carries the
-   concierge, which is the same idea with our positioning. */
-.lc__act{
-  position:absolute;right:var(--cat-inset);bottom:var(--cat-pad);
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:12px;line-height:22px;font-weight:600;letter-spacing:1.1px;
-  text-transform:uppercase;color:var(--primary);
-  transition:color var(--ui-dur) var(--ui-ease);
-}
-.lc__act:hover{color:var(--primary-hover)}
-.lc__act svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none}
+.lc__meta-item{min-width:0;overflow-wrap:anywhere}
+.lc__meta-item:not(:last-child)::after{content:" ·";opacity:.6;margin-left:5px}
 
 /* light-surface variant, for the detail page's "you might also like" */
 .lc--paper{border-color:var(--line);background:#fff}
@@ -217,8 +205,16 @@
      card's min-content width sets the floor — and .lc__name / .lc__meta are
      white-space:nowrap, which makes that floor as wide as the longest model
      name. At one column that pushed the track 46px past a 393px viewport. */
-  grid-template-columns:minmax(0,1fr);
-  gap:20px var(--cat-gap-col);            /* their mobile row gap is 20 */
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px 10px;
+}
+@media(max-width:599px){
+  .lc__body{padding:10px 9px 12px;gap:4px}
+  .lc__price{font-size:14px;line-height:20px}
+  .lc__name{font-size:12px;line-height:17px}
+  .lc__meta{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;font-size:11px;line-height:16px}
+  .lc__meta-item::after{display:none}
+  .lc__cue{display:none}
 }
 @media(min-width:600px){
   .cgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--cat-gap-row) var(--cat-gap-col)}
@@ -1572,3 +1568,29 @@
   backdrop-filter:none;-webkit-backdrop-filter:none;
   background:rgba(5,5,5,.82);
 }
+
+/* Direct vehicle enquiries stay in the vehicle page, including delivery feedback. */
+.dtitle__make{font-size:12px;line-height:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.dgal-bar{justify-content:flex-end}
+#vehicle-inquiry{scroll-margin-top:calc(var(--nav-h) + 60px)}
+.dseller--clean{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.dseller--clean .dseller__acts{gap:4px 20px}
+.dseller--clean .dseller__acts a{min-height:44px;overflow-wrap:anywhere;max-width:100%}
+.dinq{margin-top:20px}
+.dinq__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:16px}
+.dinq__field{display:grid;min-width:0;gap:7px}
+.dinq__label{font-size:13px;line-height:18px;color:var(--ink-2)}
+.dinq__input{width:100%;min-width:0;min-height:48px;border:1px solid var(--line-2);border-radius:0;background:#fff;color:var(--ink);padding:11px 12px;font:inherit;font-size:16px;-webkit-appearance:none;appearance:none}
+.dinq .dask{font-size:16px;min-height:128px;line-height:1.5}
+.dinq__input:focus,.dinq .dask:focus{outline:2px solid var(--primary);outline-offset:2px;border-color:var(--ink-3)}
+.dinq__actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;margin-top:16px}
+.dinq__actions .btn-primary{min-height:48px;min-width:160px}
+.dinq__privacy{display:inline-flex;align-items:center;min-height:44px;font-size:12px;line-height:18px;color:var(--ink-3);text-decoration:underline;text-underline-offset:4px}
+.dinq__status{margin-top:12px;font-size:13px;line-height:20px;color:var(--ink-3)}
+.dinq__status:empty{display:none}
+.dinq__status.is-ok{color:#356340}
+.dinq__status.is-error{color:#8b2f2f}
+.dinq__trap{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(min-width:700px){.dinq__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dinq__field:first-child{grid-column:1 / -1}}
+@media(min-width:1280px){.dinq__grid{grid-template-columns:repeat(3,minmax(0,1fr))}.dinq__field:first-child{grid-column:auto}}
+@media(max-width:599px){.dinq__actions .btn-primary{flex:1}.dinq__actions{gap:12px}}

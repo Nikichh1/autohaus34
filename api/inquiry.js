@@ -1,4 +1,4 @@
-/* Vercel serverless function: sends Auto House enquiries via Resend.
+/* Vercel serverless function: sends AutoHaus enquiries via Resend.
    Required Vercel env vars:
      RESEND_API_KEY
      RESEND_FROM_EMAIL  (a sender on a domain verified in Resend)
@@ -73,7 +73,11 @@ function buildVehicle(body) {
   const vehicleName = clean(vehicle.name, 220) || "Автомобил";
   const vehicleId = clean(vehicle.id, 120);
   const ref = clean(vehicle.ref, 80);
-  const page = clean(body.page, 500);
+  let page = "";
+  try {
+    const candidate = new URL(clean(body.page, 500));
+    if (candidate.protocol === "https:" || candidate.protocol === "http:") page = candidate.href;
+  } catch (_) {}
 
   if (!name || !message || (!phone && !email)) {
     return { error: "Name, message and a phone number or email are required." };
@@ -116,7 +120,7 @@ function buildConcierge(body) {
   if (!validEmail(email)) return { error: "Invalid email address." };
   const rawText = clean(body.text, 12000);
   if (!rawText) return { error: "Empty enquiry." };
-  const subject = cleanSubject(body.subject || "Auto House — запитване");
+  const subject = cleanSubject(body.subject || "AutoHaus — запитване");
   return {
     subject,
     text: rawText,
@@ -137,6 +141,7 @@ module.exports = async function handler(req, res) {
   if (rateLimited(req)) return json(res, 429, { ok: false, error: "Too many requests. Please try again later." });
 
   const body = req.body && typeof req.body === "object" ? req.body : {};
+  if (Buffer.byteLength(JSON.stringify(body), "utf8") > MAX_BODY_BYTES) return json(res, 413, { ok: false, error: "Request too large" });
   if (clean(body.website, 200)) return json(res, 200, { ok: true });
 
   const built = body.kind === "vehicle" ? buildVehicle(body) : buildConcierge(body);
@@ -170,7 +175,7 @@ module.exports = async function handler(req, res) {
 
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
-      console.error("Resend error", response.status, detail.slice(0, 600));
+      console.error("Inquiry provider rejected request", response.status);
       return json(res, 502, { ok: false, error: "Email provider rejected the request" });
     }
 

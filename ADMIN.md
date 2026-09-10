@@ -1,115 +1,41 @@
-# Auto House Admin
+# AutoHaus admin
 
-Production admin for the existing static Auto House site. The public website remains plain HTML/CSS/JS; the admin adds Vercel Node API routes and managed services.
+The existing website uses Vercel Node handlers, Supabase authentication/database, signed Cloudinary uploads and server-side Gemini Flash-Lite. The browser never receives the Supabase service key, Cloudinary secret or Gemini key. All required variable names are in `.env.example`.
 
-## 1. Supabase — auth + database
+## Supabase
 
-1. Create a Supabase project.
-2. Open **SQL Editor** and run `admin/schema.sql` once.
-3. In **Authentication → Users**, create the admin user(s) with email + password. Do not enable public sign-up for this workflow.
-4. Add these environment variables:
+1. Create or select the Supabase project and run the complete `admin/schema.sql` in its SQL Editor. The script is transactional and can be rerun to upgrade the earlier schema without replacing vehicles.
+2. Create staff email/password users in Authentication → Users, with confirmed email. Disable public signup for this staff-only workflow.
+3. Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `ADMIN_EMAILS` in the existing Vercel project's environment variables. `ADMIN_EMAILS` is a comma-separated list of staff email addresses; an empty list denies everyone.
+4. Redeploy, open `/admin/login.html` and sign in. On a fresh database, **Импортирай / Import** imports the canonical 87 vehicles, original equipment and existing optimized photos in one transaction. Repeating the import cannot overwrite edits or restore deleted vehicles.
 
-```text
-SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-ADMIN_EMAILS=owner@example.com,staff@example.com
-```
+Only the server's service role can read/write inventory or check authentication sessions. Browser database roles have no table permissions. Every admin API verifies both the Supabase user and its active server session. Logout revokes that session. Cookies are HttpOnly, Secure on HTTPS and SameSite Strict. Mutations require same-origin JSON. Concurrent editing is protected by a saved-version check.
 
-`SUPABASE_SERVICE_ROLE_KEY` is server-only. Never expose it in HTML or browser JS.
+The public API returns only published vehicles and excludes original pasted descriptions and private review notes. An initialized but empty inventory remains empty. Before initialization, or during an unavailable backend response, the public site uses its bundled 87-car snapshot. As a consequence, the last deployed snapshot can temporarily reappear during a backend outage; keep the snapshot current when retiring listings permanently.
 
-After the first login, the dashboard shows **Импортирай** if the table is empty. That one click imports the current 87 static vehicles and keeps them published. Until the database contains vehicles, the public site deliberately continues using `data/vehicles.base.js`.
+## Cloudinary
 
-## 2. Cloudinary — vehicle images
+Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET` in Vercel. An unsigned upload preset is not required. The server signs uploads; the phone sends image files directly to Cloudinary and the server verifies the returned signature.
 
-Create a Cloudinary product environment and set:
+Staff can select multiple photos from the gallery or use the separate camera button. Photos have progress, retry, move-earlier/later, make-cover and remove controls. A car supports up to 80 photos; each selected file must be at most 45 MB. Supported formats include JPEG, PNG, WebP and HEIC/HEIF. Actual account upload limits still apply.
 
-```text
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-```
+Delivery uses automatic orientation, optimized JPEG/WebP and 400/800/1280 px variants. Limit-and-pad transformations preserve the whole image without stretching or enlarging small originals. Existing inventory uses the local optimized image variants. Removing a photo changes the editor immediately; the remote asset is deleted only after a successful vehicle save and only if no other vehicle references it.
 
-Uploads are signed by `/api/admin/images`; the API secret never reaches the browser. Staff can upload normal phone/camera files directly. Delivery variants are automatically generated at 400, 800 and 1280 px in JPEG + WebP, with auto orientation, quality optimization and a site-compatible 800:490 crop without stretching the vehicle.
+## Gemini description processing
 
-## 3. Description processor — free-tier API + local fallback
+Set `GEMINI_API_KEY` from Google AI Studio. The default `GEMINI_MODEL` is `gemini-3.1-flash-lite`; no OpenAI subscription/key is used. Google's [current pricing](https://ai.google.dev/gemini-api/docs/pricing#gemini-3.1-flash-lite) lists free input/output for this model. Use a project on the free tier without enabling billing for zero AI spend. Quotas depend on the Google project and are not unlimited.
 
-The primary processor uses the Gemini Developer API so it works identically from iPhone, Android and desktop browsers.
+The workflow is **paste → process → review BG + EN → save** on iPhone, Android and desktop. Instructions require every distinct supplied fact, OEM code, number and qualification to be preserved, prohibit invented equipment/specifications, remove copied-site clutter and avoid duplicating matching structured fields. Conflicts retain the original disputed wording in review notes. Both equipment lists must contain the same number of aligned lines. Incomplete or malformed model output is rejected.
 
-Create a Gemini API/auth key in Google AI Studio and add:
+Staff must compare the result with the original and check the review confirmation before saving processed output. This review is necessary because model instructions cannot guarantee factual correctness. The original source and review notes are saved privately with the vehicle. Free-quota errors retain the original and existing edits, with retry or manual BG/EN editing available. There is no automatic paid-provider or browser-specific AI fallback.
 
-```text
-GEMINI_API_KEY=...
-GEMINI_MODEL=gemini-3.1-flash-lite
-```
+Google's free-tier data terms apply to submitted listing text; see the linked pricing page. Keys stay in Vercel server environment variables.
 
-`gemini-3.1-flash-lite` is selected because it is designed for high-volume translation and simple data processing and is available on the Gemini Free Tier. Keep the Google project on the **Free Tier without a billing account** if the goal is zero AI spend. When the free quota is exhausted the endpoint returns a quota error; it does not silently switch to a paid provider.
+## Daily use
 
-The key is server-only in Vercel. It is never exposed to the employee's phone/browser.
+- **Add car** → make/model → photos → specifications → optional description processing → **Save draft** or **Publish**.
+- Find a car by make, model or reference; edit it from its card. Published and draft filters are available.
+- Save/Publish stays visible on phones, with safe-area spacing and 16 px inputs. Photo actions work by tap; desktop drag-and-drop is optional.
+- Unsaved edits are recovered in the same browser tab for up to 24 hours. Closing a tab can discard this local recovery, so save before closing. A session-expiry message lets staff sign in again without silently replacing their form.
 
-The workflow remains **paste → process → review → save**. The server requests structured BG + EN output and explicitly forbids inventing equipment, specifications, history, condition or marketing claims. Human review before saving remains mandatory.
-
-If Gemini is unavailable or the free quota is exhausted, desktop Chrome can fall back to its on-device AI/Translator when supported. If neither AI path is available, the existing safe cleaner still removes obvious noise/duplicates and warns the employee to review manually.
-
-Privacy note: Google's Gemini API Free Tier may use submitted content to improve Google products. If vehicle listing text later becomes sensitive/private business information, use a paid tier or another provider with the required data terms.
-
-## 4. Existing inquiry email
-
-Phase 2 still uses:
-
-```text
-RESEND_API_KEY=...
-RESEND_FROM_EMAIL=verified-sender@your-domain.com
-```
-
-Vehicle enquiries are delivered to `autohousesell@gmail.com`.
-
-## Mobile admin
-
-The admin is mobile-first for daily staff work:
-
-- inventory rows become touch-friendly cards on phones;
-- inputs/selects use phone-safe sizes and a single-column editor;
-- image upload works directly from the phone camera/photo library;
-- image reorder/remove controls use larger touch targets;
-- description processing is server-side, so it does not depend on phone hardware;
-- a fixed bottom action bar exposes the important actions: cars, photos, AI text, publish/draft and save;
-- iPhone safe-area padding is included.
-
-Desktop keeps the wider Shopify-like layout.
-
-## Vercel deployment
-
-Recommended deployment:
-
-1. Add the Supabase, Cloudinary, Gemini and Resend environment variables in **Vercel → Project → Settings → Environment Variables** for Production and Preview as appropriate.
-2. Deploy the repo normally. No framework conversion or public-site rebuild is required.
-3. Open `/admin/login.html`, sign in, then `/admin`.
-4. Run the one-click current-inventory import if this is the first setup.
-
-`/admin` is rewritten to a server-protected route. Admin data APIs validate the Supabase session on every request. Auth cookies are HttpOnly, Secure in HTTPS, SameSite=Strict and never readable by browser JS.
-
-## SuperHosting / other normal hosting
-
-The public website remains compatible with ordinary static hosting. The admin backend needs a Node 18+ runtime (or equivalent serverless runtime) for `/api/*`.
-
-Practical options:
-
-- Host the whole project on a Node-capable plan and map `/api/*` to the Node handlers.
-- Keep the public static files on SuperHosting and reverse-proxy `/api/*` and `/admin` to the Vercel deployment.
-- If the API is unavailable, the public site continues to use the static vehicle fallback; admin operations obviously require the backend.
-
-Keep all secrets in the hosting environment, never in Git or public files.
-
-## Admin workflow
-
-- **Начало** — counts + recently edited cars.
-- **Автомобили** — search, edit, publish/unpublish.
-- **Добави** — create a structured vehicle.
-- **Снимки** — multi-upload, automatic processing, reorder, remove.
-- **Описание** — paste source → Gemini/free fallback → review BG/EN → save.
-- **Публикуван / Чернова** — explicit state; saving a draft never publishes it accidentally.
-
-## Data model
-
-Public vehicle fields are derived from the single structured database row: make, model, body type, color, transmission, fuel, mileage, first registration, horsepower, price, tags, notes, descriptions, equipment and ordered images. The adapter maps that row to the current public site's legacy shape so existing `catalog.js` / `vehicle.js` can keep working without duplicating values.
+The implementation can be published before service credentials are available. Authentication, persistent edits, real photo uploads and live AI processing require the corresponding configured accounts. Email-provider configuration is intentionally deferred.

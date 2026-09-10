@@ -1,3 +1,4 @@
+(window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
 /* ============================================================
    AUTOHAUS — v34 · plain JS, no dependencies
 
@@ -55,12 +56,10 @@
      double-gradient scrim, label above / title and body below.
      ============================================================ */
   var CFG = window.AH_CONFIG = Object.assign({
-    endpoint: "",
-    email: "autohausbg@gmail.com",
+    endpoint: "/api/inquiry",
+    email: "autohousesell@gmail.com",
     salonPhone: "+359884777147",
-    /* was a named individual; the content audit replaced the invented person
-       with the team, since AutoHaus has not published a personal contact */
-    expert: "екипа на AutoHaus",
+    expert: "Иван Манев",
     expertPhone: "+359884777045",
     whatsapp: "359884777045"
   }, window.AH_CONFIG || {});
@@ -79,10 +78,10 @@
     { key: "utility",     name: "Терен",           blurb: "G-класа, Land Cruiser, Range Rover. Построени да не се извиняват." },
     { key: "electrified", name: "Електрифицирани", blurb: "Електрически и хибридни, с пълна история на батерията." },
     { key: "classic",     name: "Класика",         blurb: "Автомобили, чиято стойност вече не се обезценява." },
-    { key: "saloon",      name: "Селекция",        blurb: "Останалата част от колекцията — седани, купета и SUV." }
+    { key: "saloon",      name: "Селекция",        blurb: "Останалата част от автомобилите — седани, купета и SUV." }
   ];
   var CH_NAME = {}; CHAPTERS.forEach(function (c) { CH_NAME[c.key] = c.name; });
-  /* the retired chapter's cars keep their place in the collection */
+  /* the retired chapter's cars keep their place in the inventory */
   V.forEach(function (v) { if (v.chapter === "guard") v.chapter = "chauffeur"; });
   var FUEL = { petrol: "Бензин", diesel: "Дизел", hybrid: "Хибрид", phev: "Plug-in хибрид", ev: "Електрически" };
 
@@ -122,12 +121,20 @@
   /* the JPEG at a given width — this is what goes in `src`, so it has to be
      the universally decodable one */
   function img(url, w) {
+    var variants = (window.AH_IMAGE_VARIANTS || {})[url];
+    var chosen = w && w <= 400 ? 400 : w && w >= 1280 ? 1280 : 800;
+    if (variants && variants["jpg" + chosen]) return variants["jpg" + chosen];
     var k = localKey(url);
     if (!k) return url;
     var pick = LOCAL_W.indexOf(w) > -1 ? w : (w && w <= 400 ? 400 : w && w >= 1280 ? 1280 : 800);
     return LOCAL + k + "-" + pick + ".jpg";
   }
   function setOf(url, ext, widths) {
+    var variants = (window.AH_IMAGE_VARIANTS || {})[url];
+    if (variants) {
+      var candidates = (widths || LOCAL_W).filter(function (w) { return variants[ext + w]; });
+      if (candidates.length) return candidates.map(function (w) { return variants[ext + w] + " " + w + "w"; }).join(", ");
+    }
     var k = localKey(url);
     if (!k) return url + " 1280w";
     return (widths || LOCAL_W).filter(function (w) { return LOCAL_W.indexOf(w) > -1; })
@@ -145,12 +152,12 @@
     var w = o.widths || LOCAL_W;
     var sizes = o.sizes ? ' sizes="' + o.sizes + '"' : "";
     return '<picture>' +
-      '<source type="image/webp" srcset="' + webpset(url, w) + '"' + sizes + '>' +
+      '<source type="image/webp" srcset="' + esc(webpset(url, w)) + '"' + sizes + '>' +
       '<img ' + (o.eager ? 'fetchpriority="high"' : 'loading="lazy"') + ' decoding="async"' +
         (o.width ? ' width="' + o.width + '" height="' + o.height + '"' : "") +
         (o.cls ? ' class="' + o.cls + '"' : "") +
-        ' src="' + img(url, o.src || 800) + '"' +
-        ' srcset="' + srcset(url, w) + '"' + sizes +
+        ' src="' + esc(img(url, o.src || 800)) + '"' +
+        ' srcset="' + esc(srcset(url, w)) + '"' + sizes +
         ' alt="' + esc(o.alt || "") + '">' +
       '</picture>';
   }
@@ -233,7 +240,7 @@
       v.price == null ? "запитване" : ""
     ].join(" ")));
   }
-  /* exposed so the collection page and the showroom layer share one
+  /* exposed so the inventory page and the showroom layer share one
      definition of what "matches" means — they must never disagree */
   AH.matchQ = function (v, q) {
     q = fold(q);
@@ -254,33 +261,6 @@
   AH.sortBy = function (list, key) {
     var by = AH.sorts[key];
     return by ? list.slice().sort(by) : list;   /* "curated" is dataset order */
-  };
-
-  /* A collection card IS a card-wall card: same aspect, same white ground,
-     same scrim, same label-over-title-over-body order — so the grid on
-     index.html#avtomobili reads as the homepage wall, unrolled. */
-  AH.cardHTML = function (v) {
-    var label = v.tags.indexOf("guard") > -1 ? "Брониран клас"
-              : v.tags.indexOf("delivery") > -1 ? "Доставъчен пробег"
-              : v.tags.indexOf("classic") > -1 ? "Класика"
-              : CH_NAME[v.chapter] || "В наличност";
-    var price = v.price == null ? "Цена при запитване" : priceTxt(v.price);
-    return '' +
-      '<article class="gcard">' +
-        '<span class="gcard-photo">' +
-          picture(v.shots[0], { width: 800, height: 490, src: 800, alt: v.full,
-            sizes: "(min-width:1920px) 25vw, (min-width:1024px) 33vw, (min-width:768px) 50vw, 100vw" }) +
-        "</span>" +
-        '<span class="gcard-text">' +
-          '<span class="gcard-label">' + esc(label) + " · " + v.ref + "</span>" +
-          '<a class="gcard-anchor" href="' + AH.vehicleUrl(v) + '">' +
-            '<span class="h6 gcard-h">' + esc(v.model) + "</span></a>" +
-          '<span class="body-s gcard-make">' + esc(v.make) + "</span>" +
-          '<span class="gcard-spec">' + yrTxt(v) + " · " + kmTxt(v.km) + " · " + v.hp + " к.с. · " + FUEL[v.fuel] + "</span>" +
-          '<span class="gcard-foot"><span class="gcard-price">' + price + "</span>" +
-            '<button type="button" class="gcard-look" data-look="' + v.id + '">Бърз преглед</button></span>' +
-        "</span>" +
-      "</article>";
   };
 
   /* ---- MORPH -------------------------------------------------------------
@@ -312,7 +292,7 @@
 
     /* ---- WHY THE ROOT'S HEIGHT IS NOT ALWAYS ANIMATED ------------------
        When the root ends the morph OUT of the flow — the catalog layer's
-       tools, or the collection bar while it is still `position:fixed` —
+       tools, or the inventory bar while it is still `position:fixed` —
        animating its height costs nothing: no other box depends on it.
 
        When it ends IN the flow, its height IS the document's height, and
@@ -1649,13 +1629,18 @@
      Its triggers are not two known buttons but every "Контакт" on the site:
      the header, the menu, the footer column, the cafe card's "Как да
      стигнете". So they are found by attribute and handled by delegation,
-     exactly as [data-catalog] opens the collection — and for the same
+     exactly as [data-catalog] opens the inventory — and for the same
      reason, every one of them keeps a real href to #kontakt so a
      middle-click, a crawler and a JS-off render all still work. Directions are
      an ordinary outbound Google Maps link, so opening this panel itself does
      not load a third-party map or set third-party storage. */
   var ctc = makePanel({
-    id: "ctc", close: "ctc-close", scrim: "ctc-scrim", lock: "ctc-open"
+    id: "ctc", close: "ctc-close", scrim: "ctc-scrim", lock: "ctc-open",
+    onOpen: function () {
+      all(".ctc__mapframe[data-map-src]").forEach(function (frame) {
+        if (!frame.getAttribute("src")) frame.src = frame.getAttribute("data-map-src");
+      });
+    }
   });
   if (ctc) {
     document.addEventListener("click", function (e) {
@@ -1829,7 +1814,7 @@
      8. QUICK LOOK  (added in v35)
      The card-wall expand, lifted off the rail. Same white panel, same
      .3s linear geometry, same 250ms-delayed content fade — so opening a
-     car from the collection grid feels like opening a card on the wall.
+     car from the inventory grid feels like opening a card on the wall.
      ============================================================ */
   var focus = $("focus");
   if (focus) {
@@ -1932,3 +1917,5 @@
     });
   };
 })();
+
+});

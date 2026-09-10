@@ -1,7 +1,7 @@
 "use strict";
 
 const {
-  json, clean, login, requireAdmin, setSessionCookies, clearSessionCookies
+  json, clean, login, logout, requireAdmin, requireSameOrigin, setSessionCookies, clearSessionCookies
 } = require("../../server/admin-lib");
 
 const WINDOW_MS = 15 * 60 * 1000;
@@ -23,12 +23,14 @@ function limited(req, success) {
 }
 
 module.exports = async function handler(req, res) {
+  if (!requireSameOrigin(req, res)) return;
   const action = clean((req.query && req.query.action) || "session", 40).toLowerCase();
 
   if (action === "login") {
     if (req.method !== "POST") return json(res, 405, { ok: false, error: "Method not allowed" });
     const key = clientKey(req), existing = attempts.get(key);
     if (existing && Date.now() - existing.started <= WINDOW_MS && existing.count >= MAX_ATTEMPTS) {
+      res.setHeader("Retry-After", String(Math.ceil((WINDOW_MS - (Date.now() - existing.started)) / 1000)));
       return json(res, 429, { ok: false, error: "Too many login attempts. Try again later." });
     }
     const body = req.body && typeof req.body === "object" ? req.body : {};
@@ -44,10 +46,13 @@ module.exports = async function handler(req, res) {
 
   if (action === "logout") {
     if (req.method !== "POST") return json(res, 405, { ok: false, error: "Method not allowed" });
+    try { await logout(req); }
+    catch (_) { return json(res, 503, { ok: false, error: "Sign out could not complete. Please try again." }); }
     clearSessionCookies(req, res);
     return json(res, 200, { ok: true });
   }
 
+  if (action !== "session") return json(res, 400, { ok: false, error: "Unknown action" });
   if (req.method !== "GET") return json(res, 405, { ok: false, error: "Method not allowed" });
   const user = await requireAdmin(req, res);
   if (!user) return json(res, 401, { ok: false, authenticated: false });

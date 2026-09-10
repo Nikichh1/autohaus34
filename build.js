@@ -1,48 +1,13 @@
-/* ============================================================
-   AUTOHAUS — THE BUILD  (node build.js)
-
-   This site is hand-authored and has no framework, no bundler and no
-   dependencies, and that does not change. This script does exactly two
-   things, both of which are measurable and neither of which touches a
-   source file:
-
-     1. STRIPS THE STYLESHEETS.  style.css is 206KB of which 44% is the
-        commentary that explains why every number in it is what it is. That
-        commentary is the most valuable thing in the repository and it stays
-        exactly where it is — but it does not need to travel to a phone.
-        style.min.css is generated from it, comments removed and whitespace
-        collapsed, nothing else: no reordering, no shorthand rewriting, no
-        removal of spaces around calc() operators. Measured on a 1.6Mbps
-        link with a 4x-throttled CPU: 49KB -> 18KB over brotli and first
-        paint 1352ms -> 1152ms. Verified by comparing every computed
-        property of every element on four page/width combinations — the two
-        stylesheets are indistinguishable to the browser.
-
-     2. STAMPS THE VERSION.  Every asset URL carries ?v=<hash>, where the
-        hash is taken over the content of all of them. Editing any file
-        changes every URL exactly once, so a returning visitor is never
-        served a stale stylesheet and never re-downloads an unchanged one.
-        This replaces the hand-typed ?v=155 that had to be remembered.
-
-   WHAT IT DELIBERATELY DOES NOT DO: minify JavaScript. A hand-rolled JS
-   minifier was written, measured and thrown away — it corrupted main.js at
-   line 1330 by mistaking the tail of a regular expression for a comment.
-   The scripts are already off the critical path (see "THE CRITICAL PATH" in
-   any page head) and brotli takes main.js to 20KB on its own. The risk was
-   real and the remaining prize was not.
-
-   RUN THIS AFTER EDITING ANY .css OR .js FILE. If you forget, the site
-   still works — it just serves the previous stylesheet until you do.
-   ============================================================ */
+/* AutoHaus build: generate CSS, stamp asset versions and prepare public-only dist. */
 "use strict";
 const fs = require("fs"), path = require("path"), crypto = require("crypto");
 const ROOT = __dirname;
 
 const SHEETS = ["style.css", "catalog.css"];
 const SCRIPTS = ["main.js", "catalog.js", "showroom.js", "concierge.js", "i18n.js",
-                 "vehicle.js", "data/vehicles.js"];
+                 "vehicle.js", "data/vehicles.base.js", "data/vehicles.js", "admin/admin.js", "admin/login.js", "admin/admin.css"];
 const STATIC_ASSETS = ["autohaus.svg"];
-const PAGES = ["index.html", "concierge.html", "vehicle.html", "legal.html"];
+const PAGES = ["index.html", "concierge.html", "vehicle.html", "legal.html", "admin/login.html", "api/admin/page.js"];
 
 /* ---- the stripper ----------------------------------------------------
    Character-by-character rather than regex, because a regex that removes
@@ -146,7 +111,7 @@ for (const p of PAGES) {
   const file = path.join(ROOT, p);
   if (!fs.existsSync(file)) continue;
   let s = fs.readFileSync(file, "utf8"), before = s;
-  s = s.replace(/(["'(])((?:[\w./-]*\/)?[\w.-]+\.(?:css|js|svg))\?v=[\w]+/g, "$1$2?v=" + V);
+  s = s.replace(/(["'(])((?:[\w./-]*\/)?[\w.-]+\.(?:css|js|svg))\?v=[\w-]+/g, "$1$2?v=" + V);
   if (s !== before) { fs.writeFileSync(file, s, "utf8"); stamped++; }
 }
 
@@ -154,4 +119,21 @@ console.log("AutoHaus build");
 built.forEach(b => console.log("  " + b.f.padEnd(14) + k(b.a) + " -> " + b.dest.padEnd(18) + k(b.b) +
   "   (-" + Math.round((1 - b.b / b.a) * 100) + "%)"));
 console.log("  version        ?v=" + V + "   stamped into " + stamped + " page(s)");
-console.log("\n  Sources are untouched. Re-run after editing any .css or .js file.");
+console.log("\n  Styles generated and page asset versions updated.");
+
+/* Publish only browser assets. Backend helpers, schema, tests, documentation
+   and private local configuration never become public static files. */
+const DIST = path.resolve(ROOT, "dist");
+if (path.dirname(DIST) !== ROOT || path.basename(DIST) !== "dist") throw new Error("Invalid output directory");
+fs.rmSync(DIST, { recursive: true, force: true });
+fs.mkdirSync(DIST, { recursive: true });
+const publicFiles = ["index.html", "vehicle.html", "concierge.html", "legal.html", "style.min.css", "catalog.min.css", "main.js", "catalog.js", "showroom.js", "vehicle.js", "concierge.js", "i18n.js", "autohaus.svg", "favicon.jpg", "_headers", "data/vehicles.base.js", "data/vehicles.js", "admin/login.html", "admin/admin.css", "admin/admin.js", "admin/login.js"];
+for (const f of publicFiles) {
+  if (!fs.existsSync(path.join(ROOT, f))) continue;
+  fs.mkdirSync(path.dirname(path.join(DIST, f)), { recursive: true });
+  fs.copyFileSync(path.join(ROOT, f), path.join(DIST, f));
+}
+for (const dir of ["img", "fonts", "data/eq"]) {
+  fs.cpSync(path.join(ROOT, dir), path.join(DIST, dir), { recursive: true, filter: f => fs.statSync(f).isDirectory() || !/(?:README|\.md$)/.test(f) });
+}
+console.log("  Public assets prepared in dist/");

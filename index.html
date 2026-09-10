@@ -2,84 +2,26 @@
 <html lang="bg">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="favicon.jpg" type="image/svg+xml">
-<link rel="mask-icon" href="favicon.jpg" color="#c9a25a">
-<title>AutoHaus Пловдив</title>
-<meta name="description" content="AutoHaus Plovdiv">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="favicon.jpg" type="image/jpeg">
+<title>AutoHaus</title>
+<meta name="description" content="Автомобили в наличност, лизинг, застраховки, сервиз и Auto Spa. AutoHaus, Пловдив.">
 <!-- the hero frame, which gates the whole entrance choreography (see main.js) -->
-<!-- THE CRITICAL PATH.
-     Measured on a 1.6Mbps link with 300ms RTT: first paint was gated by
-     160KB arriving before it, of which only 83KB draws anything. The rest
-     — the catalog stylesheet and five scripts — merely shared the pipe with
-     the one file that decides when the page appears.
-
-     So: style.css is the ONLY render-blocking request. catalog.css loads
-     non-blocking (it styles the collection grid, which is below the hero,
-     and the catalog layer, which is closed). The scripts start when
-     style.css lands, in document order, via the loader at the end of this
-     head. `script.async = false` on a dynamically inserted script is the
-     exact equivalent of `defer`: it does not block the parser and it runs
-     in insertion order, so the data -> main -> catalog -> showroom -> i18n
-     chain is preserved.
-
-     Exo 2 is self-hosted (see "THE TYPEFACE" in style.css) and deliberately
-     NOT preloaded: preloading the weight-300 pair put 59KB in front of the
-     stylesheet and pushed first paint 150ms LATER. font-display:swap covers
-     the gap. -->
+<!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=fe83b016" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=74ee3b04" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
-<link rel="stylesheet" href="catalog.min.css?v=fe83b016" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="catalog.min.css?v=fe83b016"></noscript>
-<script>
-/* Starts the app the moment the render-blocking stylesheet is in — not
-   before (it would share the pipe with it) and not on window.load (that
-   waits for every photograph). The timeout is a floor, never a ceiling: a
-   stylesheet that stalls must not take the site down with it.
-
-   AND NOT BEFORE THE DOCUMENT EXISTS, which is the part this was missing.
-   `script.async = false` on a dynamically inserted script was described
-   here as "the exact equivalent of defer". It is not. It guarantees ORDER
-   between such scripts and nothing else: each one runs the moment it has
-   been fetched, which on a warm cache is immediately — and this loader
-   lives in <head>, so `css.sheet` is already truthy on the very first
-   line and every script ran while the parser was still inside <head>.
-
-   With <body> not yet created, i18n's MutationObserver threw outright
-   ("parameter 1 is not of type 'Node'"), so nothing rendered by a script
-   afterwards was ever translated; and main.js's querySelectorAll calls
-   matched an empty document, so the hero, the rail and the reveals bound
-   to nothing. On a cold cache the stylesheet's load event happens to fire
-   after </body> and none of it shows, which is why it survived: the bug
-   only appears on a second visit.
-
-   readyState is the missing gate. Everything else — the ordering, the
-   3s floor, staying off window.load — is unchanged. */
-(function () {
-  var q = ["data/vehicles.js?v=fe83b016","main.js?v=fe83b016","catalog.js?v=fe83b016","showroom.js?v=fe83b016","i18n.js?v=fe83b016"], fired = false;
-  function boot() {
-    if (fired) return; fired = true;
-    for (var i = 0; i < q.length; i++) {
-      var s = document.createElement("script");
-      s.src = q[i]; s.async = false;      /* = defer: ordered, non-blocking */
-      document.head.appendChild(s);
-    }
-  }
-  /* the stylesheet is in — now wait for a document to put it on */
-  function ready() {
-    if (document.readyState === "loading")
-      document.addEventListener("DOMContentLoaded", boot, { once: true });
-    else boot();
-  }
-  var css = document.getElementById("ah-css");
-  if (!css || css.sheet) ready();
-  else { css.addEventListener("load", ready); css.addEventListener("error", ready); }
-  setTimeout(ready, 3000);
-})();
-</script>
+<link rel="stylesheet" href="catalog.min.css?v=74ee3b04" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="catalog.min.css?v=74ee3b04"></noscript>
+<!-- Ordered deferred modules: inventory resolves before rendering. -->
+<script defer src="data/vehicles.base.js?v=74ee3b04"></script>
+<script defer src="data/vehicles.js?v=74ee3b04"></script>
+<script defer src="main.js?v=74ee3b04"></script>
+<script defer src="catalog.js?v=74ee3b04"></script>
+<script defer src="showroom.js?v=74ee3b04"></script>
+<script defer src="i18n.js?v=74ee3b04"></script>
 
 </head>
 <body class="ah">
@@ -112,20 +54,19 @@
       </button>
       <a class="lnk" href="#avtomobili">Автомобили</a>
       <ul class="hd-links">
-        <li><a class="lnk" href="#razdeli">Услуги</a></li>
+        <li><a class="lnk" href="#zastrahovki">Застраховки</a></li>
         <li><a class="lnk" href="#lizing">Лизинг</a></li>
-        <li><a class="lnk" href="#about">За нас</a></li>
-        <li><a class="lnk" href="legal.html#imprint" data-contact>Контакт</a></li>
+        <li><a class="lnk" href="#servis">Сервиз</a></li>
       </ul>
     </div>
 
     <a class="hd-logo" href="#top" aria-label="AutoHaus — начало">
-      <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+      <img class="logo" src="autohaus.svg?v=74ee3b04" width="482" height="85" alt="">
     </a>
 
     <ul class="hd-zone hd-zone--end">
-      <li><a class="btn btn--s btn--secondary" href="concierge.html"><span class="btn__label">Обслужване</span></a></li>
-      <!-- Колекцията and Калкулатор used to sit here and both were already in
+      <li><a class="btn btn--s btn--secondary" href="concierge.html"><span class="btn__label">Запитване</span></a></li>
+      <!-- Автомобили and Калкулатор used to sit here and both were already in
            the bar twice over — Автомобили on the left, Лизинг on the left, and
            the menu behind the burger. The language switch is the one control
            that had nowhere else to live. -->
@@ -177,7 +118,7 @@
       <span class="plate__menu-l">Меню</span>
     </button>
     <a class="plate__mark" href="#top" aria-label="AutoHaus — към началото">
-      <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+      <img class="logo" src="autohaus.svg?v=74ee3b04" width="482" height="85" alt="">
     </a>
     <div class="lang" role="group" aria-label="Език / Language">
       <i class="lang__ind" aria-hidden="true"></i>
@@ -205,18 +146,21 @@
   <div class="mob__reveal">
     <div class="mob__sheet">
       <a class="mob-mark" href="index.html" aria-label="AutoHaus">
-        <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+        <img class="logo" src="autohaus.svg?v=74ee3b04" width="482" height="85" alt="">
       </a>
       <button class="mob-close" id="mob-close" aria-label="Затвори">
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
       </button>
       <nav aria-label="Меню">
         <a href="#avtomobili">Автомобили</a>
-        <a href="concierge.html">Обслужване</a>
-        <a href="#razdeli">Услуги</a>
+        <a href="#zastrahovki">Застраховки</a>
         <a href="#lizing">Лизинг</a>
-        <a href="#about">За нас</a>
-        <a href="legal.html#imprint" data-contact>Контакт</a>
+        <a href="#servis">Сервиз</a>
+        <a href="#care">Auto Spa</a>
+        <a href="#cafe">Кафе бар</a>
+        <a href="legal.html">Политика</a>
+        <a href="legal.html#imprint" data-contact>Контакти</a>
+        <a href="concierge.html">Запитване</a>
       </nav>
       <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
         <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
@@ -249,7 +193,11 @@
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
       </button>
       <div class="ctc__scroll">
-        <p class="ctc__eyebrow">AutoHaus Пловдив</p>
+
+        <div class="ctc__mapbox">
+          <iframe class="ctc__mapframe" title="Карта на AutoHaus" loading="lazy" referrerpolicy="no-referrer" data-map-src="https://www.openstreetmap.org/export/embed.html?bbox=24.7587165%2C42.1127165%2C24.7887165%2C42.1287165&amp;layer=mapnik&amp;marker=42.1207165%2C24.7737244"></iframe>
+          <div class="ctc__mapmeta"><strong>AutoHaus</strong><a class="ctc__maplink" href="https://www.google.com/maps/search/?api=1&amp;query=42.1207165%2C24.7737244" target="_blank" rel="noopener">Отвори в Google Maps</a></div>
+        </div>
         <h2 class="ctc__h" id="ctc-h">Контакт</h2>
 
         <div class="ctc__where">
@@ -262,21 +210,12 @@
           <p class="ctc__co">ЕИК 200771286 · ДДС BG200771286</p>
 
           <!-- Google Maps opens only after the visitor chooses this local location card. -->
-          <a class="ctc__map"
-             href="https://maps.app.goo.gl/MvGZpE2QWdJC7cWe6"
-             target="_blank" rel="noopener">
-            <span class="ctc__map-copy">
-              <span class="ctc__map-k">Локация</span>
-              <span class="ctc__map-title">Отвори в Google Maps</span>
-              <span class="ctc__map-coords">AutoHaus Complex</span>
-            </span>
-            <svg class="ctc__map-pin" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-pin"/></svg>
-          </a>
+
         </div>
 
         <div class="ctc__depts">
           <div class="ctc__dept">
-            <p class="ctc__k">Офис</p>
+            <p class="ctc__k">Администрация</p>
             <p class="ctc__lines">
               <a href="tel:+359884777147">+359 884 777 147</a>
               <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
@@ -314,7 +253,7 @@
             <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
           </div>
           <div class="ctc__dept">
-            <p class="ctc__k">AutoSpa</p>
+            <p class="ctc__k">Auto Spa</p>
             <p class="ctc__lines">
               <a href="tel:+359884777148">+359 884 777 148</a>
               <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
@@ -348,123 +287,80 @@
 <!-- ==================== HERO STAGE ==================== -->
 <!-- source: .bm-m-full-width-slider — inset 1344x702 media box over a blurred
      full-bleed backdrop of the same frame. 8 slides = the 8 cars in stock. -->
-<section class="stage" id="top" aria-roledescription="carousel" aria-label="AutoHaus Пловдив">
-
-  <div class="stage-pag">
-    <!-- the current number is an odometer: main.js builds a descending digit
-         strip and rolls it (source: .bm-h-counter). Static markup below is the
-         resting state, so it still reads correctly with JS blocked. -->
-    <!-- The separator is an ELEMENT rather than a "/" in the text, because it
-         is drawn on the house angle — see THE FRAME COUNTER in style.css. So
-         the whole visible run is aria-hidden and one .sr-only line carries the
-         position instead: "1 / 4" was read aloud as "one slash four", which
-         is not what the counter says. main.js keeps this line in step. -->
-    <span class="pag-pos"><span class="sr-only" id="pag-cur-a11y">Кадър 1 от 4</span><span class="cnt" id="pag-cur" aria-hidden="true"><span class="cnt-d"><span>1</span></span></span><i class="pag-sep" aria-hidden="true"></i><span class="pag-tot" id="pag-tot" aria-hidden="true">4</span></span>
-    <input class="pag-range" id="pag-range" type="range" min="1" max="4" value="1" step="1" aria-label="Кадър">
-    <button class="btn btn--s btn--tertiary pag-btn" id="pag-prev" aria-label="Предишен">
-      <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-l"/></svg>
-    </button>
-    <button class="btn btn--s btn--tertiary pag-btn" id="pag-next" aria-label="Следващ">
-      <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-r"/></svg>
-    </button>
-  </div>
-
-  <!-- FOUR ROOMS, IN THE ORDER YOU MEET THEM.
-       The frames used to be three arguments — "Един стандарт, 87 пъти",
-       "Достъп, а не обяви" — headlines telling a visitor what to think about
-       a photograph they had not finished looking at. They are now four
-       PLACES, named: the building you drive up to, the wall inside the door,
-       the detailing bay, the workshop. Nobody needs persuading that a
-       building exists, which is why this reads as arrival and not as a pitch.
-
-       No buttons live on these frames on a phone; see NO BUTTONS AT ALL in
-       style.css. The kicker is the room, the headline is its name. -->
-
-  <div class="stage-item is-active" data-i="0">
-    <div class="stage-bg"><img width="320" height="161" decoding="async" alt="" aria-hidden="true" fetchpriority="high" src="img/outside_autohaus-320.jpg"></div>
-    <div class="stage-box"><div class="stage-frame">
-      <div class="stage-media">
-        <picture><source type="image/webp" srcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="645" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Сградата на AutoHaus в Пловдив през деня, с надпис AutoHaus на фасадата" fetchpriority="high" src="img/outside_autohaus-1280.jpg" srcset="img/outside_autohaus-768.jpg 768w, img/outside_autohaus-1280.jpg 1280w, img/outside_autohaus-1920.jpg 1920w" style="object-position:20% 50%"></picture>
-        <div class="grad grad--t" aria-hidden="true"></div>
-        <div class="grad grad--b" aria-hidden="true"></div>
+<section class="stage" id="top" aria-roledescription="carousel" aria-label="AutoHaus">
+      <div class="stage-pag">
+        <span class="pag-pos"><span class="sr-only" id="pag-cur-a11y">Кадър 1 от 5</span><span class="cnt" id="pag-cur" aria-hidden="true"><span class="cnt-d"><span>1</span></span></span><i class="pag-sep" aria-hidden="true"></i><span class="pag-tot" id="pag-tot" aria-hidden="true">5</span></span>
+        <input class="pag-range" id="pag-range" type="range" min="1" max="5" value="1" step="1" aria-label="Кадър">
+        <button class="btn btn--s btn--tertiary pag-btn" id="pag-prev" aria-label="Предишен"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-l"/></svg></button>
+        <button class="btn btn--s btn--tertiary pag-btn" id="pag-next" aria-label="Следващ"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-r"/></svg></button>
       </div>
-      <div class="stage-content">
-        <div class="stage-text">
-          <p class="stage-kicker">Базата</p>
-          <h1 class="h3">AutoHaus Пловдив</h1>
-        </div>
-        <div class="btn-group btn-group--stage">
-          <a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg><span class="btn__label">Виж колекцията</span></a>
-          <a class="btn btn--l btn--secondary" href="concierge.html"><span class="btn__label">Обслужване</span></a>
-        </div>
-      </div>
-    </div></div>
-  </div>
 
-  <div class="stage-item" data-i="1">
-    <div class="stage-bg"><img width="320" height="233" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/indoor_cars-320.jpg"></div>
-    <div class="stage-box"><div class="stage-frame">
-      <div class="stage-media">
-        <picture><source type="image/webp" data-srcset="img/indoor_cars-768.webp 768w, img/indoor_cars-1280.webp 1280w, img/indoor_cars-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="934" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Автомобили в шоурума на AutoHaus на златна светлина" loading="lazy" data-src="img/indoor_cars-1280.jpg" data-srcset="img/indoor_cars-768.jpg 768w, img/indoor_cars-1280.jpg 1280w, img/indoor_cars-1920.jpg 1920w" style="object-position:50% 50%"></picture>
-        <div class="grad grad--t" aria-hidden="true"></div>
-        <div class="grad grad--b" aria-hidden="true"></div>
+      <div class="stage-item is-active" data-i="0">
+        <div class="stage-bg"><img width="320" height="161" decoding="async" alt="" aria-hidden="true" fetchpriority="high" src="img/outside_autohaus-320.jpg"></div>
+        <div class="stage-box"><div class="stage-frame">
+          <div class="stage-media">
+            <picture><source type="image/webp" srcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="645" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Сградата на AutoHaus през деня" fetchpriority="high" src="img/outside_autohaus-1280.jpg" srcset="img/outside_autohaus-768.jpg 768w, img/outside_autohaus-1280.jpg 1280w, img/outside_autohaus-1920.jpg 1920w" style="object-position:20% 50%"></picture>
+            <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+          </div>
+          <div class="stage-content">
+            <div class="stage-text"><h1 class="h3" data-ah-bg="AutoHaus" data-ah-en="AutoHaus">AutoHaus</h1></div>
+            <div class="btn-group btn-group--stage"><a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><span class="btn__label" data-ah-bg="Автомобили" data-ah-en="Vehicles">Автомобили</span></a></div>
+          </div>
+        </div></div>
       </div>
-      <div class="stage-content">
-        <div class="stage-text">
-          <p class="stage-kicker">Шоурумът</p>
-          <h2 class="h3">Отблизо</h2>
-        </div>
-        <div class="btn-group btn-group--stage">
-          <a class="btn btn--l btn--primary" href="index.html#razdeli"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg><span class="btn__label">Как работим</span></a>
-          <a class="btn btn--l btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Цялата колекция</span></a>
-        </div>
-      </div>
-    </div></div>
-  </div>
 
-  <div class="stage-item" data-i="2">
-    <div class="stage-bg"><img width="320" height="320" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/autospa_night-400.jpg"></div>
-    <div class="stage-box"><div class="stage-frame">
-      <div class="stage-media">
-        <picture><source type="image/webp" data-srcset="img/autospa_night-400.webp 400w, img/autospa_night-800.webp 800w, img/autospa_night-1080.webp 1080w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1080" height="1080" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Порше 911 Turbo S влиза в AutoSpa през нощта, надпис AUTO SPA на стената" loading="lazy" data-src="img/autospa_night-800.jpg" data-srcset="img/autospa_night-400.jpg 400w, img/autospa_night-800.jpg 800w, img/autospa_night-1080.jpg 1080w" style="object-position:40% 50%"></picture>
-        <div class="grad grad--t" aria-hidden="true"></div>
-        <div class="grad grad--b" aria-hidden="true"></div>
+      <div class="stage-item" data-i="1">
+        <div class="stage-bg"><img width="320" height="233" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/indoor_cars-320.jpg"></div>
+        <div class="stage-box"><div class="stage-frame">
+          <div class="stage-media">
+            <picture><source type="image/webp" data-srcset="img/indoor_cars-768.webp 768w, img/indoor_cars-1280.webp 1280w, img/indoor_cars-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="934" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Автомобили в шоурума на AutoHaus" loading="lazy" data-src="img/indoor_cars-1280.jpg" data-srcset="img/indoor_cars-768.jpg 768w, img/indoor_cars-1280.jpg 1280w, img/indoor_cars-1920.jpg 1920w" style="object-position:50% 50%"></picture>
+            <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+          </div>
+          <div class="stage-content">
+            <div class="stage-text"><h2 class="h3" data-ah-bg="Шоурум" data-ah-en="Showroom">Шоурум</h2></div>
+            <div class="btn-group btn-group--stage"><a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><span class="btn__label" data-ah-bg="Автомобили" data-ah-en="Vehicles">Автомобили</span></a></div>
+          </div>
+        </div></div>
       </div>
-      <div class="stage-content">
-        <div class="stage-text">
-          <p class="stage-kicker">Ателието</p>
-          <h2 class="h3">AutoSpa</h2>
-        </div>
-        <div class="btn-group btn-group--stage">
-          <a class="btn btn--l btn--primary" href="index.html#care"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg><span class="btn__label">Към AutoSpa</span></a>
-          <a class="btn btn--l btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Цялата колекция</span></a>
-        </div>
-      </div>
-    </div></div>
-  </div>
 
-  <div class="stage-item" data-i="3">
-    <div class="stage-bg"><img width="320" height="240" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/outside-flags-320.jpg"></div>
-    <div class="stage-box"><div class="stage-frame">
-      <div class="stage-media">
-        <picture><source type="image/webp" data-srcset="img/outside-flags-768.webp 768w, img/outside-flags-1280.webp 1280w, img/outside-flags-1920.webp 1920w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="960" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Три знамена AutoHaus над площадката пред шоурума" loading="lazy" data-src="img/outside-flags-1280.jpg" data-srcset="img/outside-flags-768.jpg 768w, img/outside-flags-1280.jpg 1280w, img/outside-flags-1920.jpg 1920w" style="object-position:55% 50%"></picture>
-        <div class="grad grad--t" aria-hidden="true"></div>
-        <div class="grad grad--b" aria-hidden="true"></div>
+      <div class="stage-item" data-i="2">
+        <div class="stage-bg"><img width="320" height="320" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/autospa_night-400.jpg"></div>
+        <div class="stage-box"><div class="stage-frame">
+          <div class="stage-media">
+            <picture><source type="image/webp" data-srcset="img/autospa_night-400.webp 400w, img/autospa_night-800.webp 800w, img/autospa_night-1080.webp 1080w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1080" height="1080" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Auto Spa" loading="lazy" data-src="img/autospa_night-800.jpg" data-srcset="img/autospa_night-400.jpg 400w, img/autospa_night-800.jpg 800w, img/autospa_night-1080.jpg 1080w" style="object-position:40% 50%"></picture>
+            <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+          </div>
+          <div class="stage-content">
+            <div class="stage-text"><h2 class="h3" data-ah-bg="Auto Spa" data-ah-en="Auto Spa">Auto Spa</h2></div>
+            <div class="btn-group btn-group--stage"><a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><span class="btn__label" data-ah-bg="Автомобили" data-ah-en="Vehicles">Автомобили</span></a></div>
+          </div>
+        </div></div>
       </div>
-      <div class="stage-content">
-        <div class="stage-text">
-          <p class="stage-kicker">Локацията</p>
-          <h2 class="h3">Заповядайте</h2>
-        </div>
-        <div class="btn-group btn-group--stage">
-          <a class="btn btn--l btn--primary" href="legal.html#imprint" data-contact><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-arrow"/></svg><span class="btn__label">Свържете се</span></a>
-          <a class="btn btn--l btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Цялата колекция</span></a>
-        </div>
-      </div>
-    </div></div>
-  </div>
 
-</section>
+      <div class="stage-item" data-i="3">
+        <div class="stage-bg"><img width="400" height="250" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/outside-flags-320.jpg"></div>
+        <div class="stage-box"><div class="stage-frame">
+          <div class="stage-media">
+            <picture><source type="image/webp" data-srcset="img/outside-flags-320.webp 320w, img/outside-flags-768.webp 768w, img/outside-flags-1280.webp 1280w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="800" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Сервиз AutoHaus" loading="lazy" data-src="img/outside-flags-768.jpg" data-srcset="img/outside-flags-320.jpg 320w, img/outside-flags-768.jpg 768w, img/outside-flags-1280.jpg 1280w" style="object-position:50% 50%"></picture>
+            <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+          </div>
+          <div class="stage-content">
+            <div class="stage-text"><h2 class="h3" data-ah-bg="Сервиз" data-ah-en="Service">Сервиз</h2></div>
+            <div class="btn-group btn-group--stage"><a class="btn btn--l btn--primary" href="#avtomobili" data-catalog><span class="btn__label" data-ah-bg="Автомобили" data-ah-en="Vehicles">Автомобили</span></a></div>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="stage-item" data-i="4">
+        <div class="stage-bg"><img width="320" height="320" decoding="async" alt="" aria-hidden="true" loading="lazy" data-src="img/coffee_bar-new-320.jpg"></div>
+        <div class="stage-box"><div class="stage-frame">
+          <div class="stage-media">
+            <picture><source type="image/webp" data-srcset="img/coffee_bar-new-320.webp 320w, img/coffee_bar-new-768.webp 768w, img/coffee_bar-new-1280.webp 1280w" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw"><img width="1280" height="1280" decoding="async" sizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" alt="Кафе бар AutoHaus" loading="lazy" data-src="img/coffee_bar-new-768.jpg" data-srcset="img/coffee_bar-new-320.jpg 320w, img/coffee_bar-new-768.jpg 768w, img/coffee_bar-new-1280.jpg 1280w" style="object-position:50% 50%"></picture>
+            <div class="grad grad--t" aria-hidden="true"></div><div class="grad grad--b" aria-hidden="true"></div>
+          </div>
+          <div class="stage-content"><div class="stage-text"><h2 class="h3" data-ah-bg="Кафе бар" data-ah-en="Cafe bar">Кафе бар</h2></div></div>
+        </div></div>
+      </div></section>
 
 <!-- ==================== PAGE GRADIENT CONTAINER ==================== -->
 <!-- source: .bm-m-bg-container — ONE gradient across every band below -->
@@ -497,19 +393,19 @@
        one thing for the reader to learn. -->
   <section class="csec grid pale" id="avtomobili">
     <div class="csec__head" data-reveal>
-      <h2 class="csec__h">Колекцията</h2>
+      <h2 class="csec__h">Автомобили</h2>
       <!-- `href` stays a real link to this section so a middle-click, a
            crawler and a JS-off render all still have somewhere to go;
-           [data-catalog] is what makes a plain click open the collection
+           [data-catalog] is what makes a plain click open the inventory
            layer over the page instead of jumping to the heading the reader
            is already looking at, which is all the bare hash ever did. -->
-      <a class="csec__all" href="#avtomobili" data-catalog>Целият каталог</a>
+      <a class="csec__all" href="#avtomobili" data-catalog>Виж всички</a>
     </div>
 
     <div class="fbar2" id="pv-bar" role="group" aria-label="Филтри"></div>
 
     <!-- The count and the sort stood here. The count said "87 автомобила в
-         наличност" directly under a heading that says Колекцията and above
+         наличност" directly under a heading that says Автомобили and above
          a grid of them, which is the third time the page makes the same
          statement; the sort offered six orderings of six preview cards,
          where the ordering only means anything over all eighty-seven — and
@@ -518,7 +414,7 @@
     <div class="cgrid" id="pv-grid"></div>
 
     <div class="cpag">
-      <a class="cpag__more" href="#avtomobili" id="pv-more" data-catalog>Виж всички 87 автомобила<svg class="cpag__arr" viewBox="0 0 30 8" aria-hidden="true"><line x1="0" y1="4" x2="28" y2="4"/><path d="M23,1 L28,4 L23,7"/></svg></a>
+      <a class="cpag__more" href="#avtomobili" id="pv-more" data-catalog>Виж всички<svg class="cpag__arr" viewBox="0 0 30 8" aria-hidden="true"><line x1="0" y1="4" x2="28" y2="4"/><path d="M23,1 L28,4 L23,7"/></svg></a>
     </div>
   </section>
 
@@ -528,7 +424,7 @@
        better than seven cards can), so the band answers the other half of the
        question instead: what AutoHaus does once the car is chosen. Four cards,
        and each one is a room in the building rather than a proposition:
-       AutoSpa, the workshop, the finance desk, the cafe bar. Someone who has
+       Auto Spa, the workshop, the finance desk, the cafe bar. Someone who has
        driven to Пловдив has stood in all four.
 
        "Внос по поръчка" and "Изкупуване и бартер" used to be cards three and
@@ -539,29 +435,29 @@
 
        Two cards carry the ids the rest of the site already links to —
        #lizing from every header and footer, #care from three footers — so the
-       leasing calculator and the AutoSpa entry keep the anchors they had.
+       leasing calculator and the Auto Spa entry keep the anchors they had.
        main.js opens the matching card when one of those links lands. -->
   <section class="wall" id="razdeli">
-    <div class="wall-scroll" id="wall-scroll" style="--n:4">
+    <div class="wall-scroll" id="wall-scroll" style="--n:5">
 
       <!-- 1. AUTOSPA — id="care", because three footers link to #care and
            main.js opens the matching card when one of those links lands. -->
       <div class="wcard-item" id="care" style="--i:0">
         <div class="wcard">
-          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_autospa-400.webp 400w, img/autohaus_autospa-800.webp 800w, img/autohaus_autospa-1080.webp 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/autohaus_autospa-800.jpg" srcset="img/autohaus_autospa-400.jpg 400w, img/autohaus_autospa-800.jpg 800w, img/autohaus_autospa-1080.jpg 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил пред входа на AutoSpa в базата на AutoHaus"></picture></span>
+          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_autospa-400.webp 400w, img/autohaus_autospa-800.webp 800w, img/autohaus_autospa-1080.webp 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/autohaus_autospa-800.jpg" srcset="img/autohaus_autospa-400.jpg 400w, img/autohaus_autospa-800.jpg 800w, img/autohaus_autospa-1080.jpg 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил пред входа на Auto Spa в базата на AutoHaus"></picture></span>
           <span class="wcard-text">
             <span class="wcard-label">В комплекса</span>
-            <a class="wcard-anchor" href="#cw-care" aria-expanded="false" aria-controls="cw-care"><span class="h6 wcard-h">AutoSpa</span></a>
+            <a class="wcard-anchor" href="#cw-care" aria-expanded="false" aria-controls="cw-care"><span class="h6 wcard-h">Auto Spa</span></a>
             <span class="body-s wcard-body">Грижа за автомобила в комплекса на AutoHaus.</span>
           </span>
         </div>
-        <div class="wcard-panel" id="cw-care" role="group" aria-label="AutoSpa">
+        <div class="wcard-panel" id="cw-care" role="group" aria-label="Auto Spa">
           <div class="wcard-panel-in">
             <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
             <div class="wcard-scroll">
-              <h3 class="wcard-panel-h">AutoSpa</h3>
+              <h3 class="wcard-panel-h">Auto Spa</h3>
               <div class="body-s">
-                <p>AutoSpa е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.</p>
+                <p>Auto Spa е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.</p>
               </div>
             </div>
             <div class="btn-group wcard-cta">
@@ -608,33 +504,27 @@
            — and sends the reader to enquire. If real terms are ever supplied,
            add them here as plain, confirmed copy. -->
       <div class="wcard-item" id="lizing" style="--i:2">
-        <div class="wcard">
-          <span class="wcard-photo"><picture><source type="image/webp" srcset="img/three-cars-400.webp 400w, img/three-cars-800.webp 800w, img/three-cars-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/three-cars-800.jpg" srcset="img/three-cars-400.jpg 400w, img/three-cars-800.jpg 800w, img/three-cars-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Три спортни автомобила в шоурума на AutoHaus вечер"></picture></span>
-          <span class="wcard-text">
-            <span class="wcard-label">Условия при запитване</span>
-            <a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h">Лизинг и застраховане</span></a>
-            <span class="body-s wcard-body">Лизинг и застраховане при покупка на автомобил.</span>
-          </span>
-        </div>
-        <div class="wcard-panel" id="cw-lizing" role="group" aria-label="Лизинг и застраховане">
-          <div class="wcard-panel-in">
-            <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label">Затвори</span></button>
-            <div class="wcard-scroll">
-              <h3 class="wcard-panel-h">Лизинг и застраховане</h3>
-              <div class="body-s">
-                <p>Лизинг и застраховане се уреждат при покупка на автомобил от AutoHaus. Условията се уточняват индивидуално — свържете се с нас за оферта.</p>
-              </div>
-            </div>
-            <div class="btn-group wcard-cta">
-              <a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label">Запитване</span></a>
-              <a class="btn btn--s btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Цялата колекция</span></a>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="wcard">
+        <span class="wcard-photo"><picture><source type="image/webp" srcset="img/three-cars-400.webp 400w, img/three-cars-800.webp 800w, img/three-cars-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/three-cars-800.jpg" srcset="img/three-cars-400.jpg 400w, img/three-cars-800.jpg 800w, img/three-cars-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Три автомобила в шоурума на AutoHaus"></picture></span>
+        <span class="wcard-text"><span class="wcard-label" data-ah-bg="Финансиране" data-ah-en="Financing">Финансиране</span><a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h" data-ah-bg="Лизинг" data-ah-en="Leasing">Лизинг</span></a><span class="body-s wcard-body" data-ah-bg="Лизинг при покупка на автомобил." data-ah-en="Leasing for a vehicle purchase.">Лизинг при покупка на автомобил.</span></span>
+      </div><div class="wcard-panel" id="cw-lizing" role="group" aria-label="Лизинг"><div class="wcard-panel-in">
+        <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label" data-ah-bg="Затвори" data-ah-en="Close">Затвори</span></button>
+        <div class="wcard-scroll"><h3 class="wcard-panel-h" data-ah-bg="Лизинг" data-ah-en="Leasing">Лизинг</h3><div class="body-s"><p data-ah-bg="Условията за лизинг се уточняват индивидуално при запитване." data-ah-en="Leasing terms are confirmed individually on enquiry.">Условията за лизинг се уточняват индивидуално при запитване.</p></div></div>
+        <div class="btn-group wcard-cta"><a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label" data-ah-bg="Запитване" data-ah-en="Enquiry">Запитване</span></a></div>
+      </div></div>
+</div>
+      <div class="wcard-item" id="zastrahovki" style="--i:3"><div class="wcard">
+      <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_inside-320.webp 320w, img/autohaus_inside-768.webp 768w, img/autohaus_inside-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="800" src="img/autohaus_inside-768.jpg" srcset="img/autohaus_inside-320.jpg 320w, img/autohaus_inside-768.jpg 768w, img/autohaus_inside-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Шоурум AutoHaus"></picture></span>
+      <span class="wcard-text"><span class="wcard-label" data-ah-bg="Покритие" data-ah-en="Insurance">Покритие</span><a class="wcard-anchor" href="#cw-zastrahovki" aria-expanded="false" aria-controls="cw-zastrahovki"><span class="h6 wcard-h" data-ah-bg="Застраховки" data-ah-en="Insurance">Застраховки</span></a><span class="body-s wcard-body" data-ah-bg="Застраховане при покупка на автомобил." data-ah-en="Insurance for a vehicle purchase.">Застраховане при покупка на автомобил.</span></span>
+    </div><div class="wcard-panel" id="cw-zastrahovki" role="group" aria-label="Застраховки"><div class="wcard-panel-in">
+      <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label" data-ah-bg="Затвори" data-ah-en="Close">Затвори</span></button>
+      <div class="wcard-scroll"><h3 class="wcard-panel-h" data-ah-bg="Застраховки" data-ah-en="Insurance">Застраховки</h3><div class="body-s"><p data-ah-bg="Условията за застраховане се уточняват индивидуално при запитване." data-ah-en="Insurance terms are confirmed individually on enquiry.">Условията за застраховане се уточняват индивидуално при запитване.</p></div></div>
+      <div class="btn-group wcard-cta"><a class="btn btn--s btn--primary" href="concierge.html?intent=other"><span class="btn__label" data-ah-bg="Запитване" data-ah-en="Enquiry">Запитване</span></a></div>
+    </div></div></div>
+
 
       <!-- 4. КАФЕ БАР -->
-      <div class="wcard-item" id="cafe" style="--i:3">
+      <div class="wcard-item" id="cafe" style="--i:4">
         <div class="wcard">
           <span class="wcard-photo"><picture><source type="image/webp" srcset="img/coffee_bar-new-320.webp 320w, img/coffee_bar-new-768.webp 768w, img/coffee_bar-new-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="800" src="img/coffee_bar-new-768.jpg" srcset="img/coffee_bar-new-320.jpg 320w, img/coffee_bar-new-768.jpg 768w, img/coffee_bar-new-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Терасата на кафе бара на AutoHaus с 3D графит на автомобил, пробиващ бетонна стена"></picture></span>
           <span class="wcard-text">
@@ -677,57 +567,7 @@
 
   <!-- ---------- CTA TEASER — За AutoHaus ---------- -->
   <!-- source: .bm-m-cta-teaser — two stacked images parallaxing at different rates -->
-  <section class="cta" id="about">
-    <div class="grid">
-      <div class="row cta-row">
-        <div class="col offset-1 span-4 cta-media">
-          <div class="cta-img cta-img--2" data-parallax="34" aria-hidden="true">
-            <picture><source type="image/webp" srcset="img/v/2026-04_6-2-400.webp 400w, img/v/2026-04_6-2-800.webp 800w, img/v/2026-04_6-2-1280.webp 1280w" sizes="100vw"><img loading="lazy" decoding="async" width="1280" height="800" src="img/v/2026-04_6-2-800.jpg" srcset="img/v/2026-04_6-2-400.jpg 400w, img/v/2026-04_6-2-800.jpg 800w, img/v/2026-04_6-2-1280.jpg 1280w" sizes="100vw" alt=""></picture>
-          </div>
-          <div class="cta-img cta-img--1" data-parallax="12">
-            <picture><source type="image/webp" srcset="img/v/2024-02_1-8-400.webp 400w, img/v/2024-02_1-8-800.webp 800w, img/v/2024-02_1-8-1280.webp 1280w" sizes="100vw"><img loading="lazy" decoding="async" width="1280" height="800" src="img/v/2024-02_1-8-800.jpg" srcset="img/v/2024-02_1-8-400.jpg 400w, img/v/2024-02_1-8-800.jpg 800w, img/v/2024-02_1-8-1280.jpg 1280w" sizes="100vw" alt="Mercedes-Benz 420 SEL, 1991 — класиката в AutoHaus"></picture>
-          </div>
-        </div>
-        <!-- ЗА AUTOHAUS.
-             What stood here was two sentences and two buttons — "Разгледай"
-             and "Запази оглед" — which is a section about the company that
-             told you almost nothing about the company and then asked you
-             for something twice.
 
-             It is an ACCOUNT now, not an invitation. Everything AutoHaus
-             does is named once, in the order somebody actually meets it:
-             the cars on the floor, the ones found to order, the money, the
-             cover, the workshop, the AutoSpa, the part-exchange, the room
-             you sit in. Nothing here asks the reader to act — the two
-             links go to the collection and to the departments, which is
-             where somebody who wants to do something is already heading,
-             and somebody who wants to keep reading is left alone.
-
-             The register is the whole point: a visitor who can find out
-             everything the company does, in ninety seconds, without being
-             pushed, is a visitor who can decide. That is why the copy
-             states capabilities and never urgency. -->
-        <div class="col offset-1 span-5 cta-text" data-reveal>
-          <h2 class="h4">За AutoHaus</h2>
-          <div class="body-s">
-            <p>AutoHaus е комплекс в Пловдив, на Асеновградско шосе, и работи с
-              автомобили от горния клас — в наличност на място и по поръчка.</p>
-            <p>Във витрината стоят автомобилите в наличност. Ако търсеният не е сред
-              тях, той се издирва и внася — марка, оборудване, състояние и бюджет
-              се уточняват предварително. Приемаме автомобил и насрещно, за
-              изкупуване или като част от плащането.</p>
-            <p>Финансирането и застраховането се уреждат с партньорски институции;
-              одобрението остава тяхно решение. В комплекса са и сервиз, и AutoSpa.</p>
-            <p>На терасата в комплекса има и кафе бар.</p>
-          </div>
-          <div class="btn-group">
-            <a class="btn btn--s btn--secondary" href="#avtomobili" data-catalog><span class="btn__label">Колекцията</span></a>
-            <a class="btn btn--s btn--secondary" href="#razdeli"><span class="btn__label">Услугите</span></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
 </div><!-- /.page -->
 </main>
@@ -752,7 +592,7 @@
     <div class="row">
       <div class="col span-12 ft-end">
         <a class="ft-logo" href="#top" aria-label="AutoHaus — начало">
-          <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+          <img class="logo" src="autohaus.svg?v=74ee3b04" width="482" height="85" alt="">
         </a>
         <ul class="ft-social" aria-label="AutoHaus в социалните мрежи">
           <li><a href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg>Facebook</a></li>
@@ -786,22 +626,22 @@
      getting bigger rather than a second room arriving. -->
 <div class="cat cat--pale" id="catalog" aria-hidden="true">
   <div class="cat__scrim" id="cat-scrim"></div>
-  <div class="cat__panel pale" role="dialog" aria-modal="true" aria-label="Колекцията на AutoHaus">
+  <div class="cat__panel pale" role="dialog" aria-modal="true" aria-label="Автомобили на AutoHaus">
 
     <header class="cat__bar">
       <!-- The bar used to open with the words "AutoHaus · Пловдив" set as an
            eyebrow on a plain band. It carries the plate's own corner now: the
            same wedge, the same material, the same mark, at the same height —
-           so arriving in the collection from anywhere on the site puts the
+           so arriving in the inventory from anywhere on the site puts the
            identity exactly where the reader last saw it. -->
       <div class="cat__id">
         <a class="cat__mark" href="index.html" aria-label="AutoHaus">
-          <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+          <img class="logo" src="autohaus.svg?v=74ee3b04" width="482" height="85" alt="">
         </a>
       </div>
       <div class="cat__make" id="cat-tools">
         <div class="fbar2-wrap">
-          <div class="fbar2" id="cat-bar" role="group" aria-label="Марка"></div>
+          <div class="fbar2" id="cat-bar" role="group" aria-label="Филтри"></div>
           <div class="fpop" id="cat-pop" role="dialog" aria-label="Избор на марка" hidden></div>
         </div>
       </div>
@@ -822,7 +662,7 @@
 
       <div class="cempty" id="cat-empty" hidden>
         <h3>Нищо с тези условия точно сега.</h3>
-        <p>Колекцията се движи бързо. Кажете ни какво търсите и ще го намерим — голяма част от това, което продаваме, никога не е стояло във витрината.</p>
+        <p>Автомобили се движи бързо. Кажете ни какво търсите и ще го намерим — голяма част от това, което продаваме, никога не е стояло във витрината.</p>
         <div class="btn-group" style="justify-content:center">
           <a class="btn btn--s btn--primary" href="concierge.html?intent=source"><span class="btn__label">Заявка за търсене</span></a>
           <button type="button" class="btn btn--s btn--secondary" id="cat-clear"><span class="btn__label">Покажи всички</span></button>

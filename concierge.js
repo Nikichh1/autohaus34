@@ -1,3 +1,4 @@
+(window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
 /* ============================================================
    AUTOHAUS — Concierge
 
@@ -470,8 +471,8 @@
     }
     D.getElementById("cg-match-t").textContent = m.length === 0
       ? "автомобила в наличност отговарят. Точно за това съществува тази заявка — ще го намерим."
-      : (m.length === 1 ? "автомобил в колекцията отговаря на описаното дотук."
-                        : "автомобила в колекцията отговарят на описаното дотук.");
+      : (m.length === 1 ? "автомобил в автомобилите отговаря на описаното дотук."
+                        : "автомобила в автомобилите отговарят на описаното дотук.");
     var cta = D.getElementById("cg-match-cta");
     cta.hidden = m.length === 0;
     cta.href = "index.html?" + new URLSearchParams(
@@ -512,7 +513,7 @@
     return S._ref;
   }
   var INTENT_NAME = {
-    stock: "Автомобил от колекцията", source: "Търсене по поръчка",
+    stock: "Автомобил в наличност", source: "Търсене по поръчка",
     trade: "Продажба или замяна", other: "Друго запитване"
   };
   var BAND_NAME = {
@@ -672,7 +673,7 @@
           ? "Заявката стига до екипа на AutoHaus в Пловдив."
           : "Ще се свържем с вас в рамките на един работен ден.");
       acts.innerHTML =
-        '<a class="btn btn--s btn--primary" href="index.html#avtomobili"><span class="btn__label">Обратно към колекцията</span></a>' +
+        '<a class="btn btn--s btn--primary" href="index.html#avtomobili"><span class="btn__label">Обратно към автомобилите</span></a>' +
         '<button type="button" class="btn btn--s btn--secondary" id="cg-copy"><span class="btn__label">Копирай заявката</span></button>';
     } else {
       /* No backend configured: hand the finished brief over by whatever the
@@ -785,3 +786,5 @@
   show(current(), true);
   renderMatch();
 })();
+
+});

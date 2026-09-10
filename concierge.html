@@ -2,9 +2,8 @@
 <html lang="bg">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="favicon.jpg" type="image/svg+xml">
-<link rel="mask-icon" href="favicon.jpg" color="#c9a25a">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="favicon.jpg" type="image/jpeg">
 <title>AutoHaus Обслужване — заявка за автомобил</title>
 <meta name="description" content="Опишете автомобила, който търсите. Заявката стига до екипа на AutoHaus в Пловдив.">
 <!-- THE CRITICAL PATH.
@@ -14,7 +13,7 @@
      the one file that decides when the page appears.
 
      So: style.css is the ONLY render-blocking request. catalog.css loads
-     non-blocking (it styles the collection grid, which is below the hero,
+     non-blocking (it styles the inventory grid, which is below the hero,
      and the catalog layer, which is closed). The scripts start when
      style.css lands, in document order, via the loader at the end of this
      head. `script.async = false` on a dynamically inserted script is the
@@ -27,7 +26,7 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.min.css?v=fe83b016" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=74ee3b04" id="ah-css">
 <meta name="robots" content="noindex">
 <!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
      index/vehicle/legal start their scripts only once the stylesheet is
@@ -39,10 +38,11 @@
      without it.  runs them after parsing and before first paint, so
      the furniture is there from the first frame. The page can afford it:
      18KB of CSS, no hero photograph to compete with. -->
-<script defer src="data/vehicles.js?v=fe83b016"></script>
-<script defer src="main.js?v=fe83b016"></script>
-<script defer src="concierge.js?v=fe83b016"></script>
-<script defer src="i18n.js?v=fe83b016"></script>
+<script defer src="data/vehicles.base.js?v=74ee3b04"></script>
+<script defer src="data/vehicles.js?v=74ee3b04"></script>
+<script defer src="main.js?v=74ee3b04"></script>
+<script defer src="concierge.js?v=74ee3b04"></script>
+<script defer src="i18n.js?v=74ee3b04"></script>
 <script>
 /* RESERVE WHAT THE SCRIPTS ARE ABOUT TO DRAW.
    `defer` holds a script until after parsing, but it does NOT hold first
@@ -94,17 +94,16 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
       </button>
       <a class="lnk" href="index.html#avtomobili">Автомобили</a>
       <ul class="hd-links">
-        <li><a class="lnk" href="index.html#razdeli">Услуги</a></li>
+        <li><a class="lnk" href="index.html#zastrahovki">Застраховки</a></li>
         <li><a class="lnk" href="index.html#lizing">Лизинг</a></li>
-        <li><a class="lnk" href="index.html#about">За нас</a></li>
-        <li><a class="lnk" href="legal.html#imprint" data-contact>Контакт</a></li>
+        <li><a class="lnk" href="index.html#servis">Сервиз</a></li>
       </ul>
     </div>
     <a class="hd-logo" href="index.html" aria-label="AutoHaus — начало">
-      <img class="logo logo--ink" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+      <img class="logo logo--ink" src="autohaus.svg?v=74ee3b04" width="482" height="85" alt="">
     </a>
     <ul class="hd-zone hd-zone--end">
-      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Обслужване</span></a></li>
+      <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Запитване</span></a></li>
       <li class="hd-lang">
         <div class="lang" id="lang" role="group" aria-label="Език / Language">
           <i class="lang__ind" aria-hidden="true"></i>
@@ -135,7 +134,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
       <span class="plate__menu-l">Меню</span>
     </button>
     <a class="plate__mark" href="index.html" aria-label="AutoHaus — начало">
-      <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+      <img class="logo" src="autohaus.svg?v=74ee3b04" width="482" height="85" alt="">
     </a>
     <div class="lang" role="group" aria-label="Език / Language">
       <i class="lang__ind" aria-hidden="true"></i>
@@ -151,18 +150,21 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
   <div class="mob__reveal">
     <div class="mob__sheet">
       <a class="mob-mark" href="index.html" aria-label="AutoHaus">
-        <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+        <img class="logo" src="autohaus.svg?v=74ee3b04" width="482" height="85" alt="">
       </a>
       <button class="mob-close" id="mob-close" aria-label="Затвори">
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
       </button>
       <nav aria-label="Меню">
         <a href="index.html#avtomobili">Автомобили</a>
-        <a href="concierge.html">Обслужване</a>
-        <a href="index.html#razdeli">Услуги</a>
+        <a href="index.html#zastrahovki">Застраховки</a>
         <a href="index.html#lizing">Лизинг</a>
-        <a href="index.html#about">За нас</a>
-        <a href="legal.html#imprint" data-contact>Контакт</a>
+        <a href="index.html#servis">Сервиз</a>
+        <a href="index.html#care">Auto Spa</a>
+        <a href="index.html#cafe">Кафе бар</a>
+        <a href="legal.html">Политика</a>
+        <a href="legal.html#imprint" data-contact>Контакти</a>
+        <a href="concierge.html">Запитване</a>
       </nav>
       <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
         <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
@@ -195,7 +197,11 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
       </button>
       <div class="ctc__scroll">
-        <p class="ctc__eyebrow">AutoHaus Пловдив</p>
+
+        <div class="ctc__mapbox">
+          <iframe class="ctc__mapframe" title="Карта на AutoHaus" loading="lazy" referrerpolicy="no-referrer" data-map-src="https://www.openstreetmap.org/export/embed.html?bbox=24.7587165%2C42.1127165%2C24.7887165%2C42.1287165&amp;layer=mapnik&amp;marker=42.1207165%2C24.7737244"></iframe>
+          <div class="ctc__mapmeta"><strong>AutoHaus</strong><a class="ctc__maplink" href="https://www.google.com/maps/search/?api=1&amp;query=42.1207165%2C24.7737244" target="_blank" rel="noopener">Отвори в Google Maps</a></div>
+        </div>
         <h2 class="ctc__h" id="ctc-h">Контакт</h2>
 
         <div class="ctc__where">
@@ -208,21 +214,12 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
           <p class="ctc__co">ЕИК 200771286 · ДДС BG200771286</p>
 
           <!-- Google Maps opens only after the visitor chooses this local location card. -->
-          <a class="ctc__map"
-             href="https://www.google.com/maps/search/?api=1&amp;query=42.1207222%2C24.7737222"
-             target="_blank" rel="noopener">
-            <span class="ctc__map-copy">
-              <span class="ctc__map-k">Локация</span>
-              <span class="ctc__map-title">Отвори в Google Maps</span>
-              <span class="ctc__map-coords">42°07'14.6&quot;N&nbsp;&nbsp;24°46'25.4&quot;E</span>
-            </span>
-            <svg class="ctc__map-pin" viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-pin"/></svg>
-          </a>
+
         </div>
 
         <div class="ctc__depts">
           <div class="ctc__dept">
-            <p class="ctc__k">Офис</p>
+            <p class="ctc__k">Администрация</p>
             <p class="ctc__lines">
               <a href="tel:+359884777147">+359 884 777 147</a>
               <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
@@ -260,7 +257,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
             <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
           </div>
           <div class="ctc__dept">
-            <p class="ctc__k">AutoSpa</p>
+            <p class="ctc__k">Auto Spa</p>
             <p class="ctc__lines">
               <a href="tel:+359884777148">+359 884 777 148</a>
               <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
@@ -350,7 +347,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
 
           <ol class="cgs__spine" id="cg-spine" aria-label="Хода на разговора"></ol>
 
-          <p class="cgs__meta">AutoHaus Пловдив · Асеновградско шосе</p>
+          <p class="cgs__meta">AutoHaus · Асеновградско шосе</p>
         </div>
       </aside>
 
@@ -368,7 +365,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
               <p class="cg-help body-s">Отговорът тук решава кои въпроси изобщо ще Ви задам.</p>
               <div class="cg-body">
                 <div class="opts opts--2" data-field="intent" data-single>
-                  <button type="button" class="opt" data-value="stock"><span class="opt-txt"><span class="opt-t">Автомобил от колекцията</span><span class="opt-d body-s">Видях конкретна кола и искам да продължа.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                  <button type="button" class="opt" data-value="stock"><span class="opt-txt"><span class="opt-t">Автомобил в наличност</span><span class="opt-d body-s">Видях конкретна кола и искам да продължа.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
                   <button type="button" class="opt" data-value="source"><span class="opt-txt"><span class="opt-t">Търсене по поръчка</span><span class="opt-d body-s">Знам какво искам, но го няма при вас. Намерете го.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
                   <button type="button" class="opt" data-value="trade"><span class="opt-txt"><span class="opt-t">Продажба или замяна</span><span class="opt-d body-s">Имам автомобил за изкупуване или бартер.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
                   <button type="button" class="opt" data-value="other"><span class="opt-txt"><span class="opt-t">Друго</span><span class="opt-d body-s">Auto Spa, лизинг, застраховка, регистрация.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
@@ -604,7 +601,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
     <div class="row">
       <div class="col span-12 ft-end">
         <a class="ft-logo" href="index.html#top" aria-label="AutoHaus — начало">
-          <img class="logo" src="autohaus.svg?v=fe83b016" width="482" height="85" alt="">
+          <img class="logo" src="autohaus.svg?v=74ee3b04" width="482" height="85" alt="">
         </a>
         <ul class="ft-social" aria-label="AutoHaus в социалните мрежи">
           <li><a href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg>Facebook</a></li>

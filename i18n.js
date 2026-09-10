@@ -35,6 +35,28 @@
      THE TABLE.  Keys are whitespace-collapsed Bulgarian.
      ============================================================ */
   var DICT = {
+    "Контакти": "Contacts",
+    "Политика": "Policy",
+    "Администрация": "Administration",
+    "Карта на AutoHaus": "AutoHaus map",
+    "Шоурум": "Showroom",
+    "Кафе бар": "Cafe bar",
+    "Иван Манев": "Ivan Manev",
+    "Вашето запитване": "Your enquiry",
+    "Изпрати": "Send",
+    "Напишете въпроса си за този автомобил…": "Write your question about this vehicle…",
+    "Този автомобил не е наличен.": "This vehicle is unavailable.",
+    "Разгледайте наличните автомобили или се свържете с нас за повече информация.": "Browse the available vehicles or contact us for more information.",
+    "Обратно към автомобилите": "Back to vehicles",
+    "Автомобил в наличност": "A vehicle in stock",
+    "Трансмисия:": "Transmission:",
+    "Гориво:": "Fuel:",
+    "Пробег:": "Mileage:",
+    "Първа регистрация:": "First registration:",
+    "Автомобили в наличност, лизинг, застраховки, сервиз и Auto Spa. AutoHaus, Пловдив.": "Vehicles in stock, leasing, insurance, servicing and Auto Spa. AutoHaus, Plovdiv.",
+    "© 2026 Аутохаус България ЕООД · ЕИК 200771286 · ДДС BG200771286": "© 2026 Autohaus Bulgaria Ltd. · UIC 200771286 · VAT BG200771286",
+    "ЕИК 200771286 · ДДС BG200771286": "UIC 200771286 · VAT BG200771286",
+    "Текстът на запитването е готов. Изберете как да го изпратите.": "Your enquiry is ready. Choose how to send it.",
 
     /* ---- navigation, chrome, actions ---- */
     "Автомобили": "Vehicles",
@@ -108,26 +130,26 @@
     "AutoHaus Обслужване": "AutoHaus Personal Service",
 
     /* ---- the hero ---- */
-    "AutoHaus Пловдив": "AutoHaus Plovdiv",
+    "AutoHaus": "AutoHaus",
     "AutoHaus · Пловдив": "AutoHaus · Plovdiv",
     "Автомобили в наличност": "Vehicles in stock",
-    "Виж колекцията": "See the collection",
+    "Автомобили": "Vehicles",
     "Един стандарт, 87 пъти": "One standard, 87 times",
     "Как работим": "How we work",
-    "Цялата колекция": "The whole collection",
+    "Виж всички": "See all",
     "Достъп, а не обяви": "Access, not listings",
     "Заявка за търсене": "Request a search",
     /* the hero's four rooms. The kicker names the place and the headline
        names it again in the house's own words, so both have to travel —
-       and "Ателието" is the same word the AutoSpa card uses, deliberately. */
-    "Към AutoSpa": "To AutoSpa",
+       and "Ателието" is the same word the Auto Spa card uses, deliberately. */
+    "Към Auto Spa": "To Auto Spa",
     "Към сервиза": "To the workshop",
     "Пространството": "The space",
     "Място за събития": "A place for events",
     "Модно ревю в шоурума на AutoHaus, Ламборгини на преден план":
       "A fashion show in the AutoHaus showroom, a Lamborghini in the foreground",
-    "Порше 911 Turbo S влиза в AutoSpa през нощта, надпис AUTO SPA на стената":
-      "A Porsche 911 Turbo S entering AutoSpa at night, the AUTO SPA sign on the wall",
+    "Порше 911 Turbo S влиза в Auto Spa през нощта, надпис AUTO SPA на стената":
+      "A Porsche 911 Turbo S entering Auto Spa at night, the AUTO SPA sign on the wall",
     "Терасата на кафе бара на AutoHaus с 3D графит на автомобил, пробиващ бетонна стена":
       "The AutoHaus cafe bar terrace with a 3D mural of a car breaking through a concrete wall",
     "Шоурумът": "The showroom",
@@ -152,8 +174,8 @@
       "The AutoHaus showroom in Plovdiv at dusk, its facade lit and the AutoHaus sign above it",
     "Надписът „Welcome to www.AutoHaus.bg“ на стената в приемната":
       "The \"Welcome to www.AutoHaus.bg\" lettering on the reception wall",
-    "Автомобил пред ателието AutoSpa в базата на AutoHaus":
-      "A car outside the AutoSpa studio at the AutoHaus premises",
+    "Автомобил пред ателието Auto Spa в базата на AutoHaus":
+      "A car outside the Auto Spa studio at the AutoHaus premises",
     "Шоурумът на AutoHaus в Пловдив по здрач, с осветена фасада":
       "The AutoHaus showroom in Plovdiv at dusk, its facade lit",
     "Витрината на AutoHaus — автомобили в шоурума при залез":
@@ -161,16 +183,16 @@
     "Шоурумът на AutoHaus отвътре, със слънце през остъклената фасада":
       "Inside the AutoHaus showroom, sun through the glazed facade",
 
-    /* ---- the make row and the collection preview ---- */
+    /* ---- the make row and the inventory preview ---- */
     "Разгледай по марка": "Browse by make",
     "Всички марки": "All makes",
     "Всички модели": "All models",
     "Всички раздели": "All chapters",
     "Всички автомобили": "All vehicles",
     "Всички": "All",
-    "Колекцията": "The collection",
-    "Колекцията на AutoHaus": "The AutoHaus collection",
-    "Целият каталог": "The full catalogue",
+    "Автомобили": "Vehicles",
+    "Автомобили": "Vehicles",
+    "Виж всички": "See all",
     "автомобила в наличност": "vehicles in stock",
     "в наличност": "in stock",
     "Подредба": "Sort",
@@ -181,13 +203,13 @@
     "Година — най-нови": "Year — newest first",
     "Пробег — най-малък": "Mileage — lowest first",
     "Мощност — най-висока": "Power — highest first",
-    "Обратно към колекцията": "Back to the collection",
+    "Обратно към автомобилите": "Back to the inventory",
     "Обратно към": "Back to",
-    "колекцията": "the collection",
+    "автомобилите": "the inventory",
     "Наличните": "In stock now",
     "Съвпадения в наличност": "Matches in stock",
-    "Резултати от търсенето в наличната колекция.": "Search results within the collection in stock.",
-    "Търсене в колекцията": "Search the collection",
+    "Резултати от търсенето в наличните автомобили.": "Search results within the inventory in stock.",
+    "Търсене в автомобилите": "Search the inventory",
     "Търсене и филтри": "Search and filters",
     "Марка, модел, референция…": "Make, model, reference…",
     "Няма съвпадение при текущите филтри": "Nothing matches the current filters",
@@ -310,7 +332,7 @@
       "The studio is available after the purchase too — for a car bought from us or not.",
     "Сервизът поема и поддръжката след покупката.":
       "The workshop takes on the maintenance after the purchase as well.",
-    "AutoHaus Пловдив · Асеновградско шосе": "AutoHaus Plovdiv · Asenovgradsko Shose",
+    "AutoHaus · Асеновградско шосе": "AutoHaus · Asenovgradsko Shose",
     "Опишете я накратко — марка, година, пробег и състояние. Ако е на лизинг, посочете го.":
       "Describe it briefly — make, year, mileage and condition. If it is on finance, say so.",
     "Заявката е пълна и стига до екипа на AutoHaus.":
@@ -322,8 +344,8 @@
       "AutoHaus is a complex in Plovdiv, on Asenovgradsko Shose, working with upper-segment cars — in stock on site and sourced to order.",
     "Във витрината стоят автомобилите в наличност. Ако търсеният не е сред тях, той се издирва и внася — марка, оборудване, състояние и бюджет се уточняват предварително. Приемаме автомобил и насрещно, за изкупуване или като част от плащането.":
       "On the showroom floor are the cars in stock. If the one you are after is not among them, it is sourced and imported — make, equipment, condition and budget agreed beforehand. We also take a car the other way, outright or against the purchase.",
-    "Финансирането и застраховането се уреждат на място, с партньорски институции; одобрението остава тяхно решение. В базата са и собственият сервиз — диагностика и обслужване — и AutoSpa за измиване, детайлинг и защита на лака. И двата остават на разположение и след покупката.":
-      "Finance and insurance are arranged on site, with partner institutions; approval remains their decision. The site also holds our own workshop — diagnostics and servicing — and AutoSpa for washing, detailing and paint protection. Both stay available after the purchase.",
+    "Финансирането и застраховането се уреждат на място, с партньорски институции; одобрението остава тяхно решение. В базата са и собственият сервиз — диагностика и обслужване — и Auto Spa за измиване, детайлинг и защита на лака. И двата остават на разположение и след покупката.":
+      "Finance and insurance are arranged on site, with partner institutions; approval remains their decision. The site also holds our own workshop — diagnostics and servicing — and Auto Spa for washing, detailing and paint protection. Both stay available after the purchase.",
     "Кафе барът на терасата е отворен и за хора, които просто минават. Разговорът за автомобил върви по-добре на маса.":
       "The cafe bar on the terrace is open to people simply passing by. A conversation about a car goes better at a table.",
     "Отделите": "The departments",
@@ -433,7 +455,7 @@
        Six departments, an address and a map. The address is transliterated
        rather than translated: a street name is how a courier finds the
        building, and "Nestor Abadzhiev" is what is written on it. */
-    "Карта до AutoHaus Пловдив": "Map to AutoHaus Plovdiv",
+    "Карта до AutoHaus": "Map to AutoHaus",
     "Отвори в Google Maps": "Open in Google Maps",
     "ул. „Нестор Абаджиев“ №24": "24 Nestor Abadzhiev Street",
     "Асеновградско шосе": "Asenovgradsko Shose",
@@ -452,22 +474,22 @@
 
     /* ---- the service wall — the four rooms ---- */
     "Собствено ателие": "Our own studio",
-    "AutoSpa": "AutoSpa",
+    "Auto Spa": "Auto Spa",
     "Auto Spa": "Auto Spa",
     "Ръчно измиване, детайлинг, полиране и защита — на място в базата.":
       "Hand washing, detailing, polishing and protection — on site.",
     "Ръчно измиване, детайлинг, полиране, керамично покритие и защитно фолио — в собствено ателие в базата, не при подизпълнител.":
       "Hand washing, detailing, polishing, ceramic coating and paint protection film — in our own studio on site, not at a subcontractor.",
-    "Всеки автомобил от колекцията минава оттук, преди да бъде показан. Ателието остава на разположение и след покупката — за автомобил, купен от нас или не.":
-      "Every car in the collection passes through here before it is shown. The studio stays available after the purchase too — for a car bought from us or not.",
+    "Всеки автомобил от автомобилите минава оттук, преди да бъде показан. Ателието остава на разположение и след покупката — за автомобил, купен от нас или не.":
+      "Every car in the inventory passes through here before it is shown. The studio stays available after the purchase too — for a car bought from us or not.",
     "Ръчно измиване и сушене": "Hand washing and drying",
     "Детайлинг на интериора": "Interior detailing",
     "Полиране и корекция на лака": "Polishing and paint correction",
     "Керамично покритие": "Ceramic coating",
     "Защитно фолио": "Paint protection film",
     "Подготовка преди продажба": "Pre-sale preparation",
-    "Автомобил пред входа на AutoSpa в базата на AutoHaus":
-      "A car at the AutoSpa entrance on the AutoHaus site",
+    "Автомобил пред входа на Auto Spa в базата на AutoHaus":
+      "A car at the Auto Spa entrance on the AutoHaus site",
     "Запази час": "Book a slot",
 
     "Собствен сервиз": "Our own workshop",
@@ -545,8 +567,8 @@
     "Автомобили, чиято стойност вече не се обезценява.": "Cars whose value has stopped falling.",
     "Електрически и хибридни, с пълна история на батерията.":
       "Electric and hybrid, with full battery history.",
-    "Останалата част от колекцията — седани, купета и SUV.":
-      "The rest of the collection — saloons, coupés and SUVs.",
+    "Останалата част от автомобилите — седани, купета и SUV.":
+      "The rest of the inventory — saloons, coupés and SUVs.",
     "Фабрично брониран представителен транспорт — B7/VR9 и VR10.":
       "Factory-armoured chauffeur transport — B7/VR9 and VR10.",
 
@@ -588,24 +610,24 @@
     "ул. „Нестор Абаджиев“ №24, Пловдив": "24 Nestor Abadzhiev St, Plovdiv",
     "Mercedes-Benz 420 SEL, 1991 — класиката в AutoHaus":
       "Mercedes-Benz 420 SEL, 1991 — the classic at AutoHaus",
-    "Аутохаус България ЕООД": "Autohaus Bulgaria EOOD",
-    "© 2026 Аутохаус България ЕООД": "© 2026 Autohaus Bulgaria EOOD",
+    "Аутохаус България ЕООД": "Autohaus Bulgaria Ltd.",
+    "© 2026 Аутохаус България ЕООД": "© 2026 Autohaus Bulgaria Ltd.",
     "ЕИК 200771286": "Company no. 200771286",
     "ДДС № BG200771286": "VAT no. BG200771286",
     "Аутохаус България ЕООД · ЕИК 200771286 · ул. „Нестор Абаджиев“ №24, Асеновградско шосе, 4023 Пловдив · +359 884 777 147 · autohausbg@gmail.com":
-      "Autohaus Bulgaria EOOD · Company no. 200771286 · 24 Nestor Abadzhiev St, Asenovgradsko shose, 4023 Plovdiv · +359 884 777 147 · autohausbg@gmail.com",
+      "Autohaus Bulgaria Ltd. · Company no. 200771286 · 24 Nestor Abadzhiev St, Asenovgradsko shose, 4023 Plovdiv · +359 884 777 147 · autohausbg@gmail.com",
     "Обявените цени са крайни. Лизинг от 6.9% годишно при 20% първоначална вноска и срок до 60 месеца; месечната вноска е ориентировъчна и подлежи на одобрение от партньорска лизингова институция. Автомобил се запазва за 48 часа след капаро. Възможен бартер с вашия автомобил.":
       "Prices shown are final. Leasing from 6.9% a year with a 20% deposit and terms up to 60 months; the monthly payment is indicative and subject to approval by a partner leasing institution. A car is held for 48 hours against a deposit. Part-exchange with your car is possible.",
     "Обявените цени са крайни. Лизингът е ориентировъчен: 6.9% годишна лихва при 20% първоначална вноска и срок до 60 месеца; окончателните условия се потвърждават след одобрение от партньорска лизингова институция. Автомобил се запазва за 48 часа след капаро. Възможен бартер с вашия автомобил.":
       "Prices shown are final. Leasing figures are indicative: 6.9% annual interest with a 20% deposit and terms up to 60 months; final terms are confirmed after approval by a partner leasing institution. A car is held for 48 hours against a deposit. Part-exchange with your car is possible.",
 
-    /* ---- the collection ---- */
+    /* ---- the inventory ---- */
     "Всяка кола тук е физически в Пловдив и е минала през един и същ път: проверка на произход и история, механична подготовка, Auto Spa, витрина. Продадените се свалят в същия ден.":
       "Every car here is physically in Plovdiv and has taken the same route: provenance and history checks, mechanical preparation, Auto Spa, showroom floor. Sold cars come down the same day.",
-    "Колекцията се подрежда в браузъра, а тук той не изпълнява скриптове. Наличността се проверява по телефона за секунди — и е същата, която бихте видели тук.":
-      "The collection is assembled in the browser, and scripts are not running here. Availability can be checked by phone in seconds — and it is the same availability you would see on this page.",
-    "Колекцията се движи бързо. Кажете ни какво търсите и ще го намерим — голяма част от това, което продаваме, никога не е стояло във витрината.":
-      "The collection moves quickly. Tell us what you are looking for and we will find it — much of what we sell has never stood in the showroom.",
+    "Автомобили се подрежда в браузъра, а тук той не изпълнява скриптове. Наличността се проверява по телефона за секунди — и е същата, която бихте видели тук.":
+      "Vehicles is assembled in the browser, and scripts are not running here. Availability can be checked by phone in seconds — and it is the same availability you would see on this page.",
+    "Автомобили се движи бързо. Кажете ни какво търсите и ще го намерим — голяма част от това, което продаваме, никога не е стояло във витрината.":
+      "Vehicles moves quickly. Tell us what you are looking for and we will find it — much of what we sell has never stood in the showroom.",
 
     /* ---- the dossier ---- */
     "За този автомобил": "About this car",
@@ -613,7 +635,7 @@
     "Детайли": "Details",
     "Гаранции и оглед": "Guarantees and viewing",
     "Въпрос към AutoHaus": "A question for AutoHaus",
-    "Други от колекцията": "More from the collection",
+    "Други от автомобилите": "More from the inventory",
     "Автомобили от същия раздел или от същата марка, в наличност сега.":
       "Cars from the same chapter or the same make, in stock now.",
     "Цена и запитване": "Price and enquiry",
@@ -624,7 +646,7 @@
     "Одобри лично този автомобил, преди да бъде показан.":
       "Personally approved this car before it was shown.",
     "Автомобилът не е намерен — AutoHaus": "Car not found — AutoHaus",
-    "Този автомобил вече не е в колекцията.": "This car is no longer in the collection.",
+    "Този автомобил вече не е в автомобилите.": "This car is no longer in the inventory.",
     "Продадените се свалят в деня на продажбата. Ако сте го харесали,":
       "Sold cars come down the day they sell. If you liked it,",
     "вероятно можем да намерим същия — или по-добър.":
@@ -670,8 +692,8 @@
       "A factory-armoured car. The protection level and the documentation for",
     "бронирането се преглеждат лично при огледа, не се описват в обява.":
       "the armouring are reviewed in person at the viewing, not described in a listing.",
-    "Преминал е през същия път като всеки автомобил в колекцията: проверка на":
-      "It has taken the same route as every car in the collection: checks on",
+    "Преминал е през същия път като всеки автомобил в автомобилите: проверка на":
+      "It has taken the same route as every car in the inventory: checks on",
     "произход и сервизна история, механична подготовка в собствен сервиз, пълен Auto Spa":
       "provenance and service history, mechanical preparation in our own workshop, a full Auto Spa",
     "детайлинг и лично одобрение от": "detail and personal approval by",
@@ -725,7 +747,7 @@
     "Седнете за момент.": "Take a seat.",
     "Няколко въпроса, около две минути. Толкова, колкото да разберем какво търсите — и да го намерим вместо Вас.":
       "A few questions, about two minutes. Just enough for us to understand what you are looking for — and to go and find it for you.",
-    "Обслужване · AutoHaus Пловдив": "Personal service · AutoHaus Plovdiv",
+    "Обслужване · AutoHaus": "Personal service · AutoHaus",
     "Хода на разговора": "The shape of the conversation",
     "Отговор до 24 часа в работни дни": "An answer within 24 hours on working days",
     "Дотук": "So far",
@@ -777,10 +799,10 @@
     /* the match readout, the brief's addressee and the hand-off screen —
        all three are written by concierge.js and none of them was ever in
        the table */
-    "автомобила в колекцията отговарят на описаното дотук.":
-      "vehicles in the collection match what you have described so far.",
-    "автомобил в колекцията отговаря на описаното дотук.":
-      "vehicle in the collection matches what you have described so far.",
+    "автомобила в автомобилите отговарят на описаното дотук.":
+      "vehicles in the inventory match what you have described so far.",
+    "автомобил в автомобилите отговаря на описаното дотук.":
+      "vehicle in the inventory matches what you have described so far.",
     "автомобила в наличност отговарят. Точно за това съществува тази заявка — ще го намерим.":
       "vehicles in stock match. This enquiry exists for precisely that reason — we will find it.",
     "За Иван Манев": "For Ivan Manev",
@@ -796,7 +818,7 @@
     "С какво можем да сме полезни?": "How can we help?",
     "Отговорът определя останалите въпроси — няма да Ви питаме нищо излишно.":
       "Your answer decides the rest of the questions — we will not ask you anything unnecessary.",
-    "Автомобил от колекцията": "A car from the collection",
+    "Автомобил в наличност": "A car from the inventory",
     "Видях конкретна кола и искам да продължа.": "I have seen a specific car and want to go ahead.",
     "Търсене по поръчка": "A search to order",
     "Знам какво искам, но го няма при вас. Намерете го.":
@@ -897,13 +919,13 @@
     "Автомобил": "Vehicle",
     "Лизинг по замяната": "Finance on the part-exchange",
     "Срок в месеци": "Term in months",
-    "Автомобил — AutoHaus Пловдив": "Vehicle — AutoHaus Plovdiv",
+    "Автомобил — AutoHaus": "Vehicle — AutoHaus",
     "Автомобилът не е намерен — AutoHaus": "Vehicle not found — AutoHaus",
-    "Правна информация — AutoHaus Пловдив": "Legal information — AutoHaus Plovdiv",
-    "Колекцията — AutoHaus Пловдив": "The collection — AutoHaus Plovdiv",
-    "AutoHaus Пловдив — подбрани автомобили в наличност":
-      "AutoHaus Plovdiv — selected vehicles in stock",
-    "— AutoHaus Пловдив": "— AutoHaus Plovdiv",
+    "Правна информация — AutoHaus": "Legal information — AutoHaus",
+    "Автомобили — AutoHaus": "Vehicles — AutoHaus",
+    "AutoHaus — подбрани автомобили в наличност":
+      "AutoHaus — selected vehicles in stock",
+    "— AutoHaus": "— AutoHaus",
     "— кадър": "— frame",
     "— уголеми": "— enlarge",
     "· избран автомобил": "· selected vehicle",
@@ -918,8 +940,8 @@
       "87 selected vehicles in stock in Plovdiv — from armoured class and Maybach to AMG and Porsche. Leasing from 6.9%, sourcing to order, part-exchange, Auto Spa.",
     "87 подбрани автомобила в наличност в Пловдив. Брониран клас, Maybach, AMG, Porsche, G-класа. Избор по марка.":
       "87 selected vehicles in stock in Plovdiv. Armoured class, Maybach, AMG, Porsche, G-Class. Browse by make.",
-    "Пълно досие на автомобила: спецификация, галерия, произход, лизинг и запитване към AutoHaus Пловдив.":
-      "The car's full dossier: specification, gallery, provenance, leasing and an enquiry to AutoHaus Plovdiv.",
+    "Пълно досие на автомобила: спецификация, галерия, произход, лизинг и запитване към AutoHaus.":
+      "The car's full dossier: specification, gallery, provenance, leasing and an enquiry to AutoHaus.",
 
     /* ---- the tail: single words and colours that reach the page only as
        part of something a renderer built ---- */
@@ -969,8 +991,8 @@
       "At the complex",
     "Грижа за автомобила в комплекса на AutoHaus.":
       "Car care at the AutoHaus complex.",
-    "AutoSpa е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.":
-      "AutoSpa is part of the AutoHaus complex. For the range of services and to book, get in touch.",
+    "Auto Spa е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.":
+      "Auto Spa is part of the AutoHaus complex. For the range of services and to book, get in touch.",
     "Обслужване и поддръжка в комплекса на AutoHaus.":
       "Servicing and maintenance at the AutoHaus complex.",
     "Сервизът е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.":
@@ -987,8 +1009,8 @@
       "The café bar is on the terrace at the AutoHaus complex.",
     "Запитване":
       "Enquiry",
-    "Финансирането и застраховането се уреждат с партньорски институции; одобрението остава тяхно решение. В комплекса са и сервиз, и AutoSpa.":
-      "Financing and insurance are arranged through partner institutions; approval remains their decision. The complex also houses a workshop and an AutoSpa.",
+    "Финансирането и застраховането се уреждат с партньорски институции; одобрението остава тяхно решение. В комплекса са и сервиз, и Auto Spa.":
+      "Financing and insurance are arranged through partner institutions; approval remains their decision. The complex also houses a workshop and an Auto Spa.",
     "На терасата в комплекса има и кафе бар.":
       "There is also a café bar on the terrace at the complex.",
     "Лизинг и застраховане се уреждат чрез партньорски институции. Сайтът не публикува лихви, вноски или срокове и не съдържа оферта за финансиране.":
@@ -1003,8 +1025,8 @@
       "Hand care for every detail — washing, detailing and paint protection.",
     "Собствено ателие в базата — не подизпълнител. Ръчно измиване, детайлинг, полиране, керамика и защитно фолио, изпълнени с внимание към всеки детайл.":
       "Our own studio on site, not a subcontractor — hand washing, detailing, polishing, ceramic coating and protective film, carried out with care for every detail.",
-    "На разположение и след покупката — за автомобил от нашата колекция или Ваш собствен.":
-      "Available after the sale as well — for a car from our collection or your own.",
+    "На разположение и след покупката — за автомобил от нашите автомобили или Ваш собствен.":
+      "Available after the sale as well — for a car from our inventory or your own.",
     "Сервиз в базата":
       "Workshop on site",
     "Диагностика, обслужване и поддръжка — от собствен екип в Пловдив.":
@@ -1093,7 +1115,7 @@
     "Общи условия за ползване": "Terms of use",
     "1. Предмет": "1. Scope",
     "Тези условия уреждат ползването на сайта на Аутохаус България ЕООД.":
-      "These terms govern the use of the website of Autohaus Bulgaria EOOD.",
+      "These terms govern the use of the website of Autohaus Bulgaria Ltd..",
     "2. Автомобили, цени и снимки": "2. Vehicles, prices and photographs",
     "Наличността, цените, техническите характеристики и фотографиите могат да се променят. Те са с информационна цел и не са потвърждение за продажба.":
       "Availability, prices, technical specifications and photographs may change. They are for information and are not confirmation of a sale.",
@@ -1141,7 +1163,7 @@
     "Отговорност за съдържанието":
       "Responsibility for the content",
     "За съдържанието на този сайт отговаря Аутохаус България ЕООД на посочения по-горе адрес. Сайтът съдържа препратки към външни страници (Google Maps, Facebook, Instagram, Комисията за защита на потребителите); за тяхното съдържание отговарят техните оператори.":
-      "Responsibility for the content of this site lies with Autohaus Bulgaria EOOD at the address given above. The site contains links to external pages (Google Maps, Facebook, Instagram, the Consumer Protection Commission); their content is the responsibility of their operators.",
+      "Responsibility for the content of this site lies with Autohaus Bulgaria Ltd. at the address given above. The site contains links to external pages (Google Maps, Facebook, Instagram, the Consumer Protection Commission); their content is the responsibility of their operators.",
     "Надзорни органи":
       "Supervisory authorities",
     "Комисия за защита на потребителите":
@@ -1258,9 +1280,9 @@
       function (m, ch, blurb) {
         return "Sits in the “" + lc(ch) + "” chapter" + (blurb ? ": " + lc(blurb) : ".");
       }],
-    [/^Преминал е през същия път като всеки автомобил в колекцията: проверка на произход и сервизна история, механична подготовка в собствен сервиз, пълен Auto Spa детайлинг и лично одобрение от (.+?), преди да бъде показан\.$/,
+    [/^Преминал е през същия път като всеки автомобил в автомобилите: проверка на произход и сервизна история, механична подготовка в собствен сервиз, пълен Auto Spa детайлинг и лично одобрение от (.+?), преди да бъде показан\.$/,
       function (m, who) {
-        return "It has taken the same route as every car in the collection: provenance " +
+        return "It has taken the same route as every car in the inventory: provenance " +
           "and service-history checks, mechanical preparation in our own workshop, a full " +
           "Auto Spa detail and personal approval by " + lc(who) + ", before it was shown.";
       }],
@@ -1272,13 +1294,13 @@
        from the car record, so they are matched here as whole strings, not kept
        as fixed keys. Only the Bulgarian tail changes by language; the price,
        when shown, is a number and passes through look() untouched. */
-    [/^(.+?) · (.+?) — AutoHaus Пловдив$/, function (m, car, price) {
-      return car + " · " + (look(price) || price) + " — AutoHaus Plovdiv";
+    [/^(.+?) · (.+?) — AutoHaus$/, function (m, car, price) {
+      return car + " · " + (look(price) || price) + " — AutoHaus";
     }],
-    [/^(.+?), (нерегистриран|\d{4} г\.), ([\d ]+) км, (\d+) к\.с\. Проверен автомобил в наличност в AutoHaus Пловдив\.$/,
+    [/^(.+?), (нерегистриран|\d{4} г\.), ([\d ]+) км, (\d+) к\.с\. Проверен автомобил в наличност в AutoHaus\.$/,
       function (m, car, reg, km, hp) {
         return car + ", " + (reg === "нерегистриран" ? "unregistered" : reg.replace(/ г\.$/, "")) +
-          ", " + km + " km, " + hp + " hp. A checked vehicle in stock at AutoHaus Plovdiv.";
+          ", " + km + " km, " + hp + " hp. A checked vehicle in stock at AutoHaus.";
       }],
     [/^Без първа регистрация, ([\d ]+) км от завода\.$/,
       "No first registration, $1 km from the factory."],
@@ -1348,7 +1370,7 @@
   /* the switch renames its own buttons and the wipe carries the name of the
      language being switched TO — both must stay out of the table's way, and
      saying so here means no page has to remember to mark them up */
-  var NT = "[data-nt],.lang,.wipe";
+  var NT = "[data-nt],[data-ah-bg],.lang,.wipe";
   function optedOut(el) {
     return !!(el && el.closest && el.closest(NT));
   }
@@ -1402,6 +1424,14 @@
   }
 
   function applyTo(root) {
+    if (root.nodeType === 1) {
+      var bilingual = Array.prototype.slice.call(root.querySelectorAll("[data-ah-bg][data-ah-en]"));
+      if (root.hasAttribute("data-ah-bg") && root.hasAttribute("data-ah-en")) bilingual.unshift(root);
+      bilingual.forEach(function (el) {
+        var value = el.getAttribute(lang === "en" ? "data-ah-en" : "data-ah-bg");
+        if (el.textContent !== value) el.textContent = value;
+      });
+    }
     textNodes(root).forEach(doText);
     if (root.nodeType === 1) {
       doAttrs(root);

@@ -1,3 +1,4 @@
+(window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
 /* ============================================================
    AUTOHAUS — THE DISCOVERY PREVIEW + THE EXPANDING CATALOG LAYER  (v41)
 
@@ -6,7 +7,7 @@
 
    1. THE PREVIEW (in the flow of index.html)
       · "Разгледай по марка" — their Popular Makes row.
-      · "Колекцията" — their Trending grid, but live: the same pill row, the
+      · "Автомобили" — their Trending grid, but live: the same pill row, the
         same count-and-sort line and the same .lc card the catalog uses.
       The pills here do not filter in place. The preview is a doorway; the
       layer is the room. Filtering in place would answer the question and
@@ -68,7 +69,7 @@
 
   /* The catalogue is intentionally a browse-first surface. Make is the one
      meaningful refinement; all other decisions belong in a vehicle enquiry. */
-  var CONTROLS = [{ key: "make", label: "Марка", kind: "list" }];
+  var CONTROLS = [{ key: "make", label: "Филтри", kind: "list" }];
   var BY_KEY = {};
   CONTROLS.forEach(function (c) { BY_KEY[c.key] = c; });
 
@@ -213,7 +214,7 @@
       paintPreview();
     });
   }
-  if (pvMore) pvMore.textContent = "Виж всички " + PLURAL(AH.all.length);
+  if (pvMore) pvMore.firstChild.textContent = "Виж всички";
 
   /* The first paint of this grid is the single longest task on the landing
      page: filter 87 records, sort them, build six cards of markup, parse it
@@ -583,7 +584,7 @@
      ============================================================ */
   function urlFor() {
     var q = AH.filterToQuery(S);
-    return location.pathname + (q ? "?" + q : "") + "#collection";
+    return location.pathname + (q ? "?" + q : "") + "#cars";
   }
   function syncURL() {
     if (!urlLive) return;                     /* never touch history mid-open */
@@ -721,7 +722,7 @@
   });
 
   /* A selected make remains shareable; obsolete search/filter parameters are
-     ignored so an old link cannot silently narrow the collection. */
+     ignored so an old link cannot silently narrow the inventory. */
   (function boot() {
     var p = new URLSearchParams(location.search);
     if (p.has("make")) {
@@ -729,6 +730,8 @@
       open({ fromURL: true });
       return;
     }
-    if (location.hash === "#collection") setTimeout(function () { open({}); }, 300);
+    if (location.hash === "#cars" || location.hash === "#collection") setTimeout(function () { open({}); }, 300);
   })();
 })();
+
+});

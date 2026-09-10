@@ -1,3 +1,4 @@
+(window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
 /* ============================================================
    AUTOHAUS — the vehicle dossier, rebuilt on the JamesEdition structure
    (SPEC-JAMESEDITION.md §4, measured 2026-07-30)
@@ -10,7 +11,7 @@
 
      gallery  ->  title + price  ->  spec strip  ->  prose  ->  table
               ->  why this one   ->  ask         ->  guarantees
-     then, at full content width, more from the collection.
+     then, at full content width, more from the inventory.
 
    Contact is duplicated the way theirs is: a sticky rail on a desktop, a
    fixed bar on a phone. The rail is never the phone's contact path — it
@@ -38,12 +39,11 @@
       '<div class="vd-body" style="padding-top:24px">' +
         '<section class="dsec">' +
           '<h1 class="h4" style="color:var(--ink);margin-bottom:16px">' +
-            "Този автомобил вече не е в колекцията.</h1>" +
+            "Този автомобил не е наличен.</h1>" +
           '<div class="dprose" style="max-width:62ch">' +
-            "<p>Продадените се свалят в деня на продажбата. Ако сте го харесали, " +
-              "вероятно можем да намерим същия — или по-добър.</p></div>" +
+            "<p>Разгледайте наличните автомобили или се свържете с нас за повече информация.</p></div>" +
           '<div class="btn-group" style="margin-top:32px">' +
-            '<a class="btn-primary" href="index.html#avtomobili">Виж колекцията</a>' +
+            '<a class="btn-primary" href="index.html#avtomobili">Автомобили</a>' +
             '<a class="btn-ghost" href="concierge.html?intent=source">Намерете ми такъв</a>' +
           "</div>" +
         "</section>" +
@@ -55,11 +55,11 @@
 
   /* ---- page identity ---- */
   var priceLabel = v.price == null ? "цена при запитване" : AH.price(v.price);
-  D.title = v.full + " · " + priceLabel + " — AutoHaus Пловдив";
+  D.title = v.full + " · " + priceLabel + " — AutoHaus";
   var md = D.querySelector('meta[name="description"]');
   if (md) md.setAttribute("content",
     v.full + ", " + (v.unreg ? "нерегистриран" : v.year + " г.") + ", " + AH.km(v.km) + ", " +
-    v.hp + " к.с. Проверен автомобил в наличност в AutoHaus Пловдив.");
+    (v.hp ? v.hp + " к.с. " : "") + "Автомобил в AutoHaus.");
 
   function prettyPhone(p) {
     var m = String(p).match(/^\+359(\d{3})(\d{3})(\d{3})$/);
@@ -74,8 +74,8 @@
   var shots = v.shots || [];
   var N = shots.length;
   var chapterName = AH.chapterName[v.chapter] || "";
-  var backHref = "index.html#avtomobili" + (v.chapter ? "?chapter=" + v.chapter : "");
-  var backName = (chapterName || "колекцията").toLowerCase();
+  var backHref = "index.html#avtomobili";
+  var backName = "автомобилите";
 
   var CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-check"/></svg>';
   var PHONE = '<svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-phone"/></svg>';
@@ -103,7 +103,7 @@
 
      WHAT WAS HERE AND IS NOT ANY MORE, because AutoHaus does not say it:
 
-       · "Преминал е през същия път като всеки автомобил в колекцията:
+       · "Преминал е през същия път като всеки автомобил в автомобилите:
           проверка на произход и сервизна история, механична подготовка в
           собствен сервиз, пълен Auto Spa детайлинг и лично одобрение от …,
           преди да бъде показан." A four-step standard, asserted for all 87.
@@ -160,18 +160,21 @@
   var MONTHS = ["", "януари", "февруари", "март", "април", "май", "юни",
                 "юли", "август", "септември", "октомври", "ноември", "декември"];
   /* the listing's own wording, including the case where there is none */
-  var regTxt = v.unreg ? "Без първа регистрация"
+  var regTxt = v.unreg || !v.year ? "Без първа регистрация"
     : (v.year ? ((v.month ? MONTHS[v.month] + " " : "") + v.year + " г.") : "—");
 
   function specRows() {
-    return [["Марка и модел", v.full],
+    var rows = [["Марка и модел", v.full],
             ["Регистрация", regTxt],
             ["Гориво", AH.fuel[v.fuel] || "—"],
             ["Мощност", v.hp ? v.hp + " к.с." : "—"],
-            ["Трансмисия", v.gear === "manual" ? "Ръчна" : "Автоматична"],
+            ["Трансмисия", v.gear === "manual" ? "Ръчна" : v.gear === "auto" ? "Автоматична" : "—"],
             ["Пробег", v.km == null ? "—" : AH.fmt(v.km) + " км"],
             ["Цвят", v.colour || "—"],
             ["Цена", v.price == null ? "При запитване" : AH.fmt(v.price) + " евро"]];
+    var bodies = { suv: "SUV", sedan: "Седан", wagon: "Комби", hatchback: "Хечбек", coupe: "Купе", cabrio: "Кабриолет", van: "Ван", pickup: "Пикап", passenger: "Лек автомобил", other: "Друг" };
+    if (v.body_type) rows.splice(1, 0, ["Каросерия", bodies[v.body_type] || v.body_type]);
+    return rows;
   }
 
   /* ---- the equipment list ----
@@ -211,9 +214,7 @@
     return { html: html, n: n };
   }
 
-  var related = AH.all.filter(function (o) {
-    return o.id !== v.id && (o.chapter === v.chapter || o.make === v.make);
-  }).slice(0, 4);
+
 
   /* ============================================================
      RENDER
@@ -243,15 +244,10 @@
          This is the index: one box, and every frame lands on the page. */
       (N > 3 ?
         '<button type="button" class="dgal__all" id="dgal-all" aria-expanded="false" aria-controls="dgal">' +
-          GRID_IC + '<span id="dgal-all-l">Виж всички ' + N + " " + frames(N) + "</span></button>"
+          GRID_IC + '<span id="dgal-all-l">Виж всички</span></button>'
         : "") +
       "</div>" +
       '<div class="dgal-bar">' +
-        '<div class="dgal-bar__l">' +
-          '<button type="button" id="dgal-share">' + SHARE + "<span>Сподели</span></button>" +
-          '<button type="button" id="dgal-print" aria-label="Запази досието като PDF">' +
-            DOC + "<span>Запази</span></button>" +
-        "</div>" +
         '<span class="dgal-bar__n" id="dgal-n">1 / ' + N + " " + frames(N) + "</span>" +
       "</div>" +
     "</section>" +
@@ -270,7 +266,7 @@
             (vatNote ? '<p class="dtitle__vat">' + AH.esc(vatNote) + "</p>" : "") +
           "</div>" +
         "</div>" +
-        '<p class="dtitle__place">AutoHaus · Пловдив</p>' +
+        '<p class="dtitle__make">' + AH.esc(v.make) + '</p>' +
       "</section>" +
 
       /* b) THE SPECIFICATION — one block, the eight rows the listing has.
@@ -299,6 +295,7 @@
          width. The box reserves its own height so the arrival shifts
          nothing, and if the file is missing (four cars have been sold and
          their listings are gone) the section simply never appears. */
+      '<section class="dsec" id="managed-description" hidden><h2 class="dsec__h" data-ah-bg="Описание" data-ah-en="Description">Описание</h2><div class="dprose" data-nt style="white-space:pre-line;overflow-wrap:anywhere"></div></section>' +
       '<section class="dsec" id="deq-sec" hidden>' +
         '<h2 class="dsec__h">Оборудване <span class="dsec__n" id="deq-n"></span></h2>' +
         '<div class="dclamp" id="deq-clamp"><ul class="deq" id="deq"></ul></div>' +
@@ -306,40 +303,29 @@
           "Прочети още</button>" +
       "</section>" +
 
-      /* d) ask — the enquiry. The form is real and stays; what went is the
-         claim that the expert personally approved this car and the promise
-         of an answer within 24 working hours. */
-      '<section class="dsec">' +
-        '<h2 class="dsec__h">Въпрос към AutoHaus</h2>' +
-        '<div class="dseller">' +
-          /* the mark, not a person's initials: the contact is the team now
-             (content audit), and "AH" reads as the house rather than an
-             individual who may not exist */
-          '<span class="dseller__av" aria-hidden="true" style="font-size:15px;font-weight:600;letter-spacing:.06em">' +
-            "AH</span>" +
-          "<div>" +
-            '<p class="dseller__n">' + AH.esc(CFG.expert) + "</p>" +
-            '<p class="dseller__m">AutoHaus Пловдив</p>' +
-          "</div>" +
+      '<section class="dsec" id="vehicle-inquiry">' +
+        '<h2 class="dsec__h">Запитване</h2>' +
+        '<div class="dseller dseller--clean">' +
+          '<p class="dseller__n" data-ah-bg="Иван Манев" data-ah-en="Ivan Manev">Иван Манев</p>' +
           '<div class="dseller__acts">' +
-            '<a href="tel:' + CFG.expertPhone + '">' + PHONE +
-              prettyPhone(CFG.expertPhone) + "</a>" +
-            '<a href="' + AH.conciergeUrl({ v: v.id }) + '">' + ENV + "Пълно запитване</a>" +
-          "</div>" +
-        "</div>" +
-        /* a GET form: with JS blocked it still lands in the concierge with
-           the question attached. There is no POST endpoint to invent. */
-        '<form method="get" action="concierge.html" style="margin-top:24px">' +
-          '<input type="hidden" name="v" value="' + AH.esc(v.id) + '">' +
-          '<label for="dask" class="dseller__m" style="display:block;margin-bottom:8px">' +
-            "Кратък въпрос за този автомобил</label>" +
-          '<textarea id="dask" name="q" rows="3" class="dask"' +
-            ' placeholder="Например: свободен ли е за оглед в събота?"></textarea>' +
-          '<button class="btn-primary" type="submit" style="margin-top:16px">Продължи</button>' +
-          '<p class="body-s" style="margin-top:12px;color:var(--ink-3)">Въпросът се добавя към ' +
-            "заявката и стига до " + AH.esc(CFG.expert) + ".</p>" +
-        "</form>" +
-      "</section>" +
+            '<a href="tel:' + AH.esc(CFG.expertPhone) + '">' + PHONE + AH.esc(prettyPhone(CFG.expertPhone)) + '</a>' +
+            '<a class="dseller__mail" href="mailto:autohousesell@gmail.com">autohousesell@gmail.com</a>' +
+          '</div>' +
+        '</div>' +
+        '<form class="dinq" id="vehicle-inquiry-form" novalidate>' +
+          '<div class="dinq__grid">' +
+            '<label class="dinq__field"><span class="dinq__label">Име</span><input class="dinq__input" name="name" autocomplete="name" maxlength="120" required></label>' +
+            '<label class="dinq__field"><span class="dinq__label">Телефон</span><input class="dinq__input" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="60"></label>' +
+            '<label class="dinq__field"><span class="dinq__label">Имейл</span><input class="dinq__input" name="email" type="email" autocomplete="email" maxlength="180"></label>' +
+          '</div>' +
+          '<label class="dinq__field"><span class="dinq__label">Вашето запитване</span>' +
+            '<textarea class="dask" name="message" rows="4" maxlength="4000" required placeholder="Напишете въпроса си за този автомобил…"></textarea></label>' +
+          '<label class="dinq__trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>' +
+          '<div class="dinq__actions"><button class="btn-primary" type="submit">Изпрати</button>' +
+          '<a class="dinq__privacy" href="legal.html#privacy">Поверителност</a></div>' +
+          '<p class="dinq__status" role="status" aria-live="polite" aria-atomic="true"></p>' +
+        '</form>' +
+      '</section>' +
 
     "</div>" +
 
@@ -353,30 +339,9 @@
         : (v.price == null
             ? '<p class="drail__lease">Цената на този автомобил се съобщава при запитване.</p>'
             : "")) +
-      '<a class="btn-primary" href="' + AH.conciergeUrl({ v: v.id }) + '">Запитване</a>' +
-      '<a class="btn-ghost" href="' + AH.conciergeUrl({ v: v.id, visit: 1 }) + '">Запази оглед</a>' +
-      '<p class="drail__fn">Заявката стига до ' + AH.esc(CFG.expert) +
-        '. За въпроси по телефона: <a href="tel:' +
-        CFG.salonPhone + '">' + prettyPhone(CFG.salonPhone) + "</a>.</p>" +
+      '<a class="btn-primary" href="#vehicle-inquiry">Запитване</a>' +
     "</aside>" +
     "</div>" +
-
-    /* ---------- 3. more from the collection, at full content width ---------- */
-    (related.length
-      ? '<section class="dsec dmore-sec rv">' +
-          '<h2 class="h4" style="color:var(--ink);margin-bottom:8px">Други от колекцията</h2>' +
-          '<p class="body-s" style="color:var(--ink-3);max-width:62ch;margin-bottom:24px">' +
-            "Автомобили от същия раздел или от същата марка, в наличност сега.</p>" +
-          '<div class="cgrid" id="dmore-grid">' +
-            related.map(function (o) { return AH.card(o, { paper: true }); }).join("") +
-          "</div>" +
-          '<div class="btn-group" style="margin-top:32px">' +
-            '<a class="btn-primary" href="' + backHref + '">Цялата колекция</a>' +
-            '<a class="btn-ghost" href="' +
-              AH.conciergeUrl({ intent: "source", make: v.make }) + '">Търся друг</a>' +
-          "</div>" +
-        "</section>"
-      : "") +
 
   "</div>";
 
@@ -386,8 +351,8 @@
     '<span class="dmini__p">' +
       (v.price == null ? "При запитване" : AH.price(v.price)) + "</span>";
   if (bar) bar.innerHTML =
-    '<a class="btn-primary" href="' + AH.conciergeUrl({ v: v.id }) + '">Запитване</a>' +
-    '<a class="dbar__call" href="tel:' + CFG.salonPhone + '" aria-label="Обади се">' + PHONE + "</a>";
+    '<a class="btn-primary" href="#vehicle-inquiry">Запитване</a>' +
+    '<a class="dbar__call" href="tel:' + CFG.expertPhone + '" aria-label="Обади се">' + PHONE + "</a>";
 
   /* the masthead's back arrow already exists; point it at this car's chapter */
   var headBack = D.querySelector(".nav .burger");
@@ -397,15 +362,17 @@
   }
 
   AH.rendered(root);
-  var grid = D.getElementById("dmore-grid");
-  /* .cgrid's one-column track is `1fr`, i.e. minmax(auto,1fr), so below 600px
-     the track cannot shrink under the card's min-content and the page gains
-     48px of horizontal scroll. minmax(0,1fr) belongs in catalog.css (see the
-     CSS GAP in the report); until it lands, the item's own min-width does the
-     same job and is a no-op at every wider breakpoint. */
-  if (grid) Array.prototype.slice.call(grid.querySelectorAll(".lc")).forEach(function (c) {
-    c.style.minWidth = "0";
-  });
+  bindVehicleInquiry(D.getElementById("vehicle-inquiry-form"));
+  function renderManagedDescription() {
+    var section = D.getElementById("managed-description");
+    if (!section) return;
+    var en = window.AHLang && window.AHLang.get() === "en";
+    var text = en ? v.description_en : v.description_bg;
+    section.hidden = !text;
+    section.querySelector(".dprose").textContent = text || "";
+  }
+  renderManagedDescription();
+  addEventListener("ah:languagechange", renderManagedDescription);
 
   /* ============================================================
      GALLERY
@@ -442,7 +409,7 @@
     wrap.classList.toggle("is-all", showAll);
     allBtn.setAttribute("aria-expanded", showAll ? "true" : "false");
     if (allLbl) allLbl.textContent = showAll
-      ? "Покажи по-малко" : ("Виж всички " + N + " " + frames(N));
+      ? "Покажи по-малко" : "Виж всички";
     syncFrames();
     /* Collapsing takes ~2000px out of the document in one frame. Without
        this the reader is left staring at the spec table with no idea the
@@ -489,34 +456,65 @@
     syncCount();
   }
 
-  /* ---- gallery bar actions ---- */
-  function flash(btn, text) {
-    var lbl = btn.querySelector("span");
-    if (!lbl) return;
-    if (!lbl.getAttribute("data-was")) lbl.setAttribute("data-was", lbl.textContent);
-    lbl.textContent = text;
-    setTimeout(function () { lbl.textContent = lbl.getAttribute("data-was"); }, 2400);
-  }
-  var shareBtn = D.getElementById("dgal-share");
-  if (shareBtn) shareBtn.addEventListener("click", function () {
-    var url = location.href;
-    if (navigator.share) {
-      try {
-        var r = navigator.share({ title: v.full, text: v.full, url: url });
-        if (r && r.then) r.then(null, function () {});
+
+  function bindVehicleInquiry(form) {
+    if (!form) return;
+    var busy = false;
+    function bilingual(el, bg, en) {
+      el.setAttribute("data-ah-bg", bg);
+      el.setAttribute("data-ah-en", en);
+      el.textContent = window.AHLang && window.AHLang.get() === "en" ? en : bg;
+    }
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (busy) return;
+      var status = form.querySelector(".dinq__status");
+      var button = form.querySelector("button[type=submit]");
+      var fields = form.elements;
+      var name = fields.name.value.trim(), phone = fields.phone.value.trim();
+      var email = fields.email.value.trim(), message = fields.message.value.trim();
+      status.className = "dinq__status";
+      if (!form.reportValidity()) return;
+      if (!name || !message || (!phone && !email)) {
+        status.classList.add("is-error");
+        bilingual(status, "Попълнете име, запитване и телефон или имейл.", "Enter your name, enquiry and a phone number or email.");
+        (!name ? fields.name : !message ? fields.message : fields.phone).focus();
         return;
-      } catch (e) { /* fall through to the clipboard */ }
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(
-        function () { flash(shareBtn, "Копиран линк"); },
-        function () { flash(shareBtn, "Копирайте адреса"); });
-      return;
-    }
-    flash(shareBtn, "Копирайте адреса");
-  });
-  var printBtn = D.getElementById("dgal-print");
-  if (printBtn) printBtn.addEventListener("click", function () { window.print(); });
+      }
+      busy = true;
+      button.disabled = true;
+      form.setAttribute("aria-busy", "true");
+      bilingual(button, "Изпращане…", "Sending…");
+      bilingual(status, "", "");
+      var controller = new AbortController();
+      var timeout = setTimeout(function () { controller.abort(); }, 20000);
+      fetch(CFG.endpoint, {
+        method: "POST", credentials: "same-origin", signal: controller.signal,
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ kind: "vehicle", language: window.AHLang ? window.AHLang.get() : "bg",
+          website: fields.website.value.trim(), page: location.href,
+          vehicle: { id: v.id, ref: v.ref, name: v.full, price: v.price },
+          contact: { name: name, phone: phone, email: email }, message: message })
+      }).then(function (response) {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.json();
+      }).then(function (result) {
+        if (!result || result.ok !== true) throw new Error("Delivery not confirmed");
+        form.reset();
+        status.classList.add("is-ok");
+        bilingual(status, "Запитването е изпратено успешно.", "Your enquiry was sent successfully.");
+      }).catch(function () {
+        status.classList.add("is-error");
+        bilingual(status, "Запитването не е изпратено. Текстът Ви е запазен тук. Опитайте отново или използвайте телефона или имейла по-горе.", "Your enquiry was not sent. Your text is still here. Try again or use the phone number or email above.");
+      }).finally(function () {
+        clearTimeout(timeout);
+        busy = false;
+        button.disabled = false;
+        form.removeAttribute("aria-busy");
+        bilingual(button, "Изпрати", "Send");
+      });
+    });
+  }
 
   /* ---- THE EQUIPMENT, LOADED FOR THIS CAR ONLY ------------------------
      data/eq/<id>.js is the one heavy asset on this page — a median 4.3KB
@@ -535,7 +533,7 @@
   (function loadEquipment() {
     var sec = D.getElementById("deq-sec");
     if (!sec) return;
-    var activeData = null;
+    var activeData = v.db_id ? { e: v.equipment_bg || [], en: v.equipment_en || [] } : null;
     function renderEquipment() {
       if (!activeData) return;
       var useEnglish = window.AHLang && window.AHLang.get && window.AHLang.get() === "en";
@@ -549,8 +547,15 @@
       if (!list || !clamp || !btn) return;
       list.innerHTML = built.html;
       if (count) count.textContent = built.n ? "· " + built.n : "";
-      sec.removeAttribute("hidden");
+      sec.hidden = !lines.length;
       armClamp(clamp, btn);
+    }
+    addEventListener("load", renderEquipment);
+    addEventListener("ah:languagechange", renderEquipment);
+    if (v.db_id) {
+      // Empty managed equipment is intentional; never revive a stale bundled list.
+      renderEquipment();
+      return;
     }
     /* THE VERSION HAS TO TRAVEL WITH IT.
        _headers caches every .js on this site `immutable` for a year, which
@@ -584,8 +589,6 @@
     /* i18n boots after this renderer. The load listener catches the first
        English paint; subsequent language changes redraw from the static,
        reviewed local copy rather than relying on a visitor-side service. */
-    addEventListener("load", renderEquipment);
-    addEventListener("ah:languagechange", renderEquipment);
   })();
 
   /* ---- THE READ-MORE, WHICH IS THE ONE INTERACTION THAT STAYED ---------
@@ -821,3 +824,5 @@
     });
   }
 })();
+
+});

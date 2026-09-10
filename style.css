@@ -2457,7 +2457,9 @@ html:not(.js) .wcard-text > *{opacity:1}
    is in it. Measured on a 1.6Mbps phone at 4x CPU: style 708ms -> 540ms,
    total main-thread task 3240ms -> 2505ms, TBT 297 -> 254. No `paint`
    containment — that would clip, and this box has none to give. */
-.ft{background:var(--page-bottom);padding:var(--ft-pad) 0;contain:layout style}
+.ft{background:var(--page-bottom);color:rgba(255,255,255,.74);padding:var(--ft-pad) 0;contain:layout style}
+.ft p,.ft a{color:inherit}
+.ft a:hover,.ft a:focus-visible{color:#fff}
 .ft a:hover,.ft button:hover{text-decoration:underline;text-underline-offset:9px}
 .ft-top{margin-bottom:64px}
 /* the wordmark link is only ~15px tall; padding grows the target to 45px and
@@ -2476,11 +2478,11 @@ html:not(.js) .wcard-text > *{opacity:1}
 .ft-social a{
   display:inline-flex;align-items:center;gap:10px;
   font-size:11px;line-height:16px;font-weight:400;letter-spacing:.11px;
-  padding-block:4px;margin-block:-4px;
+  min-height:44px;padding-block:8px;margin-block:-8px;
 }
 .ft-social svg{
   width:15px;height:15px;flex:none;fill:currentColor;stroke:none;
-  opacity:.55;transition:opacity var(--t-ui) var(--e-ui);
+  opacity:.8;transition:opacity var(--t-ui) var(--e-ui);
 }
 .ft-social a:hover svg,.ft-social a:focus-visible svg{opacity:1}
 /* THE COLUMNS ARE GONE. Three of them held six inventory links, five
@@ -5670,4 +5672,54 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
     animation:none!important;
   }
   .cg-step.is-off{display:none!important}
+}
+
+/* Shared navigation: a centred wordmark and an accessible full menu at every width. */
+.hd-menu{display:inline-flex;min-height:44px;flex:none}
+.hd-links{display:none}
+.hd-zone--start{gap:20px}
+.hd-zone--end .btn--secondary{margin-inline-start:0}
+@media(min-width:768px){
+  .hd-nav{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:24px}
+  .hd-zone--start{grid-column:1;grid-row:1}
+  .hd-logo{grid-column:2;grid-row:1}
+  .hd-zone--end{grid-column:3;grid-row:1;gap:16px}
+  .hd-zone--end .lang{margin-inline-start:0}
+  .hd-social{display:none}
+}
+@media(min-width:1280px){
+  .hd-links{display:flex;gap:20px}
+  .hd-links li:last-child{display:none}
+  .hd-social{display:list-item}
+}
+@media(min-width:1600px){
+  .hd-links li:last-child{display:list-item}
+}
+@media(max-width:767px){
+  .hd-zone--end .lang__o{min-width:34px;min-height:44px}
+  .hd-nav{padding-top:max(24px,env(safe-area-inset-top));padding-bottom:16px}
+  .hd-menu{min-width:44px}
+}
+.mob__sheet{padding-bottom:max(28px,env(safe-area-inset-bottom))}
+.mob nav a{min-height:44px;display:flex;align-items:center}
+.mob-foot a{overflow-wrap:anywhere}
+
+/* The contact sheet leads with a live map and a direct directions link. */
+.ctc__mapbox{margin:0 0 28px;border:1px solid rgba(255,255,255,.16);background:#e8e5df;overflow:hidden}
+.ctc__mapframe{display:block;width:100%;height:clamp(210px,30vh,300px);border:0;background:#e8e5df}
+.ctc__mapmeta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 16px;padding:10px 16px;background:#111;color:#fff}
+.ctc__mapmeta strong{font-size:14px;font-weight:600;letter-spacing:.02em}
+.ctc__maplink{display:inline-flex;align-items:center;min-height:44px;color:#fff;font-size:12px;font-weight:600}
+.ctc__maplink:hover,.ctc__maplink:focus-visible{text-decoration:underline;text-underline-offset:4px}
+.ctc__scroll{padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+
+/* The vehicle header shares the menu used throughout the public site. */
+.detail-menu{display:inline-flex;align-items:center;gap:10px;min-height:44px;color:var(--ink);font-family:inherit;font-size:12px;line-height:20px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.detail-menu svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.5;fill:none}
+@media(max-width:767px){
+  body:not(.ah) .nav .links{display:flex}
+  body:not(.ah) .nav .links > a{display:none}
+  body:not(.ah) .nav .burger{display:none}
+  .detail-menu span{display:none}
+  .detail-menu{min-width:44px}
 }
