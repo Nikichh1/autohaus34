@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>AutoHaus Admin Setup</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+  <style>
+    .setup-note{margin:0 0 18px;color:#717171;font-size:13px;line-height:1.55}
+    .setup-result{margin-top:16px;padding:13px;border:1px solid #dededb;border-radius:9px;background:#f6f6f4;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+    .setup-result.is-error{border-color:#efc8c5;background:#f8e9e7;color:#a73535}
+    .setup-result.is-ok{border-color:#c6dfcf;background:#e7f3ec;color:#1f6b43}
+    .login-card .primary{width:100%;margin-top:2px}
+  </style>
+</head>
+<body class="login-page">
+  <main class="login-card" aria-labelledby="setup-title">
+    <div class="login-brand">AUTOHAUS <span>ADMIN</span></div>
+    <h1 id="setup-title">Първоначална настройка</h1>
+    <p class="setup-note">Тази страница работи само веднъж. Паролата се изпраща директно към Supabase Auth и не се записва в GitHub.</p>
+    <form id="setup-form" autocomplete="off">
+      <label>Имейл
+        <input id="email" type="email" value="admin@autohaus34.app" autocomplete="username" required>
+      </label>
+      <label>Парола
+        <input id="password" type="text" autocomplete="new-password" minlength="12" maxlength="200" required>
+      </label>
+      <button class="primary" id="submit" type="submit">Създай админ</button>
+    </form>
+    <div id="result" class="setup-result" hidden></div>
+  </main>
+  <script>
+  (function(){
+    "use strict";
+    var SUPABASE_URL="https://ajoiqomflplhadyhxvfe.supabase.co";
+    var SUPABASE_KEY="sb_publishable_gBEUBrOjT_JsBRjAnGL9PQ_ra-1hY0g";
+    var form=document.getElementById("setup-form"), email=document.getElementById("email"), password=document.getElementById("password"), submit=document.getElementById("submit"), result=document.getElementById("result");
+    var words=new Uint32Array(5); crypto.getRandomValues(words); password.value="Ah!"+Array.from(words,function(x){return x.toString(36);}).join("-");
+    function show(text,type){result.hidden=false;result.textContent=text;result.className="setup-result "+(type||"");}
+    form.addEventListener("submit",async function(e){
+      e.preventDefault();
+      var code=new URLSearchParams(location.search).get("code")||"";
+      var mail=email.value.trim().toLowerCase(), pass=password.value;
+      if(!code){show("Липсва еднократният setup код.","is-error");return;}
+      submit.disabled=true; submit.textContent="Създаване…"; show("Създавам защитения admin акаунт…","");
+      try{
+        var signup=await fetch(SUPABASE_URL+"/auth/v1/signup",{method:"POST",headers:{apikey:SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify({email:mail,password:pass,data:{bootstrap_code:code}})});
+        var signupData=await signup.json().catch(function(){return {};});
+        if(!signup.ok) throw new Error(signupData.msg||signupData.message||signupData.error_description||signupData.error||"Admin setup failed");
+
+        var local=await fetch("/api/admin/auth?action=login",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:mail,password:pass})});
+        if(local.ok){
+          show("Готово.\n\nEmail: "+mail+"\nPassword: "+pass+"\n\nЗапази паролата. Влизаш в admin панела…","is-ok");
+          setTimeout(function(){location.replace("/admin");},900);
+          return;
+        }
+        show("Admin акаунтът е създаден успешно.\n\nEmail: "+mail+"\nPassword: "+pass+"\n\nЗапази данните. Ако новият deployment още не е приключил, отвори /admin/login.html след малко.","is-ok");
+        submit.textContent="Admin е създаден";
+      }catch(err){
+        show(err && err.message ? err.message : "Setup failed","is-error"); submit.disabled=false; submit.textContent="Опитай отново";
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
