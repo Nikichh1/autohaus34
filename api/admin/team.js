@@ -1,7 +1,6 @@
 "use strict";
 
 const { json, requireAdmin, requireSameOrigin, parseCookies, refreshSession, ACCESS_COOKIE, REFRESH_COOKIE } = require("../../server/admin-lib");
-
 const SUPABASE_URL = "https://ajoiqomflplhadyhxvfe.supabase.co";
 
 function currentAccess(req, res) {
@@ -16,7 +15,7 @@ function currentAccess(req, res) {
   return access;
 }
 
-async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (!requireSameOrigin(req, res)) return;
   const user = await requireAdmin(req, res);
   if (!user) return json(res, 401, { ok: false, error: "Authentication required" });
@@ -30,7 +29,7 @@ async function handler(req, res) {
   try {
     const body = req.method === "GET" ? {} : (req.body && typeof req.body === "object" ? req.body : {});
     const action = String((req.query && req.query.action) || body.action || "list");
-    const response = await fetch(SUPABASE_URL + "/functions/v1/admin-team", {
+    const response = await fetch(SUPABASE_URL + "/functions/v1/admin-team-v2", {
       method: "POST",
       headers: { Authorization: "Bearer " + access, "Content-Type": "application/json" },
       body: JSON.stringify(Object.assign({}, body, { action }))
@@ -41,6 +40,4 @@ async function handler(req, res) {
     console.error("Admin team proxy failed", err);
     return json(res, 503, { ok: false, error: "Admin team service is unavailable." });
   }
-}
-
-module.exports = handler;
+};
