@@ -24,7 +24,7 @@
     return data;
   }
 
-  button.addEventListener("click", async function () {
+  async function runSync() {
     if (running) return;
     running = true;
     button.disabled = true;
@@ -84,5 +84,32 @@
       button.disabled = false;
       running = false;
     }, 4000);
-  });
+  }
+
+  button.addEventListener("click", runSync);
+
+  /* Older admin builds show an empty-database banner for the retired static
+     87-car import. Intercept it and route it to the same live source instead. */
+  document.addEventListener("click", function (event) {
+    var boot = event.target && event.target.closest ? event.target.closest("#bootstrap") : null;
+    if (!boot) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    runSync();
+  }, true);
+
+  function relabelLegacyBanner() {
+    var boot = document.getElementById("bootstrap");
+    if (!boot) return;
+    boot.textContent = "Синхронизирай от AutoHaus";
+    var box = boot.closest(".bootstrap");
+    if (box) {
+      var strong = box.querySelector("strong");
+      if (strong) strong.textContent = "Зареди актуалните автомобили от AutoHaus";
+    }
+  }
+  relabelLegacyBanner();
+  if (typeof MutationObserver === "function") {
+    new MutationObserver(relabelLegacyBanner).observe(document.getElementById("admin-view") || document.body, { childList:true, subtree:true });
+  }
 })();
