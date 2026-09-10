@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node build.js && cp admin/brand.css dist/admin/brand.css",
+  "buildCommand": "node build.js && cat admin/brand.css admin/brand-fallback.css >> dist/admin/admin.css",
   "outputDirectory": "dist",
   "framework": null,
   "functions": {
