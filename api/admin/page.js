@@ -3,7 +3,7 @@ const { requireAdmin } = require("../../server/admin-lib");
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Robots-Tag", "noindex, nofollow");
-  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://res.cloudinary.com https://autohaus.bg blob: data:; connect-src 'self' https://api.cloudinary.com; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://res.cloudinary.com https://autohaus.bg https://ajoiqomflplhadyhxvfe.supabase.co blob: data:; connect-src 'self' https://ajoiqomflplhadyhxvfe.supabase.co https://ajoiqomflplhadyhxvfe.storage.supabase.co; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
   if (req.method !== "GET") { res.statusCode = 405; res.setHeader("Allow", "GET"); res.end("Method not allowed"); return; }
   const user = await requireAdmin(req, res);
   if (!user) { res.statusCode = 302; res.setHeader("Location", "/admin/login.html"); res.end(); return; }
@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#171717">
 <title>AutoHaus Admin</title><link rel="icon" href="/favicon.jpg">
-<link rel="stylesheet" href="/admin/admin.css?v=74ee3b04"><script defer src="/admin/admin.js?v=74ee3b04"></script></head>
+<link rel="stylesheet" href="/admin/admin.css?v=74ee3b04"><script defer src="/admin/storage-compat.js?v=1"></script><script defer src="/admin/admin.js?v=74ee3b04"></script></head>
 <body class="ah-admin" data-admin-user="${escapeHtml(user.id)}">
 <a class="skip-link" href="#admin-view" data-bg="Към съдържанието" data-en="Skip to content">Към съдържанието</a>
 <div class="app-shell">
@@ -33,4 +33,4 @@ module.exports = async function handler(req, res) {
 <main class="workspace"><div id="auth-notice" class="auth-notice" role="alert" hidden></div><div id="admin-view" class="view" tabindex="-1"></div></main>
 </div><div class="toast" id="toast" role="status" aria-live="polite"></div></body></html>`);
 };
-function escapeHtml(value) { return String(value || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+function escapeHtml(value) { return String(value || "").replace(/&/g,"&amp;").replace(/</g,"&lt;/g").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
