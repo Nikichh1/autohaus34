@@ -11,21 +11,27 @@
     .setup-result{margin-top:16px;padding:13px;border:1px solid #dededb;border-radius:9px;background:#f6f6f4;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
     .setup-result.is-error{border-color:#efc8c5;background:#f8e9e7;color:#a73535}
     .setup-result.is-ok{border-color:#c6dfcf;background:#e7f3ec;color:#1f6b43}
-    .login-card .primary{width:100%;margin-top:2px}
+    .login-card .primary{width:100%;margin-top:8px}
+    .password-row{display:flex;align-items:center;gap:8px;margin:-4px 0 12px;font-size:12px;color:#666}
+    .password-row input{width:auto;margin:0}
   </style>
 </head>
 <body class="login-page">
   <main class="login-card" aria-labelledby="setup-title">
     <div class="login-brand">AUTOHAUS <span>ADMIN</span></div>
-    <h1 id="setup-title">Първоначална настройка</h1>
-    <p class="setup-note">Тази страница работи само веднъж. Паролата се изпраща директно към Supabase Auth и не се записва в GitHub.</p>
+    <h1 id="setup-title">Създай администратор</h1>
+    <p class="setup-note">Избери собствен имейл и собствена парола. Паролата се изпраща директно към Supabase през HTTPS и не се записва в GitHub или в тази страница. Този setup работи само веднъж.</p>
     <form id="setup-form" autocomplete="off">
       <label>Имейл
-        <input id="email" type="email" value="admin@autohaus34.app" autocomplete="username" required>
+        <input id="email" type="email" placeholder="твоят имейл" autocomplete="username" required>
       </label>
       <label>Парола
-        <input id="password" type="text" autocomplete="new-password" minlength="12" maxlength="200" required>
+        <input id="password" type="password" placeholder="минимум 12 знака" autocomplete="new-password" minlength="12" maxlength="200" required>
       </label>
+      <label>Повтори паролата
+        <input id="password-confirm" type="password" placeholder="повтори паролата" autocomplete="new-password" minlength="12" maxlength="200" required>
+      </label>
+      <label class="password-row"><input id="show-password" type="checkbox"> Покажи паролата</label>
       <button class="primary" id="submit" type="submit">Създай админ</button>
     </form>
     <div id="result" class="setup-result" hidden></div>
@@ -35,30 +41,33 @@
     "use strict";
     var SUPABASE_URL="https://ajoiqomflplhadyhxvfe.supabase.co";
     var SUPABASE_KEY="sb_publishable_gBEUBrOjT_JsBRjAnGL9PQ_ra-1hY0g";
-    var form=document.getElementById("setup-form"), email=document.getElementById("email"), password=document.getElementById("password"), submit=document.getElementById("submit"), result=document.getElementById("result");
-    var words=new Uint32Array(5); crypto.getRandomValues(words); password.value="Ah!"+Array.from(words,function(x){return x.toString(36);}).join("-");
+    var form=document.getElementById("setup-form"), email=document.getElementById("email"), password=document.getElementById("password"), confirmPassword=document.getElementById("password-confirm"), showPassword=document.getElementById("show-password"), submit=document.getElementById("submit"), result=document.getElementById("result");
     function show(text,type){result.hidden=false;result.textContent=text;result.className="setup-result "+(type||"");}
+    showPassword.addEventListener("change",function(){var type=this.checked?"text":"password";password.type=type;confirmPassword.type=type;});
     form.addEventListener("submit",async function(e){
       e.preventDefault();
       var code=new URLSearchParams(location.search).get("code")||"";
       var mail=email.value.trim().toLowerCase(), pass=password.value;
       if(!code){show("Липсва еднократният setup код.","is-error");return;}
-      submit.disabled=true; submit.textContent="Създаване…"; show("Създавам защитения admin акаунт…","");
+      if(pass.length<12){show("Паролата трябва да е поне 12 знака.","is-error");password.focus();return;}
+      if(pass!==confirmPassword.value){show("Двете пароли не съвпадат.","is-error");confirmPassword.focus();return;}
+      submit.disabled=true;submit.textContent="Създаване…";show("Създавам защитения admin акаунт…","");
       try{
         var signup=await fetch(SUPABASE_URL+"/auth/v1/signup",{method:"POST",headers:{apikey:SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify({email:mail,password:pass,data:{bootstrap_code:code}})});
         var signupData=await signup.json().catch(function(){return {};});
         if(!signup.ok) throw new Error(signupData.msg||signupData.message||signupData.error_description||signupData.error||"Admin setup failed");
-
         var local=await fetch("/api/admin/auth?action=login",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:mail,password:pass})});
         if(local.ok){
-          show("Готово.\n\nEmail: "+mail+"\nPassword: "+pass+"\n\nЗапази паролата. Влизаш в admin панела…","is-ok");
-          setTimeout(function(){location.replace("/admin");},900);
+          password.value="";confirmPassword.value="";
+          show("Готово. Администраторът е създаден успешно. Пренасочвам те към admin панела…","is-ok");
+          setTimeout(function(){location.replace("/admin");},700);
           return;
         }
-        show("Admin акаунтът е създаден успешно.\n\nEmail: "+mail+"\nPassword: "+pass+"\n\nЗапази данните. Ако новият deployment още не е приключил, отвори /admin/login.html след малко.","is-ok");
+        password.value="";confirmPassword.value="";
+        show("Администраторът е създаден успешно. Отвори /admin/login.html и влез с имейла и паролата, които току-що избра.","is-ok");
         submit.textContent="Admin е създаден";
       }catch(err){
-        show(err && err.message ? err.message : "Setup failed","is-error"); submit.disabled=false; submit.textContent="Опитай отново";
+        show(err&&err.message?err.message:"Setup failed","is-error");submit.disabled=false;submit.textContent="Опитай отново";
       }
     });
   })();
