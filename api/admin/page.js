@@ -33,4 +33,4 @@ module.exports = async function handler(req, res) {
 <main class="workspace"><div id="auth-notice" class="auth-notice" role="alert" hidden></div><div id="admin-view" class="view" tabindex="-1"></div></main>
 </div><div class="toast" id="toast" role="status" aria-live="polite"></div></body></html>`);
 };
-function escapeHtml(value) { return String(value || "").replace(/&/g,"&amp;").replace(/</g,"&lt;/g").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+function escapeHtml(value) { return String(value || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
