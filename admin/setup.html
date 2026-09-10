@@ -4,38 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <title>AutoHaus Admin Setup</title>
+  <title>AutoHaus Admin</title>
   <link rel="stylesheet" href="/admin/admin.css">
-  <style>
-    .setup-note{margin:0 0 18px;color:#717171;font-size:13px;line-height:1.55}
-    .setup-result{margin-top:16px;padding:13px;border:1px solid #dededb;border-radius:9px;background:#f6f6f4;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
-    .setup-result.is-error{border-color:#efc8c5;background:#f8e9e7;color:#a73535}
-    .setup-result.is-ok{border-color:#c6dfcf;background:#e7f3ec;color:#1f6b43}
-    .login-card .primary{width:100%;margin-top:8px}
-    .password-row{display:flex;align-items:center;gap:8px;margin:-4px 0 12px;font-size:12px;color:#666}
-    .password-row input{width:auto;margin:0}
-  </style>
-  <script defer src="/admin/setup.js"></script>
 </head>
 <body class="login-page">
   <main class="login-card" aria-labelledby="setup-title">
     <div class="login-brand">AUTOHAUS <span>ADMIN</span></div>
-    <h1 id="setup-title">Създай администратор</h1>
-    <p class="setup-note">Избери собствен имейл и собствена парола. Паролата се изпраща директно към Supabase през HTTPS и не се записва в GitHub или в тази страница. Този setup работи само веднъж.</p>
-    <form id="setup-form" autocomplete="off">
-      <label>Имейл
-        <input id="email" type="email" placeholder="твоят имейл" autocomplete="username" required>
-      </label>
-      <label>Парола
-        <input id="password" type="password" placeholder="минимум 12 знака" autocomplete="new-password" minlength="12" maxlength="200" required>
-      </label>
-      <label>Повтори паролата
-        <input id="password-confirm" type="password" placeholder="повтори паролата" autocomplete="new-password" minlength="12" maxlength="200" required>
-      </label>
-      <label class="password-row"><input id="show-password" type="checkbox"> Покажи паролата</label>
-      <button class="primary" id="submit" type="submit">Създай админ</button>
-    </form>
-    <div id="result" class="setup-result" hidden></div>
+    <h1 id="setup-title">Setup-ът е затворен</h1>
+    <p class="setup-note">Първоначалният admin акаунт вече е създаден. Нови администратори се добавят само от Owner през <strong>Екип</strong> в защитения admin панел.</p>
+    <a class="primary" href="/admin/login.html" style="display:block;text-align:center;text-decoration:none">Към входа</a>
   </main>
 </body>
 </html>
