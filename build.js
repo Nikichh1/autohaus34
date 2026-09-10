@@ -5,17 +5,11 @@ const ROOT = __dirname;
 
 const SHEETS = ["style.css", "catalog.css"];
 const SCRIPTS = ["main.js", "catalog.js", "showroom.js", "concierge.js", "i18n.js",
-                 "vehicle.js", "data/vehicles.base.js", "data/vehicles.js", "admin/admin.js", "admin/login.js",
-                 "admin/setup.js", "admin/storage-compat.js", "admin/sync.js", "admin/admin.css"];
+                 "vehicle.js", "analytics.js", "data/vehicles.base.js", "data/vehicles.js", "admin/admin.js", "admin/login.js",
+                 "admin/setup.js", "admin/storage-compat.js", "admin/sync.js", "admin/advanced.js", "admin/admin.css"];
 const STATIC_ASSETS = ["autohaus.svg"];
 const PAGES = ["index.html", "concierge.html", "vehicle.html", "legal.html", "admin/login.html", "admin/setup.html", "api/admin/page.js"];
 
-/* ---- the stripper ----------------------------------------------------
-   Character-by-character rather than regex, because a regex that removes
-   comments will also remove the inside of `content:"/* "` and a regex that
-   collapses whitespace will also collapse it inside a url(). This walks
-   strings and comments as the tokeniser does, and only then tightens the
-   structural punctuation. */
 function stripCss(src) {
   let out = "", i = 0;
   const n = src.length;
@@ -85,6 +79,9 @@ for (const p of PAGES) {
   if (!fs.existsSync(file)) continue;
   let s = fs.readFileSync(file, "utf8"), before = s;
   s = s.replace(/(["'(])((?:[\w./-]*\/)?[\w.-]+\.(?:css|js|svg))\?v=[\w-]+/g, "$1$2?v=" + V);
+  if ((p === "index.html" || p === "vehicle.html" || p === "concierge.html" || p === "legal.html") && !s.includes("analytics.js?v=")) {
+    s = s.replace(/<\/head>/i, '<script defer src="analytics.js?v=' + V + '"></script>\n</head>');
+  }
   if (s !== before) { fs.writeFileSync(file, s, "utf8"); stamped++; }
 }
 
@@ -98,7 +95,7 @@ const DIST = path.resolve(ROOT, "dist");
 if (path.dirname(DIST) !== ROOT || path.basename(DIST) !== "dist") throw new Error("Invalid output directory");
 fs.rmSync(DIST, { recursive: true, force: true });
 fs.mkdirSync(DIST, { recursive: true });
-const publicFiles = ["index.html", "vehicle.html", "concierge.html", "legal.html", "style.min.css", "catalog.min.css", "main.js", "catalog.js", "showroom.js", "vehicle.js", "concierge.js", "i18n.js", "autohaus.svg", "favicon.jpg", "_headers", "data/vehicles.base.js", "data/vehicles.js", "admin/login.html", "admin/setup.html", "admin/admin.css", "admin/admin.js", "admin/login.js", "admin/setup.js", "admin/storage-compat.js", "admin/sync.js"];
+const publicFiles = ["index.html", "vehicle.html", "concierge.html", "legal.html", "style.min.css", "catalog.min.css", "main.js", "catalog.js", "showroom.js", "vehicle.js", "concierge.js", "i18n.js", "analytics.js", "autohaus.svg", "favicon.jpg", "_headers", "data/vehicles.base.js", "data/vehicles.js", "admin/login.html", "admin/setup.html", "admin/admin.css", "admin/admin.js", "admin/login.js", "admin/setup.js", "admin/storage-compat.js", "admin/sync.js", "admin/advanced.js"];
 for (const f of publicFiles) {
   if (!fs.existsSync(path.join(ROOT, f))) continue;
   fs.mkdirSync(path.dirname(path.join(DIST, f)), { recursive: true });
@@ -107,4 +104,4 @@ for (const f of publicFiles) {
 for (const dir of ["img", "fonts", "data/eq"]) {
   fs.cpSync(path.join(ROOT, dir), path.join(DIST, dir), { recursive: true, filter: f => fs.statSync(f).isDirectory() || !/(?:README|\.md$)/.test(f) });
 }
-console.log("  Public assets prepared in dist/");
+console.log("  Public assets prepared in dist/\n");
