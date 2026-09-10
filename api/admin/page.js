@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#171717">
 <title>AutoHaus Admin</title><link rel="icon" href="/favicon.jpg">
-<link rel="stylesheet" href="/admin/admin.css?v=74ee3b04"><script defer src="/admin/storage-compat.js?v=1"></script><script defer src="/admin/admin.js?v=74ee3b04"></script></head>
+<link rel="stylesheet" href="/admin/admin.css?v=74ee3b04"><script defer src="/admin/storage-compat.js?v=1"></script><script defer src="/admin/admin.js?v=74ee3b04"></script><script defer src="/admin/sync.js?v=1"></script></head>
 <body class="ah-admin" data-admin-user="${escapeHtml(user.id)}">
 <a class="skip-link" href="#admin-view" data-bg="Към съдържанието" data-en="Skip to content">Към съдържанието</a>
 <div class="app-shell">
@@ -25,6 +25,7 @@ module.exports = async function handler(req, res) {
 <button type="button" data-route="dashboard" data-bg="Начало" data-en="Overview">Начало</button>
 <button type="button" data-route="cars" data-bg="Автомобили" data-en="Cars">Автомобили</button>
 <button type="button" data-route="new" data-bg="+ Добави автомобил" data-en="+ Add car">+ Добави автомобил</button>
+<button type="button" id="sync-autohaus" data-bg="↻ Синхронизирай AutoHaus" data-en="↻ Sync AutoHaus">↻ Синхронизирай AutoHaus</button>
 </nav>
 <div class="side__foot"><div class="admin-language" aria-label="Language"><button data-language="bg" type="button">BG</button><button data-language="en" type="button">EN</button></div>
 <a class="site-link" href="/" target="_blank" rel="noopener" data-bg="Виж сайта ↗" data-en="View website ↗">Виж сайта ↗</a>
