@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node build.js && mkdir -p dist/admin && cp admin/setup.html admin/setup.js admin/storage-compat.js dist/admin/",
+  "buildCommand": "node build.js",
   "outputDirectory": "dist",
   "framework": null,
   "functions": {
@@ -8,6 +8,9 @@
       "maxDuration": 60
     },
     "api/admin/description.js": {
+      "maxDuration": 60
+    },
+    "api/admin/sync.js": {
       "maxDuration": 60
     }
   },
@@ -25,40 +28,20 @@
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
       ]
     },
     {
       "source": "/(.*).html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     },
     {
       "source": "/admin(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        },
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
-        },
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://res.cloudinary.com https://autohaus.bg https://ajoiqomflplhadyhxvfe.supabase.co blob: data:; connect-src 'self' https://api.cloudinary.com https://ajoiqomflplhadyhxvfe.supabase.co https://ajoiqomflplhadyhxvfe.storage.supabase.co; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
@@ -68,33 +51,17 @@
     {
       "source": "/api/admin/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        },
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
-        }
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {
       "source": "/data/vehicles.base.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     },
     {
       "source": "/api/inquiry",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
   ]
 }
