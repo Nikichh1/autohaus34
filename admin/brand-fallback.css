@@ -1,0 +1,22 @@
+/* Auth pages still use the legacy text brand markup. Render the real house mark
+   without changing their authentication HTML or JavaScript. */
+.login-brand:not(:has(img)){
+  color:transparent;
+  background-color:#17191a;
+  background-image:url('/autohaus.svg');
+  background-repeat:no-repeat;
+  background-position:34px 50%;
+  background-size:202px auto;
+}
+.login-brand:not(:has(img)) span{
+  margin-left:auto!important;
+  color:rgba(255,255,255,.45)!important;
+  font-size:9px!important;
+  line-height:1!important;
+  letter-spacing:.18em!important;
+  font-weight:600!important;
+  text-transform:uppercase;
+}
+@media(max-width:720px){
+  .login-brand:not(:has(img)){background-position:22px 50%;background-size:180px auto}
+}

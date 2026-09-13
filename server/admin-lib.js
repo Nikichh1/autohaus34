@@ -1,16 +1,28 @@
 "use strict";
 
 const crypto = require("crypto");
+const { AsyncLocalStorage } = require("async_hooks");
 
 const ACCESS_COOKIE = "ah_admin_access";
 const REFRESH_COOKIE = "ah_admin_refresh";
+const SUPABASE_URL = "https://ajoiqomflplhadyhxvfe.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gBEUBrOjT_JsBRjAnGL9PQ_ra-1hY0g";
+const requestAuth = new AsyncLocalStorage();
 
 function env(name) {
   return String(process.env[name] || "").trim();
 }
 
+function supabaseUrl() {
+  return SUPABASE_URL;
+}
+
+function supabaseKey() {
+  return SUPABASE_PUBLISHABLE_KEY;
+}
+
 function configured() {
-  return !!(env("SUPABASE_URL") && env("SUPABASE_ANON_KEY") && env("SUPABASE_SERVICE_ROLE_KEY"));
+  return !!(supabaseUrl() && supabaseKey());
 }
 
 function json(res, status, body) {
@@ -21,8 +33,6 @@ function json(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-// Cookies are intentionally unavailable to scripts. Mutations additionally require
-// same-origin JSON, including login, to protect against login CSRF and sibling sites.
 function requireSameOrigin(req, res) {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return true;
   const origin = String(req.headers.origin || "");
@@ -87,19 +97,25 @@ function clearSessionCookies(req, res) {
   res.setHeader("Set-Cookie", [cookie(ACCESS_COOKIE, "", 0, req), cookie(REFRESH_COOKIE, "", 0, req)]);
 }
 
+// Kept as an optional compatibility fallback for older deployments. The normal
+// authorization source is trusted Supabase app_metadata.role = "admin".
 function allowedEmails() {
   return env("ADMIN_EMAILS").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
 }
 
-function isAllowed(email) {
-  const allowed = allowedEmails();
-  return allowed.length > 0 && allowed.includes(String(email || "").toLowerCase());
+function isAllowed(value) {
+  if (value && typeof value === "object") {
+    const role = value.app_metadata && value.app_metadata.role;
+    if (role === "admin") return true;
+    return allowedEmails().includes(String(value.email || "").toLowerCase());
+  }
+  return allowedEmails().includes(String(value || "").toLowerCase());
 }
 
 async function authFetch(path, options) {
-  const url = env("SUPABASE_URL").replace(/\/$/, "") + "/auth/v1/" + path.replace(/^\//, "");
+  const url = supabaseUrl().replace(/\/$/, "") + "/auth/v1/" + path.replace(/^\//, "");
   const headers = Object.assign({
-    apikey: env("SUPABASE_ANON_KEY"),
+    apikey: supabaseKey(),
     "Content-Type": "application/json"
   }, (options && options.headers) || {});
   return timedFetch(url, Object.assign({}, options || {}, { headers }));
@@ -107,17 +123,25 @@ async function authFetch(path, options) {
 
 async function login(email, password) {
   if (!configured()) throw new Error("Supabase is not configured");
-  if (!allowedEmails().length) throw new Error("ADMIN_EMAILS is not configured");
-  if (!isAllowed(clean(email, 240)) || typeof password !== "string" || !password || password.length > 4096) {
+  const normalizedEmail = clean(email, 240).toLowerCase();
+  if (!normalizedEmail || typeof password !== "string" || !password || password.length > 4096) {
     return { ok: false, status: 401 };
   }
   const r = await authFetch("token?grant_type=password", {
     method: "POST",
-    body: JSON.stringify({ email: clean(email, 240), password: String(password || "") })
+    body: JSON.stringify({ email: normalizedEmail, password: String(password || "") })
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.access_token) return { ok: false, status: r.status === 429 ? 429 : 401 };
-  if (!data.user || !isAllowed(data.user.email)) return { ok: false, status: 403 };
+  if (!data.user || !isAllowed(data.user)) {
+    try {
+      await authFetch("logout?scope=local", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + data.access_token }
+      });
+    } catch (_) {}
+    return { ok: false, status: 403 };
+  }
   return { ok: true, session: data, user: data.user };
 }
 
@@ -126,17 +150,7 @@ async function userForToken(access) {
   const r = await authFetch("user", { method: "GET", headers: { Authorization: "Bearer " + access } });
   if (!r.ok) return null;
   const user = await r.json().catch(() => null);
-  if (!user || !isAllowed(user.email)) return null;
-  // Supabase access JWTs can outlive logout. Check the verified token's session
-  // against auth.sessions, through a service-role-only SQL function.
-  let claims;
-  try { claims = JSON.parse(Buffer.from(access.split(".")[1], "base64url").toString()); }
-  catch (_) { return null; }
-  if (!claims.session_id) return null;
-  const session = await db("rpc/admin_session_active", {
-    method: "POST", body: JSON.stringify({ session_uuid: claims.session_id, user_uuid: user.id })
-  });
-  return session.ok && await session.json().catch(() => false) === true ? user : null;
+  return user && isAllowed(user) ? user : null;
 }
 
 async function refreshSession(refreshToken) {
@@ -147,20 +161,27 @@ async function refreshSession(refreshToken) {
   });
   if (!r.ok) return null;
   const data = await r.json().catch(() => null);
-  if (!data || !data.access_token || !data.user || !isAllowed(data.user.email)) return null;
+  if (!data || !data.access_token || !data.user || !isAllowed(data.user)) return null;
   return data;
 }
 
 async function requireAdmin(req, res) {
-  if (!configured() || !allowedEmails().length) return null;
+  if (!configured()) return null;
   try {
     const cookies = parseCookies(req);
-    const user = await userForToken(cookies[ACCESS_COOKIE]);
-    if (user) return user;
+    const access = cookies[ACCESS_COOKIE];
+    const user = await userForToken(access);
+    if (user) {
+      requestAuth.enterWith({ access });
+      return user;
+    }
     const refreshed = await refreshSession(cookies[REFRESH_COOKIE]);
-    if (!refreshed || !await userForToken(refreshed.access_token)) return null;
+    if (!refreshed) return null;
+    const refreshedUser = await userForToken(refreshed.access_token);
+    if (!refreshedUser) return null;
     setSessionCookies(req, res, refreshed);
-    return refreshed.user;
+    requestAuth.enterWith({ access: refreshed.access_token });
+    return refreshedUser;
   } catch (_) { return null; }
 }
 
@@ -172,31 +193,38 @@ async function logout(req) {
     access = session && session.access_token;
   }
   if (!access) return;
-  let response = await authFetch("logout?scope=local", { method: "POST", headers: { Authorization: "Bearer " + access } });
-  // A token may expire between its last authenticated request and sign-out.
-  // Refresh it once so the server session can still be revoked.
+  let response = await authFetch("logout?scope=local", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + access }
+  });
   if (response.status === 401 && cookies[REFRESH_COOKIE]) {
     const session = await refreshSession(cookies[REFRESH_COOKIE]);
-    if (!session) return; // The refresh token is already invalid/revoked.
-    response = await authFetch("logout?scope=local", { method: "POST", headers: { Authorization: "Bearer " + session.access_token } });
+    if (!session) return;
+    response = await authFetch("logout?scope=local", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + session.access_token }
+    });
   }
-  if (!response.ok && response.status !== 401 && response.status !== 403) throw new Error("Session revocation failed");
+  if (!response.ok && response.status !== 401 && response.status !== 403) {
+    throw new Error("Session revocation failed");
+  }
 }
 
-function serviceHeaders(extra) {
-  const key = env("SUPABASE_SERVICE_ROLE_KEY");
-  return Object.assign({
-    apikey: key,
-    Authorization: "Bearer " + key,
+function dbHeaders(extra) {
+  const headers = {
+    apikey: supabaseKey(),
     "Content-Type": "application/json"
-  }, extra || {});
+  };
+  const ctx = requestAuth.getStore();
+  if (ctx && ctx.access) headers.Authorization = "Bearer " + ctx.access;
+  return Object.assign(headers, extra || {});
 }
 
 async function db(path, options) {
   if (!configured()) throw new Error("Supabase is not configured");
-  const url = env("SUPABASE_URL").replace(/\/$/, "") + "/rest/v1/" + path.replace(/^\//, "");
+  const url = supabaseUrl().replace(/\/$/, "") + "/rest/v1/" + path.replace(/^\//, "");
   return timedFetch(url, Object.assign({}, options || {}, {
-    headers: serviceHeaders((options && options.headers) || {})
+    headers: dbHeaders((options && options.headers) || {})
   }));
 }
 
@@ -217,8 +245,11 @@ function safeUrl(value, imageOnly) {
   try {
     const url = new URL(s);
     if (url.protocol !== "https:" || url.username || url.password) return "";
-    if (imageOnly && url.hostname !== "autohaus.bg" && url.hostname !== "www.autohaus.bg" &&
-        !(url.hostname === "res.cloudinary.com" && url.pathname.startsWith("/" + env("CLOUDINARY_CLOUD_NAME") + "/image/upload/"))) return "";
+    const isAutoHaus = url.hostname === "autohaus.bg" || url.hostname === "www.autohaus.bg";
+    const isCloudinary = url.hostname === "res.cloudinary.com";
+    const isSupabaseStorage = url.hostname === "ajoiqomflplhadyhxvfe.supabase.co" &&
+      url.pathname.startsWith("/storage/v1/object/public/vehicle-images/");
+    if (imageOnly && !isAutoHaus && !isCloudinary && !isSupabaseStorage) return "";
     return url.href;
   } catch (_) { return ""; }
 }
@@ -292,30 +323,52 @@ function normalizeVehicle(body) {
   };
   if (!row.slug || !row.make || !row.model) return { error: "Brand, model and slug are required." };
   for (const [key, max] of Object.entries({ description_bg: 20000, description_en: 20000, description_source: 30000 })) {
-    if (body[key] != null && (typeof body[key] !== "string" || body[key].length > max)) return { error: key + " is too long (maximum " + max + " characters)." };
+    if (body[key] != null && (typeof body[key] !== "string" || body[key].length > max)) {
+      return { error: key + " is too long (maximum " + max + " characters)." };
+    }
   }
   for (const [key, max] of Object.entries({ equipment_bg: 600, equipment_en: 600, description_review_notes: 100, tags: 60, notes: 80 })) {
-    if (body[key] != null && (!Array.isArray(body[key]) || body[key].length > max || body[key].some((value) => typeof value !== "string" || value.length > 2000))) return { error: "Invalid or oversized " + key + "." };
+    if (body[key] != null && (!Array.isArray(body[key]) || body[key].length > max ||
+        body[key].some((value) => typeof value !== "string" || value.length > 2000))) {
+      return { error: "Invalid or oversized " + key + "." };
+    }
   }
   for (const key of ["mileage", "horsepower", "price", "first_registration_year", "first_registration_month"]) {
-    if (body[key] !== "" && body[key] != null && (row[key] == null || row[key] < 0 || row[key] > (key === "price" ? 999999999999.99 : 2147483647))) {
+    if (body[key] !== "" && body[key] != null &&
+        (row[key] == null || row[key] < 0 || row[key] > (key === "price" ? 999999999999.99 : 2147483647))) {
       return { error: "Enter a valid non-negative number for " + key + "." };
     }
   }
-  for (const [key, values] of Object.entries({ fuel: ["", "petrol", "diesel", "hybrid", "phev", "ev"], transmission: ["", "auto", "manual"] })) {
+  for (const [key, values] of Object.entries({
+    fuel: ["", "petrol", "diesel", "hybrid", "phev", "ev"],
+    transmission: ["", "auto", "manual"]
+  })) {
     if (!values.includes(row[key])) return { error: "Invalid " + key + "." };
   }
-  if (row.unregistered) { row.first_registration_year = null; row.first_registration_month = null; }
-  if (row.first_registration_month != null && row.first_registration_year == null) return { error: "Enter a registration year or leave both registration fields empty." };
+  if (row.unregistered) {
+    row.first_registration_year = null;
+    row.first_registration_month = null;
+  }
+  if (row.first_registration_month != null && row.first_registration_year == null) {
+    return { error: "Enter a registration year or leave both registration fields empty." };
+  }
   if (clean(body.source_url, 1200) && !row.source_url) return { error: "The source URL must use HTTPS." };
   if (body.images != null && !Array.isArray(body.images)) return { error: "Photos must be an ordered list." };
-  if (Array.isArray(body.images) && body.images.length !== row.images.length) return { error: "One or more photos are invalid. Use the photo upload control." };
-  if (row.equipment_bg.length !== row.equipment_en.length) return { error: "Bulgarian and English equipment must have the same number of lines." };
-  if (row.published && (!row.images.length || !row.fuel || !row.transmission)) return { error: "Add a photo, fuel and transmission before publishing." };
-  if (row.first_registration_month != null && (row.first_registration_month < 1 || row.first_registration_month > 12)) {
+  if (Array.isArray(body.images) && body.images.length !== row.images.length) {
+    return { error: "One or more photos are invalid. Use the photo upload control." };
+  }
+  if (row.equipment_bg.length !== row.equipment_en.length) {
+    return { error: "Bulgarian and English equipment must have the same number of lines." };
+  }
+  if (row.published && (!row.images.length || !row.fuel || !row.transmission)) {
+    return { error: "Add a photo, fuel and transmission before publishing." };
+  }
+  if (row.first_registration_month != null &&
+      (row.first_registration_month < 1 || row.first_registration_month > 12)) {
     return { error: "First registration month must be 1-12." };
   }
-  if (row.first_registration_year != null && (row.first_registration_year < 1900 || row.first_registration_year > 2100)) {
+  if (row.first_registration_year != null &&
+      (row.first_registration_year < 1900 || row.first_registration_year > 2100)) {
     return { error: "First registration year is invalid." };
   }
   return { row };
@@ -323,7 +376,9 @@ function normalizeVehicle(body) {
 
 function legacyVehicle(row) {
   const images = (Array.isArray(row.images) ? row.images : []).map((img) =>
-    img && img.public_id && !img.legacy ? Object.assign({}, img, { variants: imageVariants(img.public_id) }) : img);
+    img && img.public_id && !img.legacy && String(img.public_id).startsWith("autohaus/vehicles/")
+      ? Object.assign({}, img, { variants: imageVariants(img.public_id) })
+      : img);
   const shots = images.map((img) => {
     if (img && img.variants && img.variants.jpg1280) return img.variants.jpg1280;
     return img && img.original ? img.original : "";
