@@ -34,7 +34,7 @@
   var lowPower = (function () {
     try {
       var nav = navigator;
-      if (reduce || /Windows NT 6\.1/.test(nav.userAgent || "")) return true;
+      if (coarse || reduce || /Windows NT 6\.1/.test(nav.userAgent || "")) return true;
       if (nav.connection && nav.connection.saveData) return true;
       if (typeof nav.deviceMemory === "number" && nav.deviceMemory <= 4) return true;
       if (typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 4) return true;

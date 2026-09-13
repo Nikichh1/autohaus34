@@ -11,8 +11,8 @@ const fs=require("node:fs"),path=require("node:path"),assert=require("node:asser
   await db.exec(sql); await db.exec(sql);
   assert.equal((await db.query("select initialized from public.inventory_state")).rows[0].initialized,false);
   const rows=require("../api/admin/vehicles").initialInventory();
-  assert.equal((await db.query("select public.import_initial_inventory($1::jsonb) as count",[JSON.stringify(rows)])).rows[0].count,87);
-  assert.equal((await db.query("select count(*)::int as count from public.vehicles")).rows[0].count,87);
+  assert.equal((await db.query("select public.import_initial_inventory($1::jsonb) as count",[JSON.stringify(rows)])).rows[0].count,rows.length);
+  assert.equal((await db.query("select count(*)::int as count from public.vehicles")).rows[0].count,rows.length);
   assert.equal((await db.query("select public.import_initial_inventory($1::jsonb) as count",[JSON.stringify(rows)])).rows[0].count,0);
   await db.exec("delete from public.vehicles;");
   assert.equal((await db.query("select initialized from public.inventory_state")).rows[0].initialized,true);
@@ -26,6 +26,6 @@ const fs=require("node:fs"),path=require("node:path"),assert=require("node:asser
   assert.equal((await db.query("select public.admin_session_active($1,$2) as active",ids)).rows[0].active,true);
   await db.exec("delete from auth.sessions;");
   assert.equal((await db.query("select public.admin_session_active($1,$2) as active",ids)).rows[0].active,false);
-  console.log("PASS: PostgreSQL schema rerun, atomic 87-car import, replay protection, persistent empty state, browser-role denial and session revocation.");
+  console.log("PASS: PostgreSQL schema rerun, atomic inventory import, replay protection, persistent empty state, browser-role denial and session revocation.");
  } finally {await db.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

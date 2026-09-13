@@ -51,7 +51,7 @@ create index if not exists vehicles_published_idx on public.vehicles (published,
 create index if not exists vehicles_make_model_idx on public.vehicles (make, model);
 
 -- This flag deliberately survives deleting or unpublishing the final car.
--- A managed empty catalogue must never resurrect the 87 static listings.
+-- A managed empty catalogue must never resurrect the static listings.
 create table if not exists public.inventory_state (
   singleton boolean primary key default true check (singleton),
   initialized boolean not null default false,
@@ -107,7 +107,7 @@ revoke all on function public.admin_session_active(uuid, uuid) from public, anon
 grant execute on function public.admin_session_active(uuid, uuid) to service_role;
 
 -- The server reads the canonical files; request bodies cannot replace the import.
--- All 87 rows and activation commit together. A replay never changes live edits.
+-- All snapshot rows and activation commit together. A replay never changes live edits.
 create or replace function public.import_initial_inventory(initial_vehicles jsonb)
 returns integer language plpgsql security definer set search_path = '' as $$
 declare
@@ -123,9 +123,9 @@ begin
   if jsonb_typeof(initial_vehicles) is distinct from 'array' then
     raise exception 'Initial inventory must be an array' using errcode = '22023';
   end if;
-  if jsonb_array_length(initial_vehicles) <> 87
-     or (select count(distinct item->>'slug') from jsonb_array_elements(initial_vehicles) item) <> 87 then
-    raise exception 'Initial inventory must contain 87 distinct vehicles' using errcode = '22023';
+  if jsonb_array_length(initial_vehicles) not between 1 and 1000
+     or (select count(distinct item->>'slug') from jsonb_array_elements(initial_vehicles) item) <> jsonb_array_length(initial_vehicles) then
+    raise exception 'Initial inventory must contain distinct vehicles' using errcode = '22023';
   end if;
 
   insert into public.vehicles (

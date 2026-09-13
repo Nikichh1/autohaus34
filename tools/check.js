@@ -22,7 +22,7 @@ for (const file of files) {
 const context = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(root, "data/vehicles.base.js"), "utf8"), context);
 const cars = context.window.AH_VEHICLES;
-assert.equal(cars.length, 87, "Canonical inventory must preserve all 87 imported cars");
+assert.equal(cars.length, require("../data/inventory-manifest.json").count, "Canonical inventory must match the verified snapshot");
 assert.equal(new Set(cars.map(v => v.id)).size, cars.length, "Vehicle slugs must be unique");
 let photos = new Set();
 let equipment = 0;
@@ -58,4 +58,4 @@ for (const file of ["index.html", "vehicle.html", "concierge.html", "legal.html"
 const inventoryLoader = fs.readFileSync(path.join(root, "data/vehicles.js"), "utf8");
 assert.ok(!/XMLHttpRequest|\beval\s*\(/.test(inventoryLoader), "Inventory must not block or evaluate remote code");
 JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
-console.log("PASS: " + files.length + " JavaScript syntax checks; 87 unique cars; " + photos.size + " photos × 6 variants; " + equipment + " paired BG/EN equipment files; HTML assets and configuration.");
+console.log("PASS: " + files.length + " JavaScript syntax checks; " + cars.length + " unique cars; " + photos.size + " photos × 6 variants; " + equipment + " paired BG/EN equipment files; HTML assets and configuration.");

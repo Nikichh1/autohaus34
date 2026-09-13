@@ -7,11 +7,11 @@ The existing website uses Vercel Node handlers, Supabase authentication/database
 1. Create or select the Supabase project and run the complete `admin/schema.sql` in its SQL Editor. The script is transactional and can be rerun to upgrade the earlier schema without replacing vehicles.
 2. Create staff email/password users in Authentication → Users, with confirmed email. Disable public signup for this staff-only workflow.
 3. Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `ADMIN_EMAILS` in the existing Vercel project's environment variables. `ADMIN_EMAILS` is a comma-separated list of staff email addresses; an empty list denies everyone.
-4. Redeploy, open `/admin/login.html` and sign in. On a fresh database, **Импортирай / Import** imports the canonical 87 vehicles, original equipment and existing optimized photos in one transaction. Repeating the import cannot overwrite edits or restore deleted vehicles.
+4. Redeploy, open `/admin/login.html` and sign in. On a fresh database, **Импортирай / Import** imports the canonical 85 vehicles, original equipment and existing optimized photos in one transaction. Repeating the import cannot overwrite edits or restore deleted vehicles.
 
 Only the server's service role can read/write inventory or check authentication sessions. Browser database roles have no table permissions. Every admin API verifies both the Supabase user and its active server session. Logout revokes that session. Cookies are HttpOnly, Secure on HTTPS and SameSite Strict. Mutations require same-origin JSON. Concurrent editing is protected by a saved-version check.
 
-The public API returns only published vehicles and excludes original pasted descriptions and private review notes. An initialized but empty inventory remains empty. Before initialization, or during an unavailable backend response, the public site uses its bundled 87-car snapshot. As a consequence, the last deployed snapshot can temporarily reappear during a backend outage; keep the snapshot current when retiring listings permanently.
+The public API returns only published vehicles and excludes original pasted descriptions and private review notes. An initialized but empty inventory remains empty. Before initialization, or during an unavailable backend response, the public site uses its bundled 85-car snapshot. As a consequence, the last deployed snapshot can temporarily reappear during a backend outage; keep the snapshot current when retiring listings permanently.
 
 ## Cloudinary
 

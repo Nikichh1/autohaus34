@@ -1,3 +1,4 @@
+const inventoryCount = require("../data/inventory-manifest.json").count;
 "use strict";
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
@@ -49,13 +50,13 @@ test("vehicle validation preserves unknown values and rejects invalid facts/phot
  const row=lib.normalizeVehicle({...base,unregistered:true,first_registration_year:2024,first_registration_month:2}).row;
  assert.equal(row.first_registration_year,null);assert.equal(row.first_registration_month,null);
 });
-test("canonical import preserves all 87 cars, paired equipment and local photos",()=>{
- const rows=require("../api/admin/vehicles").initialInventory();assert.equal(rows.length,87);assert.equal(new Set(rows.map(r=>r.slug)).size,87);
+test("canonical import preserves all current cars, paired equipment and local photos",()=>{
+ const rows=require("../api/admin/vehicles").initialInventory();assert.equal(rows.length,inventoryCount);assert.equal(new Set(rows.map(r=>r.slug)).size,inventoryCount);
  for(const row of rows){assert.equal(row.equipment_bg.length,row.equipment_en.length);assert.equal(row.published,true);for(const image of row.images){assert.equal(Object.keys(image.variants).length,6);for(const url of Object.values(image.variants)) assert.ok(fs.existsSync(path.join(__dirname,"..",url)));}}
 });
 test("bootstrap ignores submitted inventory and uses canonical server data",async()=>{
- mockFetch((url,options)=>{assert.ok(url.endsWith("/rpc/import_initial_inventory"));const data=JSON.parse(options.body).initial_vehicles;assert.equal(data.length,87);assert.notEqual(data[0].make,"Injected");return response(87);});
- const output=await call("admin/vehicles",req("POST",{vehicles:[{make:"Injected"}]},{action:"bootstrap"}));assert.equal(output.body.imported,87);
+ mockFetch((url,options)=>{assert.ok(url.endsWith("/rpc/import_initial_inventory"));const data=JSON.parse(options.body).initial_vehicles;assert.equal(data.length,inventoryCount);assert.notEqual(data[0].make,"Injected");return response(inventoryCount);});
+ const output=await call("admin/vehicles",req("POST",{vehicles:[{make:"Injected"}]},{action:"bootstrap"}));assert.equal(output.body.imported,inventoryCount);
 });
 test("empty managed inventory stays empty; outage requests static fallback",async()=>{
  mockFetch(url=>response(url.includes("inventory_state")?[{initialized:true}]:[]));

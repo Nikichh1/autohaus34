@@ -75,7 +75,8 @@ function readAssignment(file, variable) {
 function initialInventory() {
   const root = path.join(__dirname, "../../data");
   const source = readAssignment(path.join(root, "vehicles.base.js"), "AH_VEHICLES");
-  if (source.length !== 87 || new Set(source.map((v) => v.id)).size !== 87) throw new Error("Canonical inventory must contain 87 distinct vehicles");
+  const count = JSON.parse(fs.readFileSync(path.join(root, "inventory-manifest.json"), "utf8")).count;
+  if (!count || source.length !== count || new Set(source.map((v) => v.id)).size !== count) throw new Error("Canonical inventory does not match its verified manifest");
   return source.map((vehicle, index) => {
     if (!/^[a-z0-9-]+$/.test(vehicle.id)) throw new Error("Invalid canonical vehicle URL");
     const equipmentPath = path.join(root, "eq", vehicle.id + ".js");

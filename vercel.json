@@ -4,7 +4,7 @@
   "framework": null,
   "functions": {
     "api/admin/vehicles.js": {
-      "includeFiles": "data/{vehicles.base.js,eq/**}",
+      "includeFiles": "data/{vehicles.base.js,inventory-manifest.json,eq/**}",
       "maxDuration": 60
     },
     "api/admin/description.js": {

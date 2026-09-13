@@ -131,7 +131,7 @@
   }
   function bootstrapBanner() {
     if (!state.canImport) return "";
-    return '<div class="bootstrap"><p><strong>' + t("Добавете текущите 87 автомобила", "Import the existing 87 cars") + '</strong>' +
+    return '<div class="bootstrap"><p><strong>' + t("Добавете текущите автомобили", "Import the current inventory") + '</strong>' +
       t("Снимките и оборудването ще бъдат добавени автоматично.", "Photos and equipment are included automatically.") +
       '</p><button class="primary" id="bootstrap">' + t("Импортирай", "Import") + '</button></div>';
   }

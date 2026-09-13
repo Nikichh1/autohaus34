@@ -44,6 +44,7 @@
     "Иван Манев": "Ivan Manev",
     "Вашето запитване": "Your enquiry",
     "Изпрати": "Send",
+    "Застраховки": "Insurance",
     "Напишете въпроса си за този автомобил…": "Write your question about this vehicle…",
     "Този автомобил не е наличен.": "This vehicle is unavailable.",
     "Разгледайте наличните автомобили или се свържете с нас за повече информация.": "Browse the available vehicles or contact us for more information.",

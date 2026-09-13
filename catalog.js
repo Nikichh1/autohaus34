@@ -67,8 +67,14 @@
       ["Гориво", AH.fuel[v.fuel] || "—"],
       ["Пробег", AH.km(v.km)],
       ["Първа регистрация", registration]
-    ].map(function (item) {
-      return '<span class="lc__meta-item"><span class="sr-only">' + item[0] + ': </span>' + AH.esc(item[1]) + '</span>';
+    ].map(function (item, index) {
+      var paths = [
+        '<path d="M6 3v18M18 3v9H6M12 3v9"/><circle cx="6" cy="3" r="1.5"/><circle cx="12" cy="3" r="1.5"/><circle cx="18" cy="3" r="1.5"/><circle cx="6" cy="21" r="1.5"/>',
+        '<path d="M3 21h12M5 21V4h8v17M5 10h8M13 8h2l3 3v6a2 2 0 0 0 4 0V8l-4-4"/><path d="M19 5v4h3"/>',
+        '<path d="M7 3 3 21M17 3l4 18M12 3v4M12 10v4M12 17v4"/>',
+        '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6M17 2v6M3 11h18M7 15h3M14 15h3"/>'
+      ];
+      return '<span class="lc__meta-item"><svg class="spec-icon" viewBox="0 0 24 24" aria-hidden="true">' + paths[index] + '</svg><span class="sr-only">' + item[0] + ': </span><span>' + AH.esc(item[1]) + '</span></span>';
     }).join("");
   }
 
