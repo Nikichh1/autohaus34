@@ -55,6 +55,9 @@ for (const file of ["index.html", "vehicle.html", "concierge.html", "legal.html"
     const target = match[1];
     if (/^(?:https?:|mailto:|tel:|data:|#)/.test(target)) continue;
     assert.ok(fs.existsSync(path.resolve(root, target.replace(/^\//, ""))), file + " missing local asset " + target);
+    if (fs.existsSync(path.join(root, "dist", file))) {
+      assert.ok(fs.existsSync(path.resolve(root, "dist", target.replace(/^\//, ""))), file + " missing deployed asset " + target);
+    }
   }
 }
 const inventoryLoader = fs.readFileSync(path.join(root, "data/vehicles.js"), "utf8");
