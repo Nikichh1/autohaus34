@@ -3893,22 +3893,6 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
   .hd-menu{flex-direction:row-reverse;gap:10px}
 }
 
-/* ---------- the menu panel on a phone ----------
-   The panel is 86vw here rather than a fixed column, so a strip of the page
-   stays visible down the right — that strip is the whole point of the redesign
-   and it has to survive the smallest screen. The type steps up to the display
-   scale because six items in a 335px column can afford it. */
-@media(max-width:767px){
-  .mob nav a{
-    font-size:var(--fs-h3);line-height:var(--lh-h3);font-weight:300;
-    padding:18px 0;
-  }
-  .mob__sheet{padding-inline:26px}
-  .mob-mark{left:26px}
-  .mob-mark .logo{width:96px}
-  .mob-close{right:calc(26px + var(--plate-cut))}
-}
-
 /* ============================================================
    v38 — THE PRIVATE COLLECTION
 

@@ -532,7 +532,7 @@
     var restart = function () {
       clearInterval(timer);
       if (reduce || hovering || !onScreen) return;
-      timer = setInterval(function () { go(i + 1); }, DUR);
+      timer = setInterval(function () { if (!document.hidden && !document.querySelector(".mob.is-open,.ctc.is-open,.shw.is-open")) go(i + 1); }, DUR);
     };
 
     if (prev) prev.addEventListener("click", function () { go(i - 1, true); });

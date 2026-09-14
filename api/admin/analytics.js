@@ -1,6 +1,6 @@
 "use strict";
 
-const { json, clean, requireAdmin, requireSameOrigin, db } = require("../../server/admin-lib");
+const { json, clean, requireAdmin, requireSameOrigin, databaseFor } = require("../../server/admin-lib");
 
 async function readJson(r) {
   const text = await r.text();
@@ -12,6 +12,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== "GET") return json(res, 405, { ok: false, error: "Method not allowed" });
   const user = await requireAdmin(req, res);
   if (!user) return json(res, 401, { ok: false, error: "Authentication required" });
+  const db = databaseFor(req);
   const days = Math.max(1, Math.min(365, Number(clean((req.query && req.query.days) || "30", 3)) || 30));
   try {
     const r = await db("rpc/admin_analytics_summary", {

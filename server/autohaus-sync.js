@@ -98,6 +98,7 @@ function splitMake(full, existing) {
   if (existing && existing.make && normalized.toLowerCase().startsWith(String(existing.make).toLowerCase())) {
     return { make: existing.make, model: normalized.slice(String(existing.make).length).trim() };
   }
+  if (/^A6 Allroad 55 TDI/i.test(normalized)) return { make: "Audi", model: normalized };
   const parts = normalized.split(/\s+/);
   return { make: parts.shift() || "", model: parts.join(" ") };
 }
@@ -147,16 +148,17 @@ function extractImages(html) {
 
 function extractListingText(html) {
   const marker = html.search(/class=["'][^"']*right-part[^"']*content-part[^"']*["']/i);
-  if (marker < 0) return "";
-  const tail = html.slice(marker, html.indexOf("</article>", marker) > marker ? html.indexOf("</article>", marker) : undefined);
-  const paragraphs = [];
-  const re = /<p[^>]*>([\s\S]*?)<\/p>/gi;
-  let m;
-  while ((m = re.exec(tail))) {
-    const t = text(m[1]);
-    if (t.length >= 20 && !/^(Име|Телефон|Имейл)\b/.test(t)) paragraphs.push(t);
-  }
-  return paragraphs.sort((a,b) => b.length - a.length)[0] || "";
+  if (marker < 0) throw new Error("Listing description is missing");
+  const start = html.lastIndexOf("<div", marker), tags = /<\/?div\b[^>]*>/gi;
+  tags.lastIndex = start; let depth = 0, match, end = -1;
+  while ((match = tags.exec(html))) { depth += /^<\//.test(match[0]) ? -1 : 1; if (!depth) { end = match.index; break; } }
+  if (end < 0) throw new Error("Incomplete listing description");
+  const source = text(html.slice(html.indexOf(">", start) + 1, end)
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(/<div[^>]*class=["'][^"']*dkpdf[^"']*["'][^>]*>[\s\S]*?<\/div>/gi, "")
+    .replace(/<\/(?:p|li)>/gi, "\n"));
+  if (/casino|betting|bonus attractif/i.test(source)) throw new Error("Unrelated source content rejected");
+  return source;
 }
 
 function splitListingLines(sourceText) {
@@ -184,8 +186,9 @@ function inferChapter(full, fuel, existing) {
 
 function parseVehicle(slug, html, existing, sortOrder) {
   const t = extractTable(html);
-  const full = t["Марка и модел"] || text((html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || [])[1]) || (existing && existing.full_name) || slug;
+  let full = t["Марка и модел"] || text((html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || [])[1]) || (existing && existing.full_name) || slug;
   const parts = splitMake(full, existing);
+  full = parts.make + " " + parts.model;
   const reg = parseRegistration(t["Регистрация"] || "");
   const fuel = parseFuel(t["Тип двигател"] || t["Гориво"] || "") || (existing && existing.fuel) || "";
   const transmission = parseTransmission(t["Трансмисия"] || "") || (existing && existing.transmission) || "";
@@ -197,9 +200,11 @@ function parseVehicle(slug, html, existing, sortOrder) {
   }));
   if (!images.length) throw new Error("No gallery images found for " + slug);
 
-  const sourceUnchanged = existing && existing.description_source === sourceText;
-  const equipmentEn = sourceUnchanged && Array.isArray(existing.equipment_en) ? existing.equipment_en : [];
-  const descriptionEn = sourceUnchanged ? (existing.description_en || "") : "";
+  const key = s => decodeEntities(s).replace(/^[-–—•]\s*/, "").replace(/[!.,;\s]+/g, "").toLowerCase();
+  const translations = new Map();
+  if (existing) (existing.equipment_bg || []).forEach((line, i) => { if ((existing.equipment_en || [])[i]) translations.set(key(line), existing.equipment_en[i]); });
+  const equipmentEn = split.equipment.map(line => translations.get(key(line)) || (!/[А-Яа-я]/.test(line) ? line : ""));
+  const translated = equipmentEn.every(Boolean);
 
   return {
     slug,
@@ -220,15 +225,15 @@ function parseVehicle(slug, html, existing, sortOrder) {
     chapter: inferChapter(full, fuel, existing),
     tags: existing && Array.isArray(existing.tags) ? existing.tags : [],
     notes: split.notes,
-    description_bg: split.notes.join("\n"),
-    description_en: descriptionEn,
+    description_bg: (existing && existing.description_bg) || "",
+    description_en: (existing && existing.description_en) || "",
     description_source: sourceText,
     description_review_notes: [],
     equipment_bg: split.equipment,
-    equipment_en: equipmentEn.length === split.equipment.length ? equipmentEn : [],
+    equipment_en: translated ? equipmentEn : [],
     images,
     source_url: ORIGIN + "/car/" + slug + "/",
-    published: true,
+    published: !!(existing && existing.published && translated),
     sort_order: Number(sortOrder) || 0
   };
 }

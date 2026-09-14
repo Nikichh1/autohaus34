@@ -1,12 +1,12 @@
 "use strict";
 
-const { json, requireAdmin, requireSameOrigin, parseCookies, refreshSession, ACCESS_COOKIE, REFRESH_COOKIE } = require("../../server/admin-lib");
+const { json, requireAdmin, requireSameOrigin, parseCookies, refreshSession, timedFetch, ACCESS_COOKIE, REFRESH_COOKIE } = require("../../server/admin-lib");
 const SUPABASE_URL = "https://ajoiqomflplhadyhxvfe.supabase.co";
 
 function currentAccess(req, res) {
   let access = parseCookies(req)[ACCESS_COOKIE] || "";
   const setCookie = res.getHeader && res.getHeader("Set-Cookie");
-  const values = Array.isArray(setCookie) ? setCookie : setCookie ? [String(setCookie)];
+  const values = Array.isArray(setCookie) ? setCookie : setCookie ? [String(setCookie)] : [];
   for (const value of values) {
     if (!String(value).startsWith(ACCESS_COOKIE + "=")) continue;
     const raw = String(value).slice(ACCESS_COOKIE.length + 1).split(";")[0];
@@ -29,7 +29,7 @@ module.exports = async function handler(req, res) {
   try {
     const body = req.method === "GET" ? {} : (req.body && typeof req.body === "object" ? req.body : {});
     const action = String((req.query && req.query.action) || body.action || "list");
-    const response = await fetch(SUPABASE_URL + "/functions/v1/admin-team-v2", {
+    const response = await timedFetch(SUPABASE_URL + "/functions/v1/admin-team-v2", {
       method: "POST",
       headers: { Authorization: "Bearer " + access, "Content-Type": "application/json" },
       body: JSON.stringify(Object.assign({}, body, { action }))

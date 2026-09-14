@@ -15,7 +15,7 @@ node tools/dev-server.js
 
 Open `http://127.0.0.1:3010`. This preview runs the actual API handlers, so `/admin` requires configured Supabase authentication. Service environment variables are described in [ADMIN.md](ADMIN.md).
 
-`build.js` regenerates the minified CSS, updates asset versions and produces `dist/` containing browser assets only. Backend code, credentials, SQL and tests are excluded from the public output. The project uses plain JavaScript, so there is no TypeScript compiler or framework lint task to run. `tools/check.js` checks all JavaScript syntax, HTML asset references, the 85-car snapshot and its photo/equipment files.
+`build.js` regenerates the minified CSS, updates asset versions and produces `dist/` containing browser assets only. Backend code, credentials, SQL and tests are excluded from the public output. The project uses plain JavaScript, so there is no TypeScript compiler or framework lint task to run. `tools/check.js` checks all JavaScript syntax, HTML asset references, the 84-car snapshot and its photo/equipment files.
 
 ## Structure
 
@@ -24,10 +24,10 @@ Open `http://127.0.0.1:3010`. This preview runs the actual API handlers, so `/ad
 - `concierge.html`, `concierge.js`: general inquiries.
 - `legal.html`, `i18n.js`: company information, policy content and shared BG/EN translation.
 - `style.css`, `catalog.css`: authored styles. The `.min.css` copies are generated.
-- `data/vehicles.base.js`: verified 85-car fallback snapshot. `data/eq/` contains 85 verified equipment lists with aligned English translations.
-- `data/vehicles.js`: asynchronous managed-inventory loader. Every inventory renderer waits for this result; unavailable services select the snapshot. An intentionally empty managed inventory stays empty.
+- `data/vehicles.base.js`: empty public bootstrap; managed inventory is authoritative. `data/inventory.snapshot.json` is the private 84-car verification fixture. `data/eq/` contains 84 verified equipment lists with aligned English translations.
+- `data/vehicles.js`: asynchronous managed-inventory loader. Every inventory renderer waits for this result; backend outages never resurrect sold cars. An intentionally empty managed inventory stays empty.
 - `admin/`: mobile inventory editor, login and database schema.
-- `api/`, `server/`: protected Vercel handlers, Supabase sessions/data, signed Cloudinary uploads and server-side Gemini Flash-Lite.
+- `api/`, `server/`: protected Vercel handlers, Supabase sessions/data, signed Supabase Storage uploads and server-side Gemini Flash-Lite.
 
 The previous phase-specific DOM patches, synchronous network loading and downloaded-code evaluation have been removed. Changes now live in the markup, renderers and authored styles that own them.
 

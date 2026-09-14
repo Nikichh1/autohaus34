@@ -14,7 +14,7 @@ Push the verified changes to the existing GitHub repository. Its connected Verce
 
 ## Service configuration
 
-See [ADMIN.md](ADMIN.md) for the Supabase schema, allowed admin emails and server-only Supabase, Cloudinary and Gemini environment variables. No service credentials belong in Git. The public site works from the bundled inventory when the managed backend is unavailable. Admin operations require the real services.
+See [ADMIN.md](ADMIN.md) for the Supabase schema, active team roles, provisioned Supabase Storage and the server-only Gemini environment variable. No service credentials belong in Git. The public inventory bootstrap is deliberately empty; an outage never restores sold listings. Admin operations require the real services.
 
 Email-provider setup is deferred. The direct vehicle inquiry form retains entered text and shows an honest error if delivery is unavailable.
 
@@ -22,4 +22,4 @@ Email-provider setup is deferred. The direct vehicle inquiry form retains entere
 
 Run `node build.js` and upload the contents of `dist/`. Enable gzip/Brotli compression for text, use `Cache-Control: no-cache` for HTML, and serve versioned CSS/JavaScript with revalidation or long caching. Fonts and images can use a long cache lifetime. `_headers` contains rules for hosts that support it.
 
-Static hosting serves the public site and its bundled inventory. To use the managed admin, host the Node handlers on Vercel (or a Node-capable server) and reverse-proxy `/api/*` and `/admin` on the same origin. The protected `/admin` route must never be replaced by an unprotected static editor. Do not upload the repository root, `.env` files, SQL, `server/` or `tools/` to a public document directory.
+Static hosting alone cannot serve the managed inventory. To use the managed admin, host the Node handlers on Vercel (or a Node-capable server) and reverse-proxy `/api/*` and `/admin` on the same origin. The protected `/admin` route must never be replaced by an unprotected static editor. Do not upload the repository root, `.env` files, SQL, `server/` or `tools/` to a public document directory.

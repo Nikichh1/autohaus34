@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const {
-  json, clean, requireAdmin, requireSameOrigin, db, normalizeVehicle, legacyVehicle
+  json, clean, requireAdmin, requireSameOrigin, databaseFor, normalizeVehicle, legacyVehicle
 } = require("../../server/admin-lib");
 
 function apiError(res, status, message, detail) {
@@ -72,7 +72,7 @@ function readAssignment(file, variable) {
 
 function initialInventory() {
   const root = path.join(__dirname, "../../data");
-  const source = readAssignment(path.join(root, "vehicles.base.js"), "AH_VEHICLES");
+  const source = JSON.parse(fs.readFileSync(path.join(root, "inventory.snapshot.json"), "utf8"));
   const count = JSON.parse(fs.readFileSync(path.join(root, "inventory-manifest.json"), "utf8")).count;
   if (!count || source.length !== count || new Set(source.map((v) => v.id)).size !== count) throw new Error("Canonical inventory does not match its verified manifest");
   return source.map((vehicle, index) => {
@@ -84,7 +84,7 @@ function initialInventory() {
   });
 }
 
-async function nextSortOrder() {
+async function nextSortOrder(db) {
   const r = await db("vehicles?select=sort_order&order=sort_order.desc&limit=1", { method: "GET" });
   const data = await readJson(r);
   if (!r.ok || !Array.isArray(data)) throw new Error("Could not determine inventory order");
@@ -96,6 +96,8 @@ module.exports = async function handler(req, res) {
   if (!requireSameOrigin(req, res)) return;
   const user = await requireAdmin(req, res);
   if (!user) return apiError(res, 401, "Authentication required");
+  const db = databaseFor(req);
+  if (req.method !== "GET" && (user.adminRole === "viewer" || (req.method === "DELETE" && user.adminRole === "editor"))) return json(res, 403, { ok: false, error: "Your role cannot perform this action." });
 
   const action = clean((req.query && req.query.action) || "", 40).toLowerCase();
   const id = clean((req.query && req.query.id) || "", 80);
@@ -111,38 +113,18 @@ module.exports = async function handler(req, res) {
         return json(res, 200, { ok: true, vehicle: data[0] });
       }
 
-      const r = await db("vehicles?select=*&order=updated_at.desc", { method: "GET" });
+      const r = await db("vehicles?select=id,slug,ref,make,model,full_name,price,mileage,fuel,transmission,published,updated_at,cover:images->0&order=updated_at.desc", { method: "GET" });
       const data = await readJson(r);
       if (!r.ok) return apiError(res, r.status, "Could not load vehicles", data);
       if (!Array.isArray(data)) throw new Error("Invalid inventory response");
       const activation = await db("inventory_state?select=initialized&singleton=eq.true", { method: "GET" });
       const state = await readJson(activation);
       if (!activation.ok || !Array.isArray(state) || !state.length) throw new Error("Inventory schema needs updating");
-      return json(res, 200, { ok: true, vehicles: data, can_import: !state[0].initialized && !data.length });
+      return json(res, 200, { ok: true, vehicles: data.map(v => { const row = Object.assign({}, v, { images: v.cover ? [v.cover] : [] }); delete row.cover; return row; }), can_import: false });
     }
 
     if (req.method === "POST" && action === "bootstrap") {
-      // Re-check server-side immediately before importing. The admin JWT is
-      // authorized by RLS and the activation trigger permanently marks the
-      // managed catalogue initialized after the first insert.
-      const existingResponse = await db("vehicles?select=id&limit=1", { method: "GET" });
-      const existing = await readJson(existingResponse);
-      if (!existingResponse.ok || !Array.isArray(existing)) throw new Error("Could not verify inventory state");
-      const stateResponse = await db("inventory_state?select=initialized&singleton=eq.true", { method: "GET" });
-      const inventoryState = await readJson(stateResponse);
-      if (!stateResponse.ok || !Array.isArray(inventoryState) || !inventoryState.length) throw new Error("Inventory schema needs updating");
-      if (inventoryState[0].initialized || existing.length) {
-        return json(res, 409, { ok: false, error: "Initial inventory has already been imported.", code: "ALREADY_INITIALIZED" });
-      }
-      const rows = initialInventory();
-      const r = await db("vehicles", {
-        method: "POST",
-        headers: { Prefer: "return=minimal" },
-        body: JSON.stringify(rows)
-      });
-      const data = await readJson(r);
-      if (!r.ok) return apiError(res, r.status, "Import failed", data);
-      return json(res, 200, { ok: true, imported: rows.length });
+      return json(res, 410, { ok: false, error: "Use live AutoHaus sync to import inventory." });
     }
 
     if (action) return apiError(res, 400, "Unknown action");
@@ -150,7 +132,7 @@ module.exports = async function handler(req, res) {
     if (req.method === "POST") {
       const normalized = normalizeVehicle(req.body);
       if (normalized.error) return apiError(res, 400, normalized.error);
-      const row = Object.assign({ created_at: new Date().toISOString(), sort_order: await nextSortOrder() }, normalized.row);
+      const row = Object.assign({ created_at: new Date().toISOString(), sort_order: await nextSortOrder(db) }, normalized.row);
       const r = await db("vehicles", {
         method: "POST",
         headers: { Prefer: "return=representation" },

@@ -4,6 +4,7 @@
 
   var button = document.getElementById("sync-autohaus");
   if (!button) return;
+  var t=window.AH_ADMIN.t;
   var original = button.textContent;
   var running = false;
 
@@ -25,15 +26,15 @@
   }
 
   async function runSync() {
-    if (running) return;
-    running = true;
+    if (running || !window.AH_ADMIN.canManage || !window.AH_ADMIN.canLeave()) return;
+    running = true; window.AH_ADMIN.setSyncBusy(true);
     button.disabled = true;
-    button.textContent = "Проверявам AutoHaus…";
+    button.textContent = t("Проверявам AutoHaus…","Checking AutoHaus…");
 
     try {
       var discovered = await request("/api/admin/sync?action=discover");
       var slugs = discovered.slugs || [];
-      if (!slugs.length) throw new Error("Оригиналният сайт не върна автомобили.");
+      if (!slugs.length) throw new Error(t("Оригиналният сайт не върна автомобили.","The source returned no vehicles."));
 
       var next = 0, done = 0, created = 0, failures = [];
       async function worker() {
@@ -52,7 +53,7 @@
             failures.push(slug + ": " + (err && err.message ? err.message : "error"));
           }
           done++;
-          button.textContent = "Синхронизирам " + done + "/" + slugs.length;
+          button.textContent = t("Синхронизирам ","Syncing ") + done + "/" + slugs.length;
         }
       }
 
@@ -61,7 +62,7 @@
         throw new Error("Не са синхронизирани " + failures.length + " обяви. Нищо не е изтривано. " + failures.slice(0, 3).join("; "));
       }
 
-      button.textContent = "Премахвам неактуалните…";
+      button.textContent = t("Скривам неактуалните…","Unpublishing departed vehicles…");
       var final = await request("/api/admin/sync?action=finalize", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
@@ -70,12 +71,12 @@
 
       button.textContent = "Готово · " + final.total + " коли";
       toast("AutoHaus е синхронизиран: " + final.total + " активни, " + created + " нови, " + final.removed + " премахнати.");
-      setTimeout(function () { location.reload(); }, 1200);
+      setTimeout(function () { window.AH_ADMIN.setSyncBusy(false); window.AH_ADMIN.refresh(); }, 1200);
     } catch (err) {
-      button.textContent = "Опитай отново";
-      toast(err && err.message ? err.message : "Синхронизацията не успя.", true);
+      button.textContent = t("Опитай отново","Try again");
+      toast(err && err.message ? err.message : t("Синхронизацията не успя.","Sync failed."), true);
       button.disabled = false;
-      running = false;
+      running = false; window.AH_ADMIN.setSyncBusy(false);
       return;
     }
 
@@ -88,28 +89,4 @@
 
   button.addEventListener("click", runSync);
 
-  /* Older admin builds show an empty-database banner for the retired static
-     87-car import. Intercept it and route it to the same live source instead. */
-  document.addEventListener("click", function (event) {
-    var boot = event.target && event.target.closest ? event.target.closest("#bootstrap") : null;
-    if (!boot) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    runSync();
-  }, true);
-
-  function relabelLegacyBanner() {
-    var boot = document.getElementById("bootstrap");
-    if (!boot) return;
-    boot.textContent = "Синхронизирай от AutoHaus";
-    var box = boot.closest(".bootstrap");
-    if (box) {
-      var strong = box.querySelector("strong");
-      if (strong) strong.textContent = "Зареди актуалните автомобили от AutoHaus";
-    }
-  }
-  relabelLegacyBanner();
-  if (typeof MutationObserver === "function") {
-    new MutationObserver(relabelLegacyBanner).observe(document.getElementById("admin-view") || document.body, { childList:true, subtree:true });
-  }
 })();

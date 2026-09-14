@@ -2,7 +2,7 @@
 
 const crypto = require("crypto");
 const {
-  ACCESS_COOKIE, json, clean, parseCookies, requireAdmin, requireSameOrigin, timedFetch, db
+  ACCESS_COOKIE, json, clean, parseCookies, requireAdmin, requireSameOrigin, timedFetch, databaseFor
 } = require("../../server/admin-lib");
 
 const SUPABASE_URL = "https://ajoiqomflplhadyhxvfe.supabase.co";
@@ -45,6 +45,8 @@ module.exports = async function handler(req, res) {
   if (!requireSameOrigin(req, res)) return;
   const user = await requireAdmin(req, res);
   if (!user) return json(res, 401, { ok: false, error: "Authentication required" });
+  const db = databaseFor(req);
+  if (user.adminRole === "viewer") return json(res, 403, { ok: false, error: "Your role cannot perform this action." });
   if (req.method !== "POST") return json(res, 405, { ok: false, error: "Method not allowed" });
 
   const action = clean((req.query && req.query.action) || "sign", 30).toLowerCase();
@@ -71,7 +73,7 @@ module.exports = async function handler(req, res) {
         provider: "supabase",
         upload_url: uploadUrl,
         public_id: path,
-        api_key: "",
+        headers: { apikey: SUPABASE_KEY },
         signature: "",
         params: {}
       });

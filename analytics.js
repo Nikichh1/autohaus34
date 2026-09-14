@@ -16,18 +16,20 @@
     if(document.getElementById("ah-consent-style"))return;
     var s=document.createElement("style");s.id="ah-consent-style";s.textContent=".ah-consent{position:fixed;left:18px;right:18px;bottom:18px;z-index:99999;background:#111;color:#fff;border:1px solid #333;box-shadow:0 18px 50px rgba(0,0,0,.24);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:20px;font:13px/1.45 Arial,sans-serif}.ah-consent__text{max-width:760px}.ah-consent__title{font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:5px}.ah-consent__actions{display:flex;gap:8px;flex:none}.ah-consent button{border:1px solid #555;background:#fff;color:#111;padding:10px 14px;font:700 11px/1 Arial,sans-serif;text-transform:uppercase;cursor:pointer}.ah-consent button:last-child{background:transparent;color:#fff}.ah-consent button:hover{opacity:.85}@media(max-width:640px){.ah-consent{left:10px;right:10px;bottom:10px;display:block}.ah-consent__actions{margin-top:12px}.ah-consent button{flex:1}}";document.head.appendChild(s);
   }
+  function t(bg,en){return document.documentElement.lang==="en"?en:bg;}
   function banner(){
     if(document.getElementById("ah-consent")||consent())return;
     style();
     var b=document.createElement("div");b.id="ah-consent";b.className="ah-consent";b.innerHTML='<div class="ah-consent__text"><div class="ah-consent__title">Поверителност</div><div>Използваме само анонимна статистика за посещения и интерес към автомобилите, за да подобряваме сайта. Не събираме пароли, съобщения или имейл адреси чрез този анализ.</div></div><div class="ah-consent__actions"><button type="button" data-consent="yes">Приемам</button><button type="button" data-consent="no">Не</button></div>';
     b.addEventListener("click",function(e){var btn=e.target.closest("button[data-consent]");if(!btn)return;set(KEY,btn.dataset.consent);b.remove();if(btn.dataset.consent==="yes")start();});
-    document.body.appendChild(b);
+    function translate(){b.querySelector('.ah-consent__title').textContent=t('Поверителност','Privacy');b.querySelector('.ah-consent__text>div:last-child').textContent=t('С Ваше съгласие използваме статистика за посещенията и интереса към автомобилите.','With your consent, we measure visits and interest in our vehicles.');b.querySelector('[data-consent="yes"]').textContent=t('Приемам','Accept');b.querySelector('[data-consent="no"]').textContent=t('Отказ','Decline');}
+    translate();window.addEventListener('ah:languagechange',translate);document.body.appendChild(b);
   }
   function payload(eventName){
     var session=get(SESSION_KEY)||id(),visitor=get(VISITOR_KEY)||id();set(SESSION_KEY,session);set(VISITOR_KEY,visitor);
     var params=new URLSearchParams(location.search);
     var slug=params.get("id")||"";
-    return {event_name:eventName,path:location.pathname+location.search,vehicle_slug:/\/vehicle\.html$/i.test(location.pathname)?slug:"",session_id:session,visitor_id:visitor,referrer:document.referrer||"",device:innerWidth<700?"mobile":innerWidth<1100?"tablet":"desktop",country:"",language:(document.documentElement.lang||navigator.language||"").slice(0,20)};
+    return {event_name:eventName,path:location.pathname+(/\/vehicle\.html$/i.test(location.pathname)&&/^[a-z0-9-]+$/.test(slug)?"?id="+slug:""),vehicle_slug:/\/vehicle\.html$/i.test(location.pathname)?slug:"",session_id:session,visitor_id:visitor,referrer:(function(){try{return new URL(document.referrer).origin;}catch(_){return "";}})(),device:innerWidth<700?"mobile":innerWidth<1100?"tablet":"desktop",country:"",language:(document.documentElement.lang||navigator.language||"").slice(0,20)};
   }
   function send(eventName){
     if(consent()!=="yes")return;

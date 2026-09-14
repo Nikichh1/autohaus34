@@ -30,6 +30,7 @@ function createServer() {
       if (!file.startsWith(ROOT + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404).end(); return; }
       res.setHeader("Content-Type", TYPES[path.extname(file)] || "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
+      if (pathname === "/admin/admin.css") { res.end(["admin/admin.css", "admin/brand.css", "admin/brand-fallback.css"].map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("\n")); return; }
       fs.createReadStream(file).pipe(res);
     } catch (error) {
       console.error(error.message);

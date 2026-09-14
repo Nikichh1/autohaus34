@@ -1,4 +1,5 @@
--- AutoHaus admin schema. Run this complete file in the Supabase SQL Editor.
+-- Legacy bootstrap schema for isolated regression checks only.
+-- Current production uses admin/migrations; do not reapply this legacy baseline.
 -- Idempotent: re-running upgrades the earlier schema without replacing vehicles.
 begin;
 

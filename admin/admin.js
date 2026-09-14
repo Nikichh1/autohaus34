@@ -7,6 +7,8 @@
   var state = { vehicles: [], current: null, route: "", dirty: false, saved: false,
     saveBusy: false, uploadBusy: false, aiBusy: false, search: "", filter: "all", removed: [], failedFiles: [], canImport: false, aiNeedsReview: false, reviewNotes: [] };
   var dragIndex = null, draftTimer;
+  var role = D.body.dataset.adminRole || "viewer";
+  window.AH_ADMIN = { go: go, t: t, canLeave: canLeave, canWrite: role !== "viewer", canManage: ["owner", "admin"].includes(role), setSyncBusy: function(busy) { window.AH_ADMIN.syncBusy=busy; updateSaveState(); }, refresh: function() { state.dirty=false; clearDraft(); loadVehicles(false); closeMenu(); }, reloadVehicle: function(id) { state.dirty = false; clearDraft(); history.replaceState(null, "", "#edit=" + encodeURIComponent(id)); loadVehicles(false); closeMenu(); } };
   function t(bg, en) { return lang === "en" ? en : bg; }
   function esc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
   function clone(v) { return JSON.parse(JSON.stringify(v)); }
@@ -20,7 +22,7 @@
   function mileage(v) { return v == null || v === "" ? "—" : new Intl.NumberFormat(lang === "bg" ? "bg-BG" : "en-GB").format(Number(v)) + t(" км", " km"); }
   function imageUrl(img) { var v = (img || {}).variants || {}; return v.webp400 || v.jpg400 || (img || {}).original || ""; }
   function carName(v) { return v.full_name || [v.make, v.model].filter(Boolean).join(" "); }
-  function isBusy() { return state.saveBusy || state.uploadBusy || state.aiBusy; }
+  function isBusy() { return state.saveBusy || state.uploadBusy || state.aiBusy || !!(window.AH_ADMIN && window.AH_ADMIN.syncBusy); }
   function toast(message, error) {
     toastEl.textContent = message; toastEl.className = "toast is-on" + (error ? " is-error" : "");
     clearTimeout(toastEl.__timer); toastEl.__timer = setTimeout(function () { toastEl.classList.remove("is-on"); }, 4500);
@@ -83,7 +85,7 @@
       var button = D.getElementById(id); if (button) button.disabled = busy;
     });
     var fields = D.getElementById("editor-fields");
-    if (fields) fields.disabled = !!state.saveBusy;
+    if (fields) fields.disabled = !!state.saveBusy || !!window.AH_ADMIN.syncBusy;
     var form = D.getElementById("car-form");
     if (form) form.setAttribute("aria-busy", busy ? "true" : "false");
   }
@@ -186,7 +188,7 @@
     });
     D.getElementById("car-list").innerHTML = inventoryCards(filtered);
     D.getElementById("result-count").textContent = filtered.length + " " + t("автомобила", "cars");
-    bindCards();
+    bindCards(); applyRole();
   }
   async function importLegacy() {
     var button = D.getElementById("bootstrap"); button.disabled = true; button.textContent = t("Импортиране…", "Importing…");
@@ -216,7 +218,7 @@
     view.innerHTML = '<div class="view-head editor-heading"><div class="view-title"><a class="back-link" href="#cars" data-go="cars">← ' + t("Автомобили", "Cars") +
       '</a><h1>' + esc(isNew ? t("Нов автомобил", "New car") : carName(car)) + '</h1><div class="heading-status">' + pill(car.published) +
       '</div></div></div>' +
-      (recovered ? '<div class="recovery-note" role="status">' + t("Незаписаните промени са възстановени.", "Your unsaved changes have been restored.") + '</div>' : "") +
+      (recovered && !recovered.silent ? '<div class="recovery-note" role="status">' + t("Незаписаните промени са възстановени.", "Your unsaved changes have been restored.") + '</div>' : "") +
       '<form id="car-form" class="editor" novalidate><fieldset class="editor-main" id="editor-fields"><legend class="sr-only">' + t("Данни за автомобила", "Vehicle details") + '</legend>' +
       '<section class="card" id="basics"><h2>' + t("Автомобил", "Car") + '</h2><div class="field-grid">' +
       field(t("Марка *", "Make *"), "make", car.make, "text", "required maxlength=120 autocomplete=off") +
@@ -372,6 +374,19 @@
     images.splice(to, 0, images.splice(from, 1)[0]); reindexImages(); setDirty(); renderImages(to);
     toast(t("Редът на снимките е променен", "Photo order updated"));
   }
+  async function preparePhoto(file) {
+    var url = URL.createObjectURL(file), img = new Image();
+    try {
+      img.src = url; await img.decode();
+      var scale = Math.min(1, 1920 / Math.max(img.naturalWidth, img.naturalHeight));
+      var canvas = D.createElement("canvas"); canvas.width = Math.round(img.naturalWidth * scale); canvas.height = Math.round(img.naturalHeight * scale);
+      var ctx = canvas.getContext("2d"); ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, "image/jpeg", .86); });
+      if (!blob) throw new Error("Image conversion failed");
+      blob.photoWidth = canvas.width; blob.photoHeight = canvas.height; return blob;
+    } catch (_) { throw new Error(t("Този формат не се отваря. Изберете JPEG снимка или използвайте камерата.", "This image format cannot be opened. Choose a JPEG photo or use the camera.")); }
+    finally { URL.revokeObjectURL(url); }
+  }
   async function uploadFiles(files) {
     if (isBusy()) return;
     files = Array.from(files || []); if (!files.length) return;
@@ -381,23 +396,23 @@
     retry.hidden = true;
     statusEl.textContent = t("Подготовка…", "Preparing…");
     try {
-      var sign = await api("/api/admin/images?action=sign", { method: "POST", body: {} });
+
       for (var i = 0; i < files.length; i++) {
         var file = files[i];
         statusEl.textContent = t("Качване ", "Uploading ") + (i + 1) + " / " + files.length;
         try {
           if (!/^image\//.test(file.type) && !/\.(heic|heif|jpe?g|png|webp)$/i.test(file.name)) throw new Error(t("Неподдържан формат", "Unsupported format"));
           if (file.size > 45 * 1024 * 1024) throw new Error(t("Снимката е над 45 MB", "Photo exceeds 45 MB"));
-          var fd = new FormData(); fd.append("file", file); fd.append("api_key", sign.api_key); fd.append("signature", sign.signature);
-          var params = sign.params || { timestamp: sign.timestamp, folder: sign.folder, eager: sign.eager };
-          Object.keys(params).forEach(function (key) { fd.append(key, params[key]); });
+          file = await preparePhoto(file);
+          var sign = await api("/api/admin/images?action=sign", { method: "POST", body: {} });
+          var fd = new FormData(); fd.append("cacheControl", "31536000"); fd.append("", file);
           var controller = new AbortController(), timer = setTimeout(function () { controller.abort(); }, 120000), response, uploaded;
           try {
-            response = await fetch(sign.upload_url, { method: "POST", body: fd, signal: controller.signal });
+            response = await fetch(sign.upload_url, { method: "PUT", headers: sign.headers, body: fd, signal: controller.signal });
             uploaded = await response.json();
           } finally { clearTimeout(timer); }
           if (!response.ok) throw new Error(uploaded.error && uploaded.error.message || t("Качването не успя", "Upload failed"));
-          var result = await api("/api/admin/images?action=complete", { method: "POST", body: uploaded });
+          var result = await api("/api/admin/images?action=complete", { method: "POST", body: { public_id: sign.public_id, width: file.photoWidth, height: file.photoHeight } });
           if (!result.image) throw new Error(t("Снимката не е потвърдена", "Photo could not be verified"));
           state.current.images.push(result.image); reindexImages(); completed++; setDirty(); renderImages();
         } catch (error) {
@@ -481,7 +496,7 @@
     ["dragleave", "drop"].forEach(function (name) { dropzone.addEventListener(name, function (event) { event.preventDefault(); dropzone.classList.remove("is-drag"); }); });
     dropzone.ondrop = function (event) { event.preventDefault(); uploadFiles(event.dataTransfer.files); };
     view.querySelectorAll("[data-scroll]").forEach(function (link) { link.onclick = function (event) { event.preventDefault(); D.getElementById(link.dataset.scroll).scrollIntoView({ behavior: "smooth", block: "start" }); }; });
-    syncRegistration(); bindCommon();
+    syncRegistration(); bindCommon(); if (window.AH_ADMIN.enhanceEditor) window.AH_ADMIN.enhanceEditor(); applyRole();
   }
   function syncRegistration() {
     var form = D.getElementById("car-form"), disabled = form.elements.unregistered.checked;
@@ -501,12 +516,18 @@
       } catch (error) { toast(error.message, true); button.disabled = false; }
     }; });
   }
+  function applyRole() {
+    D.querySelectorAll('[data-route="new"],[data-go="new"],[data-quick-publish]').forEach(function (el) { el.hidden = role === "viewer"; });
+    ["save-car", "publish-car", "unpublish-car", "choose-images", "take-photo", "process-description", "ah-quick-import-btn", "delete-car"].forEach(function(id) { var el = D.getElementById(id); if (el) el.hidden = role === "viewer" || (id === "delete-car" && role === "editor") || (id === "ah-quick-import-btn" && !window.AH_ADMIN.canManage); });
+    var fields = D.getElementById("editor-fields"); if (fields && role === "viewer") fields.disabled = true;
+    var sync = D.getElementById("sync-autohaus"); if (sync) sync.hidden = !window.AH_ADMIN.canManage;
+  }
   function bindCommon() {
     view.querySelectorAll("[data-go]").forEach(function (button) { button.onclick = function (event) { event.preventDefault(); go(button.dataset.go); }; });
     var boot = D.getElementById("bootstrap"); if (boot) boot.onclick = importLegacy;
     bindCards();
   }
-  function renderRoute(route) {
+  async function renderRoute(route) {
     state.route = route || requestedRoute(); D.body.classList.remove("is-editing"); state.current = null; markNav(state.route);
     if (state.route === "dashboard") return dashboard();
     if (state.route === "cars") return cars();
@@ -514,20 +535,34 @@
     if (state.route.indexOf("edit=") === 0) {
       var id; try { id = decodeURIComponent(state.route.slice(5)); } catch (_) { id = ""; }
       var vehicle = state.vehicles.find(function (item) { return item.id === id; });
-      if (vehicle) return editor(vehicle, false);
+      if (vehicle) {
+        if (!Array.isArray(vehicle.equipment_bg)) {
+          var expectedRoute = state.route;
+          view.innerHTML = '<div class="empty" role="status">' + t("Зареждане…", "Loading…") + '</div>';
+          try {
+            var result = await api("/api/admin/vehicles?id=" + encodeURIComponent(id));
+            if (state.route !== expectedRoute) return;
+            vehicle = result.vehicle;
+            state.vehicles = state.vehicles.map(function(v) { return v.id === id ? vehicle : v; });
+          } catch (e) { if(state.route === expectedRoute) { view.innerHTML = '<div class="empty" role="alert">' + esc(e.message) + '</div>'; } return; }
+        }
+        return editor(vehicle, false);
+      }
       view.innerHTML = '<div class="empty"><strong>' + t("Автомобилът не е намерен", "Car not found") + '</strong><button class="secondary" data-go="cars">' + t("Към автомобилите", "Back to cars") + '</button></div>'; bindCommon(); return;
     }
+    if (window.AH_ADMIN.renderExtra && window.AH_ADMIN.renderExtra(state.route)) return;
     history.replaceState(null, "", "#dashboard"); state.route = "dashboard"; markNav("dashboard"); dashboard();
   }
   D.querySelectorAll("[data-route]").forEach(function (button) { button.onclick = function () { go(button.dataset.route); }; });
   D.querySelectorAll("[data-language]").forEach(function (button) { button.onclick = function () {
     if (isBusy() || lang === button.dataset.language) return;
     var data = state.current ? Object.assign({}, state.current, collectForm()) : null;
-    var recovery = data ? { source: D.getElementById("source-text").value, needsReview: state.aiNeedsReview, removed: state.removed.slice() } : null, dirty = state.dirty;
+    var recovery = data ? { silent: true, source: D.getElementById("source-text").value, needsReview: state.aiNeedsReview, removed: state.removed.slice() } : null, dirty = state.dirty;
     lang = button.dataset.language; writeStorage("localStorage", "ah-admin-language", lang); translateShell();
     if (data) { editor(data, !data.id, recovery); state.dirty = dirty; updateSaveState(); } else renderRoute(state.route);
     closeMenu();
   }; });
+  applyRole();
   D.getElementById("logout").onclick = async function () {
     if (!canLeave()) return;
     try { await api("/api/admin/auth?action=logout", { method: "POST", body: {} }); clearDraft(); state.dirty = false; location.replace("/admin/login.html"); }

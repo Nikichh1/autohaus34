@@ -1,13 +1,13 @@
 "use strict";
 
 const crypto = require("crypto");
-const { AsyncLocalStorage } = require("async_hooks");
+
 
 const ACCESS_COOKIE = "ah_admin_access";
 const REFRESH_COOKIE = "ah_admin_refresh";
 const SUPABASE_URL = "https://ajoiqomflplhadyhxvfe.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gBEUBrOjT_JsBRjAnGL9PQ_ra-1hY0g";
-const requestAuth = new AsyncLocalStorage();
+
 
 function env(name) {
   return String(process.env[name] || "").trim();
@@ -150,7 +150,12 @@ async function userForToken(access) {
   const r = await authFetch("user", { method: "GET", headers: { Authorization: "Bearer " + access } });
   if (!r.ok) return null;
   const user = await r.json().catch(() => null);
-  return user && isAllowed(user) ? user : null;
+  if (!user || !isAllowed(user)) return null;
+  const roleResponse = await timedFetch(supabaseUrl() + "/rest/v1/rpc/current_admin_role", {
+    method: "POST", headers: { apikey: supabaseKey(), Authorization: "Bearer " + access, "Content-Type": "application/json" }, body: "{}"
+  });
+  const role = await roleResponse.json().catch(() => null);
+  return roleResponse.ok && ["owner", "admin", "editor", "viewer"].includes(role) ? Object.assign(user, { adminRole: role }) : null;
 }
 
 async function refreshSession(refreshToken) {
@@ -172,7 +177,7 @@ async function requireAdmin(req, res) {
     const access = cookies[ACCESS_COOKIE];
     const user = await userForToken(access);
     if (user) {
-      requestAuth.enterWith({ access });
+      req.adminAccess = access;
       return user;
     }
     const refreshed = await refreshSession(cookies[REFRESH_COOKIE]);
@@ -180,7 +185,7 @@ async function requireAdmin(req, res) {
     const refreshedUser = await userForToken(refreshed.access_token);
     if (!refreshedUser) return null;
     setSessionCookies(req, res, refreshed);
-    requestAuth.enterWith({ access: refreshed.access_token });
+    req.adminAccess = refreshed.access_token;
     return refreshedUser;
   } catch (_) { return null; }
 }
@@ -210,21 +215,25 @@ async function logout(req) {
   }
 }
 
-function dbHeaders(extra) {
+function dbHeaders(extra, access) {
   const headers = {
     apikey: supabaseKey(),
     "Content-Type": "application/json"
   };
-  const ctx = requestAuth.getStore();
-  if (ctx && ctx.access) headers.Authorization = "Bearer " + ctx.access;
+  if (access) headers.Authorization = "Bearer " + access;
   return Object.assign(headers, extra || {});
 }
 
-async function db(path, options) {
+function databaseFor(req) {
+  if (!req.adminAccess) throw new Error("Authenticated database context required");
+  return (path, options) => db(path, options, req.adminAccess);
+}
+
+async function db(path, options, access) {
   if (!configured()) throw new Error("Supabase is not configured");
   const url = supabaseUrl().replace(/\/$/, "") + "/rest/v1/" + path.replace(/^\//, "");
   return timedFetch(url, Object.assign({}, options || {}, {
-    headers: dbHeaders((options && options.headers) || {})
+    headers: dbHeaders((options && options.headers) || {}, access)
   }));
 }
 
@@ -434,7 +443,7 @@ function imageVariants(publicId) {
 
 module.exports = {
   ACCESS_COOKIE, REFRESH_COOKIE, env, configured, json, clean, parseCookies,
-  setSessionCookies, clearSessionCookies, login, requireAdmin, db,
+  setSessionCookies, clearSessionCookies, login, requireAdmin, db, databaseFor,
   normalizeVehicle, legacyVehicle, slugify, imageVariants, isAllowed,
   requireSameOrigin, timedFetch, logout, safeUrl
 };

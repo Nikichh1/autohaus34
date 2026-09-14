@@ -1,0 +1,20 @@
+'use strict';
+const {PGlite}=require('@electric-sql/pglite');
+const fs=require('node:fs'),assert=require('node:assert/strict');
+(async()=>{const db=new PGlite();try{
+ await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;
+ create table auth.sessions(id uuid,user_id uuid);create type public.admin_role as enum('owner','admin','editor','viewer');
+ create table public.admin_members(user_id uuid,role public.admin_role,active boolean);
+ create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
+ create function auth.uid() returns uuid language sql stable as $$select (auth.jwt()->>'sub')::uuid$$;`);
+ const migration=fs.readFileSync('admin/migrations/20260914_active_membership.sql','utf8');await db.exec(migration);await db.exec(migration);
+ const user='00000000-0000-4000-8000-000000000001',session='00000000-0000-4000-8000-000000000002';
+ await db.query('insert into public.admin_members values ($1,$2,true)',[user,'owner']);await db.query('insert into auth.sessions values ($1,$2)',[session,user]);
+ const role=async()=> (await db.query('select public.current_admin_role() as role')).rows[0].role;
+ assert.equal(await role(),null);
+ await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({sub:user,session_id:session})]);assert.equal(await role(),'owner');
+ await db.exec("update public.admin_members set role='viewer'");assert.equal(await role(),'viewer');
+ await db.exec('update public.admin_members set active=false');assert.equal(await role(),null);
+ await db.exec('update public.admin_members set active=true;delete from auth.sessions');assert.equal(await role(),null);
+ console.log('PASS: live membership roles, immediate downgrade/disable, revoked session, anonymous denial, migration replay.');
+}finally{await db.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

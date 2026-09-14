@@ -21,7 +21,8 @@ for (const file of files) {
 }
 const context = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(root, "data/vehicles.base.js"), "utf8"), context);
-const cars = context.window.AH_VEHICLES;
+assert.equal(context.window.AH_VEHICLES.length, 0, "Public boot must not resurrect stale sold cars");
+const cars = require("../data/inventory.snapshot.json");
 assert.equal(cars.length, require("../data/inventory-manifest.json").count, "Canonical inventory must match the verified snapshot");
 assert.equal(new Set(cars.map(v => v.id)).size, cars.length, "Vehicle slugs must be unique");
 let photos = new Set();
@@ -43,6 +44,7 @@ for (const car of cars) {
     vm.runInNewContext(fs.readFileSync(file,"utf8"),ctx);
     assert.equal(ctx.window.AH_EQ.id, car.id);
     assert.equal(ctx.window.AH_EQ.en.length, ctx.window.AH_EQ.e.length, "BG/EN equipment mismatch: " + car.id);
+    for (const line of ctx.window.AH_EQ.en) assert.ok(!/[А-Яа-я]/.test(line.replace(/^[A-Z0-9А-Я]{1,5}\s*[-–—]\s*/i, "")), "Untranslated English equipment: " + car.id);
     equipment++;
   }
 }

@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (id) {
-      const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=*&limit=1", { method: "GET" });
+      const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,description_bg,description_en,equipment_bg,equipment_en,images,source_url,published,sort_order,updated_at&limit=1", { method: "GET" });
       const rows = await parse(r);
       if (!rows.length) return json(res, 404, { ok: false, error: "Vehicle not found" });
       return json(res, 200, { ok: true, authoritative: true, vehicle: legacyVehicle(rows[0]) });
