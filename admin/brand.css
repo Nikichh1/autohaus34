@@ -15,7 +15,7 @@ body.ah-admin{min-height:100vh;overflow-x:hidden}
 .app-shell{position:relative;isolation:isolate}
 .side{
   width:var(--side);padding:0 18px 22px;gap:0;background:var(--ah-dark);color:#fff;
-  border:0;overflow:hidden;box-shadow:none;
+  border:0;overflow-x:hidden;overflow-y:auto;box-shadow:none;
 }
 .side::before{
   content:"";position:absolute;z-index:-1;inset:0 0 auto 0;height:190px;background:#0f1112;
@@ -45,13 +45,11 @@ body.ah-admin{min-height:100vh;overflow-x:hidden}
 .side__nav button::before{
   content:"";position:absolute;z-index:-1;inset:0;background:#fff;
   clip-path:polygon(0 0,94% 0,100% 50%,94% 100%,0 100%);
-  transform:translateX(-104%);transition:transform 220ms var(--ah-ease);
+  transform:translateX(-110%);transition:transform 220ms var(--ah-ease);
 }
 .side__nav button:hover{color:#fff;transform:translateX(3px);background:rgba(255,255,255,.055)}
 .side__nav button.is-on{color:#0b0c0d;background:transparent;transform:none}
 .side__nav button.is-on::before{transform:translateX(0)}
-#sync-autohaus{margin-top:11px;border-top:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.82)}
-#sync-autohaus::before{background:#dfe0de}
 .side__foot{margin-top:auto;display:grid;gap:8px;padding:22px 5px 0;border-top:1px solid rgba(255,255,255,.12)}
 .side__user{font-size:10px;line-height:1.4;color:rgba(255,255,255,.43);letter-spacing:.02em}
 .site-link{min-height:38px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.78)}
@@ -240,6 +238,7 @@ textarea{min-height:106px}
   .side__brand img{width:158px}
   .workspace{padding:26px 20px 170px}
   .save-card{background:#17191a;border-top:1px solid #333;padding:11px 18px calc(11px + env(safe-area-inset-bottom))}
+  .save-card::before{display:none}
 }
 @media(max-width:720px){
   :root{--side:0px}

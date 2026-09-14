@@ -8,7 +8,7 @@
     saveBusy: false, uploadBusy: false, aiBusy: false, search: "", filter: "all", removed: [], failedFiles: [], canImport: false, aiNeedsReview: false, reviewNotes: [] };
   var dragIndex = null, draftTimer, searchFrame;
   var role = D.body.dataset.adminRole || "viewer";
-  window.AH_ADMIN = { go: go, t: t, canLeave: canLeave, canWrite: role !== "viewer", canManage: ["owner", "admin"].includes(role), setSyncBusy: function(busy) { window.AH_ADMIN.syncBusy=busy; updateSaveState(); }, refresh: function() { state.dirty=false; clearDraft(); loadVehicles(false); closeMenu(); }, reloadVehicle: function(id) { state.dirty = false; clearDraft(); history.replaceState(null, "", "#edit=" + encodeURIComponent(id)); loadVehicles(false); closeMenu(); } };
+  window.AH_ADMIN = { go: go, t: t, canLeave: canLeave, canWrite: role !== "viewer", canManage: ["owner", "admin"].includes(role), reloadVehicle: function(id) { state.dirty = false; clearDraft(); history.replaceState(null, "", "#edit=" + encodeURIComponent(id)); loadVehicles(false); closeMenu(); } };
   function t(bg, en) { return lang === "en" ? en : bg; }
   function esc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
   function clone(v) { return JSON.parse(JSON.stringify(v)); }
@@ -22,7 +22,7 @@
   function mileage(v) { return v == null || v === "" ? "—" : new Intl.NumberFormat(lang === "bg" ? "bg-BG" : "en-GB").format(Number(v)) + t(" км", " km"); }
   function imageUrl(img) { var v = (img || {}).variants || {}; return v.webp400 || v.jpg400 || (img || {}).original || ""; }
   function carName(v) { return v.full_name || [v.make, v.model].filter(Boolean).join(" "); }
-  function isBusy() { return state.saveBusy || state.uploadBusy || state.aiBusy || !!(window.AH_ADMIN && window.AH_ADMIN.syncBusy); }
+  function isBusy() { return state.saveBusy || state.uploadBusy || state.aiBusy; }
   function toast(message, error) {
     toastEl.textContent = message; toastEl.className = "toast is-on" + (error ? " is-error" : "");
     clearTimeout(toastEl.__timer); toastEl.__timer = setTimeout(function () { toastEl.classList.remove("is-on"); }, 4500);
@@ -85,7 +85,7 @@
       var button = D.getElementById(id); if (button) button.disabled = busy;
     });
     var fields = D.getElementById("editor-fields");
-    if (fields) fields.disabled = !!state.saveBusy || !!window.AH_ADMIN.syncBusy;
+    if (fields) fields.disabled = !!state.saveBusy;
     var form = D.getElementById("car-form");
     if (form) form.setAttribute("aria-busy", busy ? "true" : "false");
   }
@@ -544,7 +544,6 @@
     D.querySelectorAll('[data-route="new"],[data-go="new"],[data-quick-publish]').forEach(function (el) { el.hidden = role === "viewer"; });
     ["save-car", "publish-car", "unpublish-car", "choose-images", "take-photo", "process-description", "ah-quick-import-btn", "delete-car"].forEach(function(id) { var el = D.getElementById(id); if (el) el.hidden = role === "viewer" || (id === "delete-car" && role === "editor") || (id === "ah-quick-import-btn" && !window.AH_ADMIN.canManage); });
     var fields = D.getElementById("editor-fields"); if (fields && role === "viewer") fields.disabled = true;
-    var sync = D.getElementById("sync-autohaus"); if (sync) sync.hidden = !window.AH_ADMIN.canManage;
   }
   function bindCommon() {
     view.querySelectorAll("[data-go]").forEach(function (button) { button.onclick = function (event) { event.preventDefault(); go(button.dataset.go); }; });
