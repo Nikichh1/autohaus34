@@ -286,6 +286,7 @@ textarea{min-height:106px}
 @media(max-width:1100px){.editor-side{top:auto;height:auto}.save-card{bottom:auto}}
 @media(max-width:720px){
   .side{overflow-y:auto;padding-bottom:max(22px,env(safe-area-inset-bottom))}
+  input,select,textarea{font-size:16px;min-height:46px}
   .side__nav button,.side__foot button,.view-head>.primary,.row-actions .button,.row-actions .secondary{min-height:44px;font-size:11px}
   .mobile-head img{max-width:140px;height:auto}.mobile-head>a{min-width:0}
   .ah-advanced__form{grid-template-columns:1fr!important}

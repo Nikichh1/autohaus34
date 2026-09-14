@@ -3,6 +3,9 @@
   "outputDirectory": "dist",
   "framework": null,
   "functions": {
+    "api/public/vehicles.js": {
+      "includeFiles": "data/photos.js"
+    },
     "api/admin/vehicles.js": {
       "includeFiles": "data/{inventory.snapshot.json,inventory-manifest.json,eq/**}",
       "maxDuration": 60
@@ -58,7 +61,7 @@
         },
         {
           "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=(), payment=()"
+          "value": "camera=(self), microphone=(), geolocation=(), payment=()"
         }
       ]
     },
@@ -107,6 +110,60 @@
       ]
     },
     {
+      "source": "/(.*).css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/img/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/autohaus.svg",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/favicon.jpg",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/api/admin/(.*)",
       "headers": [
         {
@@ -124,7 +181,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     },

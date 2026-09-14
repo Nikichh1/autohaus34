@@ -7,14 +7,7 @@
   window.AH_IMAGE_VARIANTS = Object.create(null);
   window.AH_INVENTORY_SOURCE = "static";
 
-  // Remember which exact WordPress shots are already bundled locally. A live
-  // vehicle can keep its slug while receiving new photos; only exact matches
-  // may safely use img/v/*.
   var bundledShots = Object.create(null);
-  (window.AH_LOCAL_PHOTOS || []).forEach(function(url) { bundledShots[url] = true; });
-  window.AH_VEHICLES.forEach(function (v) {
-    (v.shots || []).forEach(function (url) { if (url) bundledShots[url] = true; });
-  });
 
   function directVariants(url) {
     return { jpg400: url, jpg800: url, jpg1280: url, webp400: url, webp800: url, webp1280: url };
@@ -23,6 +16,7 @@
   function indexVehicle(v) {
     if (!v || !v.id) return;
     window.AH_MANAGED_VEHICLES[v.id] = v;
+    (v.local_shots || []).forEach(function (url) { if (url) bundledShots[url] = true; });
     (v.managed_images || []).forEach(function (image) {
       if (!image || bundledShots[image.original] || !image.variants || !Object.keys(image.variants).length) return;
       var variants = image.variants;
@@ -62,29 +56,27 @@
     });
   }
 
-  window.AH_INVENTORY_READY = timedJson("/api/public/vehicles", 12000).then(async function (data) {
-    if (!data || data.authoritative !== true || !Array.isArray(data.vehicles)) return;
-    var valid = data.vehicles.every(function (v) {
+  var path = location.pathname;
+  var isVehiclePage = /(?:^|\/)vehicle\.html$/.test(path);
+  var isConciergePage = /(?:^|\/)concierge\.html$/.test(path);
+  var isCatalogPage = path === "/" || /(?:^|\/)index\.html$/.test(path);
+  var params = new URLSearchParams(location.search);
+  var requestedId = isVehiclePage ? params.get("id") : "";
+  if (requestedId && !/^[a-z0-9-]+$/.test(requestedId)) requestedId = "";
+  var request = requestedId ? timedJson("/api/public/vehicles?id=" + encodeURIComponent(requestedId), 8000)
+    : (isCatalogPage || isConciergePage) ? timedJson("/api/public/vehicles", 8000) : Promise.resolve(null);
+
+  window.AH_INVENTORY_READY = request.then(function (data) {
+    var vehicles = requestedId && data && data.vehicle ? [data.vehicle] : data && data.vehicles;
+    if (!data || data.authoritative !== true || !Array.isArray(vehicles)) return;
+    var valid = vehicles.every(function (v) {
       return v && typeof v.id === "string" && typeof v.make === "string" &&
         typeof v.model === "string" && Array.isArray(v.shots) && Array.isArray(v.tags);
     });
     if (!valid) return;
 
-    window.AH_VEHICLES = data.vehicles;
+    window.AH_VEHICLES = vehicles;
     window.AH_INVENTORY_SOURCE = "managed";
-    data.vehicles.forEach(indexVehicle);
-
-    // The collection gets a compact payload. On the dossier page only the one
-    // selected vehicle receives descriptions/equipment/full image metadata.
-    var isVehiclePage = /(?:^|\/)vehicle\.html$/.test(location.pathname);
-    var id = isVehiclePage ? new URLSearchParams(location.search).get("id") : "";
-    if (!id || !/^[a-z0-9-]+$/.test(id)) return;
-
-    var detail = await timedJson("/api/public/vehicles?id=" + encodeURIComponent(id), 4500);
-    if (!detail || detail.authoritative !== true || !detail.vehicle || detail.vehicle.id !== id) return;
-    var at = window.AH_VEHICLES.findIndex(function (v) { return v.id === id; });
-    if (at >= 0) window.AH_VEHICLES[at] = detail.vehicle;
-    else window.AH_VEHICLES.push(detail.vehicle);
-    indexVehicle(detail.vehicle);
+    vehicles.forEach(indexVehicle);
   });
 })();

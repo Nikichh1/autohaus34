@@ -6,7 +6,7 @@
   var draftKey = "autohaus-admin-draft:" + (D.body.dataset.adminUser || "admin");
   var state = { vehicles: [], current: null, route: "", dirty: false, saved: false,
     saveBusy: false, uploadBusy: false, aiBusy: false, search: "", filter: "all", removed: [], failedFiles: [], canImport: false, aiNeedsReview: false, reviewNotes: [] };
-  var dragIndex = null, draftTimer;
+  var dragIndex = null, draftTimer, searchFrame;
   var role = D.body.dataset.adminRole || "viewer";
   window.AH_ADMIN = { go: go, t: t, canLeave: canLeave, canWrite: role !== "viewer", canManage: ["owner", "admin"].includes(role), setSyncBusy: function(busy) { window.AH_ADMIN.syncBusy=busy; updateSaveState(); }, refresh: function() { state.dirty=false; clearDraft(); loadVehicles(false); closeMenu(); }, reloadVehicle: function(id) { state.dirty = false; clearDraft(); history.replaceState(null, "", "#edit=" + encodeURIComponent(id)); loadVehicles(false); closeMenu(); } };
   function t(bg, en) { return lang === "en" ? en : bg; }
@@ -142,7 +142,7 @@
     return '<div class="inventory-list">' + list.map(function (v) {
       var src = imageUrl((v.images || [])[0]);
       return '<article class="inventory-card"><a class="car-cell" href="#edit=' + encodeURIComponent(v.id) + '" data-edit="' + esc(v.id) + '">' +
-        (src ? '<img class="car-thumb" src="' + esc(src) + '" alt="" loading="lazy" width="128" height="80">' : '<span class="car-thumb car-thumb--empty">' + t("Без снимка", "No photo") + '</span>') +
+        (src ? '<img class="car-thumb" src="' + esc(src) + '" alt="" loading="lazy" decoding="async" width="128" height="80">' : '<span class="car-thumb car-thumb--empty">' + t("Без снимка", "No photo") + '</span>') +
         '<span class="car-name"><strong>' + esc(carName(v)) + '</strong><span>' + esc(v.ref || v.slug || "") + '</span></span></a>' +
         '<dl class="car-facts"><div><dt>' + t("Цена", "Price") + '</dt><dd>' + esc(money(v.price)) + '</dd></div><div><dt>' + t("Пробег", "Mileage") + '</dt><dd>' + esc(mileage(v.mileage)) + '</dd></div></dl>' +
         '<div class="inventory-footer">' + pill(v.published) + '<div class="row-actions"><button class="button button--quiet" data-quick-publish="' + esc(v.id) + '">' +
@@ -172,7 +172,11 @@
         return '<button type="button" data-filter="' + item[0] + '" aria-pressed="' + (state.filter === item[0]) + '">' + item[1] + '</button>';
       }).join("") + '</div></div><p class="result-count" id="result-count" role="status"></p><div id="car-list"></div></section>';
     bindCommon();
-    D.getElementById("car-search").oninput = function (event) { state.search = event.target.value; renderFilteredCars(); };
+    D.getElementById("car-search").oninput = function (event) {
+      state.search = event.target.value;
+      if (searchFrame) return;
+      searchFrame = requestAnimationFrame(function () { searchFrame = 0; renderFilteredCars(); });
+    };
     D.querySelectorAll("[data-filter]").forEach(function (button) { button.onclick = function () {
       state.filter = button.dataset.filter;
       D.querySelectorAll("[data-filter]").forEach(function (item) { item.setAttribute("aria-pressed", String(item.dataset.filter === state.filter)); });
@@ -343,7 +347,7 @@
     list.innerHTML = images.map(function (img, i) {
       var label = t("Снимка ", "Photo ") + (i + 1);
       return '<article class="image-card" draggable="true" data-image-index="' + i + '"><img src="' + esc(imageUrl(img)) + '" alt="' + label +
-        '" loading="lazy" draggable="false"><div class="image-heading"><span>' + (i === 0 ? t("Главна снимка", "Cover photo") : label) +
+        '" loading="lazy" decoding="async" draggable="false"><div class="image-heading"><span>' + (i === 0 ? t("Главна снимка", "Cover photo") : label) +
         '</span>' + (i ? '<button type="button" class="cover-button" data-img-cover="' + i + '" aria-label="' + esc(t("Направи главна снимка ", "Make cover photo ") + (i + 1)) + '">' + t("Главна", "Set cover") + '</button>' : "") +
         '</div><div class="image-actions"><button type="button" data-img-left="' + i + '" aria-label="' + esc(t("Премести по-напред снимка ", "Move photo earlier ") + (i + 1)) + '"' + (i === 0 ? " disabled" : "") +
         '>←</button><button type="button" data-img-right="' + i + '" aria-label="' + esc(t("Премести по-назад снимка ", "Move photo later ") + (i + 1)) + '"' + (i === images.length - 1 ? " disabled" : "") +
@@ -378,12 +382,16 @@
     var url = URL.createObjectURL(file), img = new Image();
     try {
       img.src = url; await img.decode();
-      var scale = Math.min(1, 1920 / Math.max(img.naturalWidth, img.naturalHeight));
+      var scale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
       var canvas = D.createElement("canvas"); canvas.width = Math.round(img.naturalWidth * scale); canvas.height = Math.round(img.naturalHeight * scale);
-      var ctx = canvas.getContext("2d"); ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, "image/jpeg", .86); });
+      var ctx = canvas.getContext("2d"); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+      ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      var width = canvas.width, height = canvas.height;
+      var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, "image/jpeg", .84); });
       if (!blob) throw new Error("Image conversion failed");
-      blob.photoWidth = canvas.width; blob.photoHeight = canvas.height; return blob;
+      blob.photoWidth = width; blob.photoHeight = height;
+      canvas.width = 1; canvas.height = 1;
+      return blob;
     } catch (_) { throw new Error(t("Този формат не се отваря. Изберете JPEG снимка или използвайте камерата.", "This image format cannot be opened. Choose a JPEG photo or use the camera.")); }
     finally { URL.revokeObjectURL(url); }
   }
@@ -392,17 +400,16 @@
     files = Array.from(files || []); if (!files.length) return;
     if (state.current.images.length + files.length > 80) { toast(t("Максимум 80 снимки за автомобил.", "A car can have up to 80 photos."), true); return; }
     state.uploadBusy = true; state.failedFiles = []; updateSaveState();
-    var statusEl = D.getElementById("upload-status"), completed = 0, failures = [], retry = D.getElementById("retry-images");
+    var statusEl = D.getElementById("upload-status"), completed = 0, finished = 0, failures = [], retry = D.getElementById("retry-images");
+    var results = new Array(files.length), cursor = 0, authFailed = false;
     retry.hidden = true;
     statusEl.textContent = t("Подготовка…", "Preparing…");
     try {
-
-      for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-        statusEl.textContent = t("Качване ", "Uploading ") + (i + 1) + " / " + files.length;
+      async function uploadOne(index) {
+        var original = files[index], file = original;
         try {
-          if (!/^image\//.test(file.type) && !/\.(heic|heif|jpe?g|png|webp)$/i.test(file.name)) throw new Error(t("Неподдържан формат", "Unsupported format"));
-          if (file.size > 45 * 1024 * 1024) throw new Error(t("Снимката е над 45 MB", "Photo exceeds 45 MB"));
+          if (!/^image\//.test(original.type) && !/\.(heic|heif|jpe?g|png|webp)$/i.test(original.name)) throw new Error(t("Неподдържан формат", "Unsupported format"));
+          if (original.size > 45 * 1024 * 1024) throw new Error(t("Снимката е над 45 MB", "Photo exceeds 45 MB"));
           file = await preparePhoto(file);
           var sign = await api("/api/admin/images?action=sign", { method: "POST", body: {} });
           var fd = new FormData(); fd.append("cacheControl", "31536000"); fd.append("", file);
@@ -414,11 +421,28 @@
           if (!response.ok) throw new Error(uploaded.error && uploaded.error.message || t("Качването не успя", "Upload failed"));
           var result = await api("/api/admin/images?action=complete", { method: "POST", body: { public_id: sign.public_id, width: file.photoWidth, height: file.photoHeight } });
           if (!result.image) throw new Error(t("Снимката не е потвърдена", "Photo could not be verified"));
-          state.current.images.push(result.image); reindexImages(); completed++; setDirty(); renderImages();
+          results[index] = result.image; completed++;
         } catch (error) {
-          state.failedFiles.push(file); failures.push(file.name + ": " + (error.name === "AbortError" ? t("Времето изтече", "Upload timed out") : error.message));
-          if (error.status === 401) { state.failedFiles = state.failedFiles.concat(files.slice(i + 1)); break; }
+          state.failedFiles.push(original); failures.push(original.name + ": " + (error.name === "AbortError" ? t("Времето изтече", "Upload timed out") : error.message));
+          if (error.status === 401) authFailed = true;
+        } finally {
+          finished++;
+          statusEl.textContent = t("Обработени ", "Processed ") + finished + " / " + files.length;
         }
+      }
+      async function worker() {
+        while (!authFailed && cursor < files.length) {
+          var index = cursor++;
+          await uploadOne(index);
+        }
+      }
+      var concurrency = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4 ? 2 : 3;
+      await Promise.all(Array.from({ length: Math.min(concurrency, files.length) }, worker));
+      if (authFailed && cursor < files.length) state.failedFiles = state.failedFiles.concat(files.slice(cursor));
+      var added = results.filter(Boolean);
+      if (added.length) {
+        state.current.images = state.current.images.concat(added);
+        reindexImages(); setDirty(); renderImages();
       }
       statusEl.textContent = completed + " / " + files.length + t(" снимки качени.", " photos uploaded.") + (failures.length ? " " + failures.join(" · ") : "");
       retry.hidden = !state.failedFiles.length; toast(failures.length ? t("Някои снимки не се качиха. Опитайте отново.", "Some photos failed. Please retry.") : t("Снимките са готови за запис", "Photos ready to save"), !!failures.length);

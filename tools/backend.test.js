@@ -13,12 +13,13 @@ const originalEnv = Object.fromEntries(Object.keys(keys).map(k=>[k,process.env[k
 Object.assign(process.env, keys);
 after(()=>{ global.fetch=originalFetch; for(const [k,v] of Object.entries(originalEnv)) { if(v===undefined) delete process.env[k]; else process.env[k]=v; } });
 const user = {id:"00000000-0000-4000-8000-000000000001",email:"staff@example.com",app_metadata:{role:"admin",managed_role:"owner"}};
-const token = "header."+Buffer.from(JSON.stringify({session_id:"00000000-0000-4000-8000-000000000002"})).toString("base64url")+".verified-by-provider";
+function tokenFor(id=user.id){return "header."+Buffer.from(JSON.stringify({sub:id,email:user.email,app_metadata:user.app_metadata,session_id:"00000000-0000-4000-8000-000000000002"})).toString("base64url")+".verified-by-provider";}
+const token = tokenFor();
 function response(data,status=200){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json"}});}
 function res(){return {headers:{},statusCode:200,getHeader(k){return this.headers[k.toLowerCase()];},setHeader(k,v){this.headers[k.toLowerCase()]=v;},end(v){this.text=v;try{this.body=JSON.parse(v);}catch(_){};}};}
 function req(method="GET",body={},query={}){return {method,body,query,headers:{host:"example.com",origin:"https://example.com","content-type":"application/json","sec-fetch-site":"same-origin",cookie:"ah_admin_access="+token}};}
 function mockFetch(provider,active=true){global.fetch=async(url,options={})=>{url=String(url);if(url.endsWith("/auth/v1/user"))return response(user);if(url.endsWith("/rpc/current_admin_role"))return response(active ? "owner" : null);return provider(url,options);};}
-async function call(name,request){const output=res();await require("../api/"+name)(request,output);return output;}
+async function call(name,request){const output=res();const modulePath=require.resolve("../api/"+name);if(name==="public/vehicles")delete require.cache[modulePath];await require(modulePath)(request,output);return output;}
 
 test("mutations require same-origin JSON, including login",()=>{
  for(const edit of [{origin:"https://evil.example"},{origin:"",referer:""},{"sec-fetch-site":"same-site"},{"content-type":"text/plain"}]){
@@ -99,17 +100,17 @@ test("Gemini returns complete paired BG/EN output and uses the current Flash-Lit
 test("browser inventory loader preserves fallback on failure and respects authoritative emptiness",async()=>{
  const source=fs.readFileSync(path.join(__dirname,"../data/vehicles.js"),"utf8");
  for(const [data,expected] of [[{ok:true,authoritative:true,vehicles:[]},0],[{ok:true,authoritative:false,vehicles:[]},1],[null,1]]){
-  const window={AH_VEHICLES:[{id:"fallback"}]};const context={window,location:{pathname:"/",search:""},fetch:async()=>{if(data===null)throw new Error("offline");return response(data);},AbortController,setTimeout,clearTimeout,Map,Promise};
+  const window={AH_VEHICLES:[{id:"fallback"}]};const context={window,location:{pathname:"/",search:""},fetch:async()=>{if(data===null)throw new Error("offline");return response(data);},AbortController,URLSearchParams,setTimeout,clearTimeout,Map,Promise};
   vm.runInNewContext(source,context);await window.AH_INVENTORY_READY;assert.equal(window.AH_VEHICLES.length,expected);
  }
 });
 
 test("admin database credentials survive await and never leak into public requests",async()=>{
  const seen=[];mockFetch(async(url,options)=>{seen.push(options.headers.Authorization||null);return response([]);});
- const a=req(),b=req();b.headers.cookie='ah_admin_access=second-token';
+ const a=req(),b=req();b.headers.cookie='ah_admin_access='+tokenFor("00000000-0000-4000-8000-000000000009");
  await Promise.all([lib.requireAdmin(a,res()),lib.requireAdmin(b,res())]);
  await Promise.resolve();await lib.databaseFor(a)('vehicles');await lib.databaseFor(b)('vehicles');await lib.db('vehicles');
- assert.deepEqual(seen,['Bearer '+token,'Bearer second-token',null]);
+ assert.deepEqual(seen,['Bearer '+token,'Bearer '+tokenFor("00000000-0000-4000-8000-000000000009"),null]);
 });
 test("viewers cannot mutate vehicles, images, AI or sync",async()=>{
  global.fetch=async url=>String(url).endsWith('/user')?response(user):response('viewer');

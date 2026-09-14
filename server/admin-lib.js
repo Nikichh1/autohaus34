@@ -76,6 +76,19 @@ function parseCookies(req) {
   return out;
 }
 
+function tokenUser(access) {
+  try {
+    const payload = JSON.parse(Buffer.from(String(access).split(".")[1], "base64url").toString("utf8"));
+    if (!payload || typeof payload.sub !== "string" || !payload.sub) return null;
+    return {
+      id: payload.sub,
+      email: clean(payload.email || "", 240).toLowerCase(),
+      app_metadata: payload.app_metadata || {},
+      user_metadata: payload.user_metadata || {}
+    };
+  } catch (_) { return null; }
+}
+
 function secureCookie(req) {
   return String(req.headers["x-forwarded-proto"] || "https").split(",")[0].trim() !== "http";
 }
@@ -133,7 +146,8 @@ async function login(email, password) {
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.access_token) return { ok: false, status: r.status === 429 ? 429 : 401 };
-  if (!data.user || !isAllowed(data.user)) {
+  const trustedUser = await userForToken(data.access_token);
+  if (!trustedUser) {
     try {
       await authFetch("logout?scope=local", {
         method: "POST",
@@ -142,15 +156,15 @@ async function login(email, password) {
     } catch (_) {}
     return { ok: false, status: 403 };
   }
-  return { ok: true, session: data, user: data.user };
+  return { ok: true, session: data, user: trustedUser };
 }
 
 async function userForToken(access) {
   if (!access) return null;
-  const r = await authFetch("user", { method: "GET", headers: { Authorization: "Bearer " + access } });
-  if (!r.ok) return null;
-  const user = await r.json().catch(() => null);
-  if (!user || !isAllowed(user)) return null;
+  const user = tokenUser(access);
+  if (!user) return null;
+  // The RPC verifies the JWT and checks the active admin-team row in one request.
+  // This preserves immediate role/session revocation without a second auth round-trip.
   const roleResponse = await timedFetch(supabaseUrl() + "/rest/v1/rpc/current_admin_role", {
     method: "POST", headers: { apikey: supabaseKey(), Authorization: "Bearer " + access, "Content-Type": "application/json" }, body: "{}"
   });
@@ -166,7 +180,7 @@ async function refreshSession(refreshToken) {
   });
   if (!r.ok) return null;
   const data = await r.json().catch(() => null);
-  if (!data || !data.access_token || !data.user || !isAllowed(data.user)) return null;
+  if (!data || !data.access_token || !data.user) return null;
   return data;
 }
 

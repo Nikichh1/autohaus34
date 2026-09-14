@@ -13,9 +13,9 @@
               ->  why this one   ->  ask         ->  guarantees
      then, at full content width, more from the inventory.
 
-   Contact is duplicated the way theirs is: a sticky rail on a desktop, a
-   fixed bar on a phone. The rail is never the phone's contact path — it
-   falls to the bottom of the stack there and .dbar carries the ask.
+   The price appears once beside the title. The enquiry sits in the reading
+   flow, so the dossier keeps its balance at every width without a duplicate
+   sticky price panel.
 
    Nothing here is invented about a car. Every claim in the prose and in
    "Защо този" is derived from that car's own record; where the data cannot
@@ -189,7 +189,7 @@
      carrying the maker's own code, and a line opening with "-" is a
      sub-point of the option above it. Nothing is reordered or reworded. */
   function equipHTML(lines) {
-    var html = "", open = false, n = 0;
+    var groups = [];
     /* A few source option codes use Cyrillic characters that look identical
        to their Latin OEM counterparts (for example 4А2). Keep the source
        code, but render the universally recognisable Latin form in either
@@ -206,19 +206,36 @@
     for (var i = 0; i < lines.length; i++) {
       var t = String(lines[i]);
       if (/^[-–—]\s*/.test(t)) {
-        if (!open) { html += '<ul class="deq-sub">'; open = true; }
-        html += "<li>" + AH.esc(t.replace(/^[-–—]\s*/, "")) + "</li>";
+        if (groups.length) groups[groups.length - 1].subs.push(t.replace(/^[-–—]\s*/, ""));
         continue;
       }
-      if (open) { html += "</ul>"; open = false; }
       var m = t.match(/^([0-9A-Za-zА-Яа-я]{1,5})\s*[–—]\s*(.+)$/);
-      n++;
-      html += '<li class="deq-i">' + (m
-        ? '<span class="deq-c">' + AH.esc(optionCode(m[1])) + "</span><span>" + AH.esc(m[2]) + "</span>"
-        : '<span class="deq-c" aria-hidden="true"></span><span>' + AH.esc(t) + "</span>") + "</li>";
+      groups.push({ code: m ? optionCode(m[1]) : "", label: m ? m[2] : t, subs: [] });
     }
-    if (open) html += "</ul>";
-    return { html: html, n: n };
+    function weight(group) {
+      return 1 + Math.ceil(group.label.length / 76) * .45 + group.subs.length * .7;
+    }
+    function item(group) {
+      return '<li class="deq-i">' +
+        '<span class="deq-c"' + (group.code ? "" : ' aria-hidden="true"') + '>' + AH.esc(group.code) + '</span>' +
+        '<span class="deq-v">' + AH.esc(group.label) + '</span>' +
+        (group.subs.length ? '<ul class="deq-sub">' + group.subs.map(function (sub) {
+          return '<li>' + AH.esc(sub) + '</li>';
+        }).join("") + '</ul>' : '') + '</li>';
+    }
+    var total = groups.reduce(function (sum, group) { return sum + weight(group); }, 0);
+    var running = 0, split = Math.ceil(groups.length / 2);
+    for (var j = 0; j < groups.length - 1; j++) {
+      running += weight(groups[j]);
+      if (running >= total / 2) { split = j + 1; break; }
+    }
+    var columns = groups.length > 1 ? [groups.slice(0, split), groups.slice(split)] : [groups];
+    return {
+      html: columns.filter(function (column) { return column.length; }).map(function (column) {
+        return '<ul class="deq-col">' + column.map(item).join("") + '</ul>';
+      }).join(""),
+      n: groups.length
+    };
   }
 
 
@@ -259,7 +276,7 @@
       "</div>" +
     "</section>" +
 
-    /* ---------- 2. BODY: content column + rail ---------- */
+    /* ---------- 2. BODY ---------- */
     '<div class="dbody">' +
     '<div style="min-width:0">' +
 
@@ -305,49 +322,37 @@
       '<section class="dsec" id="managed-description" hidden><h2 class="dsec__h" data-ah-bg="Описание" data-ah-en="Description">Описание</h2><div class="dprose" data-nt style="white-space:pre-line;overflow-wrap:anywhere"></div></section>' +
       '<section class="dsec" id="deq-sec" hidden>' +
         '<h2 class="dsec__h">Оборудване <span class="dsec__n" id="deq-n"></span></h2>' +
-        '<div class="dclamp" id="deq-clamp"><ul class="deq" id="deq"></ul></div>' +
+        '<div class="dclamp" id="deq-clamp"><div class="deq" id="deq"></div></div>' +
         '<button type="button" class="dmore" id="deq-more" aria-expanded="false" aria-controls="deq-clamp" hidden>' +
           "Прочети още</button>" +
       "</section>" +
 
-      '<section class="dsec" id="vehicle-inquiry">' +
+      '<section class="dsec dinquiry" id="vehicle-inquiry">' +
         '<h2 class="dsec__h">Запитване</h2>' +
-        '<div class="dseller dseller--clean">' +
-          '<p class="dseller__n" data-ah-bg="Иван Манев" data-ah-en="Ivan Manev">Иван Манев</p>' +
-          '<div class="dseller__acts">' +
-            '<a href="tel:' + AH.esc(CFG.expertPhone) + '">' + PHONE + AH.esc(prettyPhone(CFG.expertPhone)) + '</a>' +
-            '<a class="dseller__mail" href="mailto:autohaussale@gmail.com">autohaussale@gmail.com</a>' +
+        '<div class="dinq-layout">' +
+          '<div class="dseller dseller--clean">' +
+            '<p class="dseller__n" data-ah-bg="Иван Манев" data-ah-en="Ivan Manev">Иван Манев</p>' +
+            '<div class="dseller__acts">' +
+              '<a href="tel:' + AH.esc(CFG.expertPhone) + '">' + PHONE + AH.esc(prettyPhone(CFG.expertPhone)) + '</a>' +
+              '<a class="dseller__mail" href="mailto:autohaussale@gmail.com">autohaussale@gmail.com</a>' +
+            '</div>' +
           '</div>' +
+          '<form class="dinq" id="vehicle-inquiry-form" novalidate>' +
+            '<div class="dinq__grid">' +
+              '<label class="dinq__field"><span class="dinq__label">Име</span><input class="dinq__input" name="name" autocomplete="name" maxlength="120" required></label>' +
+              '<label class="dinq__field"><span class="dinq__label">Телефон</span><input class="dinq__input" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="60"></label>' +
+              '<label class="dinq__field"><span class="dinq__label">Имейл</span><input class="dinq__input" name="email" type="email" autocomplete="email" maxlength="180"></label>' +
+            '</div>' +
+            '<label class="dinq__field"><span class="dinq__label">Вашето запитване</span>' +
+              '<textarea class="dask" name="message" rows="3" maxlength="4000" required placeholder="Напишете въпроса си за този автомобил…"></textarea></label>' +
+            '<label class="dinq__trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>' +
+            '<div class="dinq__actions"><button class="btn-primary" type="submit">Изпрати</button></div>' +
+            '<p class="dinq__status" role="status" aria-live="polite" aria-atomic="true"></p>' +
+          '</form>' +
         '</div>' +
-        '<form class="dinq" id="vehicle-inquiry-form" novalidate>' +
-          '<div class="dinq__grid">' +
-            '<label class="dinq__field"><span class="dinq__label">Име</span><input class="dinq__input" name="name" autocomplete="name" maxlength="120" required></label>' +
-            '<label class="dinq__field"><span class="dinq__label">Телефон</span><input class="dinq__input" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="60"></label>' +
-            '<label class="dinq__field"><span class="dinq__label">Имейл</span><input class="dinq__input" name="email" type="email" autocomplete="email" maxlength="180"></label>' +
-          '</div>' +
-          '<label class="dinq__field"><span class="dinq__label">Вашето запитване</span>' +
-            '<textarea class="dask" name="message" rows="4" maxlength="4000" required placeholder="Напишете въпроса си за този автомобил…"></textarea></label>' +
-          '<label class="dinq__trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>' +
-          '<div class="dinq__actions"><button class="btn-primary" type="submit">Изпрати</button>' +
-          '<a class="dinq__privacy" href="legal.html#privacy">Поверителност</a></div>' +
-          '<p class="dinq__status" role="status" aria-live="polite" aria-atomic="true"></p>' +
-        '</form>' +
       '</section>' +
 
     "</div>" +
-
-    /* the rail — sticky on a desktop, last in the stack on a phone */
-    '<aside class="drail" aria-label="Цена и запитване">' +
-      '<p class="drail__pk">' + (v.price == null ? "Цена" : "Цена") + "</p>" +
-      '<p class="drail__price">' +
-        (v.price == null ? "При запитване" : AH.fmt(v.price) + " €") + "</p>" +
-      (vatNote
-        ? '<p class="drail__vat">' + AH.esc(vatNote) + "</p>"
-        : (v.price == null
-            ? '<p class="drail__lease">Цената на този автомобил се съобщава при запитване.</p>'
-            : "")) +
-      '<a class="btn-primary" href="#vehicle-inquiry">Запитване</a>' +
-    "</aside>" +
     "</div>" +
 
   "</div>";

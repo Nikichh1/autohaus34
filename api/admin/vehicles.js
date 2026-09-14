@@ -117,9 +117,6 @@ module.exports = async function handler(req, res) {
       const data = await readJson(r);
       if (!r.ok) return apiError(res, r.status, "Could not load vehicles", data);
       if (!Array.isArray(data)) throw new Error("Invalid inventory response");
-      const activation = await db("inventory_state?select=initialized&singleton=eq.true", { method: "GET" });
-      const state = await readJson(activation);
-      if (!activation.ok || !Array.isArray(state) || !state.length) throw new Error("Inventory schema needs updating");
       return json(res, 200, { ok: true, vehicles: data.map(v => { const row = Object.assign({}, v, { images: v.cover ? [v.cover] : [] }); delete row.cover; return row; }), can_import: false });
     }
 
