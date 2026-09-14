@@ -34,6 +34,13 @@
 
   /* ---- sold or mistyped: never a dead end, and never a sticky bar ---- */
   if (!v) {
+    if (window.AH_INVENTORY_SOURCE !== "managed") {
+      root.innerHTML = '<section class="vd-body dsec" style="padding-top:32px"><h1 class="h4">Връзката с каталога е временно недостъпна.</h1><p class="dprose">Моля, опитайте отново след малко.</p><button class="btn-primary" id="inventory-retry">Опитай отново</button></section>';
+      D.getElementById("inventory-retry").addEventListener("click", function () { location.reload(); });
+      if (mini) mini.remove();
+      if (bar) bar.remove();
+      return;
+    }
     D.title = "Автомобилът не е намерен — AutoHaus";
     root.innerHTML =
       '<div class="vd-body" style="padding-top:24px">' +

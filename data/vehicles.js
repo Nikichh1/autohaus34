@@ -62,7 +62,7 @@
     });
   }
 
-  window.AH_INVENTORY_READY = timedJson("/api/public/vehicles", 4500).then(async function (data) {
+  window.AH_INVENTORY_READY = timedJson("/api/public/vehicles", 12000).then(async function (data) {
     if (!data || data.authoritative !== true || !Array.isArray(data.vehicles)) return;
     var valid = data.vehicles.every(function (v) {
       return v && typeof v.id === "string" && typeof v.make === "string" &&
