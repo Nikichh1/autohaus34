@@ -57,7 +57,7 @@
      ============================================================ */
   var CFG = window.AH_CONFIG = Object.assign({
     endpoint: "/api/inquiry",
-    email: "autohousesell@gmail.com",
+    email: "autohaussale@gmail.com",
     salonPhone: "+359884777147",
     expert: "Иван Манев",
     expertPhone: "+359884777045",

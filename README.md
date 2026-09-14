@@ -33,6 +33,6 @@ The previous phase-specific DOM patches, synchronous network loading and downloa
 
 ## Facts and publishing
 
-Use the project vehicle records and official [AutoHaus contact page](https://autohaus.bg/контакти/) as factual sources. The brand is AutoHaus; the legal entity is Аутохаус България ЕООД / Autohaus Bulgaria Ltd., ЕИК 200771286, VAT BG200771286. Vehicle inquiries use Иван Манев, +359 884 777 045 and `autohousesell@gmail.com`.
+Use the project vehicle records and official [AutoHaus contact page](https://autohaus.bg/контакти/) as factual sources. The brand is AutoHaus; the legal entity is Аутохаус България ЕООД / Autohaus Bulgaria Ltd., ЕИК 200771286, VAT BG200771286. Vehicle inquiries use Иван Манев, +359 884 777 045 and `autohaussale@gmail.com`.
 
 The existing GitHub `main` branch is connected to the Vercel project. See [DEPLOY.md](DEPLOY.md) for deployment and [ADMIN.md](ADMIN.md) for the credentials and database setup. Inquiry-email configuration is intentionally deferred at this stage.

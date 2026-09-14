@@ -4,7 +4,7 @@
      RESEND_FROM_EMAIL  (a sender on a domain verified in Resend)
    No provider secret is ever exposed to the browser. */
 
-const DESTINATION = "autohousesell@gmail.com";
+const DESTINATION = "autohaussale@gmail.com";
 const MAX_BODY_BYTES = 24 * 1024;
 const MAX_MESSAGE = 4000;
 const WINDOW_MS = 10 * 60 * 1000;

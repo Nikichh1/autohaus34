@@ -309,7 +309,7 @@
           '<p class="dseller__n" data-ah-bg="Иван Манев" data-ah-en="Ivan Manev">Иван Манев</p>' +
           '<div class="dseller__acts">' +
             '<a href="tel:' + AH.esc(CFG.expertPhone) + '">' + PHONE + AH.esc(prettyPhone(CFG.expertPhone)) + '</a>' +
-            '<a class="dseller__mail" href="mailto:autohousesell@gmail.com">autohousesell@gmail.com</a>' +
+            '<a class="dseller__mail" href="mailto:autohaussale@gmail.com">autohaussale@gmail.com</a>' +
           '</div>' +
         '</div>' +
         '<form class="dinq" id="vehicle-inquiry-form" novalidate>' +
