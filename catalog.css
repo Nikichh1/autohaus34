@@ -915,17 +915,7 @@
    eases back out — the same rule .btn follows */
 .cpag__more:active{transition-duration:0s}
 .cpag__more:active::after{transition-duration:0s}
-.cpag__more .cpag__arr{
-  position:absolute;right:28px;top:50%;transform:translateY(-50%);
-  width:30px;height:8px;flex:none;stroke:currentColor;stroke-width:1.4;fill:none;
-  stroke-dasharray:34;stroke-dashoffset:34;
-  transition:stroke-dashoffset var(--t-move) var(--e-mass) .06s;
-}
-.cpag__more:hover .cpag__arr,.cpag__more:focus-visible .cpag__arr{stroke-dashoffset:0}
-@media(prefers-reduced-motion:reduce){
-  .cpag__more::after{transition:none}
-  .cpag__more .cpag__arr{transition:none;stroke-dashoffset:0}
-}
+@media(prefers-reduced-motion:reduce){.cpag__more::after{transition:none}}
 .cpag__note{font-size:13px;line-height:20px;color:rgba(255,255,255,.5);font-variant-numeric:tabular-nums}
 
 /* empty state */
