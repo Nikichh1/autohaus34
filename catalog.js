@@ -119,17 +119,12 @@
 
   /* Warm the one small detail payload while intent is clear. This makes a
      card click feel immediate without preloading 82 full vehicle records. */
-  var warmedVehicles = Object.create(null);
   function warmVehicle(target) {
     var link = target && target.closest && target.closest(".lc__link");
-    if (!link || (navigator.connection && navigator.connection.saveData)) return;
+    if (!link || !window.AH_PREFETCH_VEHICLE || (navigator.connection && navigator.connection.saveData)) return;
     var id;
     try { id = new URL(link.href, location.href).searchParams.get("id"); } catch (_) { return; }
-    if (!id || warmedVehicles[id]) return;
-    warmedVehicles[id] = true;
-    fetch("/api/public/vehicles?id=" + encodeURIComponent(id), {
-      headers: { Accept: "application/json" }, credentials: "same-origin", keepalive: true
-    }).catch(function () { delete warmedVehicles[id]; });
+    if (id) window.AH_PREFETCH_VEHICLE(id);
   }
   D.addEventListener("pointerover", function (event) { warmVehicle(event.target); }, { passive: true });
   D.addEventListener("pointerdown", function (event) { warmVehicle(event.target); }, { passive: true });

@@ -1785,98 +1785,34 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
    copy settles onto it. And the entry has to live here too: if the card faded
    in while the item was already opaque white, the reveal would flash six
    white rectangles. */
-/* ---- THE ENTRY ----
-   The source: 120px rise, 3200ms, master curve, 150ms REVERSE stagger, i.e.
-   4.1s end to end with the leftmost card — the one you are looking straight
-   at — arriving dead last. That was tried here verbatim and rejected: at any
-   normal scroll speed the band was a black void where the cards should be.
-   It went to a 56px rise over 800ms with a 70ms forward stagger, which fixed
-   the void and lost the occasion with it. Four cards appearing over 1.0s in
-   near-unison is not an entrance, it is a repaint.
-
-   THREE THINGS MOVE NOW, NOT ONE, and that is the whole difference.
-
-     1. THE SHEET rises 72px over --t-epic on the enter curve, staggered left
-        to right at 90ms. The rise still lives entirely inside the rail's own
-        clip (overflow-y:hidden, see above), so it can never become
-        scrollable overflow the way the source's 120px did.
-     2. THE PHOTOGRAPH settles behind it: 1.06 -> 1 over --t-mass on the mass
-        curve, 120ms behind its own card. This is the source's hero move —
-        media-container from scale 1.2 — brought down to card scale, and it
-        is what stops the card reading as a flat rectangle sliding up. The
-        image is still arriving after the card has stopped, so the eye keeps
-        being given something for another half-second.
-     3. THE COPY follows at 220ms, so the type lands ON the sheet rather than
-        travelling with it.
-
-   End to end that is ~1.4s for the first card and ~1.9s for the last, which
-   is inside the source's own 4.1s and well past the 1.0s it replaces. */
+/* One entrance owns the photo, scrims and copy together. Moving or fading
+   the image separately made the fixed gradients appear to slide over it. */
 .wcard-item{
   flex:0 0 var(--card-w);
   margin-inline:calc(var(--gutter) / 2);
   scroll-margin-inline:var(--margin);
   display:grid;grid-template-columns:var(--card-w) 0px;column-gap:0;
   background-color:var(--white);
-  transform:translateY(72px);opacity:0;
+  transform:translateY(16px);opacity:0;
   transition:
     flex-basis var(--wall-dur) var(--wall-ease),
     grid-template-columns var(--wall-dur) var(--wall-ease),
     column-gap var(--wall-dur) var(--wall-ease),
-    transform var(--t-epic) var(--e-enter),
-    opacity var(--t-epic) var(--e-enter);
-  transition-delay:0s,0s,0s,
-    calc(var(--i,0) * 90ms),
-    calc(var(--i,0) * 90ms);
+    transform .36s var(--e-enter),
+    opacity .36s var(--e-enter);
 }
 .wcard-item.is-in{transform:none;opacity:1}
-/* The photograph's own settle. It is on the <img>, not on .wcard, because
-   .wcard's aspect-ratio is already transitioning on the expand and a second
-   transform there would fight it.
-
-   THE SELECTOR IS DOUBLED ON PURPOSE, and it is the whole reason this
-   works. Every card photograph also carries .fade-img (see IMAGE DISSOLVE
-   in main.js), whose rule is `.js .fade-img` — two classes, 0-2-0 — and a
-   plain `.wcard-photo img` is 0-1-1, so it LOSES. The transition shorthand
-   there names only `opacity`, and a shorthand does not merge: transform was
-   silently dropped from the transition list and the photograph snapped out
-   of 1.06 in a single frame instead of settling. Nothing errored and the
-   rule was plainly present in the stylesheet; it just never applied.
-   `.wcard-photo img.fade-img` is 0-2-1 and takes it back — and both
-   properties are named here, so the dissolve keeps working too. */
-.wcard-photo img.fade-img,
-.wcard-photo img{
-  transform:scale(1.06);
-  transition:opacity var(--t-move) var(--e-mass),
-             transform var(--t-mass) var(--e-mass);
-  transition-delay:0s,calc(var(--i,0) * 90ms + 120ms);
+/* A direct link or early click immediately completes the entrance while
+   keeping the established desktop expand transition. */
+.wcard-item.is-open{
+  transform:none;opacity:1;
+  transition-property:flex-basis,grid-template-columns,column-gap;
+  transition-duration:var(--wall-dur);
+  transition-timing-function:var(--wall-ease);
 }
-.wcard-item.is-in .wcard-photo img{transform:none}
-/* and the copy, a beat after the sheet it is printed on. The children, NOT
-   .wcard-text itself: that element carries the scrim gradient, and fading it
-   would leave the photograph unshaded for the first fifth of a second — the
-   card would appear to be lit and then dimmed. The ground arrives with the
-   card; only the type waits. */
-.wcard-text > *{
-  opacity:0;
-  transition:opacity var(--t-move) var(--e-enter);
-  transition-delay:calc(var(--i,0) * 90ms + 220ms);
-}
-.wcard-item.is-in .wcard-text > *{opacity:1}
-/* An open card must never be caught mid-entry: arriving on #lizing from
-   another page opens one before the rail has been scrolled into view, and
-   without this the panel faded up inside a card that was still 72px low and
-   transparent. */
-.wcard-item.is-open{transform:none;opacity:1}
-.wcard-item.is-open .wcard-photo img{transform:none}
-.wcard-item.is-open .wcard-text > *{opacity:1}
-/* the same floor the rest of the entry already has: with the script off,
-   nothing ever adds .is-in and the copy would never appear */
-html:not(.js) .wcard-photo img{transform:none}
-html:not(.js) .wcard-text > *{opacity:1}
-@media(prefers-reduced-motion:reduce){
-  .wcard-photo img,.wcard-text > *{transition:none!important}
-  .wcard-photo img{transform:none!important}
-  .wcard-text > *{opacity:1!important}
+.lo-fx .wcard-item{transform:none;opacity:1;transition-property:flex-basis,grid-template-columns,column-gap}
+@media(max-width:1023px),(hover:none),(prefers-reduced-motion:reduce){
+  .wcard-item{transform:none;opacity:1;transition-property:flex-basis,grid-template-columns,column-gap}
 }
 .wcard-item.is-open{
   flex-basis:calc(var(--cw-open) + var(--gutter) + var(--pw-open));
@@ -2181,20 +2117,14 @@ html:not(.js) .wcard-text > *{opacity:1}
 /* on the card face the marker is the chip's own gold, at the weight the
    label already has — a dotted underline inside a 28px wedge is noise */
 .wcard-label[data-tbd]{color:rgba(255,255,255,.72)}
-/* the CTA bar starts opaque and settles into frosted glass a beat later —
-   source: transition background .5s .5s, backdrop-filter .3s .3s */
+/* A stable light scrim keeps the action readable without a delayed blur
+   repaint while the card is opening or being touched. */
 .wcard-cta{
   position:absolute;inset-block-end:0;inset-inline-end:0;
   width:calc(100% + var(--gutter));
   padding:24px var(--gutter) 48px;
   row-gap:16px;gap:16px;
-  background:var(--white);
-  transition:background var(--t-move) var(--e-mass) .5s,
-              backdrop-filter var(--t-in) var(--e-mass) .3s;
-}
-.wcard-item.is-open .wcard-cta{
-  background:rgba(255,255,255,.4);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  background:rgba(255,255,255,.92);
 }
 .wcard-cta .btn--secondary{border-color:var(--panel-ink);color:var(--panel-ink)}
 /* fill supplied by --btn-fill above; only the hairline reacts here */
@@ -3444,10 +3374,6 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
   backdrop-filter:none;-webkit-backdrop-filter:none;
   background-color:rgba(255,255,255,.16);
 }
-.lo-fx .wcard-item.is-open .wcard-cta{
-  backdrop-filter:none;-webkit-backdrop-filter:none;
-  background:rgba(255,255,255,.92);
-}
 .lo-fx .filters{backdrop-filter:none;-webkit-backdrop-filter:none;background:#050505}
 .lo-fx .nav{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--paper)}
 .lo-fx .vd-sticky{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--paper)}
@@ -3837,8 +3763,7 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
      every band is exactly the thing that makes a site feel templated, and
      on a phone it also means content is missing while you are looking at it.
 
-     The card wall's own entry (120px rise, 3.2s, reverse stagger) is kept —
-     that one IS in the source. */
+     The card wall is also visible immediately at this breakpoint. */
   [data-reveal]{opacity:1;transform:none;transition:none}
 
   /* ---------- 7. TOUCH ----------
@@ -3873,17 +3798,6 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
    it tracks the finger 1:1 during a swipe and glides for free during the
    arrows' own tween, because it is copying that tween rather than running
    a second one beside it. */
-
-/* The framed card on a snapped mobile rail. Barely anything — a card that is
-   fully in view simply reads a touch brighter than its neighbours, so the eye
-   knows which one it is looking at without a border or a shadow appearing. */
-@media(max-width:767px){
-  /* only the VALUES here — the transition that carries them is declared once,
-     with the entry, and naming it again at this breakpoint is how the two
-     lists get to disagree */
-  .wcard-item:not(.is-framed) .wcard-photo img{opacity:.62}
-  .wcard-item.is-framed .wcard-photo img{opacity:1}
-}
 
 /* ---------- mobile menu trigger ----------
    Bentley puts the word first and the rule-icon hard against the right

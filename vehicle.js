@@ -1,27 +1,6 @@
 (window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
-/* ============================================================
-   AUTOHAUS — the vehicle dossier, rebuilt on the JamesEdition structure
-   (SPEC-JAMESEDITION.md §4, measured 2026-07-30)
-
-   One file serves all 87 cars (vehicle.html?id=slug). The surface is the
-   v34 light "paper" page, which is what their own detail page is too.
-
-   Their order, kept exactly, because it answers the questions in the order
-   a buyer asks them:
-
-     gallery  ->  title + price  ->  spec strip  ->  prose  ->  table
-              ->  why this one   ->  ask         ->  guarantees
-     then, at full content width, more from the inventory.
-
-   The price appears once beside the title. The enquiry sits in the reading
-   flow, so the dossier keeps its balance at every width without a duplicate
-   sticky price panel.
-
-   Nothing here is invented about a car. Every claim in the prose and in
-   "Защо този" is derived from that car's own record; where the data cannot
-   support a claim (VAT status, invoice, owner count) the row is omitted
-   rather than guessed.
-   ============================================================ */
+/* AutoHaus vehicle dossier. The existing gallery composition, compact facts,
+   published BG/EN content and direct enquiry share one responsive layout. */
 (function () {
   "use strict";
   var D = document, AH = window.AH, CFG = AH.cfg;
@@ -72,13 +51,8 @@
     var m = String(p).match(/^\+359(\d{3})(\d{3})(\d{3})$/);
     return m ? "+359 " + m[1] + " " + m[2] + " " + m[3] : p;
   }
-  function initials(name) {
-    return String(name).split(/\s+/).map(function (w) { return w.charAt(0); })
-      .join("").slice(0, 2).toUpperCase();
-  }
-  function frames(n) { return n === 1 ? "кадър" : "кадъра"; }
 
-  var shots = v.shots || [];
+  var shots = (v.shots || []).filter(Boolean);
   var N = shots.length;
   var chapterName = AH.chapterName[v.chapter] || "";
   var backHref = "index.html#avtomobili";
@@ -86,74 +60,9 @@
 
   var CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-check"/></svg>';
   var PHONE = '<svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-phone"/></svg>';
-  var DOC   = '<svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-doc"/></svg>';
-  var ENV   = '<svg viewBox="0 0 16 16" aria-hidden="true">' +
-              '<rect x="1" y="3" width="14" height="10"/><path d="M1,4 L8,9 L15,4"/></svg>';
-  /* three nodes and two links — the one icon the sprite does not carry */
-  var SHARE = '<svg viewBox="0 0 16 16" aria-hidden="true">' +
-              '<circle cx="12" cy="3.4" r="2"/><circle cx="4" cy="8" r="2"/>' +
-              '<circle cx="12" cy="12.6" r="2"/>' +
-              '<path d="M10.2,4.5 L5.8,6.9 M5.8,9.1 L10.2,11.5"/></svg>';
-  /* four panes — the contact sheet the "see all frames" box opens */
-  var GRID_IC = '<svg viewBox="0 0 16 16" aria-hidden="true">' +
-                '<rect x="1" y="1" width="6" height="6"/><rect x="9" y="1" width="6" height="6"/>' +
-                '<rect x="1" y="9" width="6" height="6"/><rect x="9" y="9" width="6" height="6"/></svg>';
 
-  /* ============================================================
-     WHAT THIS PAGE IS ALLOWED TO SAY
-
-     Everything on it is either in data/vehicles.js — verified line by line
-     against the live listings on 2026-08-05, where all 83 still-published
-     cars agreed on make, model, registration, engine, power, transmission,
-     mileage and colour — or in data/eq/<id>.js, which is that listing's own
-     equipment list, verbatim.
-
-     WHAT WAS HERE AND IS NOT ANY MORE, because AutoHaus does not say it:
-
-       · "Преминал е през същия път като всеки автомобил в автомобилите:
-          проверка на произход и сервизна история, механична подготовка в
-          собствен сервиз, пълен Auto Spa детайлинг и лично одобрение от …,
-          преди да бъде показан." A four-step standard, asserted for all 87.
-       · "Документите — справка за произход, сервизни книжки и фактури — са
-          на разположение при огледа." A promise about paperwork.
-       · A "Гаранции и оглед" block of four: viewings every weekday 09:00 to
-          18:00 without an appointment, a test drive by arrangement, a
-          48-hour hold after a deposit, a firm part-exchange offer the same
-          day. Four commitments, none of them made by the company.
-       · "Защо този" — up to four editorial verdicts per car, generated from
-          the record: "Мощност, която оправдава подготовката", "Възраст, в
-          която състоянието е единственото, което тежи", "Рядкост в този
-          клас". A dealer may write that about a car; a template may not
-          write it about eighty-seven.
-       · "Пълна сервизна история" as a filler whenever fewer than three of
-          those verdicts fired. True of 60 of the 83 listings — and printed
-          now for exactly those 60, because it is one of their own notes.
-       · A monthly leasing figure per car, on the rail and again in the
-          prose, computed from a rate nobody has confirmed. The listings say
-          "Възможен лизинг!" and nothing more, so that is what this says.
-       · "Обявената цена е крайна" and the rail's "Крайна цена" — the
-          opposite of what the listing says. See THE PRICE below.
-       · An answer "до 24 часа в работни дни", and an expert who "одобри
-          лично този автомобил".
-       · "реф. AH-018" on the identity line. That reference is this site's,
-          generated when the inventory was scraped; it is not printed on any
-          AutoHaus listing. It still travels with an enquiry — where it is
-          labelled as the enquiry's reference, which is what it is — but it
-          is no longer shown as though it were the car's catalogue number.
-
-     THE PRICE. AutoHaus publishes a euro figure and, on 25 of the 83 cars,
-     the line "Цена без начислен 20% ДДС!" — the price does not include 20%
-     VAT. The old page printed "Крайна цена" on every car, which is wrong
-     twice: wrong for those 25 because the VAT is still to come, and wrong
-     for the other 58 because it asserts something their listing never said.
-     The note is carried per car now, in the listing's own words.
-
-     THE DUPLICATION. Year, mileage, power, engine, transmission and colour
-     used to appear three times each — in a scrolling spec strip, again in a
-     "Детайли" table underneath it, and a third time as the opening sentence
-     of the prose. There is one specification block now, holding exactly the
-     eight rows the listing holds.
-     ============================================================ */
+  // Only stored vehicle facts and published equipment are rendered here.
+  // VAT notes remain beside the price; all other notes follow the facts.
 
   /* the per-car notes: two to four lines the listing prints under the price.
      The VAT one belongs beside the price; the rest belong under the spec. */
@@ -171,14 +80,12 @@
     : (v.year ? ((v.month ? MONTHS[v.month] + " " : "") + v.year + " г.") : "—");
 
   function specRows() {
-    var rows = [["Марка и модел", v.full],
-            ["Регистрация", regTxt],
+    var rows = [["Регистрация", regTxt],
             ["Гориво", AH.fuel[v.fuel] || "—"],
             ["Мощност", v.hp ? v.hp + " к.с." : "—"],
             ["Трансмисия", v.gear === "manual" ? "Ръчна" : v.gear === "auto" ? "Автоматична" : "—"],
             ["Пробег", v.km == null ? "—" : AH.fmt(v.km) + " км"],
-            ["Цвят", v.colour || "—"],
-            ["Цена", v.price == null ? "При запитване" : AH.fmt(v.price) + " евро"]];
+            ["Цвят", v.colour || "—"]];
     var bodies = { suv: "SUV", sedan: "Седан", wagon: "Комби", hatchback: "Хечбек", coupe: "Купе", cabrio: "Кабриолет", van: "Ван", pickup: "Пикап", passenger: "Лек автомобил", other: "Друг" };
     if (v.body_type) rows.splice(1, 0, ["Каросерия", bodies[v.body_type] || v.body_type]);
     return rows;
@@ -204,36 +111,30 @@
       });
     }
     for (var i = 0; i < lines.length; i++) {
-      var t = String(lines[i]);
-      if (/^[-–—]\s*/.test(t)) {
-        if (groups.length) groups[groups.length - 1].subs.push(t.replace(/^[-–—]\s*/, ""));
-        continue;
-      }
-      var m = t.match(/^([0-9A-Za-zА-Яа-я]{1,5})\s*[–—]\s*(.+)$/);
-      groups.push({ code: m ? optionCode(m[1]) : "", label: m ? m[2] : t, subs: [] });
-    }
-    function weight(group) {
-      return 1 + Math.ceil(group.label.length / 76) * .45 + group.subs.length * .7;
+      String(lines[i]).replace(/\r\n?/g, "\n").split("\n").forEach(function (line) {
+        var t = line.trim();
+        if (!t) return;
+        var dash = /^[-–—]\s*/.test(t);
+        if (dash && groups.length && groups[groups.length - 1].code) {
+          groups[groups.length - 1].subs.push(t.replace(/^[-–—]\s*/, ""));
+          return;
+        }
+        t = t.replace(/^[•●▪]\s*|^[-–—]\s*/, "");
+        var m = t.match(/^([0-9A-ZА-Я]{1,6})\s+[-–—]\s*(.+)$/);
+        groups.push({ code: m ? optionCode(m[1]) : "", label: m ? m[2] : t, subs: [] });
+      });
     }
     function item(group) {
-      return '<li class="deq-i">' +
-        '<span class="deq-c"' + (group.code ? "" : ' aria-hidden="true"') + '>' + AH.esc(group.code) + '</span>' +
+      return '<li class="deq-i' + (group.code ? ' deq-i--coded' : '') + '">' +
+        (group.code ? '<span class="deq-c">' + AH.esc(group.code) + '</span>' : '') +
         '<span class="deq-v">' + AH.esc(group.label) + '</span>' +
         (group.subs.length ? '<ul class="deq-sub">' + group.subs.map(function (sub) {
           return '<li>' + AH.esc(sub) + '</li>';
         }).join("") + '</ul>' : '') + '</li>';
     }
-    var total = groups.reduce(function (sum, group) { return sum + weight(group); }, 0);
-    var running = 0, split = Math.ceil(groups.length / 2);
-    for (var j = 0; j < groups.length - 1; j++) {
-      running += weight(groups[j]);
-      if (running >= total / 2) { split = j + 1; break; }
-    }
-    var columns = groups.length > 1 ? [groups.slice(0, split), groups.slice(split)] : [groups];
     return {
-      html: columns.filter(function (column) { return column.length; }).map(function (column) {
-        return '<ul class="deq-col">' + column.map(item).join("") + '</ul>';
-      }).join(""),
+      html: '<ul class="deq-col">' + groups.map(item).join("") + '</ul>',
+      simple: groups.every(function (group) { return !group.subs.length && group.label.length < 150; }),
       n: groups.length
     };
   }
@@ -247,10 +148,10 @@
   '<div class="vd-body" style="padding-top:24px">' +
 
     /* ---------- 1. GALLERY ---------- */
-    '<section aria-label="Галерия">' +
+    '<section class="dgallery" aria-label="Галерия">' +
       '<div class="dgal-wrap" id="dgal-wrap">' +
-      '<div class="dgal" id="dgal">' +
-        shots.map(function (s, i) {
+      '<div class="dgal dgal--' + Math.min(N, 3) + '" id="dgal">' +
+        shots.slice(0, 3).map(function (s, i) {
           return '<a class="dgal__f ' + (i === 0 ? "dgal__main" : "dgal__side") + '"' +
             ' href="' + AH.esc(s) + '" data-i="' + i + '"' +
             ' aria-label="Кадър ' + (i + 1) + " от " + N + ' — уголеми">' +
@@ -260,28 +161,26 @@
             '<span class="dgal__n">' + (i + 1) + " / " + N + "</span></a>";
         }).join("") +
       "</div>" +
-      /* THE WAY INTO THE REST OF THE SET.
-         The mosaic shows three frames of however many there are, and the line
-         underneath announced the total — "1 / 24 кадъра" — without offering
-         any way to reach it. The only route to frames 4..24 was to magnify
-         one and step through the lightbox, which is a viewer, not an index.
-         This is the index: one box, and every frame lands on the page. */
-      (N > 3 ?
-        '<button type="button" class="dgal__all" id="dgal-all" aria-expanded="false" aria-controls="dgal">' +
-          GRID_IC + '<span id="dgal-all-l">Виж всички</span></button>'
-        : "") +
+      (!N ? '<div class="dgal-empty" data-ah-bg="Очаквайте снимки" data-ah-en="Photos coming soon">Очаквайте снимки</div>' : '') +
       "</div>" +
+      (N > 1 ? '<div class="dthumbs" id="dthumbs" role="group" aria-label="Избери снимка">' + shots.map(function (s, i) {
+        return '<button type="button" class="dthumb' + (!i ? ' is-active' : '') + '" data-i="' + i + '" aria-pressed="' + (!i) + '" aria-label="' + (i + 1) + ' / ' + N + '">' +
+          AH.picture(s, { width: 120, height: 80, widths: [400], src: 400, sizes: "96px", alt: v.full + ' / ' + (i + 1) }) + '</button>';
+      }).join('') + '</div>' : '') +
       '<div class="dgal-bar">' +
-        '<span class="dgal-bar__n" id="dgal-n">1 / ' + N + " " + frames(N) + "</span>" +
+        (N ? '<span class="dgal-bar__n" id="dgal-n" aria-live="polite" data-nt>1 / ' + N + '</span>' : '') +
+        (N > 1 ? '<div class="dgal-controls"><button type="button" id="dgal-prev" aria-label="Предишен кадър"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-l"/></svg></button><button type="button" id="dgal-next" aria-label="Следващ кадър"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-r"/></svg></button></div>' : '') +
       "</div>" +
     "</section>" +
 
     /* ---------- 2. BODY ---------- */
     '<div class="dbody">' +
-    '<div style="min-width:0">' +
+    '<div class="dossier">' +
+    '<div class="dossier-content">' +
 
       /* a) title / price */
-      '<section class="dsec">' +
+      '<section class="dsec dsummary">' +
+        '<p class="dtitle__make">' + AH.esc(v.make) + '</p>' +
         '<div class="dtitle">' +
           "<h1>" + AH.esc(v.model) + "</h1>" +
           '<div class="dtitle__pw">' +
@@ -290,15 +189,11 @@
             (vatNote ? '<p class="dtitle__vat">' + AH.esc(vatNote) + "</p>" : "") +
           "</div>" +
         "</div>" +
-        '<p class="dtitle__make">' + AH.esc(v.make) + '</p>' +
-      "</section>" +
 
       /* b) THE SPECIFICATION — one block, the eight rows the listing has.
          It was a scrolling strip of six, a table of ten underneath it and a
          sentence restating all six a third time. */
-      '<section class="dsec">' +
-        '<h2 class="dsec__h">Спецификация</h2>' +
-        '<dl class="dspec">' +
+        '<dl class="dspec" aria-label="Спецификация">' +
           specRows().map(function (r) {
             return "<div><dt>" + r[0] + "</dt><dd>" + AH.esc(String(r[1])) + "</dd></div>";
           }).join("") +
@@ -319,7 +214,7 @@
          width. The box reserves its own height so the arrival shifts
          nothing, and if the file is missing (four cars have been sold and
          their listings are gone) the section simply never appears. */
-      '<section class="dsec" id="managed-description" hidden><h2 class="dsec__h" data-ah-bg="Описание" data-ah-en="Description">Описание</h2><div class="dprose" data-nt style="white-space:pre-line;overflow-wrap:anywhere"></div></section>' +
+      '<section class="dsec" id="managed-description" hidden><h2 class="dsec__h" data-ah-bg="Описание" data-ah-en="Description">Описание</h2><div class="dprose" data-nt></div></section>' +
       '<section class="dsec" id="deq-sec" hidden>' +
         '<h2 class="dsec__h">Оборудване <span class="dsec__n" id="deq-n"></span></h2>' +
         '<div class="dclamp" id="deq-clamp"><div class="deq" id="deq"></div></div>' +
@@ -327,6 +222,7 @@
           "Прочети още</button>" +
       "</section>" +
 
+      '</div>' +
       '<section class="dsec dinquiry" id="vehicle-inquiry">' +
         '<h2 class="dsec__h">Запитване</h2>' +
         '<div class="dinq-layout">' +
@@ -373,99 +269,124 @@
     headBack.setAttribute("aria-label", "Обратно към " + backName);
   }
 
-  AH.rendered(root);
+  // Gallery media is visible as soon as it decodes; catalog card fades do
+  // not apply to this selectable image stage or its thumbnail controls.
   bindVehicleInquiry(D.getElementById("vehicle-inquiry-form"));
   function renderManagedDescription() {
     var section = D.getElementById("managed-description");
     if (!section) return;
     var en = window.AHLang && window.AHLang.get() === "en";
     var text = en ? v.description_en : v.description_bg;
+    text = String(text || '').replace(/\r\n?/g, '\n').trim();
     section.hidden = !text;
-    section.querySelector(".dprose").textContent = text || "";
+    section.querySelector(".dprose").innerHTML = text.split(/\n\s*\n/).filter(Boolean).map(function (paragraph) {
+      return '<p>' + AH.esc(paragraph.trim()).replace(/\n/g, '<br>') + '</p>';
+    }).join('');
   }
   renderManagedDescription();
   addEventListener("ah:languagechange", renderManagedDescription);
 
-  /* ============================================================
-     GALLERY
-
-     One element, three behaviours: a 2x2 mosaic above 1024, a full-bleed snap
-     strip below it, and — either side of that line — a contact sheet holding
-     every frame, opened by the box in the corner. Every shot is in the DOM so
-     the strip is complete; in the mosaic everything past the third frame is
-     [hidden], which the global !important rule can actually win against
-     .dgal__f.
-     ============================================================ */
+  /* Gallery selection is independent of layout: thumbnails, arrows and
+     touch all update one main frame, with enlarged viewing on request. */
   var gal = D.getElementById("dgal");
   var fs = Array.prototype.slice.call(gal.querySelectorAll(".dgal__f"));
   var nEl = D.getElementById("dgal-n");
-  var wide = matchMedia("(min-width:1024px)");
-  /* the contact-sheet state: every frame on the page at once. It overrides
-     both of the two layouts below, so every branch has to consult it. */
-  var wrap = D.getElementById("dgal-wrap");
-  var allBtn = D.getElementById("dgal-all");
-  var allLbl = D.getElementById("dgal-all-l");
-  var showAll = false;
-
-  function syncFrames() {
-    var hide = wide.matches && !showAll;
-    fs.forEach(function (f, i) {
-      if (i < 3) return;
-      if (hide) f.setAttribute("hidden", "");
-      else f.removeAttribute("hidden");
+  var mainFrame = gal.querySelector('.dgal__main');
+  var thumbs = Array.prototype.slice.call(D.querySelectorAll('.dthumb'));
+  var thumbRail = D.getElementById('dthumbs');
+  var selected = 0, selectionVersion = 0, suppressClick = false;
+  var decoded = Object.create(null);
+  var mainSizes = '(min-width:1024px) 46vw, 100vw';
+  function prepare(i) {
+    if (!N) return Promise.resolve(null);
+    i = (i + N) % N;
+    if (decoded[i]) return decoded[i];
+    decoded[i] = new Promise(function (resolve) {
+      var image = new Image();
+      image.decoding = 'async';
+      image.fetchPriority = 'low';
+      image.sizes = mainSizes;
+      image.srcset = AH.webpset(shots[i]);
+      image.onload = function () {
+        (image.decode ? image.decode().catch(function () {}) : Promise.resolve()).then(function () { resolve(image); });
+      };
+      image.onerror = function () { delete decoded[i]; resolve(null); };
+      image.src = AH.img(shots[i], 800);
     });
-    syncCount();
+    return decoded[i];
   }
-  if (allBtn) allBtn.addEventListener("click", function () {
-    showAll = !showAll;
-    wrap.classList.toggle("is-all", showAll);
-    allBtn.setAttribute("aria-expanded", showAll ? "true" : "false");
-    if (allLbl) allLbl.textContent = showAll
-      ? "Покажи по-малко" : "Виж всички";
-    syncFrames();
-    /* Collapsing takes ~2000px out of the document in one frame. Without
-       this the reader is left staring at the spec table with no idea the
-       gallery closed above them. */
-    if (!showAll) {
-      gal.scrollLeft = 0;
-      if (wrap.getBoundingClientRect().top < 0) {
-        wrap.scrollIntoView({ block: "start", behavior: "smooth" });
-      }
+  function stripTo(i) {
+    if (!mainFrame || !N) return;
+    i = (i + N) % N;
+    var changed = selected !== i;
+    selected = i;
+    mainFrame.dataset.i = String(i);
+    mainFrame.href = shots[i];
+    mainFrame.setAttribute('aria-label', v.full + ' / ' + (i + 1) + ' / ' + N);
+    mainFrame.querySelector('.dgal__n').textContent = (i + 1) + ' / ' + N;
+    if (nEl) nEl.textContent = (i + 1) + ' / ' + N;
+    thumbs.forEach(function (thumb, index) {
+      thumb.classList.toggle('is-active', index === i);
+      thumb.setAttribute('aria-pressed', String(index === i));
+    });
+    if (thumbRail && thumbs[i]) {
+      var left = thumbs[i].offsetLeft - thumbRail.offsetLeft;
+      if (left < thumbRail.scrollLeft) thumbRail.scrollLeft = left;
+      else if (left + thumbs[i].offsetWidth > thumbRail.scrollLeft + thumbRail.clientWidth) thumbRail.scrollLeft = left + thumbs[i].offsetWidth - thumbRail.clientWidth;
     }
+    if (!changed) return;
+    var version = ++selectionVersion;
+    // The already-loaded thumbnail gives immediate feedback while the full
+    // responsive image decodes. The stage never changes its dimensions.
+    var preview = thumbs[i] && thumbs[i].querySelector('img');
+    if (preview && preview.complete && preview.naturalWidth) {
+      mainFrame.querySelector('picture').innerHTML = '<img src="' + AH.esc(preview.currentSrc || preview.src) + '" alt="' + AH.esc(v.full) + '" width="800" height="490">';
+    }
+    mainFrame.setAttribute('aria-busy', 'true');
+    prepare(i).then(function (image) {
+      if (version !== selectionVersion) return;
+      if (image) mainFrame.querySelector('picture').outerHTML = AH.picture(shots[i], { eager: true, width: 800, height: 490, sizes: mainSizes, alt: v.full + ' / ' + (i + 1) });
+      mainFrame.removeAttribute('aria-busy');
+      if (image) prepare((i + 1) % N);
+    });
+  }
+  thumbs.forEach(function (thumb, index) {
+    thumb.addEventListener('click', function () { stripTo(index); });
+    thumb.addEventListener('pointerenter', function () { prepare(index); }, { passive: true });
+    thumb.addEventListener('focus', function () { prepare(index); });
+    thumb.addEventListener('keydown', function (event) {
+      var next = event.key === 'ArrowRight' ? index + 1 : event.key === 'ArrowLeft' ? index - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? N - 1 : null;
+      if (next === null) return;
+      event.preventDefault();
+      next = (next + N) % N;
+      thumbs[next].focus({ preventScroll: true });
+      stripTo(next);
+    });
   });
-
-  /* the strip IS the state: the counter is read back from scrollLeft, so a
-     swipe, a keyboard arrow and a lightbox close can never disagree */
-  function current() {
-    if (gal.scrollWidth - gal.clientWidth < 8) return 0;
-    return Math.max(0, Math.min(N - 1, Math.round(gal.scrollLeft / Math.max(1, gal.clientWidth))));
-  }
-  function syncCount() {
-    if (!nEl) return;
-    /* laid out as a sheet there is no "current" frame — only a total */
-    if (showAll) { nEl.textContent = N + " " + frames(N); return; }
-    if (wide.matches) { nEl.textContent = "1 / " + N + " " + frames(N); return; }
-    nEl.textContent = (current() + 1) + " / " + N + " " + frames(N);
-  }
-  syncFrames();
-  if (wide.addEventListener) wide.addEventListener("change", syncFrames);
-  else if (wide.addListener) wide.addListener(syncFrames);
-  var queued = false;
-  gal.addEventListener("scroll", function () {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(function () { queued = false; syncCount(); });
-  }, { passive: true });
-  addEventListener("resize", function () { syncFrames(); syncCount(); });
-
-  function stripTo(i, smooth) {
-    if (gal.scrollWidth - gal.clientWidth < 8) return;
-    var f = fs[i];
-    if (!f) return;
-    var left = gal.scrollLeft + (f.getBoundingClientRect().left - gal.getBoundingClientRect().left);
-    if (smooth && gal.scrollTo) gal.scrollTo({ left: left, behavior: "smooth" });
-    else gal.scrollLeft = left;
-    syncCount();
+  ['prev', 'next'].forEach(function (direction) {
+    var control = D.getElementById('dgal-' + direction);
+    if (control) control.addEventListener('click', function () { stripTo(selected + (direction === 'next' ? 1 : -1)); });
+  });
+  if (mainFrame && N > 1) {
+    var swipeStart = null;
+    mainFrame.addEventListener('pointerdown', function (event) {
+      if (event.pointerType === 'mouse' || event.button > 0) return;
+      swipeStart = { x: event.clientX, y: event.clientY };
+      suppressClick = false;
+    });
+    mainFrame.addEventListener('pointerup', function (event) {
+      if (!swipeStart) return;
+      var dx = event.clientX - swipeStart.x, dy = event.clientY - swipeStart.y;
+      swipeStart = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+        suppressClick = true;
+        stripTo(selected + (dx < 0 ? 1 : -1));
+      }
+    });
+    mainFrame.addEventListener('pointercancel', function () { swipeStart = null; });
+    var warmNext = function () { prepare(1); };
+    if ('requestIdleCallback' in window) requestIdleCallback(warmNext, { timeout: 1800 });
+    else setTimeout(warmNext, 500);
   }
 
 
@@ -558,8 +479,9 @@
       var btn = D.getElementById("deq-more");
       if (!list || !clamp || !btn) return;
       list.innerHTML = built.html;
+      list.classList.toggle('deq--simple', built.simple);
       if (count) count.textContent = built.n ? "· " + built.n : "";
-      sec.hidden = !lines.length;
+      sec.hidden = !built.n;
       armClamp(clamp, btn);
     }
     addEventListener("load", renderEquipment);
@@ -612,8 +534,9 @@
   function armClamp(clamp, btn) {
     var fits = function () {
       if (clamp.classList.contains("is-open")) return;
-      if (clamp.scrollHeight <= clamp.clientHeight + 4) btn.setAttribute("hidden", "");
-      else btn.removeAttribute("hidden");
+      var clipped = clamp.scrollHeight > clamp.clientHeight + 4;
+      clamp.classList.toggle('is-clipped', clipped);
+      btn.hidden = !clipped;
     };
     fits();
     if (btn.__ahClampBound) return;
@@ -623,7 +546,8 @@
     btn.addEventListener("click", function () {
       var open = clamp.classList.toggle("is-open");
       btn.setAttribute("aria-expanded", open ? "true" : "false");
-      btn.textContent = open ? "Скрий" : "Прочети още";
+      var en = window.AHLang && window.AHLang.get() === 'en';
+      btn.textContent = open ? (en ? 'Show less' : 'Скрий') : (en ? 'Read more' : 'Прочети още');
       if (!open) {
         var top = clamp.getBoundingClientRect().top + window.scrollY - 120;
         if (window.scrollY > top) window.scrollTo({ top: top, behavior: "smooth" });
@@ -662,15 +586,15 @@
 
   function open(n, from) {
     var first = !lb.classList.contains("open");
+    if (!N) return;
     shot = (n + N) % N;
     if (from) opener = from;
-    lbImg.src = shots[shot];                    /* the original, only here */
+    lbImg.src = AH.img(shots[shot], 1280);
     lbImg.alt = v.model + " — кадър " + (shot + 1);
     if (lbCount) lbCount.textContent = (shot + 1) + " / " + N;
     lb.classList.add("open");
     if (first) lockPage(true);                  /* stepping frames must not re-pin */
-    void lb.offsetWidth;
-    D.getElementById("lb-close").focus();
+    if (first) D.getElementById("lb-close").focus();
   }
   function close() {
     lb.classList.remove("open");
@@ -682,6 +606,7 @@
     f.addEventListener("click", function (e) {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;  /* let a new tab open */
       e.preventDefault();
+      if (suppressClick) { suppressClick = false; return; }
       open(parseInt(f.getAttribute("data-i"), 10) || 0, f);
     });
   });
@@ -744,13 +669,11 @@
       }
       return;
     }
-    /* with the lightbox shut the arrows drive the strip, if it is in view */
+    /* Gallery keys apply only while focus is inside the gallery. */
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-    if (gal.scrollWidth - gal.clientWidth < 8) return;
-    var r = gal.getBoundingClientRect();
-    if (r.bottom < 80 || r.top > innerHeight - 80) return;
-    if (/INPUT|TEXTAREA|SELECT/.test(D.activeElement.tagName)) return;
-    stripTo(current() + (e.key === "ArrowRight" ? 1 : -1), true);
+    if (e.defaultPrevented || !gal.contains(D.activeElement)) return;
+    e.preventDefault();
+    stripTo(selected + (e.key === "ArrowRight" ? 1 : -1));
   });
 
   /* ============================================================
@@ -773,7 +696,7 @@
        scroll handler is gone with them: the two observers drive the state
        directly, so scrolling the dossier now costs nothing at all until
        one of the two boundaries is actually crossed. */
-    var foot = D.querySelector(".foot");
+    var foot = D.querySelector(".ft");
     var galPast = false, footerUp = false;
     var apply = function () {
       if (mini) mini.classList.toggle("show", galPast && !footerUp);

@@ -106,6 +106,7 @@
     "Превърти наляво": "Scroll left",
     "Превърти надясно": "Scroll right",
     "Галерия": "Gallery",
+    "Избери снимка": "Choose a photo",
     "Сподели": "Share",
     "Запази": "Save",
     "Запази досието като PDF": "Save the dossier as a PDF",

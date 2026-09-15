@@ -7,8 +7,32 @@
   var state = { vehicles: [], current: null, route: "", dirty: false, saved: false,
     saveBusy: false, uploadBusy: false, aiBusy: false, search: "", filter: "all", removed: [], failedFiles: [], canImport: false, aiNeedsReview: false, reviewNotes: [] };
   var dragIndex = null, draftTimer, searchFrame;
+  var detailCache = new Map(), detailRequests = new Map(), detailVersions = new Map();
   var role = D.body.dataset.adminRole || "viewer";
-  window.AH_ADMIN = { go: go, t: t, canLeave: canLeave, canWrite: role !== "viewer", canManage: ["owner", "admin"].includes(role), reloadVehicle: function(id) { state.dirty = false; clearDraft(); history.replaceState(null, "", "#edit=" + encodeURIComponent(id)); loadVehicles(false); closeMenu(); } };
+  window.AH_ADMIN = { go: go, t: t, canLeave: canLeave, canWrite: role !== "viewer", canManage: ["owner", "admin"].includes(role), reloadVehicle: function(id) { state.dirty = false; clearDraft(); invalidateDetail(id); inventoryChanged(); history.replaceState(null, "", "#edit=" + encodeURIComponent(id)); renderRoute(requestedRoute()); closeMenu(); } };
+  function inventoryChanged() { writeStorage("localStorage", "autohaus-inventory-changed", String(Date.now())); }
+  function invalidateDetail(id) {
+    detailCache.delete(id); detailRequests.delete(id);
+    detailVersions.set(id, (detailVersions.get(id) || 0) + 1);
+  }
+  function rememberDetail(vehicle) {
+    invalidateDetail(vehicle.id);
+    detailCache.set(vehicle.id, { vehicle: vehicle, at: Date.now() });
+    if (detailCache.size > 20) detailCache.delete(detailCache.keys().next().value);
+    state.vehicles = state.vehicles.map(function (item) { return item.id === vehicle.id ? vehicle : item; });
+  }
+  function loadDetail(id) {
+    var cached = detailCache.get(id);
+    if (cached && Date.now() - cached.at < 30000) return Promise.resolve(cached.vehicle);
+    if (detailRequests.has(id)) return detailRequests.get(id);
+    var version = detailVersions.get(id) || 0;
+    var request = api("/api/admin/vehicles?id=" + encodeURIComponent(id)).then(function (data) {
+      if ((detailVersions.get(id) || 0) !== version) return loadDetail(id);
+      if (!data.vehicle || !data.vehicle.id) throw new Error(t("Автомобилът не е намерен", "Car not found"));
+      rememberDetail(data.vehicle); return data.vehicle;
+    }).finally(function () { if (detailRequests.get(id) === request) detailRequests.delete(id); });
+    detailRequests.set(id, request); return request;
+  }
   function t(bg, en) { return lang === "en" ? en : bg; }
   function esc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
   function clone(v) { return JSON.parse(JSON.stringify(v)); }
@@ -115,17 +139,24 @@
     D.querySelectorAll("[data-language]").forEach(function (button) { button.setAttribute("aria-pressed", button.dataset.language === lang ? "true" : "false"); });
   }
   async function loadVehicles(recover) {
-    view.innerHTML = '<div class="empty"><strong>' + t("Зареждане…", "Loading…") + '</strong></div>';
+    var savedDraft = recover ? draft() : null, initialRoute = requestedRoute();
+    var request = api("/api/admin/vehicles");
+    // A direct editor link loads independently of the compact inventory list.
+    if (savedDraft) {
+      state.route = savedDraft.route; history.replaceState(null, "", "#" + state.route);
+      editor(savedDraft.vehicle, !savedDraft.vehicle.id, savedDraft);
+    } else if (initialRoute === "new" || initialRoute.indexOf("edit=") === 0) renderRoute(initialRoute);
+    else view.innerHTML = '<div class="empty"><strong>' + t("Зареждане…", "Loading…") + '</strong></div>';
     try {
-      var data = await api("/api/admin/vehicles");
+      var data = await request;
       state.vehicles = Array.isArray(data.vehicles) ? data.vehicles : []; state.canImport = data.can_import === true;
-      var savedDraft = recover ? draft() : null;
-      if (savedDraft) {
-        state.route = savedDraft.route;
-        history.replaceState(null, "", "#" + state.route);
-        editor(savedDraft.vehicle, !savedDraft.vehicle.id, savedDraft);
-      } else renderRoute(requestedRoute());
+      detailCache.forEach(function (cached) {
+        var index = state.vehicles.findIndex(function (vehicle) { return vehicle.id === cached.vehicle.id; });
+        if (index >= 0 && String(cached.vehicle.updated_at) >= String(state.vehicles[index].updated_at)) state.vehicles[index] = cached.vehicle;
+      });
+      if (!state.current && state.route.indexOf("edit=") !== 0) renderRoute(requestedRoute());
     } catch (error) {
+      if (state.current || state.route.indexOf("edit=") === 0) { toast(error.message, true); return; }
       view.innerHTML = '<section class="card empty"><h1>' + t("Автомобилите не са достъпни", "Inventory unavailable") + '</h1><p>' + esc(error.message) +
         '</p><button class="primary" id="reload-inventory">' + t("Опитай отново", "Try again") + '</button></section>';
       D.getElementById("reload-inventory").onclick = function () { loadVehicles(true); };
@@ -246,15 +277,21 @@
       field(t("Първа регистрация — година", "First registration — year"), "first_registration_year", car.first_registration_year, "number", "min=1900 max=2100 step=1") +
       select(t("Месец", "Month"), "first_registration_month", String(car.first_registration_month || ""), [["", "—"]].concat(Array.from({ length: 12 }, function (_, i) { return [String(i + 1), String(i + 1).padStart(2, "0")]; }))) +
       '</div></section><section class="card" id="description"><h2>' + t("Описание и оборудване", "Description and equipment") + '</h2><div class="processor">' +
-      '<label class="field"><span>' + t("Поставете оригиналния текст", "Paste the original listing") + '</span><textarea id="source-text" maxlength="30000" rows="6" placeholder="' +
+      '<div class="processor-source"><h3 class="workflow-heading"><span>01</span>' + t("Поставете веднъж", "Paste once") + '</h3>' +
+      '<label class="field"><span>' + t("Оригинален текст · само за екипа", "Original text · team only") + '</span><textarea id="source-text" maxlength="30000" rows="4" placeholder="' +
       t("Поставете описание или списък с оборудване…", "Paste a description or equipment list…") + '">' + esc(recovered ? recovered.source : car.description_source || "") + '</textarea></label>' +
       '<button type="button" class="primary process-button" id="process-description">' + t("Обработи BG + EN", "Process BG + EN") + '</button>' +
-      '<p id="processor-note" class="processor-note" role="status">' + t("Поставете → обработете → прегледайте → запишете", "Paste → process → review → save") + '</p><div id="review-notes"></div>' +
-      '<div class="review-grid"><label class="field"><span>' + t("Описание · Български", "Description · Bulgarian") + '</span><textarea id="desc-bg" lang="bg" maxlength="20000" rows="6">' + esc(car.description_bg) +
-      '</textarea></label><label class="field"><span>Description · English</span><textarea id="desc-en" lang="en" maxlength="20000" rows="6">' + esc(car.description_en) + '</textarea></label></div>' +
-      '<p class="field-hint">' + t("Оборудване: по един елемент на ред, в еднакъв ред за BG и EN.", "Equipment: one item per line, in the same order in BG and EN.") + '</p>' +
-      '<div class="review-grid"><label class="field"><span>' + t("Оборудване · Български", "Equipment · Bulgarian") + '</span><textarea id="equipment-bg" lang="bg" rows="9">' + esc(lines(car.equipment_bg)) +
-      '</textarea></label><label class="field"><span>Equipment · English</span><textarea id="equipment-en" lang="en" rows="9">' + esc(lines(car.equipment_en)) + '</textarea></label></div></div></section>' +
+      '<p id="processor-note" class="processor-note" role="status">' + t("От този текст се подготвят двата езика. Нищо не се публикува автоматично.", "Both languages are prepared from this text. Nothing is published automatically.") + '</p></div>' +
+      '<div class="processor-results"><h3 class="workflow-heading"><span>02</span>' + t("Прегледайте и запишете", "Review and save") + '</h3>' +
+      '<p class="field-hint">' + t("Текст за сайта — можете да го редактирате и ръчно.", "Website content — you can also edit it manually.") + '</p>' +
+      '<div class="review-tabs" role="tablist" aria-label="' + t("Език на резултата", "Result language") + '">' +
+      '<button type="button" role="tab" id="review-tab-bg" data-review-language="bg" aria-controls="review-bg" aria-selected="true">Български</button>' +
+      '<button type="button" role="tab" id="review-tab-en" data-review-language="en" aria-controls="review-en" aria-selected="false" tabindex="-1">English</button></div>' +
+      '<div id="review-bg" class="review-output" role="tabpanel" aria-labelledby="review-tab-bg"><label class="field"><span>' + t("Описание · Български", "Description · Bulgarian") + '</span><textarea id="desc-bg" lang="bg" maxlength="20000" rows="4">' + esc(car.description_bg) +
+      '</textarea></label><label class="field"><span>' + t("Оборудване · Български", "Equipment · Bulgarian") + '</span><textarea id="equipment-bg" lang="bg" rows="8">' + esc(lines(car.equipment_bg)) + '</textarea></label></div>' +
+      '<div id="review-en" class="review-output" role="tabpanel" aria-labelledby="review-tab-en" hidden><label class="field"><span>Description · English</span><textarea id="desc-en" lang="en" maxlength="20000" rows="4">' + esc(car.description_en) +
+      '</textarea></label><label class="field"><span>Equipment · English</span><textarea id="equipment-en" lang="en" rows="8">' + esc(lines(car.equipment_en)) + '</textarea></label></div>' +
+      '<p class="field-hint">' + t("Оборудване: по един елемент на ред, в еднакъв ред за BG и EN.", "Equipment: one item per line, in the same order in BG and EN.") + '</p><div id="review-notes"></div></div></div></section>' +
       '<details class="card more-details"><summary>' + t("Допълнителни данни", "Additional details") + '</summary><div class="field-grid">' +
       field(t("Пълно име", "Display name"), "full_name", car.full_name, "text", "maxlength=320") +
       field(t("Референция", "Reference"), "ref", car.ref, "text", "maxlength=80") +
@@ -298,9 +335,11 @@
     if (data.first_registration_month != null && data.first_registration_year == null) invalid.push(form.elements.first_registration_year);
     if (invalid.length) {
       invalid.forEach(function (el) { el.setAttribute("aria-invalid", "true"); var details = el.closest("details"); if (details) details.open = true; });
+      if (invalid[0].closest(".review-output")) selectReviewLanguage(invalid[0].lang);
       invalid[0].focus(); toast(t("Проверете отбелязаните полета.", "Check the highlighted fields."), true); return false;
     }
     if (data.equipment_bg.length !== data.equipment_en.length) {
+      selectReviewLanguage("en");
       D.getElementById("equipment-en").setAttribute("aria-invalid", "true"); D.getElementById("equipment-en").focus();
       toast(t("Оборудването BG и EN трябва да има еднакъв брой редове.", "BG and EN equipment must have the same number of lines."), true); return false;
     }
@@ -316,15 +355,19 @@
     if (data.published && (!data.fuel || !data.transmission)) { toast(t("Изберете гориво и трансмисия преди публикуване.", "Choose fuel and transmission before publishing."), true); D.getElementById("car-form").elements[!data.fuel ? "fuel" : "transmission"].focus(); return; }
     if (state.current.updated_at) data.if_unmodified_since = state.current.updated_at;
     if (data.published && !data.images.length) { toast(t("Добавете поне една снимка преди публикуване.", "Add at least one photo before publishing."), true); D.getElementById("choose-images").focus(); return; }
-    var currentId = state.current.id, source = D.getElementById("source-text").value, removed = state.removed.slice();
+    var currentId = state.current.id, wasPublished = state.current.published, source = D.getElementById("source-text").value, removed = state.removed.slice();
     state.saveBusy = true; updateSaveState(); persistDraft();
     try {
       var result = await api("/api/admin/vehicles" + (currentId ? "?id=" + encodeURIComponent(currentId) : ""), { method: currentId ? "PATCH" : "POST", body: data });
       if (!result.vehicle || !result.vehicle.id) throw new Error(t("Липсва потвърждение за записа. Опитайте отново.", "The save was not confirmed. Please retry."));
       state.current = result.vehicle; state.dirty = false; clearDraft();
       state.vehicles = state.vehicles.filter(function (v) { return v.id !== result.vehicle.id; }); state.vehicles.unshift(result.vehicle);
+      rememberDetail(result.vehicle); inventoryChanged(); state.removed = [];
       state.route = "edit=" + encodeURIComponent(result.vehicle.id); history.replaceState(null, "", "#" + state.route);
-      state.saveBusy = false; editor(result.vehicle, false); state.saved = true; updateSaveState(); D.getElementById("source-text").value = source;
+      state.saveBusy = false;
+      if (!currentId || wasPublished !== result.vehicle.published) editor(result.vehicle, false);
+      else view.querySelector(".editor-heading h1").textContent = carName(result.vehicle);
+      state.saved = true; updateSaveState(); D.getElementById("source-text").value = source;
       toast(data.published ? t("Промените са публикувани", "Changes published") : t("Черновата е записана", "Draft saved"));
       // Only remove storage assets after the vehicle no longer references them.
       await Promise.all(removed.filter(function (img) { return img.public_id && !img.legacy; }).map(function (img) {
@@ -337,6 +380,7 @@
     state.saveBusy = true; updateSaveState();
     try {
       var id = state.current.id; await api("/api/admin/vehicles?id=" + encodeURIComponent(id), { method: "DELETE" });
+      invalidateDetail(id); inventoryChanged();
       state.vehicles = state.vehicles.filter(function (v) { return v.id !== id; }); state.dirty = false; clearDraft(); state.saveBusy = false;
       go("cars"); toast(t("Автомобилът е изтрит", "Car deleted"));
     } catch (error) { toast(error.message, true); state.saveBusy = false; updateSaveState(); }
@@ -459,11 +503,14 @@
     var reviewFields = ["source-text", "desc-bg", "desc-en", "equipment-bg", "equipment-en"];
     reviewFields.forEach(function (id) { D.getElementById(id).readOnly = true; });
     try {
-      var data = await api("/api/admin/description", { method: "POST", body: { source: source.value.trim(), vehicle: collectForm() } }), result = data.result || {};
+      var formData = collectForm(), context = {};
+      ["make", "model", "body_type", "first_registration_year", "first_registration_month", "fuel", "transmission", "mileage", "horsepower", "colour", "price", "unregistered", "ref"].forEach(function (key) { context[key] = formData[key]; });
+      var data = await api("/api/admin/description", { method: "POST", body: { source: source.value.trim(), vehicle: context } }), result = data.result || {};
       if (typeof result.description_bg !== "string" || typeof result.description_en !== "string" || !Array.isArray(result.equipment_bg) || !Array.isArray(result.equipment_en)) throw new Error(t("Невалиден резултат. Оригиналът е запазен.", "Invalid result. Your original text is preserved."));
       D.getElementById("desc-bg").value = result.description_bg; D.getElementById("desc-en").value = result.description_en;
       D.getElementById("equipment-bg").value = lines(result.equipment_bg); D.getElementById("equipment-en").value = lines(result.equipment_en);
       state.reviewNotes = result.review_notes || []; state.aiNeedsReview = true; renderReview(result); showReviewConfirmation();
+      selectReviewLanguage(lang);
       note.textContent = t("Готово. Сравнете с оригинала и запишете.", "Ready. Compare with the original, then save."); setDirty();
     } catch (error) {
       note.textContent = (error.code === "AI_FREE_QUOTA" ? t("Безплатният AI лимит е достигнат.", "The free AI quota has been reached.") : error.message) + " " +
@@ -502,6 +549,13 @@
       }
     }
   }
+  function selectReviewLanguage(language) {
+    view.querySelectorAll("[data-review-language]").forEach(function (tab) {
+      var selected = tab.dataset.reviewLanguage === language;
+      tab.setAttribute("aria-selected", String(selected)); tab.tabIndex = selected ? 0 : -1;
+      D.getElementById(tab.getAttribute("aria-controls")).hidden = !selected;
+    });
+  }
   function bindEditor() {
     var form = D.getElementById("car-form");
     form.oninput = function () { setDirty(); };
@@ -515,6 +569,15 @@
     ["image-input", "camera-input"].forEach(function (id) { D.getElementById(id).onchange = function (event) { uploadFiles(event.target.files); event.target.value = ""; }; });
     D.getElementById("retry-images").onclick = function () { uploadFiles(state.failedFiles.slice()); };
     D.getElementById("process-description").onclick = processDescription;
+    view.querySelectorAll("[data-review-language]").forEach(function (tab) {
+      tab.onclick = function () { selectReviewLanguage(tab.dataset.reviewLanguage); };
+      tab.onkeydown = function (event) {
+        if (["ArrowLeft", "ArrowRight", "Home", "End"].indexOf(event.key) < 0) return;
+        event.preventDefault();
+        var next = event.key === "Home" ? "bg" : event.key === "End" ? "en" : tab.dataset.reviewLanguage === "bg" ? "en" : "bg";
+        selectReviewLanguage(next); D.getElementById("review-tab-" + next).focus();
+      };
+    });
     var dropzone = D.getElementById("dropzone");
     ["dragenter", "dragover"].forEach(function (name) { dropzone.addEventListener(name, function (event) { event.preventDefault(); dropzone.classList.add("is-drag"); }); });
     ["dragleave", "drop"].forEach(function (name) { dropzone.addEventListener(name, function (event) { event.preventDefault(); dropzone.classList.remove("is-drag"); }); });
@@ -527,7 +590,11 @@
     form.elements.first_registration_year.disabled = disabled; form.elements.first_registration_month.disabled = disabled;
   }
   function bindCards() {
-    view.querySelectorAll("[data-edit]").forEach(function (link) { link.onclick = function (event) { event.preventDefault(); go("edit=" + encodeURIComponent(link.dataset.edit)); }; });
+    view.querySelectorAll("[data-edit]").forEach(function (link) {
+      function warm() { if (detailRequests.size < 2) loadDetail(link.dataset.edit).catch(function () {}); }
+      link.onpointerenter = warm; link.onfocus = warm;
+      link.onclick = function (event) { if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return; event.preventDefault(); go("edit=" + encodeURIComponent(link.dataset.edit)); };
+    });
     view.querySelectorAll("[data-quick-publish]").forEach(function (button) { button.onclick = async function () {
       var vehicle = state.vehicles.find(function (item) { return item.id === button.dataset.quickPublish; }); if (!vehicle) return;
       if (!vehicle.published && !(vehicle.images || []).length) { go("edit=" + encodeURIComponent(vehicle.id)); toast(t("Добавете снимка преди публикуване.", "Add a photo before publishing."), true); return; }
@@ -535,7 +602,8 @@
       try {
         var result = await api("/api/admin/vehicles?id=" + encodeURIComponent(vehicle.id), { method: "PATCH", body: { published: !vehicle.published, if_unmodified_since: vehicle.updated_at } });
         state.vehicles = state.vehicles.map(function (item) { return item.id === vehicle.id ? result.vehicle : item; });
-        if (state.route === "cars") renderFilteredCars(); else dashboard();
+        rememberDetail(result.vehicle); inventoryChanged();
+        if (state.route === "cars") renderFilteredCars(); else if (state.route === "dashboard") dashboard();
         toast(result.vehicle.published ? t("Публикуван", "Published") : t("Свален от сайта", "Unpublished"));
       } catch (error) { toast(error.message, true); button.disabled = false; }
     }; });
@@ -557,21 +625,13 @@
     if (state.route === "new") return editor(blankVehicle(), true);
     if (state.route.indexOf("edit=") === 0) {
       var id; try { id = decodeURIComponent(state.route.slice(5)); } catch (_) { id = ""; }
-      var vehicle = state.vehicles.find(function (item) { return item.id === id; });
-      if (vehicle) {
-        if (!Array.isArray(vehicle.equipment_bg)) {
-          var expectedRoute = state.route;
-          view.innerHTML = '<div class="empty" role="status">' + t("Зареждане…", "Loading…") + '</div>';
-          try {
-            var result = await api("/api/admin/vehicles?id=" + encodeURIComponent(id));
-            if (state.route !== expectedRoute) return;
-            vehicle = result.vehicle;
-            state.vehicles = state.vehicles.map(function(v) { return v.id === id ? vehicle : v; });
-          } catch (e) { if(state.route === expectedRoute) { view.innerHTML = '<div class="empty" role="alert">' + esc(e.message) + '</div>'; } return; }
-        }
-        return editor(vehicle, false);
-      }
-      view.innerHTML = '<div class="empty"><strong>' + t("Автомобилът не е намерен", "Car not found") + '</strong><button class="secondary" data-go="cars">' + t("Към автомобилите", "Back to cars") + '</button></div>'; bindCommon(); return;
+      var expectedRoute = state.route;
+      view.innerHTML = '<div class="empty" role="status">' + t("Зареждане…", "Loading…") + '</div>';
+      try {
+        var vehicle = await loadDetail(id);
+        if (state.route === expectedRoute) editor(vehicle, false);
+      } catch (e) { if (state.route === expectedRoute) view.innerHTML = '<div class="empty" role="alert">' + esc(e.message) + '</div>'; }
+      return;
     }
     if (window.AH_ADMIN.renderExtra && window.AH_ADMIN.renderExtra(state.route)) return;
     history.replaceState(null, "", "#dashboard"); state.route = "dashboard"; markNav("dashboard"); dashboard();

@@ -936,334 +936,140 @@
    8. THE DETAIL PAGE — their structure on our paper
    ============================================================ */
 
-/* --- gallery: one big frame + two stacked, 8px radius (theirs) --- */
-.dgal{display:grid;gap:4px;grid-template-columns:1fr}
-@media(min-width:1024px){
-  .dgal{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
-  .dgal__main{grid-row:1 / 3}
-}
-.dgal__f{
-  position:relative;overflow:hidden;background:#111;border:0;padding:0;
-  cursor:zoom-in;display:block;width:100%;
-}
-.dgal__main{aspect-ratio:1.155}                       /* their mobile ratio */
-@media(min-width:1024px){
-  .dgal__main{aspect-ratio:1.276}                     /* their desktop main */
-  .dgal__side{aspect-ratio:2.573}                     /* their stacked pair */
-  .dgal{border-radius:8px;overflow:hidden}            /* theirs, and the one radius we keep */
-}
-.dgal__f img{width:100%;height:100%;object-fit:cover;display:block}
+/* Product gallery: the established three-frame composition, with every
+   photograph available in a permanent, compact thumbnail rail. */
+.dgallery{min-width:0}
+.dgal{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;overflow:hidden;border-radius:8px}
+.dgal__f{position:relative;overflow:hidden;background:var(--ink);border:0;padding:0;cursor:zoom-in;display:block;width:100%;min-width:0}
+.dgal__main{aspect-ratio:1.5;touch-action:pan-y}
 .dgal__side{display:none}
-@media(min-width:1024px){.dgal__side{display:block}}
-/* the frame counter, anchored RIGHT — so the cut faces left and the top edge
-   stays the long one. 26px tall, 12px of cut. */
-.dgal__n{
-  position:absolute;right:12px;bottom:12px;
-  padding:4px 8px 4px 20px;background:rgba(0,0,0,.6);color:#fff;
-  font-size:12px;line-height:18px;font-weight:600;font-variant-numeric:tabular-nums;
-  clip-path:polygon(0 0,100% 0,100% 100%,12px 100%);
-}
-
-/* ---- THE CONTACT SHEET ------------------------------------------------
-   Above 1024 the mosaic shows three frames of however many a car has, and the
-   line under it read "1 / 24 кадъра" — a total with nothing to click. The
-   other twenty-one existed only inside the lightbox, one arrow press apart,
-   which is a viewer and not an index. The box below is the index: it opens
-   every frame on the page, uniformly, and the lightbox goes back to doing the
-   single thing it is good at. */
+.dgal__f picture,.dgal__f img{display:block;width:100%;height:100%}
+.dgal__f img{object-fit:cover}
+.dgal__n{position:absolute;right:12px;bottom:12px;padding:4px 8px 4px 20px;background:rgba(0,0,0,.65);color:#fff;font-size:12px;line-height:18px;font-weight:600;font-variant-numeric:tabular-nums;clip-path:polygon(0 0,100% 0,100% 100%,12px 100%)}
 .dgal-wrap{position:relative;scroll-margin-top:96px}
-.dgal__all{
-  position:absolute;right:16px;bottom:16px;z-index:4;
-  display:inline-flex;align-items:center;gap:10px;
-  /* 44px tall, so 20px of cut, on the left because the box is anchored right.
-     The border goes with it — a 1px box-border would still draw the square
-     corner the clip has just removed — so the edge is a drop-shadow instead. */
-  min-height:44px;padding:0 20px 0 40px;border-radius:0;
-  background:rgba(255,255,255,.92);color:var(--ink);
-  border:0;box-shadow:var(--lift-1);
-  clip-path:polygon(0 0,100% 0,100% 100%,20px 100%);
-  font-family:inherit;font-size:13px;line-height:22px;font-weight:600;
-  letter-spacing:1.1px;text-transform:uppercase;white-space:nowrap;cursor:pointer;
-  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  transition:background-color var(--ui-dur) var(--ui-ease),
-             box-shadow var(--ui-dur) var(--ui-ease);
-}
-.dgal__all:hover{background:#fff;box-shadow:var(--lift-2)}
-.dgal__all svg{width:14px;height:14px;flex:none;stroke:currentColor;stroke-width:1.3;fill:none}
-/* Two things want the bottom-right corner: this box and a frame's own "3 / 8".
-   Above 1024 the box always covers the same frame — the lower half of the
-   stacked pair — so that one frame gives its counter up. Below 1024 the box
-   floats over whichever frame the strip has landed on, so there is no single
-   badge to drop and the box takes the opposite corner instead. */
+.dgal-empty{display:grid;place-items:center;min-height:240px;background:var(--paper-2);color:var(--ink-2)}
+.dthumbs{display:flex;position:relative;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:10px 2px 6px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.dthumb{flex:0 0 88px;aspect-ratio:1.5;display:block;border:2px solid transparent;padding:2px;background:transparent;cursor:pointer;scroll-snap-align:start}
+.dthumb picture,.dthumb img{display:block;width:100%;height:100%;object-fit:cover}
+.dthumb.is-active{border-color:var(--primary-ink)}
+.dthumb:focus-visible,.dgal__f:focus-visible{outline:2px solid var(--primary-ink);outline-offset:2px}
+.dgal-bar{display:flex;align-items:center;justify-content:flex-end;gap:16px;min-height:36px}
+.dgal-bar__n{font-size:12px;line-height:20px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.dgal-controls{display:flex;gap:4px}
+.dgal-controls button{display:grid;place-items:center;width:36px;height:36px;border:1px solid var(--line-2);background:transparent;color:var(--ink);cursor:pointer}
+.dgal-controls svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5}
 @media(min-width:1024px){
-  .dgal-wrap:not(.is-all):has(.dgal__all) .dgal__f:nth-child(3) .dgal__n{display:none}
-}
-/* On the strip the box moves to the opposite corner, and the cut has to move
-   with it: the house rule is that the cut faces INWARD, so a box anchored
-   left is cut on its right. Flipping the clip without flipping the padding
-   would run the label out through the diagonal. */
-@media(max-width:1023px){
-  .dgal-wrap:not(.is-all) .dgal__all{
-    left:12px;right:auto;padding:0 40px 0 20px;
-    clip-path:polygon(0 0,100% 0,calc(100% - 20px) 100%,0 100%);
-  }
+  .dgal{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr}
+  .dgal__main{grid-row:1 / 3;aspect-ratio:1.276}
+  .dgal__side{display:block;aspect-ratio:2.573}
+  .dgal--1,.dgal--2{grid-template-rows:auto}
+  .dgal--1{grid-template-columns:1fr}
+  .dgal--1 .dgal__main{grid-row:auto;aspect-ratio:2.2}
+  .dgal--2 .dgal__main,.dgal--2 .dgal__side{grid-row:auto;aspect-ratio:1.5}
 }
 @media(max-width:599px){
-  .dgal__all{bottom:12px;padding:0 14px 0 34px;gap:8px;font-size:12px;letter-spacing:.6px}
-  .dgal-wrap:not(.is-all) .dgal__all{padding:0 34px 0 14px}
+  .dgal{margin-inline:calc(var(--margin) * -1);border-radius:0}
+  .dgal__main{aspect-ratio:1.3}
+  .dthumb{flex-basis:76px}
+  .dgal-controls button{width:44px;height:44px}
 }
-/* laid out as a sheet the box is a plain control in the flow, not a chip on a
-   photograph — the angle belongs to things that sit ON something */
-.dgal-wrap.is-all .dgal__all{
-  clip-path:none;padding-inline:24px;
-  border:1px solid rgba(20,19,18,.16);box-shadow:none;
-}
-/* Open, the box stops floating: it becomes the sheet's own footer control.
-   Left absolute it would pin itself to the bottom-right of a 2000px grid,
-   i.e. off the screen at the moment it is pressed and over the last
-   photograph for the whole time it is not. */
-.dgal-wrap.is-all{display:flex;flex-direction:column;gap:16px}
-.dgal-wrap.is-all .dgal__all{position:static;align-self:center}
-.dgal-wrap.is-all .dgal{
-  margin-inline:0;gap:4px;overflow-x:visible;scroll-snap-type:none;
-  grid-auto-flow:row;grid-auto-columns:auto;grid-template-rows:none;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-}
-@media(min-width:1024px){
-  .dgal-wrap.is-all .dgal{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-.dgal-wrap.is-all .dgal__f,
-.dgal-wrap.is-all .dgal__main,
-.dgal-wrap.is-all .dgal__side{grid-row:auto;grid-column:auto;aspect-ratio:1.5}
-/* on a phone their gallery is one full-bleed swipeable frame */
-@media(max-width:1023px){
-  /* grid-template-columns must be cleared: left at 1fr it would size the
-     first frame differently from every auto-placed one after it */
-  .dgal{margin-inline:calc(var(--margin) * -1);
-        grid-template-columns:none;grid-template-rows:none;
-        scroll-snap-type:x mandatory;grid-auto-flow:column;
-        grid-auto-columns:100%;overflow-x:auto;gap:0;
-        scrollbar-width:none;overscroll-behavior-x:contain}
-  .dgal::-webkit-scrollbar{display:none}
-  .dgal__f{scroll-snap-align:center;scroll-snap-stop:always}
-  .dgal__side{display:block;aspect-ratio:1.155}
-  .dgal__main{grid-row:auto}
-}
-/* controls row under the gallery — theirs: actions left, counter right */
-.dgal-bar{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:16px;height:42px;margin-top:12px;
-}
-.dgal-bar__l{display:flex;gap:20px}
-.dgal-bar a,.dgal-bar button{
-  display:inline-flex;align-items:center;gap:8px;background:transparent;border:0;
-  padding:0;color:var(--ink-2);font-family:inherit;
-  font-size:13px;line-height:22px;font-weight:600;letter-spacing:1.1px;
-  text-transform:uppercase;cursor:pointer;transition:color var(--ui-dur) var(--ui-ease);
-}
-.dgal-bar a:hover,.dgal-bar button:hover{color:var(--ink)}
-.dgal-bar svg{width:15px;height:15px;stroke:currentColor;stroke-width:1.5;fill:none}
-.dgal-bar__n{font-size:13px;line-height:22px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 
-/* --- body: one uninterrupted dossier column --- */
-.dbody{display:block}
-.dbody>div{width:100%;max-width:1480px;margin-inline:auto}
-.dsec{padding-top:24px;border-top:1px solid var(--line)}      /* their 24px + hairline */
+/* One compact dossier: facts and technical content share a reading column.
+   The enquiry occupies the remaining desktop width and joins the flow on mobile. */
+.dbody{display:block;margin-top:12px}
+.dbody>.dossier{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px;width:100%;max-width:1480px;margin-inline:auto;align-items:start}
+.dossier-content{min-width:0}
+.dsec{padding-block:24px;border-top:1px solid var(--line)}
 .dsec:first-child{padding-top:0;border-top:0}
-.dsec__h{
-  font-size:var(--fs-h6);line-height:var(--lh-h6);font-weight:300;
-  letter-spacing:normal;color:var(--ink);margin-bottom:16px;
-}
+.dsec__h{font-size:22px;line-height:1.3;font-weight:400;letter-spacing:normal;color:var(--ink);margin-bottom:16px}
+.dtitle{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px 24px}
+.dtitle h1{font-size:clamp(24px,2.2vw,34px);line-height:1.2;font-weight:300;letter-spacing:normal;color:var(--ink);text-wrap:balance;overflow-wrap:anywhere}
+.dtitle__make{font-size:12px;line-height:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
+.dtitle__price{font-size:clamp(22px,1.8vw,28px);line-height:1.25;font-weight:400;color:var(--ink);font-variant-numeric:tabular-nums}
+.dtitle__pw{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.dtitle__vat{font-size:11px;line-height:1.5;font-weight:500;color:var(--primary-ink)}
+.dspec{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 24px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+.dspec>div{min-width:0}
+.dspec dt{font-size:11px;line-height:1.5;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);margin-bottom:4px}
+.dspec dd{font-size:15px;line-height:1.45;color:var(--ink);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.dnotes{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:20px}
+.dnotes li{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:20px;color:var(--ink-2)}
+.dnotes svg{flex:none;width:14px;height:14px;margin-top:3px;stroke:var(--primary-ink);stroke-width:1.8;fill:none}
+.dprose{font-size:15px;line-height:1.75;color:var(--ink-2);max-width:80ch;overflow-wrap:anywhere}
+.dprose p+p{margin-top:14px}
 
-/* title / price row — theirs puts them on one line, price right */
-.dtitle{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px}
-.dtitle h1{
-  font-size:var(--fs-h4);line-height:var(--lh-h4);font-weight:300;
-  letter-spacing:normal;color:var(--ink);text-wrap:balance;
-}
-.dtitle__price{
-  font-size:var(--fs-h4);line-height:var(--lh-h4);font-weight:300;
-  letter-spacing:normal;color:var(--ink);font-variant-numeric:tabular-nums;
-  white-space:nowrap;
-}
-.dtitle__place{
-  flex:1 1 100%;font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink-3);
-}
-
-
-.dclamp{position:relative;overflow:hidden;max-height:168px}   /* their preview height */
-.dclamp::after{
-  content:"";position:absolute;inset:auto 0 0 0;height:64px;pointer-events:none;
-  background:linear-gradient(transparent,var(--paper));
-}
-.dclamp.is-open{max-height:none}
-.dclamp.is-open::after{display:none}
-.dmore{
-  margin-top:12px;background:transparent;border:0;padding:0;color:var(--ink);
-  font-family:inherit;font-size:13px;line-height:22px;font-weight:600;
-  letter-spacing:1.1px;text-transform:uppercase;cursor:pointer;
-  border-bottom:1px solid var(--ink);
-}
-
-/* ============================================================
-   THE SPECIFICATION, AND THE EQUIPMENT UNDER IT
-
-   The page used to say a car's year, mileage, power, engine, transmission
-   and colour THREE times: a scrolling strip of six values, a ten-row
-   "Детайли" table immediately under it, and a sentence at the top of the
-   prose restating all six a third time. Two of those existed because the
-   reference site had both a strip and a table; ours had nothing else to
-   put in either.
-
-   One block now, holding exactly the eight rows the AutoHaus listing
-   holds — марка и модел, регистрация, двигател, мощност, трансмисия,
-   пробег, цвят, цена — and under it the thing the page never had: the
-   equipment list, which on these cars runs from 17 lines to 155.
-
-   THE SHAPE IS A LEDGER, NOT A TABLE. Rows separated by a hairline, label
-   left in the micro-label voice the rest of the site uses, value right in
-   tabular figures. It reads as a record of a specific object rather than
-   as a grid of cells, which is the difference between a spec sheet and a
-   comparison chart — and the reader is looking at one car, not comparing
-   ten. Two columns of rows from 900px, because eight rows in one column
-   on a wide screen is a lot of white to the right of a short answer. */
-.dspec{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
-.dspec > div{
-  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
-  padding:11px 0;border-top:1px solid var(--line);
-}
-.dspec > div:first-child{border-top:0;padding-top:0}
-.dspec dt{
-  flex:none;font-size:11px;line-height:20px;font-weight:600;letter-spacing:1.1px;
-  text-transform:uppercase;color:var(--ink-3);
-}
-.dspec dd{
-  text-align:right;font-size:var(--fs-body);line-height:20px;color:var(--ink);
-  font-variant-numeric:tabular-nums;
-}
-@media(min-width:900px){
-  .dspec{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:48px}
-  /* the second column starts a fresh run of hairlines, so the top row of
-     each column loses its rule rather than only the first row overall */
-  .dspec > div:nth-child(2){border-top:0;padding-top:0}
-}
-
-/* ---- the listing's own notes ----
-   "Пълна сервизна история", "Възможен лизинг", "Възможен бартер", and
-   whatever else that particular car says. They are set as marks rather
-   than as sentences because that is what they are on the listing: short
-   declarations under the price, not prose. The VAT line is not here — it
-   belongs against the number it qualifies. */
-.dnotes{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:20px}
-.dnotes li{
-  display:flex;align-items:center;gap:9px;
-  font-size:13px;line-height:20px;color:var(--ink-2);
-}
-.dnotes svg{
-  flex:none;width:14px;height:14px;stroke:var(--primary);stroke-width:1.8;fill:none;
-}
-
-/* ---- the price, and the one thing that qualifies it ----
-   25 of the 83 published cars carry "Цена без начислен 20% ДДС". It sits
-   directly under the figure, in the label voice, because a price with tax
-   still to come is not a footnote — it is part of the price. */
-.dtitle__pw{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-.dtitle__vat{
-  font-size:11px;line-height:16px;font-weight:600;letter-spacing:1.1px;
-  text-transform:uppercase;color:var(--primary-ink);
-  background:rgba(201,162,90,.16);padding:3px 8px;white-space:nowrap;
-}
-@media(max-width:599px){
-  .dtitle__pw{align-items:flex-start}
-}
-
-/* ---- THE EQUIPMENT ----
-   Every line is the listing's own. Most carry the manufacturer's option
-   code — "501", "PIP7", "LCF" — and setting that code in its own quiet
-   column, at a fixed width, is what turns a wall of 155 sentences into
-   something a reader can scan: the eye runs down the codes and stops at
-   the words. It is also the one place on this site where a monospaced
-   figure is right, because these are part numbers and they align.
-
-   Sub-points (a line opening with "-" on the listing) are indented under
-   their option rather than promoted to options of their own — the source
-   nests them and the nesting carries meaning: they are what the package
-   contains. */
-.deq{display:grid;gap:0;font-size:var(--fs-body);line-height:1.55}
+/* Preserve source order. Complex option packages read top-to-bottom;
+   short independent equipment items can use two columns. No guessed splits. */
+.deq{font-size:14px;line-height:1.6}
 .deq-col{min-width:0}
-.deq-i{
-  display:grid;grid-template-columns:56px minmax(0,1fr);gap:16px;
-  padding:9px 0;border-top:1px solid var(--line);color:var(--ink);
-}
-.deq-i:first-child{border-top:0}
-.deq-c{
-  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
-  font-size:11px;line-height:22px;letter-spacing:.02em;
-  color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.deq-sub{
-  grid-column:1 / -1;margin:2px 0 4px;padding-inline-start:72px;
-  display:grid;gap:3px;
-}
-.deq-sub li{
-  position:relative;font-size:13px;line-height:1.5;color:var(--ink-2);
-  padding-inline-start:14px;
-}
-.deq-sub li::before{
-  content:"";position:absolute;inset-inline-start:0;top:.62em;
-  width:6px;height:1px;background:var(--line-2);
-}
-/* the count beside the heading — how much there is, before you open it */
-.dsec__n{
-  font-size:12px;line-height:20px;font-weight:600;letter-spacing:1.1px;
-  color:var(--ink-3);
+.deq-i{display:block;padding:11px 0;border-top:1px solid var(--line);color:var(--ink);overflow-wrap:anywhere}
+.deq-i:first-child{border-top:0;padding-top:0}
+.deq-i--coded{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px 12px}
+.deq-c{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.85;color:var(--primary-ink);font-weight:500}
+.deq-v{min-width:0}
+.deq-sub{grid-column:2;margin:0;padding:0;display:grid;gap:5px}
+.deq-sub li{position:relative;font-size:14px;line-height:1.6;color:var(--ink-2);padding-inline-start:12px}
+.deq-sub li::before{content:"";position:absolute;inset-inline-start:0;top:.72em;width:5px;height:1px;background:var(--line-2)}
+.deq--simple .deq-col{columns:2;column-gap:28px}
+.deq--simple .deq-i{break-inside:avoid}
+.dsec__n{font-size:12px;line-height:20px;font-weight:500;color:var(--ink-2)}
+#deq-clamp{position:relative;overflow:hidden;max-height:440px}
+#deq-clamp.is-open{max-height:none}
+#deq-clamp.is-clipped:not(.is-open)::after{content:"";position:absolute;inset:auto 0 0;height:48px;pointer-events:none;background:linear-gradient(transparent,var(--paper))}
+.dmore{display:inline-block;min-height:44px;margin-top:8px;border:0;border-bottom:1px solid var(--ink);padding:8px 0;background:transparent;color:var(--ink);font-family:inherit;font-weight:600;font-size:12px;line-height:20px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+
+/* Compact direct enquiry; the form retains its existing field names and delivery flow. */
+#vehicle-inquiry{scroll-margin-top:calc(var(--nav-h) + 24px)}
+.dinquiry{position:relative;margin:0;border-top:2px solid var(--ink);padding:18px 0 0}
+.dinquiry::before{content:"";position:absolute;top:-2px;right:0;width:22px;height:22px;background:var(--ink);clip-path:polygon(100% 0,100% 100%,0 0);pointer-events:none}
+.dinq-layout{display:grid;gap:18px}
+.dseller--clean{display:block;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.dseller__n{font-size:15px;line-height:22px;font-weight:500;color:var(--ink);margin-bottom:7px}
+.dseller__acts{display:flex;flex-wrap:wrap;gap:3px 16px}
+.dseller__acts a{display:inline-flex;align-items:center;gap:7px;min-height:32px;color:var(--primary-ink);font-size:14px;line-height:22px;font-weight:500;overflow-wrap:anywhere;max-width:100%}
+.dseller__acts svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5;flex:none}
+.dinq{margin:0;min-width:0}
+.dinq__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-bottom:12px}
+.dinq__field{display:grid;min-width:0;gap:5px}
+.dinq__label{font-size:12px;line-height:18px;color:var(--ink-2)}
+.dinq__input,.dask{display:block;width:100%;min-width:0;min-height:44px;border:1px solid var(--line-2);border-radius:0;background:#fff;color:var(--ink);padding:10px 11px;font:inherit;font-size:16px;line-height:1.4;-webkit-appearance:none;appearance:none}
+.dask{min-height:88px;resize:vertical}
+.dask::placeholder{color:var(--ink-2)}
+.dinq__input:focus,.dask:focus{outline:2px solid var(--primary-ink);outline-offset:2px;border-color:var(--ink-2)}
+.dinq__actions{display:flex;margin-top:14px}
+.dinq__actions .btn-primary{min-height:44px;width:100%}
+.dinq__status{margin-top:12px;font-size:13px;line-height:20px;color:var(--ink-2)}
+.dinq__status:empty{display:none}
+.dinq__status.is-ok{color:#356340}
+.dinq__status.is-error{color:#8b2f2f}
+.dinq__trap{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:1099px){
+  .dbody>.dossier{grid-template-columns:minmax(0,1fr);gap:24px}
+  .dinquiry{max-width:880px;width:100%}
+  .dinq-layout{grid-template-columns:200px minmax(0,1fr);gap:24px}
+  .dseller--clean{border-bottom:0}
+  .dinq__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dinq__field:first-child{grid-column:1/-1}
 }
 @media(max-width:599px){
-  .deq-i{grid-template-columns:46px minmax(0,1fr);gap:12px}
-  .deq-sub{padding-inline-start:58px}
+  .dbody{margin-top:8px}
+  .dbody>.dossier{gap:12px}
+  .dsec{padding-block:20px}
+  .dtitle{display:block}
+  .dtitle__pw{margin-top:10px}
+  .dtitle__price{font-size:22px}
+  .dspec{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 18px;margin-top:18px}
+  .dspec dd{font-size:15px}
+  .dnotes{display:grid;gap:6px}
+  .deq--simple .deq-col{columns:auto}
+  .deq-i--coded{grid-template-columns:36px minmax(0,1fr);gap:8px}
+  #deq-clamp{max-height:380px}
+  .dinq-layout{grid-template-columns:minmax(0,1fr);gap:16px}
+  .dseller--clean{padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .dseller__acts a{min-height:44px}
+  .dinq__grid{grid-template-columns:minmax(0,1fr)}
+  .dinquiry{padding-top:18px}
 }
-/* the clamp is taller here than it was over the prose: 168px of an
-   equipment list is four rows, which is not enough to tell whether it is
-   worth opening. Ten rows is. */
-#deq-clamp{max-height:420px}
-#deq-clamp.is-open{max-height:none}
-
-
-/* seller / trust block */
-.dseller{display:grid;grid-template-columns:auto 1fr;gap:16px 20px;align-items:center}
-.dseller__av{
-  width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--paper-2);
-  display:grid;place-items:center;color:var(--ink-3);
-}
-.dseller__av svg{width:26px;height:26px;stroke:currentColor;stroke-width:1.4;fill:none}
-.dseller__n{font-size:16px;line-height:24px;font-weight:600;color:var(--ink)}
-.dseller__m{font-size:var(--fs-body);line-height:22px;color:var(--ink-3)}
-.dseller__acts{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:20px}
-/* the gold reads as decoration on paper, so the seller's actions take a
-   darker bronze that still belongs to the same family */
-.dseller__acts a{
-  display:inline-flex;align-items:center;gap:8px;color:#8a6a24;
-  font-size:var(--fs-body);line-height:24px;font-weight:600;
-}
-.dseller__acts a:hover{color:var(--ink)}
-.dseller__acts svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.5;fill:none}
-/* the dossier's one-line question box. It borrowed `.fin` from the filter
-   drawer, which is gone — a form field on a car page had no business being
-   defined by a filter component in the first place. */
-.dask{
-  display:block;width:100%;min-height:100px;padding:12px;
-  background:#fff;border:1px solid var(--line);border-radius:0;
-  color:var(--ink);font-family:inherit;
-  font-size:var(--fs-body);line-height:var(--lh-body);
-  resize:vertical;-webkit-appearance:none;appearance:none;
-  transition:border-color var(--ui-dur) var(--ui-ease);
-}
-.dask::placeholder{color:var(--ink-3)}
-.dask:focus{outline:none;border-color:var(--primary)}
-.dtrust{display:grid;gap:12px;margin-top:24px}
-.dtrust li{display:flex;gap:12px;font-size:var(--fs-body);line-height:22px;color:var(--ink-2)}
-.dtrust svg{flex:none;width:16px;height:16px;margin-top:3px;stroke:var(--primary);stroke-width:1.6;fill:none}
-
 /* mobile: their fixed bottom bar. Ours sends the concierge, not a chat. */
 /* THE FLOATING ENQUIRE/CALL BAR IS GONE. The owner asked for it removed on
    the phone — a fixed bar with "Запитване" and a round call button covered
@@ -1532,69 +1338,10 @@
   backdrop-filter:none;-webkit-backdrop-filter:none;
   background:var(--paper);
 }
-.lo-fx .dgal__all{
-  backdrop-filter:none;-webkit-backdrop-filter:none;
-  background:rgba(5,5,5,.82);
-}
-
-/* Direct vehicle enquiries stay in the vehicle page, including delivery feedback. */
-.dtitle__make{font-size:12px;line-height:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
-.dgal-bar{justify-content:flex-end}
-#vehicle-inquiry{scroll-margin-top:calc(var(--nav-h) + 60px)}
-.dinquiry{max-width:1080px;margin-top:12px}
-.dinq-layout{
-  position:relative;display:grid;grid-template-columns:220px minmax(0,1fr);
-  gap:clamp(24px,3vw,40px);padding:clamp(22px,2.5vw,32px);
-  border:1px solid var(--line-2);background:#fff;overflow:hidden;
-}
-.dinq-layout::after{
-  content:"";position:absolute;top:0;right:0;width:48px;height:48px;
-  background:var(--ink);clip-path:polygon(100% 0,100% 100%,0 0);pointer-events:none;
-}
-.dseller--clean{
-  display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:8px;
-  padding-right:24px;border-right:1px solid var(--line);
-}
-.dseller--clean .dseller__acts{gap:4px 20px}
-.dseller--clean .dseller__acts a{min-height:44px;overflow-wrap:anywhere;max-width:100%}
-.dinq{margin:0;min-width:0}
-.dinq__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:16px}
-.dinq__field{display:grid;min-width:0;gap:7px}
-.dinq__label{font-size:13px;line-height:18px;color:var(--ink-2)}
-.dinq__input{width:100%;min-width:0;min-height:48px;border:1px solid var(--line-2);border-radius:0;background:#fff;color:var(--ink);padding:11px 12px;font:inherit;font-size:16px;-webkit-appearance:none;appearance:none}
-.dinq .dask{font-size:16px;min-height:104px;line-height:1.5}
-.dinq__input:focus,.dinq .dask:focus{outline:2px solid var(--primary);outline-offset:2px;border-color:var(--ink-3)}
-.dinq__actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;margin-top:16px}
-.dinq__actions .btn-primary{min-height:48px;min-width:160px}
-.dinq__status{margin-top:12px;font-size:13px;line-height:20px;color:var(--ink-3)}
-.dinq__status:empty{display:none}
-.dinq__status.is-ok{color:#356340}
-.dinq__status.is-error{color:#8b2f2f}
-.dinq__trap{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-@media(min-width:700px){.dinq__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dinq__field:first-child{grid-column:1 / -1}}
-@media(min-width:1100px){.dinq__grid{grid-template-columns:repeat(3,minmax(0,1fr))}.dinq__field:first-child{grid-column:auto}}
-@media(max-width:799px){
-  .dinq-layout{grid-template-columns:minmax(0,1fr);gap:20px}
-  .dseller--clean{padding:0 0 16px;border-right:0;border-bottom:1px solid var(--line)}
-}
-@media(max-width:599px){
-  .dinq-layout{padding:20px 16px}.dinq-layout::after{width:34px;height:34px}
-  .dinq__actions .btn-primary{flex:1}.dinq__actions{gap:12px}
-}
 
 /* Shared specification icons: fine strokes, no additional image requests. */
 .lc__meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin-top:9px}
 .lc__meta-item{display:flex;align-items:flex-start;gap:7px;line-height:1.45}
 .lc__meta-item::after{display:none!important}
 .spec-icon{width:16px;height:18px;flex:0 0 16px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
-.dspec{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;padding:4px 0}
-.dspec>div,.dspec>div:first-child,.dspec>div:nth-child(2){display:block;padding:12px 0;border-top:1px solid var(--line)}
-.dspec dt{font-size:10px;line-height:1.5;letter-spacing:.07em;margin-bottom:5px}
-.dspec dd{text-align:left;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
-.dsec{padding-block:28px}.dsec__h{margin-bottom:18px}
-.deq{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px;font-size:14px;align-items:start}
-.deq-col{min-width:0}
-.deq-i{grid-template-columns:40px minmax(0,1fr);gap:10px;padding:12px 0;line-height:1.55;break-inside:avoid}
-.deq-sub{padding-inline-start:50px}.deq-c{font-size:10px;color:var(--primary-ink)}
-.dclamp{max-height:310px}.dclamp::after{height:48px}
-@media(max-width:599px){.lc__meta{grid-template-columns:minmax(0,1fr);gap:5px}.lc__meta-item{gap:6px}.spec-icon{width:14px;flex-basis:14px;height:16px}.dspec{gap:0 16px}.dsec{padding-block:24px}.deq{grid-template-columns:minmax(0,1fr)}.deq-i{padding:11px 0}.dclamp{max-height:330px}.dtitle__vat{white-space:normal}}
+@media(max-width:599px){.lc__meta{grid-template-columns:minmax(0,1fr);gap:5px}.lc__meta-item{gap:6px}.spec-icon{width:14px;flex-basis:14px;height:16px}}

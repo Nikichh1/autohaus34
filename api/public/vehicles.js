@@ -18,6 +18,10 @@ function bundledPhotoSet() {
 
 const LOCAL_PHOTOS = bundledPhotoSet();
 const memory = new Map();
+const pending = new Map();
+const FRESH_MS = 30000;
+const MAX_ENTRIES = 250;
+let requestOrder = 0;
 
 async function parse(r) {
   const t = await r.text();
@@ -36,7 +40,11 @@ function publicVehicle(row) {
 function compactVehicle(row) {
   const v = publicVehicle(row);
   // Cards need the cover only. The full gallery belongs to the detail endpoint.
-  delete v.managed_images;
+  // Keep only the cover's responsive variants: dropping them made every
+  // card srcset candidate point at the same full-size remote photograph.
+  v.managed_images = (v.managed_images || []).map((image) => ({
+    original: image.original, variants: image.variants
+  }));
   delete v.description_bg;
   delete v.description_en;
   delete v.equipment_bg;
@@ -45,13 +53,14 @@ function compactVehicle(row) {
   return v;
 }
 
-function send(req, res, status, body, ttl) {
+function send(req, res, status, body) {
   const raw = JSON.stringify(body);
   const etag = '"' + crypto.createHash("sha1").update(raw).digest("base64url") + '"';
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("ETag", etag);
-  res.setHeader("Cache-Control", ttl ? "public, max-age=30, s-maxage=" + ttl + ", stale-while-revalidate=600" : "no-store");
+  const remaining = Math.max(0, Math.floor((Number(body.fresh_until) - Date.now()) / 1000));
+  res.setHeader("Cache-Control", remaining ? "public, max-age=" + remaining + ", s-maxage=" + remaining + ", must-revalidate" : "no-store");
   if (req.headers && req.headers["if-none-match"] === etag) { res.statusCode = 304; return res.end(); }
   res.statusCode = status;
   res.end(raw);
@@ -59,14 +68,52 @@ function send(req, res, status, body, ttl) {
 
 function cached(req, res, key) {
   const hit = memory.get(key);
-  if (!hit || hit.expires < Date.now()) return false;
-  send(req, res, 200, hit.body, hit.ttl);
+  if (!hit) return false;
+  if (hit.body.fresh_until <= Date.now()) { memory.delete(key); return false; }
+  send(req, res, hit.status, hit.body);
   return true;
 }
 
-function remember(key, body, ttl) {
-  memory.set(key, { body, ttl, expires: Date.now() + ttl * 1000 });
+function remember(key, body, started, order, status = 200) {
+  body.fresh_until = started + FRESH_MS;
+  const previous = memory.get(key);
+  // A slower, older request must not replace a post-edit refresh.
+  if (!previous || previous.order < order) {
+    memory.delete(key);
+    memory.set(key, { body, order, status });
+  }
+  while (memory.size > MAX_ENTRIES) memory.delete(memory.keys().next().value);
   return body;
+}
+
+async function inventory(id, cacheKey) {
+  const started = Date.now();
+  const order = ++requestOrder;
+  if (id) {
+    const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,description_bg,description_en,equipment_bg,equipment_en,images,source_url,published,sort_order,updated_at&limit=1", { method: "GET" });
+    const rows = await parse(r);
+    if (!rows.length) {
+      // Remember authoritative absence as well, so an older in-flight result
+      // cannot put an unpublished vehicle back into the cache.
+      return { status: 404, body: remember(cacheKey, { ok: false, authoritative: true, vehicle: null, vehicles: [], error: "Vehicle not found" }, started, order, 404) };
+    }
+    return { status: 200, body: remember(cacheKey, { ok: true, authoritative: true, vehicle: publicVehicle(rows[0]) }, started, order) };
+  }
+
+  const fields = [
+    "id", "slug", "ref", "make", "model", "full_name", "body_type", "colour",
+    "transmission", "fuel", "mileage", "first_registration_year", "first_registration_month",
+    "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "source_url", "sort_order"
+  ].join(",");
+  const r = await db("vehicles?published=eq.true&select=" + fields + "&order=sort_order.asc,updated_at.desc", { method: "GET" });
+  const rows = await parse(r);
+  if (!rows.length) {
+    const stateResponse = await db("inventory_state?select=initialized&singleton=eq.true", { method: "GET" });
+    const state = await parse(stateResponse);
+    if (!state.length || !state[0].initialized) return { status: 200, body: { ok: true, authoritative: false, vehicles: [] } };
+  }
+  const vehicles = rows.map((row) => compactVehicle(Object.assign({}, row, { images: row.cover ? [row.cover] : [] })));
+  return { status: 200, body: remember(cacheKey, { ok: true, authoritative: true, count: vehicles.length, vehicles }, started, order) };
 }
 
 module.exports = async function handler(req, res) {
@@ -75,37 +122,22 @@ module.exports = async function handler(req, res) {
 
   const id = clean((req.query && req.query.id) || "", 180);
   if (id && !/^[a-z0-9-]+$/.test(id)) return json(res, 400, { ok: false, error: "Invalid vehicle ID" });
-  const cacheKey = id || "catalog";
-  if (cached(req, res, cacheKey)) return;
+  const cacheKey = id ? "vehicle:" + id : "catalog";
+  const fresh = clean((req.query && req.query.fresh) || "", 20);
+  const refresh = /^\d{13}$/.test(fresh);
+  if (!refresh && cached(req, res, cacheKey)) return;
+  const requestKey = cacheKey + (refresh ? ":" + fresh : "");
 
   try {
-    if (id) {
-      const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,description_bg,description_en,equipment_bg,equipment_en,images,source_url,published,sort_order,updated_at&limit=1", { method: "GET" });
-      const rows = await parse(r);
-      if (!rows.length) return json(res, 404, { ok: false, error: "Vehicle not found" });
-      const body = remember(cacheKey, { ok: true, authoritative: true, vehicle: publicVehicle(rows[0]) }, 120);
-      return send(req, res, 200, body, 120);
+    if (!pending.has(requestKey)) {
+      const request = inventory(id, cacheKey).finally(() => pending.delete(requestKey));
+      pending.set(requestKey, request);
     }
-
-    const fields = [
-      "id", "slug", "ref", "make", "model", "full_name", "body_type", "colour",
-      "transmission", "fuel", "mileage", "first_registration_year", "first_registration_month",
-      "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "source_url", "sort_order"
-    ].join(",");
-    const r = await db("vehicles?published=eq.true&select=" + fields + "&order=sort_order.asc,updated_at.desc", { method: "GET" });
-    const rows = await parse(r);
-    if (!rows.length) {
-      const stateResponse = await db("inventory_state?select=initialized&singleton=eq.true", { method: "GET" });
-      const state = await parse(stateResponse);
-      if (!state.length || !state[0].initialized) return json(res, 200, { ok: true, authoritative: false, vehicles: [] });
-    }
-    const vehicles = rows.map((row) => compactVehicle(Object.assign({}, row, { images: row.cover ? [row.cover] : [] })));
-    const body = remember(cacheKey, { ok: true, authoritative: true, count: vehicles.length, vehicles }, 60);
-    return send(req, res, 200, body, 60);
+    const result = await pending.get(requestKey);
+    return send(req, res, result.status, result.body);
   } catch (err) {
     console.error("Public inventory API failed", err);
-    const stale = memory.get(cacheKey);
-    if (stale) return send(req, res, 200, stale.body, 30);
+    // Never resurrect an expired published listing after an outage.
     return json(res, 200, { ok: true, authoritative: false, vehicles: [] });
   }
 };

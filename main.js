@@ -1,4 +1,3 @@
-(window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
 /* ============================================================
    AUTOHAUS — v34 · plain JS, no dependencies
 
@@ -192,6 +191,13 @@
     },
     vehicleUrl: function (v) { return "vehicle.html?id=" + encodeURIComponent(v.id); }
   };
+  // Navigation and static interactions never depend on the inventory request.
+  // Data-driven consumers await this same promise after these helpers exist.
+  (window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
+    V = window.AH_VEHICLES || [];
+    V.forEach(function (v) { if (v.chapter === "guard") v.chapter = "chauffeur"; });
+    AH.all = V;
+  });
 
 
   /* ---- SEARCH -------------------------------------------------------------
@@ -896,28 +902,6 @@
       }
     };
 
-    /* ---- which card is framed right now -------------------------------
-       With snapping on below 768 the rail always rests on a card, so the
-       scrubber can report a position rather than a percentage. It reads as
-       "3 of 6" rather than "somewhere along a bar", which is the difference
-       between an indicator and a scrollbar. Derived from the pitch instead of
-       measured, for the same reason as above. */
-    var framed = -1;
-    var markActive = function () {
-      if (innerWidth >= 768 || geo.rest.length < 2) return;
-      /* nearest rest, not scrollLeft/pitch: same reason as the scrubber's,
-         and reading both off geo.rest is what stops the highlighted card
-         and the mark under it from ever disagreeing */
-      var x = wall.scrollLeft, n = 0, best = Infinity;
-      for (var k = 0; k < geo.rest.length; k++) {
-        var d = Math.abs(geo.rest[k] - x);
-        if (d < best) { best = d; n = k; }
-      }
-      if (n === framed) return;
-      framed = n;
-      items0.forEach(function (it, i) { it.classList.toggle("is-framed", i === n); });
-    };
-
     /* ---- the rail's own scroll tween ------------------------------------
        Interruptible: any new tween, and any pointer touching the rail,
        abandons the one in flight rather than fighting it. */
@@ -957,7 +941,7 @@
        — where it would leave the mark frozen at whatever it last said. The
        event alone is what was wrong to begin with. Together the mark is
        written at least once per scroll event and at most once per frame. */
-    var onScroll = function () { sync(); markActive(); };
+    var onScroll = function () { sync(); };
     var raf = 0, seen = -1, still = 0;
     var pump = function () {
       raf = 0;
@@ -1119,14 +1103,14 @@
            put back to exactly here on close, so it can never reveal the wrong
            card as the sheet comes down. */
         if (!wide) railLeft0 = wall.scrollLeft;
-        item.classList.add("is-open");
+        item.classList.add("is-in", "is-open");
         openItem = item;
         if (p) { setPad(p.lead, p.trail); glide(p.target, WALL_DUR); }
         lockScroll(!wide);
         if (anchor) anchor.setAttribute("aria-expanded", "true");
         if (panel) panel.removeAttribute("inert");
         var close = item.querySelector(".wcard-close");
-        if (close) { void item.offsetWidth; close.focus({ preventScroll: true }); }
+        if (close) close.focus({ preventScroll: true });
         settle();
         return;
       }
@@ -1144,14 +1128,20 @@
          the rail put back to railLeft0 in the SAME frame, so what it returns
          to is the card you opened, never its neighbour. */
       if (!wide) {
-        item.classList.add("cw-closing");
-        setTimeout(function () {
+        var finishClose = function () {
           item.classList.remove("is-open", "cw-closing");
           if (openItem === item) openItem = null;
           wall.scrollLeft = railLeft0;
           lockScroll(false);
           if (focusBack && anchor) anchor.focus({ preventScroll: true });
-        }, 200);
+        };
+        /* These paths have no closing animation in CSS, so there is no
+           transition to wait for before restoring the rail and page. */
+        if (reduce || lowPower) finishClose();
+        else {
+          item.classList.add("cw-closing");
+          setTimeout(finishClose, 200);
+        }
         return;
       }
 
@@ -1286,7 +1276,7 @@
      choreography. Any image that errors or is still pending after 6s is
      shown regardless, so nothing can be left invisible.
      ============================================================ */
-  all(".wcard-photo img, .teaser-bg img, .cta-img img").forEach(function (im) {
+  all(".teaser-bg img, .cta-img img").forEach(function (im) {
     im.classList.add("fade-img");
     var done = function () { im.classList.add("is-loaded"); };
     if (im.complete && im.naturalWidth) { done(); return; }
@@ -1305,7 +1295,27 @@
      dragged, so a drag uncovered empty slots that then faded in behind the
      pointer. `data-reveal-kids` lets the same observer drive both patterns. */
   var wallRail = $("wall-scroll");
-  if (wallRail) wallRail.setAttribute("data-reveal-kids", ".wcard-item");
+  if (wallRail) {
+    wallRail.setAttribute("data-reveal-kids", ".wcard-item");
+    /* Warm all five small responsive photographs shortly before the rail
+       arrives, including those horizontally off screen. Image readiness
+       never hides the card or starts an independent overlay transition. */
+    var warmWall = function () {
+      all(".wcard-photo img", wallRail).forEach(function (im) {
+        im.fetchPriority = "low";
+        im.loading = "eager";
+        if (im.decode) im.decode().catch(function () {});
+      });
+    };
+    if ("IntersectionObserver" in window) {
+      var wallWarmObserver = new IntersectionObserver(function (entries) {
+        if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+        wallWarmObserver.disconnect();
+        warmWall();
+      }, { rootMargin: "600px 0px", threshold: 0 });
+      wallWarmObserver.observe(wallRail);
+    } else warmWall();
+  }
 
   /* ---- MASKED LINES ----------------------------------------------------
      The band fading up is the generic half of a reveal; the part that reads
@@ -1341,6 +1351,10 @@
     var kids = el.getAttribute && el.getAttribute("data-reveal-kids");
     if (kids) all(kids, el).forEach(function (c) { c.classList.add("is-in"); });
   };
+  if (wallRail && (coarse || lowPower || innerWidth < 1024)) {
+    show(wallRail);
+    revealables = revealables.filter(function (el) { return el !== wallRail; });
+  }
   if (reduce || !("IntersectionObserver" in window)) {
     revealables.forEach(show);
   } else {
@@ -1917,5 +1931,3 @@
     });
   };
 })();
-
-});
