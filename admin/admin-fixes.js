@@ -1,4 +1,4 @@
-/* Scoped AutoHaus admin fixes: defaults, VAT note control and DELETE request headers. */
+/* Scoped AutoHaus admin fixes: defaults, VAT note control, DELETE headers and menu cleanup. */
 (function () {
   "use strict";
 
@@ -59,6 +59,14 @@
     return originalFetch(input, next);
   };
 
+  function removeSecurityEntry() {
+    var button = document.querySelector('.side__nav [data-route="security"]');
+    if (button) button.remove();
+    if (location.hash.slice(1) === "security" && window.AH_ADMIN && typeof window.AH_ADMIN.go === "function") {
+      window.AH_ADMIN.go("dashboard");
+    }
+  }
+
   function enhanceEditor() {
     var form = currentForm();
     if (!form || form.dataset.ahScopedFixes === "1") return;
@@ -107,8 +115,14 @@
     wrapper.appendChild(check);
   }
 
-  var observer = new MutationObserver(function () { enhanceEditor(); });
+  function refreshScopedFixes() {
+    removeSecurityEntry();
+    enhanceEditor();
+  }
+
+  var observer = new MutationObserver(refreshScopedFixes);
   observer.observe(document.documentElement, { childList: true, subtree: true });
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", enhanceEditor);
-  else enhanceEditor();
+  window.addEventListener("hashchange", removeSecurityEntry);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", refreshScopedFixes);
+  else refreshScopedFixes();
 })();
