@@ -96,11 +96,14 @@
     wrapper.className = "ah-price-vat";
     wrapper.style.display = "grid";
     wrapper.style.gap = "8px";
+    wrapper.style.alignSelf = "start";
+    wrapper.style.minWidth = "0";
     priceLabel.parentNode.insertBefore(wrapper, priceLabel);
     wrapper.appendChild(priceLabel);
 
     var check = document.createElement("label");
     check.className = "check";
+    check.style.alignSelf = "start";
     var input = document.createElement("input");
     input.type = "checkbox";
     input.name = "show_price_without_vat";
@@ -113,6 +116,11 @@
     check.appendChild(input);
     check.appendChild(text);
     wrapper.appendChild(check);
+
+    // The VAT control makes the left grid cell taller. Prevent its paired field
+    // (normally mileage) from stretching vertically to that taller row.
+    var pairedField = wrapper.nextElementSibling;
+    if (pairedField && pairedField.classList.contains("field")) pairedField.style.alignSelf = "start";
   }
 
   function refreshScopedFixes() {
