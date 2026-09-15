@@ -894,7 +894,7 @@
 .cpag__more{
   position:relative;isolation:isolate;overflow:hidden;
   width:min(460px,100%);min-height:60px;
-  display:inline-flex;align-items:center;justify-content:center;gap:18px;
+  display:inline-flex;align-items:center;justify-content:center;gap:0;
   padding:0 28px;
   background:transparent;border:1px solid var(--line-2,var(--line-d));color:var(--white);
   font-family:inherit;font-size:14px;line-height:24px;font-weight:600;
@@ -916,6 +916,7 @@
 .cpag__more:active{transition-duration:0s}
 .cpag__more:active::after{transition-duration:0s}
 .cpag__more .cpag__arr{
+  position:absolute;right:28px;top:50%;transform:translateY(-50%);
   width:30px;height:8px;flex:none;stroke:currentColor;stroke-width:1.4;fill:none;
   stroke-dasharray:34;stroke-dashoffset:34;
   transition:stroke-dashoffset var(--t-move) var(--e-mass) .06s;

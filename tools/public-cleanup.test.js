@@ -59,3 +59,9 @@ test("wide hero CTA is anchored at the right inset, not centred in a spare colum
   assert.doesNotMatch(css, /\.btn-group--stage\{[^}]*flex:1 0 33\.3333%/);
   assert.doesNotMatch(css, /\.btn-group--stage\{flex-direction:row;justify-content:center;padding-inline-start:32px\}/);
 });
+
+test("view-all label remains centered when its hover arrow is hidden", () => {
+  const css = fs.readFileSync(path.join(__dirname, "../catalog.css"), "utf8");
+  assert.match(css, /\.cpag__more\{[\s\S]*?gap:0;/);
+  assert.match(css, /\.cpag__more \.cpag__arr\{[\s\S]*?position:absolute;right:28px/);
+});
