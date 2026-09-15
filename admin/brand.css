@@ -182,11 +182,15 @@ textarea{min-height:106px}
 .more-details>summary{font-size:12px;letter-spacing:.035em}
 .review-alert{border-radius:0;background:#f2f2ef;border-color:#c7c8c5;color:#222}
 .processor-source{padding-bottom:24px;border-bottom:1px solid var(--line)}
+.processor-source>summary{cursor:pointer;font-size:15px;font-weight:500;line-height:1.5;padding:4px 0}
+.processor-source>summary:focus-visible{outline:2px solid #111;outline-offset:5px}
+.processor-source>.field-hint{max-width:70ch;margin:14px 0 18px;line-height:1.6}
+.processor-source:not([open]){padding-bottom:18px}
 .processor-source>.field{margin-bottom:12px}
+.processor-source .process-button{max-width:100%;white-space:normal;line-height:1.5}
 .processor-source .processor-note{margin:12px 0 0;max-width:65ch}
 .processor-results{padding-top:24px;min-width:0}
 .workflow-heading{display:flex;align-items:baseline;gap:12px;margin:0 0 16px;font-size:17px;font-weight:500;line-height:1.4}
-.workflow-heading>span{font-size:11px;letter-spacing:.08em;color:var(--muted);font-variant-numeric:tabular-nums}
 .processor-results>.field-hint{margin:0 0 16px;font-size:13px}
 .review-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:18px}
 .review-tabs>[role=tab]{background:transparent;color:var(--muted);border:0;border-bottom:2px solid transparent;padding:12px 18px;min-height:44px;font-size:13px}

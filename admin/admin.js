@@ -6,10 +6,10 @@
   var draftKey = "autohaus-admin-draft:" + (D.body.dataset.adminUser || "admin");
   var state = { vehicles: [], current: null, route: "", dirty: false, saved: false,
     saveBusy: false, uploadBusy: false, aiBusy: false, search: "", filter: "all", removed: [], failedFiles: [], canImport: false, aiNeedsReview: false, reviewNotes: [] };
-  var dragIndex = null, draftTimer, searchFrame;
+  var imageSorter = null, draftTimer, searchFrame;
   var detailCache = new Map(), detailRequests = new Map(), detailVersions = new Map();
   var role = D.body.dataset.adminRole || "viewer";
-  window.AH_ADMIN = { go: go, t: t, canLeave: canLeave, canWrite: role !== "viewer", canManage: ["owner", "admin"].includes(role), reloadVehicle: function(id) { state.dirty = false; clearDraft(); invalidateDetail(id); inventoryChanged(); history.replaceState(null, "", "#edit=" + encodeURIComponent(id)); renderRoute(requestedRoute()); closeMenu(); } };
+  window.AH_ADMIN = { go: go, t: t, canLeave: canLeave, canWrite: role !== "viewer", canManage: ["owner", "admin"].includes(role) };
   function inventoryChanged() { writeStorage("localStorage", "autohaus-inventory-changed", String(Date.now())); }
   function invalidateDetail(id) {
     detailCache.delete(id); detailRequests.delete(id);
@@ -38,7 +38,6 @@
   function clone(v) { return JSON.parse(JSON.stringify(v)); }
   function lines(v) { return (Array.isArray(v) ? v : []).join("\n"); }
   function splitLines(v) { return String(v || "").split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean); }
-  function splitTags(v) { return String(v || "").split(/[\n,]+/).map(function (s) { return s.trim(); }).filter(Boolean); }
   function slugify(v) { return String(v || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 180); }
   function readStorage(storage, key) { try { return window[storage].getItem(key); } catch (_) { return null; } }
   function writeStorage(storage, key, v) { try { if (v == null) window[storage].removeItem(key); else window[storage].setItem(key, v); } catch (_) {} }
@@ -98,6 +97,7 @@
   }
   function updateSaveState() {
     var busy = isBusy(), save = D.getElementById("save-car"), publish = D.getElementById("publish-car");
+    if (busy && imageSorter) imageSorter.cancel();
     var text = state.saveBusy ? t("Записване…", "Saving…") : state.uploadBusy ? t("Качване на снимки…", "Uploading photos…") :
       state.aiBusy ? t("Обработване…", "Processing…") : state.dirty ? t("Незаписани промени", "Unsaved changes") :
       state.saved ? t("Записано", "Saved") : state.current && !state.current.id ? t("Нова чернова", "New draft") : t("Всички промени са записани", "All changes saved");
@@ -109,7 +109,10 @@
       var button = D.getElementById(id); if (button) button.disabled = busy;
     });
     var fields = D.getElementById("editor-fields");
-    if (fields) fields.disabled = !!state.saveBusy;
+    if (fields) fields.disabled = !!state.saveBusy || role === "viewer";
+    view.querySelectorAll(".image-actions button,.cover-button").forEach(function (button) {
+      button.disabled = busy || role === "viewer" || (button.classList.contains("image-drag-handle") && (state.current.images || []).length < 2);
+    });
     var form = D.getElementById("car-form");
     if (form) form.setAttribute("aria-busy", busy ? "true" : "false");
   }
@@ -247,6 +250,7 @@
     }).join("") + '</select></label>';
   }
   function editor(v, isNew, recovered) {
+    destroyImageSorter();
     state.current = clone(v); state.dirty = !!recovered; state.saved = false; state.removed = recovered ? recovered.removed || [] : []; state.failedFiles = [];
     D.body.classList.add("is-editing"); markNav(isNew ? "new" : state.route);
     var car = state.current; state.reviewNotes = car.description_review_notes || []; state.aiNeedsReview = !!(recovered && recovered.needsReview);
@@ -266,7 +270,7 @@
       t("+ Добави снимки", "+ Add photos") + '</button><button type="button" class="secondary" id="take-photo">' + t("Камера", "Camera") + '</button></div>' +
       '<p>' + t("Изберете няколко снимки. Първата е главна.", "Select multiple photos. The first is the cover.") +
       '</p><div class="upload-status" id="upload-status" role="status"></div><button type="button" class="secondary" id="retry-images" hidden>' + t("Опитай неуспешните отново", "Retry failed photos") +
-      '</button></div><div class="image-grid" id="image-list"></div></section>' +
+      '</button></div><p class="field-hint" id="photo-order-hint">' + t("Подредете снимките чрез влачене на дръжката. Първата е главна. Запишете автомобила, за да запазите реда.", "Drag the handle to reorder photos. The first is the cover. Save the car to keep the new order.") + '</p><div class="image-grid" id="image-list" aria-describedby="photo-order-hint"></div></section>' +
       '<section class="card"><h2>' + t("Характеристики", "Specifications") + '</h2><div class="field-grid">' +
       select(t("Купе", "Body type"), "body_type", car.body_type, [["", t("Изберете", "Select")], ["suv", "SUV"], ["passenger", t("Лек автомобил", "Passenger car")], ["sedan", t("Седан", "Saloon")], ["wagon", t("Комби", "Estate")], ["coupe", t("Купе", "Coupe")], ["cabrio", t("Кабрио", "Convertible")], ["van", t("Ван", "Van")], ["pickup", t("Пикап", "Pickup")]]) +
       field(t("Цвят", "Colour"), "colour", car.colour, "text", "maxlength=120") +
@@ -277,13 +281,14 @@
       field(t("Първа регистрация — година", "First registration — year"), "first_registration_year", car.first_registration_year, "number", "min=1900 max=2100 step=1") +
       select(t("Месец", "Month"), "first_registration_month", String(car.first_registration_month || ""), [["", "—"]].concat(Array.from({ length: 12 }, function (_, i) { return [String(i + 1), String(i + 1).padStart(2, "0")]; }))) +
       '</div></section><section class="card" id="description"><h2>' + t("Описание и оборудване", "Description and equipment") + '</h2><div class="processor">' +
-      '<div class="processor-source"><h3 class="workflow-heading"><span>01</span>' + t("Поставете веднъж", "Paste once") + '</h3>' +
-      '<label class="field"><span>' + t("Оригинален текст · само за екипа", "Original text · team only") + '</span><textarea id="source-text" maxlength="30000" rows="4" placeholder="' +
-      t("Поставете описание или списък с оборудване…", "Paste a description or equipment list…") + '">' + esc(recovered ? recovered.source : car.description_source || "") + '</textarea></label>' +
-      '<button type="button" class="primary process-button" id="process-description">' + t("Обработи BG + EN", "Process BG + EN") + '</button>' +
-      '<p id="processor-note" class="processor-note" role="status">' + t("От този текст се подготвят двата езика. Нищо не се публикува автоматично.", "Both languages are prepared from this text. Nothing is published automatically.") + '</p></div>' +
-      '<div class="processor-results"><h3 class="workflow-heading"><span>02</span>' + t("Прегледайте и запишете", "Review and save") + '</h3>' +
-      '<p class="field-hint">' + t("Текст за сайта — можете да го редактирате и ръчно.", "Website content — you can also edit it manually.") + '</p>' +
+      '<details class="processor-source" id="description-generator"' + (!(car.description_bg || car.description_en || (car.equipment_bg || []).length || (car.equipment_en || []).length) ? ' open' : '') + '><summary>' + t("Генериране от поставен текст (по избор)", "Generate from pasted text (optional)") + '</summary>' +
+      '<p class="field-hint" id="source-help">' + t("Поставете описанието и оборудването заедно в полето по-долу. AI ще ги раздели и преведе на български и английски. Този изходен текст не се показва на сайта.", "Paste the description and equipment together below. AI will separate them and translate them into Bulgarian and English. This source text is not shown on the website.") + '</p>' +
+      '<label class="field"><span>' + t("Поставете оригиналното описание и оборудване тук", "Paste the original description and equipment here") + '</span><textarea id="source-text" aria-describedby="source-help" maxlength="30000" rows="5" placeholder="' +
+      t("Напр. сервизна история, състояние, списък с оборудване…", "For example: service history, condition, equipment list…") + '">' + esc(recovered ? recovered.source : car.description_source || "") + '</textarea></label>' +
+      '<button type="button" class="primary process-button" id="process-description">' + t("Генерирай описание и оборудване BG + EN", "Generate description and equipment BG + EN") + '</button>' +
+      '<p id="processor-note" class="processor-note" role="status">' + t("Резултатът ще попълни полетата за сайта по-долу. Прегледайте двата езика преди запис. Нищо не се записва или публикува автоматично.", "The result fills the website fields below. Review both languages before saving. Nothing is saved or published automatically.") + '</p></details>' +
+      '<div class="processor-results"><h3 class="workflow-heading">' + t("Описание и оборудване за сайта", "Website description and equipment") + '</h3>' +
+      '<p class="field-hint">' + t("Това е съдържанието на обявата. Редактирайте го директно или използвайте генерирането по-горе. Проверете BG и EN, след което натиснете бутона за запис на автомобила.", "This is the listing content. Edit it directly or use the generator above. Check BG and EN, then use the car’s Save button.") + '</p>' +
       '<div class="review-tabs" role="tablist" aria-label="' + t("Език на резултата", "Result language") + '">' +
       '<button type="button" role="tab" id="review-tab-bg" data-review-language="bg" aria-controls="review-bg" aria-selected="true">Български</button>' +
       '<button type="button" role="tab" id="review-tab-en" data-review-language="en" aria-controls="review-en" aria-selected="false" tabindex="-1">English</button></div>' +
@@ -296,10 +301,7 @@
       field(t("Пълно име", "Display name"), "full_name", car.full_name, "text", "maxlength=320") +
       field(t("Референция", "Reference"), "ref", car.ref, "text", "maxlength=80") +
       field(t("Адрес на страницата", "Page address"), "slug", car.slug, "text", "maxlength=180 autocapitalize=none spellcheck=false") +
-      select(t("Раздел", "Category"), "chapter", car.chapter, [["saloon", t("Селекция", "Selection")], ["chauffeur", t("Представителен", "Executive")], ["performance", "Performance"], ["utility", t("Терен", "Utility")], ["electrified", t("Електрифицирани", "Electrified")], ["classic", t("Класика", "Classic")]]) +
-      field(t("Тагове · разделени със запетая", "Tags · comma separated"), "tags", (car.tags || []).join(", "), "text") +
-      '<label class="field"><span>' + t("Бележки · по една на ред", "Notes · one per line") + '</span><textarea name="notes" rows="3">' + esc(lines(car.notes)) + '</textarea></label>' +
-      field(t("Оригинален URL", "Source URL"), "source_url", car.source_url, "url", "maxlength=1200") + '</div></details>' +
+      '<label class="field"><span>' + t("Бележки · по една на ред", "Notes · one per line") + '</span><textarea name="notes" rows="3">' + esc(lines(car.notes)) + '</textarea></label></div></details>' +
       '<section class="card manage-card"><h2>' + t("Управление", "Manage") + '</h2><div class="manage-actions">' +
       (!isNew && car.slug ? '<a class="secondary" href="/vehicle.html?id=' + encodeURIComponent(car.slug) + '" target="_blank" rel="noopener">' + t("Виж страницата ↗", "View page ↗") + '</a>' : "") +
       (car.published ? '<button type="button" class="secondary" id="unpublish-car">' + t("Свали от сайта", "Unpublish") + '</button>' : "") +
@@ -320,11 +322,12 @@
       slug: value("slug") || slugify(make + " " + model), ref: value("ref"), body_type: value("body_type"), colour: value("colour"),
       transmission: value("transmission"), fuel: value("fuel"), mileage: number("mileage"), horsepower: number("horsepower"), price: number("price"),
       first_registration_year: unregistered ? null : number("first_registration_year"), first_registration_month: unregistered ? null : number("first_registration_month"),
-      unregistered: unregistered, chapter: value("chapter"), tags: splitTags(value("tags")), notes: splitLines(value("notes")),
+      // Legacy catalog metadata is no longer edited here; keep it intact on save.
+      unregistered: unregistered, chapter: state.current.chapter || "saloon", tags: clone(state.current.tags || []), notes: splitLines(value("notes")),
       description_source: D.getElementById("source-text").value, description_review_notes: state.reviewNotes.slice(),
       description_bg: D.getElementById("desc-bg").value.trim(), description_en: D.getElementById("desc-en").value.trim(),
       equipment_bg: splitLines(D.getElementById("equipment-bg").value), equipment_en: splitLines(D.getElementById("equipment-en").value),
-      images: clone(state.current.images || []), source_url: value("source_url"), published: !!state.current.published };
+      images: clone(state.current.images || []), source_url: state.current.source_url || "", published: !!state.current.published };
   }
   function validateCar(data) {
     var form = D.getElementById("car-form"), invalid = [];
@@ -385,31 +388,34 @@
       go("cars"); toast(t("Автомобилът е изтрит", "Car deleted"));
     } catch (error) { toast(error.message, true); state.saveBusy = false; updateSaveState(); }
   }
+  function destroyImageSorter() { if (imageSorter) { imageSorter.destroy(); imageSorter = null; } }
   function renderImages(focusIndex) {
+    destroyImageSorter();
     var images = state.current.images || [], list = D.getElementById("image-list");
     D.getElementById("image-count").textContent = images.length + " / 80";
     list.innerHTML = images.map(function (img, i) {
       var label = t("Снимка ", "Photo ") + (i + 1);
-      return '<article class="image-card" draggable="true" data-image-index="' + i + '"><img src="' + esc(imageUrl(img)) + '" alt="' + label +
+      return '<article class="image-card" data-image-index="' + i + '"><img src="' + esc(imageUrl(img)) + '" alt="' + label +
         '" loading="lazy" decoding="async" draggable="false"><div class="image-heading"><span>' + (i === 0 ? t("Главна снимка", "Cover photo") : label) +
         '</span>' + (i ? '<button type="button" class="cover-button" data-img-cover="' + i + '" aria-label="' + esc(t("Направи главна снимка ", "Make cover photo ") + (i + 1)) + '">' + t("Главна", "Set cover") + '</button>' : "") +
-        '</div><div class="image-actions"><button type="button" data-img-left="' + i + '" aria-label="' + esc(t("Премести по-напред снимка ", "Move photo earlier ") + (i + 1)) + '"' + (i === 0 ? " disabled" : "") +
-        '>←</button><button type="button" data-img-right="' + i + '" aria-label="' + esc(t("Премести по-назад снимка ", "Move photo later ") + (i + 1)) + '"' + (i === images.length - 1 ? " disabled" : "") +
-        '>→</button><button type="button" class="image-remove" data-img-remove="' + i + '" aria-label="' + esc(t("Премахни снимка ", "Remove photo ") + (i + 1)) + '">×</button></div></article>';
+        '</div><div class="image-actions"><button type="button" class="image-drag-handle" data-img-drag="' + i + '" aria-label="' + esc(t("Подреди снимка ", "Reorder photo ") + (i + 1)) + '"' + (images.length < 2 ? ' disabled' : '') + '><span aria-hidden="true">⠿</span> ' + t("Премести", "Move") + '</button><button type="button" class="image-remove" data-img-remove="' + i + '" aria-label="' + esc(t("Премахни снимка ", "Remove photo ") + (i + 1)) + '">×</button></div></article>';
     }).join("");
-    list.querySelectorAll("[data-img-left]").forEach(function (button) { button.onclick = function () { moveImage(Number(button.dataset.imgLeft), Number(button.dataset.imgLeft) - 1); }; });
-    list.querySelectorAll("[data-img-right]").forEach(function (button) { button.onclick = function () { moveImage(Number(button.dataset.imgRight), Number(button.dataset.imgRight) + 1); }; });
     list.querySelectorAll("[data-img-cover]").forEach(function (button) { button.onclick = function () { moveImage(Number(button.dataset.imgCover), 0); }; });
     list.querySelectorAll("[data-img-remove]").forEach(function (button) { button.onclick = function () {
       var index = Number(button.dataset.imgRemove);
-      if (!confirm(t("Да премахнем тази снимка?", "Remove this photo?"))) return;
+      if (isBusy() || role === "viewer" || !confirm(t("Да премахнем тази снимка?", "Remove this photo?"))) return;
       state.removed.push(state.current.images.splice(index, 1)[0]); reindexImages(); setDirty(); renderImages(Math.min(index, state.current.images.length - 1));
     }; });
-    list.querySelectorAll(".image-card").forEach(function (card) {
-      card.ondragstart = function (e) { dragIndex = Number(card.dataset.imageIndex); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(dragIndex)); card.classList.add("is-dragging"); };
-      card.ondragend = function () { dragIndex = null; card.classList.remove("is-dragging"); };
-      card.ondragover = function (e) { if (dragIndex != null) e.preventDefault(); };
-      card.ondrop = function (e) { if (dragIndex == null) return; e.preventDefault(); moveImage(dragIndex, Number(card.dataset.imageIndex)); dragIndex = null; };
+    if (window.AH_IMAGE_SORTER) imageSorter = window.AH_IMAGE_SORTER.attach(list, {
+      onMove: moveImage,
+      isDisabled: function () { return isBusy() || role === "viewer"; },
+      labels: {
+        instructions: t("Влачете дръжката, за да преместите снимката. С клавиатура: Интервал за избор, стрелки за преместване, Enter за потвърждение и Escape за отказ.", "Drag the handle to move a photo. Keyboard: Space to pick up, arrows to move, Enter to drop, Escape to cancel."),
+        picked: function (position, count) { return t("Избрана снимка ", "Picked up photo ") + position + t(" от ", " of ") + count; },
+        moved: function (position, count) { return t("Позиция ", "Position ") + position + t(" от ", " of ") + count; },
+        dropped: function (position, count) { return t("Снимката е на позиция ", "Photo dropped at position ") + position + t(" от ", " of ") + count; },
+        cancelled: t("Преместването е отменено.", "Reordering cancelled.")
+      }
     });
     if (typeof focusIndex === "number" && focusIndex >= 0) {
       var focused = list.querySelector('[data-image-index="' + focusIndex + '"] .image-actions button:not(:disabled)'); if (focused) focused.focus({ preventScroll: true });
@@ -418,7 +424,7 @@
   function reindexImages() { state.current.images.forEach(function (img, i) { img.position = i; }); }
   function moveImage(from, to) {
     var images = state.current.images;
-    if (from < 0 || to < 0 || from >= images.length || to >= images.length || from === to) return;
+    if (isBusy() || role === "viewer" || !Number.isInteger(from) || !Number.isInteger(to) || from < 0 || to < 0 || from >= images.length || to >= images.length || from === to) return;
     images.splice(to, 0, images.splice(from, 1)[0]); reindexImages(); setDirty(); renderImages(to);
     toast(t("Редът на снимките е променен", "Photo order updated"));
   }
@@ -496,7 +502,7 @@
   async function processDescription() {
     if (isBusy()) return;
     var source = D.getElementById("source-text"), note = D.getElementById("processor-note");
-    if (source.value.trim().length < 10) { source.focus(); toast(t("Поставете текст за обработка.", "Paste a listing to process."), true); return; }
+    if (source.value.trim().length < 10) { D.getElementById("description-generator").open = true; source.focus(); toast(t("Поставете текст за обработка.", "Paste a listing to process."), true); return; }
     if ([D.getElementById("desc-bg"), D.getElementById("desc-en"), D.getElementById("equipment-bg"), D.getElementById("equipment-en")].some(function (el) { return el.value.trim(); }) &&
       !confirm(t("Обработката ще замени описанието и оборудването. Да продължим?", "Processing will replace the description and equipment. Continue?"))) return;
     state.aiBusy = true; updateSaveState(); note.classList.remove("is-error"); note.textContent = t("Обработване и превод…", "Processing and translating…");
@@ -511,7 +517,9 @@
       D.getElementById("equipment-bg").value = lines(result.equipment_bg); D.getElementById("equipment-en").value = lines(result.equipment_en);
       state.reviewNotes = result.review_notes || []; state.aiNeedsReview = true; renderReview(result); showReviewConfirmation();
       selectReviewLanguage(lang);
-      note.textContent = t("Готово. Сравнете с оригинала и запишете.", "Ready. Compare with the original, then save."); setDirty();
+      note.textContent = t("Готово. Резултатът е в полетата за сайта по-долу. Проверете двата езика, потвърдете фактите и запишете автомобила.", "Ready. The result is in the website fields below. Check both languages, confirm the facts and save the car."); setDirty();
+      D.getElementById("review-tab-" + lang).focus({ preventScroll: true });
+      D.getElementById("review-tab-" + lang).scrollIntoView({ block: "center", behavior: "auto" });
     } catch (error) {
       note.textContent = (error.code === "AI_FREE_QUOTA" ? t("Безплатният AI лимит е достигнат.", "The free AI quota has been reached.") : error.message) + " " +
         t("Текстът е запазен. Опитайте по-късно или редактирайте BG и EN ръчно.", "Your text is preserved. Retry later or edit BG and EN manually.");
@@ -583,7 +591,7 @@
     ["dragleave", "drop"].forEach(function (name) { dropzone.addEventListener(name, function (event) { event.preventDefault(); dropzone.classList.remove("is-drag"); }); });
     dropzone.ondrop = function (event) { event.preventDefault(); uploadFiles(event.dataTransfer.files); };
     view.querySelectorAll("[data-scroll]").forEach(function (link) { link.onclick = function (event) { event.preventDefault(); D.getElementById(link.dataset.scroll).scrollIntoView({ behavior: "smooth", block: "start" }); }; });
-    syncRegistration(); bindCommon(); if (window.AH_ADMIN.enhanceEditor) window.AH_ADMIN.enhanceEditor(); applyRole();
+    syncRegistration(); bindCommon(); applyRole();
   }
   function syncRegistration() {
     var form = D.getElementById("car-form"), disabled = form.elements.unregistered.checked;
@@ -610,7 +618,7 @@
   }
   function applyRole() {
     D.querySelectorAll('[data-route="new"],[data-go="new"],[data-quick-publish]').forEach(function (el) { el.hidden = role === "viewer"; });
-    ["save-car", "publish-car", "unpublish-car", "choose-images", "take-photo", "process-description", "ah-quick-import-btn", "delete-car"].forEach(function(id) { var el = D.getElementById(id); if (el) el.hidden = role === "viewer" || (id === "delete-car" && role === "editor") || (id === "ah-quick-import-btn" && !window.AH_ADMIN.canManage); });
+    ["save-car", "publish-car", "unpublish-car", "choose-images", "take-photo", "process-description", "delete-car"].forEach(function(id) { var el = D.getElementById(id); if (el) el.hidden = role === "viewer" || (id === "delete-car" && role === "editor"); });
     var fields = D.getElementById("editor-fields"); if (fields && role === "viewer") fields.disabled = true;
   }
   function bindCommon() {
@@ -619,6 +627,7 @@
     bindCards();
   }
   async function renderRoute(route) {
+    destroyImageSorter();
     state.route = route || requestedRoute(); D.body.classList.remove("is-editing"); state.current = null; markNav(state.route);
     if (state.route === "dashboard") return dashboard();
     if (state.route === "cars") return cars();

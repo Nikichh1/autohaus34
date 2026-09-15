@@ -167,7 +167,7 @@ test("a late prefetched detail cannot overwrite a successfully saved or unpublis
   assert.equal(h.calls.length, 1);
 });
 
-test("import invalidation starts a new detail request even when an older one is pending", async () => {
+test("explicit invalidation starts a new detail request even when an older one is pending", async () => {
   const old = deferred(), fresh = deferred();
   let requests = 0;
   const h = harness({ fetch: () => ++requests === 1 ? old.promise : fresh.promise });

@@ -563,6 +563,15 @@
   var lb = D.getElementById("lb"), lbImg = D.getElementById("lb-img");
   var lbStage = D.getElementById("lb-stage"), lbCount = D.getElementById("lb-count");
   var shot = 0, opener = null, lockY = 0;
+  function fitLightboxMargins() {
+    var box = lbImg.getBoundingClientRect();
+    lbImg.style.clipPath = window.AH_PHOTO_INSETS && lbImg.complete
+      ? window.AH_PHOTO_INSETS.clip(lbImg.currentSrc || lbImg.src, lbImg.naturalWidth, lbImg.naturalHeight, box.width, box.height, location.origin) : "";
+  }
+  lbImg.addEventListener("load", fitLightboxMargins);
+  lbImg.addEventListener("error", function () { lbImg.style.clipPath = ""; });
+  if (window.ResizeObserver) new ResizeObserver(fitLightboxMargins).observe(lbImg);
+  else window.addEventListener("resize", fitLightboxMargins);
 
   /* `body.style.overflow = "hidden"` looked like a scroll lock and was in fact
      a scroll RESET. When <html> is `overflow:visible` the BODY's overflow is
@@ -589,7 +598,9 @@
     if (!N) return;
     shot = (n + N) % N;
     if (from) opener = from;
+    lbImg.style.clipPath = "";
     lbImg.src = AH.img(shots[shot], 1280);
+    fitLightboxMargins();
     lbImg.alt = v.model + " — кадър " + (shot + 1);
     if (lbCount) lbCount.textContent = (shot + 1) + " / " + N;
     lb.classList.add("open");

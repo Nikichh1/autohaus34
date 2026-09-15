@@ -83,4 +83,5 @@ server.on('request',async(req,res)=>{
  base(req,res);
  }catch(error){if(!res.headersSent)return send(res,400,{ok:false,error:error.message});res.end();}
 });
-server.listen(3011,'127.0.0.1',()=>console.log('Isolated UI test fixture: http://127.0.0.1:3011/admin'));
+const port=Number(process.env.PORT || 3011);
+server.listen(port,'127.0.0.1',()=>console.log('Isolated UI test fixture: http://127.0.0.1:'+port+'/admin'));

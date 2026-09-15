@@ -1,0 +1,14 @@
+/* Sorting is handle-only so the photo grid remains normally scrollable on touch. */
+.image-actions{grid-template-columns:minmax(0,1fr) 44px}
+.image-actions .image-drag-handle{font-size:13px}
+.image-actions .image-drag-handle{display:inline-flex;align-items:center;justify-content:center;gap:7px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;min-height:44px;flex:1}
+.image-drag-handle svg{width:16px;height:20px;flex-shrink:0;pointer-events:none}
+.image-drag-handle:disabled{cursor:not-allowed}
+.image-grid.is-sorting{user-select:none;-webkit-user-select:none}
+.image-grid.is-sorting .image-card{transition:none}
+.image-grid .image-card.is-sort-active{outline:2px solid #9d7e40;outline-offset:2px;border-color:#9d7e40;background:#f5f0e5}
+.image-card.is-sort-active>img{opacity:.45}
+.image-card.is-sort-active .image-drag-handle{cursor:grabbing;background:#111;color:#fff}
+.image-card.is-sort-ghost{position:fixed!important;z-index:80;pointer-events:none!important;margin:0;opacity:.94;box-shadow:0 12px 28px #0003;outline:2px solid #9d7e40;overflow:hidden}
+.image-card.is-sort-ghost .image-drag-handle{cursor:grabbing;background:#111;color:#fff}
+.image-sort-announcement{margin:0}
