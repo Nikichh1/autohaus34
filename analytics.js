@@ -21,23 +21,23 @@
     if(document.getElementById("ah-consent")||consent())return;
     style();
     var b=document.createElement("div");b.id="ah-consent";b.className="ah-consent";b.innerHTML='<div class="ah-consent__text"><div class="ah-consent__title">Поверителност</div><div>Използваме само анонимна статистика за посещения и интерес към автомобилите, за да подобряваме сайта. Не събираме пароли, съобщения или имейл адреси чрез този анализ.</div></div><div class="ah-consent__actions"><button type="button" data-consent="yes">Приемам</button><button type="button" data-consent="no">Не</button></div>';
-    b.addEventListener("click",function(e){var btn=e.target.closest("button[data-consent]");if(!btn)return;set(KEY,btn.dataset.consent);b.remove();if(btn.dataset.consent==="yes")start();});
-    function translate(){b.querySelector('.ah-consent__title').textContent=t('Поверителност','Privacy');b.querySelector('.ah-consent__text>div:last-child').textContent=t('С Ваше съгласие използваме статистика за посещенията и интереса към автомобилите.','With your consent, we measure visits and interest in our vehicles.');b.querySelector('[data-consent="yes"]').textContent=t('Приемам','Accept');b.querySelector('[data-consent="no"]').textContent=t('Отказ','Decline');}
+    b.addEventListener("click",function(e){var btn=e.target.closest("button[data-consent]");if(!btn)return;set(KEY,btn.dataset.consent);b.remove();});
+    function translate(){b.querySelector('.ah-consent__title').textContent=t('Поверителност','Privacy');b.querySelector('.ah-consent__text>div:last-child').textContent=t('С Ваше съгласие използваме постоянни анонимни идентификатори за сесии и посетители. Основните посещения се броят без такъв идентификатор.','With your consent, we use persistent anonymous identifiers for sessions and visitors. Basic page views are counted without such an identifier.');b.querySelector('[data-consent="yes"]').textContent=t('Приемам','Accept');b.querySelector('[data-consent="no"]').textContent=t('Отказ','Decline');}
     translate();window.addEventListener('ah:languagechange',translate);document.body.appendChild(b);
   }
-  function payload(eventName){
-    var session=get(SESSION_KEY)||id(),visitor=get(VISITOR_KEY)||id();set(SESSION_KEY,session);set(VISITOR_KEY,visitor);
+  function payload(eventName,identified){
+    var session="",visitor="";
+    if(identified){session=get(SESSION_KEY)||id();visitor=get(VISITOR_KEY)||id();set(SESSION_KEY,session);set(VISITOR_KEY,visitor);}
     var params=new URLSearchParams(location.search);
     var slug=params.get("id")||"";
-    return {event_name:eventName,path:location.pathname+(/\/vehicle\.html$/i.test(location.pathname)&&/^[a-z0-9-]+$/.test(slug)?"?id="+slug:""),vehicle_slug:/\/vehicle\.html$/i.test(location.pathname)?slug:"",session_id:session,visitor_id:visitor,referrer:(function(){try{return new URL(document.referrer).origin;}catch(_){return "";}})(),device:innerWidth<700?"mobile":innerWidth<1100?"tablet":"desktop",country:"",language:(document.documentElement.lang||navigator.language||"").slice(0,20)};
+    return {event_name:eventName,path:location.pathname+(/\/vehicle\.html$/i.test(location.pathname)&&/^[a-z0-9-]+$/.test(slug)?"?id="+slug:""),vehicle_slug:/\/vehicle\.html$/i.test(location.pathname)?slug:"",session_id:session||null,visitor_id:visitor||null,referrer:identified?(function(){try{return new URL(document.referrer).origin;}catch(_){return "";}})():"",device:innerWidth<700?"mobile":innerWidth<1100?"tablet":"desktop",country:"",language:(document.documentElement.lang||navigator.language||"").slice(0,20)};
   }
-  function send(eventName){
-    if(consent()!=="yes")return;
-    var body=JSON.stringify(payload(eventName));
+  function send(eventName,identified){
+    var body=JSON.stringify(payload(eventName,identified));
     if(navigator.sendBeacon){try{var blob=new Blob([body],{type:"application/json"});if(navigator.sendBeacon(ENDPOINT,blob))return;}catch(_) {}}
     fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:body,keepalive:true}).catch(function(){});
   }
-  function start(){send("page_view");if(/\/vehicle\.html$/i.test(location.pathname)&&new URLSearchParams(location.search).get("id"))send("vehicle_view");}
+  function start(){var identified=consent()==="yes";send("page_view",identified);if(/\/vehicle\.html$/i.test(location.pathname)&&new URLSearchParams(location.search).get("id"))send("vehicle_view",identified);}
   window.AH_ANALYTICS={resetConsent:function(){try{localStorage.removeItem(KEY);localStorage.removeItem(SESSION_KEY);localStorage.removeItem(VISITOR_KEY);}catch(_){} location.reload();}};
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){if(consent()==="yes")start();else banner();});else if(consent()==="yes")start();else banner();
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){start();if(!consent())banner();});else{start();if(!consent())banner();}
 })();
