@@ -49,7 +49,7 @@ function element(id = "") {
 }
 
 function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}) {
-  const nodes = new Map(), calls = [], edits = [], screens = [], storage = new Map();
+  const nodes = new Map(), calls = [], edits = [], screens = [], storage = new Map(), encodes = [];
   const node = id => {
     if (!nodes.has(id)) nodes.set(id, element(id));
     return nodes.get(id);
@@ -82,7 +82,12 @@ function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}
   view.querySelectorAll = selector => selector === "[data-review-language]" ? tabs : [];
   const body = element("body");
   body.dataset = { adminUser: "test-user", adminRole: "owner" };
-  const document = { body, documentElement: {}, visibilityState: "visible", getElementById: node, querySelectorAll: () => [], addEventListener() {} };
+  const document = { body, documentElement: {}, visibilityState: "visible", getElementById: node, querySelectorAll: () => [], addEventListener() {},
+    createElement(tag) {
+      if (tag !== "canvas") return element(tag);
+      return { width: 0, height: 0, getContext() { return { imageSmoothingEnabled: false, imageSmoothingQuality: "", fillStyle: "", fillRect() {}, drawImage() {} }; },
+        toBlob(callback, type, quality) { encodes.push({ width: this.width, height: this.height, type, quality }); callback(new Blob([type], { type })); } };
+    } };
   const location = { hash, replace() {} };
   const history = {
     replaceState(_state, _title, url) { location.hash = url; },
@@ -98,6 +103,7 @@ function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}
       renderRoute: renderRoute, selectReviewLanguage: selectReviewLanguage,
       validateCar: validateCar, processDescription: processDescription, saveCar: saveCar,
       bindEditor: bindEditor, collectForm: collectForm, rememberDetail: rememberDetail, invalidateDetail: invalidateDetail,
+      preparePhoto: preparePhoto, uploadPreparedPhoto: uploadPreparedPhoto, isResponsiveImage: isResponsiveImage,
       hooks: function (hooks) {
         if (hooks.editor) editor = hooks.editor;
         if (hooks.dashboard) dashboard = hooks.dashboard;
@@ -106,7 +112,11 @@ function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}
     };`);
   vm.runInNewContext(testSource, {
     document, window, location, history, console, Intl, Map, Promise,
-    Date: { now: () => now },
+    Date: { now: () => now }, Blob, AbortController,
+    URL: { createObjectURL: () => "blob:test", revokeObjectURL() {} },
+    Image: class { constructor() { this.naturalWidth = 2400; this.naturalHeight = 1600; } decode() { return Promise.resolve(); } },
+    FormData: class { constructor() { this.entries = []; } append(...values) { this.entries.push(values); } },
+    navigator: { hardwareConcurrency: 8, deviceMemory: 8 },
     confirm: () => true,
     setTimeout: () => 1, clearTimeout() {}, requestAnimationFrame: callback => callback(),
     fetch: async (url, options) => {
@@ -120,7 +130,7 @@ function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}
     dashboard() { screens.push("dashboard"); },
     cars() { screens.push("cars"); }
   });
-  return { admin, node, tabs, form, calls, edits, screens, view, heading, storage, location, advance: milliseconds => { now += milliseconds; } };
+  return { admin, node, tabs, form, calls, edits, screens, view, heading, storage, location, encodes, advance: milliseconds => { now += milliseconds; } };
 }
 
 function car(id = "car-1", overrides = {}) {
@@ -128,6 +138,43 @@ function car(id = "car-1", overrides = {}) {
     images: [{ original: "/photo.jpg" }], equipment_bg: [], equipment_en: [],
     updated_at: "2026-09-15T10:00:00Z", ...overrides };
 }
+
+test("photo preparation creates a bounded original and distinct JPEG/WebP widths", async () => {
+  const h = harness();
+  const prepared = await h.admin.preparePhoto({ name: "car.jpg", type: "image/jpeg", size: 1000 });
+  assert.equal(prepared.width, 1600);
+  assert.equal(prepared.height, 1067);
+  assert.deepEqual(Object.keys(prepared.files), ["original", "jpg400", "webp400", "jpg800", "webp800", "jpg1280", "webp1280"]);
+  assert.equal(prepared.files.jpg400.type, "image/jpeg");
+  assert.equal(prepared.files.webp400.type, "image/webp");
+  assert.deepEqual(h.encodes.map(item => [item.width, item.height, item.type]), [
+    [1600, 1067, "image/jpeg"], [400, 267, "image/jpeg"], [400, 267, "image/webp"],
+    [800, 533, "image/jpeg"], [800, 533, "image/webp"], [1280, 853, "image/jpeg"], [1280, 853, "image/webp"]
+  ]);
+});
+
+test("responsive upload sends every prepared asset and retains legacy fallback", async () => {
+  const h = harness({ fetch: () => response({}) });
+  const files = Object.fromEntries(["original", "jpg400", "jpg800", "jpg1280", "webp400", "webp800", "webp1280"].map(key => [key, new Blob([key], { type: key.startsWith("webp") ? "image/webp" : "image/jpeg" })]));
+  const uploads = Object.fromEntries(Object.keys(files).map(key => [key, { upload_url: "https://upload.example/" + key }]));
+  assert.equal(await h.admin.uploadPreparedPhoto({ responsive: true, uploads, headers: { apikey: "test" } }, { files }), true);
+  assert.equal(h.calls.length, 7);
+  assert.deepEqual(new Set(h.calls.map(call => call.url)), new Set(Object.values(uploads).map(item => item.upload_url)));
+  assert.ok(h.calls.every(call => call.options.method === "PUT"));
+
+  h.calls.length = 0;
+  assert.equal(await h.admin.uploadPreparedPhoto({ upload_url: "https://upload.example/legacy", headers: {} }, { files }), false);
+  assert.equal(h.calls.length, 1);
+  assert.equal(h.calls[0].url, "https://upload.example/legacy");
+});
+
+test("only a complete six-URL Supabase derivative set is marked responsive", () => {
+  const h = harness();
+  const variants = Object.fromEntries(["jpg400", "jpg800", "jpg1280", "webp400", "webp800", "webp1280"].map(key => [key, "https://storage.example/" + key]));
+  assert.equal(h.admin.isResponsiveImage({ public_id: "vehicles/00000000-0000-4000-8000-000000000001", variants }), true);
+  variants.webp1280 = variants.jpg1280;
+  assert.equal(h.admin.isResponsiveImage({ public_id: "vehicles/00000000-0000-4000-8000-000000000001", variants }), false);
+});
 
 test("detail requests deduplicate in flight, reuse fresh results, and expire", async () => {
   const pending = deferred();

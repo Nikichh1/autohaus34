@@ -1,4 +1,3 @@
-(window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
 /* ============================================================
    AUTOHAUS — THE DISCOVERY PREVIEW + THE EXPANDING CATALOG LAYER  (v41)
 
@@ -27,7 +26,8 @@
 (function () {
   "use strict";
   var D = document, AH = window.AH;
-  if (!AH || !AH.all || !AH.all.length || !AH.card) return;
+  if (!AH || !AH.card) return;
+  var inventoryReady = false;
 
   /* their "Next" page is one screen of results; 12 keeps a 2-, 3- and
      4-column grid whole, which 10 does not */
@@ -184,7 +184,7 @@
   }
 
   function paintPreview() {
-    if (!pvGrid) return;
+    if (!pvGrid || !inventoryReady) return;
     var S = AH.newFilterState();
     S.sort = pvSortKey;
     var list = AH.filterResults(S);
@@ -197,7 +197,6 @@
     pvGrid.innerHTML = list.slice(0, PREVIEW).map(function (v) {
       return AH.card(v, {});
     }).join("");
-    if (AH.rendered) AH.rendered(pvGrid);
   }
 
   /* The landing preview used to render the full pill row — every marque, then
@@ -227,8 +226,7 @@
      anyway, a quarter-second in, still long before anyone has scrolled a
      full screen. Re-sorting later calls paintPreview() directly — that IS
      the user waiting for something, and it must not be deferred. */
-  if (typeof requestIdleCallback === "function") requestIdleCallback(paintPreview, { timeout: 250 });
-  else setTimeout(paintPreview, 1);
+  // The catalogue controls are ready immediately; the data resolves below.
 
   /* ============================================================
      3. THE LAYER
@@ -377,10 +375,31 @@
 
   if (catSort) sortSelect(catSort, S.sort);
 
+  var cardNodes = new Map();
+  addEventListener("ah:languagechange", function () {
+    // The translator updates attached nodes. Discard only detached cards so
+    // an old English card cannot reappear after switching back to Bulgarian.
+    cardNodes.forEach(function (node, id) { if (!catGrid.contains(node)) cardNodes.delete(id); });
+  });
+  function cardNode(v, eager) {
+    var node = cardNodes.get(v.id);
+    if (!node) {
+      var container = D.createElement("div");
+      container.innerHTML = AH.card(v, { eager: eager });
+      node = container.firstElementChild;
+      cardNodes.set(v.id, node);
+    }
+    if (eager) {
+      var image = node.querySelector("img");
+      if (image) { image.loading = "eager"; image.fetchPriority = "high"; }
+    }
+    return node;
+  }
   function paintGrid() {
-    catGrid.innerHTML = results.slice(0, shown).map(function (v, i) {
-      return AH.card(v, { eager: i < 3 });
-    }).join("");
+    var fragment = D.createDocumentFragment();
+    results.slice(0, shown).forEach(function (v, i) { fragment.appendChild(cardNode(v, i < 3)); });
+    catGrid.textContent = "";
+    catGrid.appendChild(fragment);
     afterGrid();
   }
 
@@ -390,10 +409,9 @@
     if (shown >= results.length) return;
     var from = shown;
     shown = Math.min(shown + PAGE, results.length);
-    catGrid.insertAdjacentHTML("beforeend",
-      results.slice(from, shown).map(function (v) {
-        return AH.card(v, {});
-      }).join(""));
+    var fragment = D.createDocumentFragment();
+    results.slice(from, shown).forEach(function (v) { fragment.appendChild(cardNode(v, false)); });
+    catGrid.appendChild(fragment);
     afterGrid();
   }
 
@@ -406,10 +424,24 @@
       catNote.textContent = seen + " от " + results.length;
     }
     catEmpty.hidden = results.length > 0;
-    if (AH.rendered) AH.rendered(catGrid);
   }
 
   function apply(keepScroll) {
+    if (!inventoryReady) {
+      catCount.textContent = "";
+      catGrid.setAttribute("aria-busy", "true");
+      catGrid.innerHTML = '<p class="catalog-status" role="status" data-ah-bg="Зареждане на автомобилите…" data-ah-en="Loading vehicles…">Зареждане на автомобилите…</p>';
+      catPag.hidden = true;
+      catEmpty.hidden = true;
+      return;
+    }
+    catGrid.removeAttribute("aria-busy");
+    if (window.AH_INVENTORY_SOURCE !== "managed") {
+      catGrid.innerHTML = '<p class="catalog-status" role="status" data-ah-bg="Каталогът временно е недостъпен. Моля, презаредете страницата." data-ah-en="The catalogue is temporarily unavailable. Please reload the page.">Каталогът временно е недостъпен. Моля, презаредете страницата.</p>';
+      catPag.hidden = true;
+      catEmpty.hidden = true;
+      return;
+    }
     results = AH.filterResults(S);
     shown = PAGE;
     catBar.innerHTML = barHTML(S);
@@ -730,8 +762,14 @@
       open({ fromURL: true });
       return;
     }
-    if (location.hash === "#cars" || location.hash === "#collection") setTimeout(function () { open({}); }, 300);
+    if (location.hash === "#cars" || location.hash === "#collection" || location.hash === "#avtomobili") open({ fromURL: true });
   })();
+  (window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
+    inventoryReady = true;
+    if (isOpen) apply(true);
+    var previewVisible = pvGrid && pvGrid.getBoundingClientRect().top < innerHeight + 100;
+    if (previewVisible) paintPreview();
+    else if (typeof requestIdleCallback === "function") requestIdleCallback(paintPreview, { timeout: 250 });
+    else setTimeout(paintPreview, 1);
+  });
 })();
-
-});

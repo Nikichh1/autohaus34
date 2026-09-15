@@ -30,6 +30,16 @@ function createServer() {
       if (!file.startsWith(ROOT + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404).end(); return; }
       res.setHeader("Content-Type", TYPES[path.extname(file)] || "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
+      if (process.env.AH_PERF_PROBE === "1" && /\.(html|css|js)$/.test(pathname)) {
+        let source;
+        if (process.env.AH_PERF_BASELINE === "1") {
+          try { source = require("node:child_process").execFileSync("git", ["show", "7118ac0:" + pathname.slice(1)], { cwd: ROOT, encoding: "utf8", windowsHide: true }); } catch (_) {}
+        }
+        if (source == null) source = fs.readFileSync(file, "utf8");
+        if (pathname.endsWith(".html")) source = source.replace("<head>", "<head><script>" + fs.readFileSync(path.join(ROOT, "tools/performance-probe.js"), "utf8") + "</script>");
+        res.end(source);
+        return;
+      }
       if (pathname === "/admin/admin.css") { res.end(["admin/admin.css", "admin/brand.css", "admin/brand-fallback.css"].map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("\n")); return; }
       fs.createReadStream(file).pipe(res);
     } catch (error) {

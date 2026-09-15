@@ -147,7 +147,7 @@
   var request = requestedId ? loadInventory(requestedId, false)
     : (isCatalogPage || isConciergePage) ? loadInventory("", false) : Promise.resolve(null);
 
-  window.AH_INVENTORY_READY = request.then(function (data) {
+  var ready = request.then(function (data) {
     var vehicles = requestedId && data && data.vehicle ? [data.vehicle] : data && data.vehicles;
     if (!validPayload(data, requestedId)) return;
 
@@ -155,4 +155,12 @@
     window.AH_INVENTORY_SOURCE = "managed";
     vehicles.forEach(indexVehicle);
   });
+  // The small async loader starts alongside CSS and HTML parsing. Consumers
+  // can subscribe before it arrives; settle their existing promise only once
+  // the inventory and image indexes are usable.
+  if (typeof window.AH_INVENTORY_RESOLVE === "function") {
+    ready.then(window.AH_INVENTORY_RESOLVE, window.AH_INVENTORY_RESOLVE);
+  } else {
+    window.AH_INVENTORY_READY = ready;
+  }
 })();

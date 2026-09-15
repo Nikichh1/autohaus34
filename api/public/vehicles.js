@@ -19,6 +19,7 @@ function bundledPhotoSet() {
 const LOCAL_PHOTOS = bundledPhotoSet();
 const memory = new Map();
 const pending = new Map();
+const encoded = new WeakMap();
 const FRESH_MS = 30000;
 const MAX_ENTRIES = 250;
 let requestOrder = 0;
@@ -54,8 +55,13 @@ function compactVehicle(row) {
 }
 
 function send(req, res, status, body) {
-  const raw = JSON.stringify(body);
-  const etag = '"' + crypto.createHash("sha1").update(raw).digest("base64url") + '"';
+  let representation = encoded.get(body);
+  if (!representation) {
+    const raw = JSON.stringify(body);
+    representation = { raw, etag: '"' + crypto.createHash("sha1").update(raw).digest("base64url") + '"' };
+    encoded.set(body, representation);
+  }
+  const { raw, etag } = representation;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("ETag", etag);

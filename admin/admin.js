@@ -44,6 +44,12 @@
   function money(v) { return v == null || v === "" ? "—" : new Intl.NumberFormat(lang === "bg" ? "bg-BG" : "en-GB", { maximumFractionDigits: 0 }).format(Number(v)) + " €"; }
   function mileage(v) { return v == null || v === "" ? "—" : new Intl.NumberFormat(lang === "bg" ? "bg-BG" : "en-GB").format(Number(v)) + t(" км", " km"); }
   function imageUrl(img) { var v = (img || {}).variants || {}; return v.webp400 || v.jpg400 || (img || {}).original || ""; }
+  function isResponsiveImage(img) {
+    var variants = img && img.variants || {}, keys = ["jpg400", "jpg800", "jpg1280", "webp400", "webp800", "webp1280"];
+    var urls = keys.map(function (key) { return variants[key]; });
+    return /^vehicles\/[0-9a-f-]{36}$/i.test(String(img && img.public_id || "")) &&
+      urls.every(Boolean) && new Set(urls).size === keys.length;
+  }
   function carName(v) { return v.full_name || [v.make, v.model].filter(Boolean).join(" "); }
   function isBusy() { return state.saveBusy || state.uploadBusy || state.aiBusy; }
   function toast(message, error) {
@@ -374,7 +380,7 @@
       toast(data.published ? t("Промените са публикувани", "Changes published") : t("Черновата е записана", "Draft saved"));
       // Only remove storage assets after the vehicle no longer references them.
       await Promise.all(removed.filter(function (img) { return img.public_id && !img.legacy; }).map(function (img) {
-        return api("/api/admin/images?action=delete", { method: "POST", body: { public_id: img.public_id } }).catch(function () { /* Vehicle is saved; unused asset can be cleaned up later. */ });
+        return api("/api/admin/images?action=delete", { method: "POST", body: { public_id: img.public_id, responsive: isResponsiveImage(img) } }).catch(function () { /* Vehicle is saved; unused asset can be cleaned up later. */ });
       }));
     } catch (error) { toast(error.message, true); state.saveBusy = false; updateSaveState(); }
   }
@@ -432,18 +438,67 @@
     var url = URL.createObjectURL(file), img = new Image();
     try {
       img.src = url; await img.decode();
-      var scale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
-      var canvas = D.createElement("canvas"); canvas.width = Math.round(img.naturalWidth * scale); canvas.height = Math.round(img.naturalHeight * scale);
-      var ctx = canvas.getContext("2d"); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-      ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      var width = canvas.width, height = canvas.height;
-      var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, "image/jpeg", .84); });
-      if (!blob) throw new Error("Image conversion failed");
-      blob.photoWidth = width; blob.photoHeight = height;
+      if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth * img.naturalHeight > 140000000) throw new Error("Unsafe image dimensions");
+      var canvas = D.createElement("canvas");
+      async function encode(width, height, type, quality) {
+        canvas.width = Math.max(1, Math.round(width)); canvas.height = Math.max(1, Math.round(height));
+        var ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas unavailable");
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+        ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, type, quality); });
+        if (!blob || (type === "image/webp" && blob.type !== "image/webp")) throw new Error(type === "image/webp" ? "WebP encoding unavailable" : "Image conversion failed");
+        return blob;
+      }
+      function widthSize(target) {
+        var width = Math.min(target, img.naturalWidth), scale = width / img.naturalWidth;
+        return { width: width, height: Math.max(1, Math.round(img.naturalHeight * scale)) };
+      }
+      var originalScale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      var width = Math.max(1, Math.round(img.naturalWidth * originalScale));
+      var height = Math.max(1, Math.round(img.naturalHeight * originalScale));
+      var files = { original: await encode(width, height, "image/jpeg", .86) };
+      for (var i = 0; i < 3; i++) {
+        var target = [400, 800, 1280][i], size = widthSize(target);
+        files["jpg" + target] = await encode(size.width, size.height, "image/jpeg", .82);
+        files["webp" + target] = await encode(size.width, size.height, "image/webp", .80);
+      }
       canvas.width = 1; canvas.height = 1;
-      return blob;
-    } catch (_) { throw new Error(t("Този формат не се отваря. Изберете JPEG снимка или използвайте камерата.", "This image format cannot be opened. Choose a JPEG photo or use the camera.")); }
+      return { width: width, height: height, files: files };
+    } catch (error) {
+      var webp = error && error.message === "WebP encoding unavailable";
+      throw new Error(webp ? t("Този браузър не може да подготви оптимизирани WebP снимки. Обновете браузъра и опитайте отново.", "This browser cannot prepare optimized WebP photos. Update it and try again.") :
+        t("Този формат не се отваря. Изберете JPEG снимка или използвайте камерата.", "This image format cannot be opened. Choose a JPEG photo or use the camera."));
+    }
     finally { URL.revokeObjectURL(url); }
+  }
+  async function uploadPhotoBlob(target, blob, headers, name) {
+    if (!target || !target.upload_url || !blob) throw new Error(t("Липсва адрес за качване", "Upload address is missing"));
+    var fd = new FormData(); fd.append("cacheControl", "31536000"); fd.append("", blob, name);
+    var controller = new AbortController(), timer = setTimeout(function () { controller.abort(); }, 120000), response, uploaded;
+    try {
+      response = await fetch(target.upload_url, { method: "PUT", headers: headers, body: fd, signal: controller.signal });
+      uploaded = await response.json().catch(function () { return {}; });
+    } finally { clearTimeout(timer); }
+    if (!response.ok) {
+      var error = new Error(uploaded.error && uploaded.error.message || t("Качването не успя", "Upload failed"));
+      error.status = response.status; throw error;
+    }
+  }
+  async function uploadPreparedPhoto(sign, prepared) {
+    if (!sign.responsive || !sign.uploads) {
+      await uploadPhotoBlob({ upload_url: sign.upload_url }, prepared.files.original, sign.headers, "original.jpg");
+      return false;
+    }
+    var keys = ["original", "jpg400", "jpg800", "jpg1280", "webp400", "webp800", "webp1280"], cursor = 0;
+    async function worker() {
+      while (cursor < keys.length) {
+        var key = keys[cursor++], extension = key.indexOf("webp") === 0 ? ".webp" : ".jpg";
+        await uploadPhotoBlob(sign.uploads[key], prepared.files[key], sign.headers, key + extension);
+      }
+    }
+    await Promise.all([worker(), worker()]);
+    return true;
   }
   async function uploadFiles(files) {
     if (isBusy()) return;
@@ -456,23 +511,20 @@
     statusEl.textContent = t("Подготовка…", "Preparing…");
     try {
       async function uploadOne(index) {
-        var original = files[index], file = original;
+        var original = files[index], sign = null;
         try {
           if (!/^image\//.test(original.type) && !/\.(heic|heif|jpe?g|png|webp)$/i.test(original.name)) throw new Error(t("Неподдържан формат", "Unsupported format"));
           if (original.size > 45 * 1024 * 1024) throw new Error(t("Снимката е над 45 MB", "Photo exceeds 45 MB"));
-          file = await preparePhoto(file);
-          var sign = await api("/api/admin/images?action=sign", { method: "POST", body: {} });
-          var fd = new FormData(); fd.append("cacheControl", "31536000"); fd.append("", file);
-          var controller = new AbortController(), timer = setTimeout(function () { controller.abort(); }, 120000), response, uploaded;
-          try {
-            response = await fetch(sign.upload_url, { method: "PUT", headers: sign.headers, body: fd, signal: controller.signal });
-            uploaded = await response.json();
-          } finally { clearTimeout(timer); }
-          if (!response.ok) throw new Error(uploaded.error && uploaded.error.message || t("Качването не успя", "Upload failed"));
-          var result = await api("/api/admin/images?action=complete", { method: "POST", body: { public_id: sign.public_id, width: file.photoWidth, height: file.photoHeight } });
+          var prepared = await preparePhoto(original);
+          sign = await api("/api/admin/images?action=sign", { method: "POST", body: { responsive: true } });
+          var responsive = await uploadPreparedPhoto(sign, prepared);
+          var result = await api("/api/admin/images?action=complete", { method: "POST", body: { public_id: sign.public_id, responsive: responsive, width: prepared.width, height: prepared.height } });
           if (!result.image) throw new Error(t("Снимката не е потвърдена", "Photo could not be verified"));
           results[index] = result.image; completed++;
         } catch (error) {
+          if (sign && sign.public_id) {
+            await api("/api/admin/images?action=delete", { method: "POST", body: { public_id: sign.public_id, responsive: !!(sign.responsive && sign.uploads) } }).catch(function () {});
+          }
           state.failedFiles.push(original); failures.push(original.name + ": " + (error.name === "AbortError" ? t("Времето изтече", "Upload timed out") : error.message));
           if (error.status === 401) authFailed = true;
         } finally {
@@ -486,7 +538,8 @@
           await uploadOne(index);
         }
       }
-      var concurrency = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4 ? 2 : 3;
+      var constrained = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) || (navigator.deviceMemory && navigator.deviceMemory <= 4);
+      var concurrency = constrained ? 1 : 2;
       await Promise.all(Array.from({ length: Math.min(concurrency, files.length) }, worker));
       if (authFailed && cursor < files.length) state.failedFiles = state.failedFiles.concat(files.slice(cursor));
       var added = results.filter(Boolean);

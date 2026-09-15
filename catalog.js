@@ -1,4 +1,3 @@
-(window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
 /* ============================================================
    AUTOHAUS — THE CATALOG ENGINE  (v41)
 
@@ -119,14 +118,47 @@
 
   /* Warm the one small detail payload while intent is clear. This makes a
      card click feel immediate without preloading 82 full vehicle records. */
+  var warmedCovers = new Set(), warmedDocuments = new Set(), hoverTimer;
   function warmVehicle(target) {
     var link = target && target.closest && target.closest(".lc__link");
-    if (!link || !window.AH_PREFETCH_VEHICLE || (navigator.connection && navigator.connection.saveData)) return;
+    var connection = navigator.connection;
+    if (!link || !window.AH_PREFETCH_VEHICLE || (connection && (connection.saveData || /(^|-)2g$/.test(connection.effectiveType || "")))) return;
     var id;
     try { id = new URL(link.href, location.href).searchParams.get("id"); } catch (_) { return; }
-    if (id) window.AH_PREFETCH_VEHICLE(id);
+    if (!id) return;
+    window.AH_PREFETCH_VEHICLE(id);
+    if (!warmedDocuments.has(id) && warmedDocuments.size < 4) {
+      warmedDocuments.add(id);
+      var hint = D.createElement("link");
+      hint.rel = "prefetch";
+      hint.href = link.href;
+      D.head.appendChild(hint);
+    }
+    var vehicle = AH.byId(id);
+    if (!vehicle || !vehicle.shots.length || warmedCovers.has(id) || warmedCovers.size >= 8) return;
+    warmedCovers.add(id);
+    var image = new Image();
+    image.fetchPriority = "low";
+    image.decoding = "async";
+    image.sizes = "(min-width:1024px) 46vw, 100vw";
+    image.onerror = function () {
+      image.onerror = null;
+      image.srcset = AH.srcset(vehicle.shots[0]);
+      image.src = AH.img(vehicle.shots[0], 800);
+    };
+    image.srcset = AH.webpset(vehicle.shots[0]);
+    image.src = AH.img(vehicle.shots[0], 800);
   }
-  D.addEventListener("pointerover", function (event) { warmVehicle(event.target); }, { passive: true });
+  D.addEventListener("pointerover", function (event) {
+    var link = event.target.closest && event.target.closest(".lc__link");
+    if (!link || (event.relatedTarget && link.contains(event.relatedTarget))) return;
+    clearTimeout(hoverTimer);
+    hoverTimer = setTimeout(function () { warmVehicle(link); }, 100);
+  }, { passive: true });
+  D.addEventListener("pointerout", function (event) {
+    var link = event.target.closest && event.target.closest(".lc__link");
+    if (link && (!event.relatedTarget || !link.contains(event.relatedTarget))) clearTimeout(hoverTimer);
+  }, { passive: true });
   D.addEventListener("pointerdown", function (event) { warmVehicle(event.target); }, { passive: true });
   D.addEventListener("focusin", function (event) { warmVehicle(event.target); });
 
@@ -184,7 +216,7 @@
     return s(b) - s(a) || (b.year || 0) - (a.year || 0);
   };
 
-  var BOUNDS = (function () {
+  function readBounds() {
     var V = AH.all, yr = [], pr = [], km = [], hp = [];
     V.forEach(function (v) {
       if (v.year) yr.push(v.year);
@@ -192,7 +224,7 @@
       if (v.km != null) km.push(v.km);
       if (v.hp) hp.push(v.hp);
     });
-    var mm = function (a) { return [Math.min.apply(null, a), Math.max.apply(null, a)]; };
+    var mm = function (a) { return a.length ? [Math.min.apply(null, a), Math.max.apply(null, a)] : [0, 0]; };
     /* mileage starts at zero whatever the lowest record says — a slider whose
        floor is 500 cannot express "as new", which is the end of the scale
        people actually reach for.
@@ -208,8 +240,12 @@
       year: mm(yr), price: mm(pr), km: [0, mm(km)[1]],
       hp: [Math.floor(hpr[0] / 10) * 10, Math.ceil(hpr[1] / 10) * 10]
     };
-  })();
+  }
+  var BOUNDS = readBounds();
   AH.catalogBounds = BOUNDS;
+  (window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
+    Object.assign(BOUNDS, readBounds());
+  });
 
   /* ---- state ----
      Пробег and Мощност used to be bolted on from showroom.js, which wrapped
@@ -389,5 +425,3 @@
   /* ---- plural helper used by every count line ---- */
   AH.plural = function (n) { return n === 1 ? "автомобил" : "автомобила"; };
 })();
-
-});

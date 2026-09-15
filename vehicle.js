@@ -54,6 +54,10 @@
 
   var shots = (v.shots || []).filter(Boolean);
   var N = shots.length;
+  function gallerySizes(count) {
+    return count === 1 ? '100vw' : '(min-width:1024px) 46vw, 100vw';
+  }
+  var mainSizes = gallerySizes(N);
   var chapterName = AH.chapterName[v.chapter] || "";
   var backHref = "index.html#avtomobili";
   var backName = "автомобилите";
@@ -156,7 +160,7 @@
             ' href="' + AH.esc(s) + '" data-i="' + i + '"' +
             ' aria-label="Кадър ' + (i + 1) + " от " + N + ' — уголеми">' +
             AH.picture(s, { eager: i === 0, width: 800, height: 490,
-                            sizes: "(min-width:1024px) 46vw, 100vw", src: 800,
+                            sizes: mainSizes, src: 800,
                             alt: v.full + " — кадър " + (i + 1) }) +
             '<span class="dgal__n">' + (i + 1) + " / " + N + "</span></a>";
         }).join("") +
@@ -296,24 +300,56 @@
   var thumbRail = D.getElementById('dthumbs');
   var selected = 0, selectionVersion = 0, suppressClick = false;
   var decoded = Object.create(null);
-  var mainSizes = '(min-width:1024px) 46vw, 100vw';
-  function prepare(i) {
+  function canWarmImages() {
+    var connection = navigator.connection;
+    return !connection || (!connection.saveData && !/^(slow-2g|2g|3g)$/.test(connection.effectiveType || '') &&
+      !(connection.downlink > 0 && connection.downlink <= 1.5));
+  }
+  function prepare(i, priority, sizes) {
     if (!N) return Promise.resolve(null);
+    priority = priority || 'low';
+    if (priority === 'low' && !canWarmImages()) return Promise.resolve(null);
     i = (i + N) % N;
-    if (decoded[i]) return decoded[i];
-    decoded[i] = new Promise(function (resolve) {
-      var image = new Image();
+    sizes = sizes || mainSizes;
+    var key = i + ':' + sizes;
+    if (decoded[key]) {
+      if (priority === 'high') decoded[key].image.fetchPriority = 'high';
+      return decoded[key].promise;
+    }
+    var image = new Image();
+    var entry = { image: image };
+    decoded[key] = entry;
+    entry.promise = new Promise(function (resolve) {
+      var fallback = false;
       image.decoding = 'async';
-      image.fetchPriority = 'low';
-      image.sizes = mainSizes;
-      image.srcset = AH.webpset(shots[i]);
+      image.fetchPriority = priority;
+      image.sizes = sizes;
       image.onload = function () {
         (image.decode ? image.decode().catch(function () {}) : Promise.resolve()).then(function () { resolve(image); });
       };
-      image.onerror = function () { delete decoded[i]; resolve(null); };
+      image.onerror = function () {
+        // An Image srcset has no <picture> type negotiation. Retry JPEG if
+        // WebP is unsupported or that derivative is unavailable.
+        if (!fallback) {
+          fallback = true;
+          image.srcset = AH.srcset(shots[i]);
+          image.src = AH.img(shots[i], 800);
+          return;
+        }
+        delete decoded[key];
+        resolve(null);
+      };
+      image.srcset = AH.webpset(shots[i]);
       image.src = AH.img(shots[i], 800);
     });
-    return decoded[i];
+    return entry.promise;
+  }
+  function loadedPicture(i, image, sizes) {
+    // Keep the successfully decoded format, including JPEG fallback. Switching
+    // back to a fresh <source> here would retry a failed WebP derivative.
+    return '<picture><img decoding="async" fetchpriority="high" width="800" height="490"' +
+      ' src="' + AH.esc(image.currentSrc || image.src) + '" srcset="' + AH.esc(image.srcset || '') + '"' +
+      ' sizes="' + AH.esc(sizes) + '" alt="' + AH.esc(v.full + ' / ' + (i + 1)) + '"></picture>';
   }
   function stripTo(i) {
     if (!mainFrame || !N) return;
@@ -343,9 +379,9 @@
       mainFrame.querySelector('picture').innerHTML = '<img src="' + AH.esc(preview.currentSrc || preview.src) + '" alt="' + AH.esc(v.full) + '" width="800" height="490">';
     }
     mainFrame.setAttribute('aria-busy', 'true');
-    prepare(i).then(function (image) {
+    prepare(i, 'high').then(function (image) {
       if (version !== selectionVersion) return;
-      if (image) mainFrame.querySelector('picture').outerHTML = AH.picture(shots[i], { eager: true, width: 800, height: 490, sizes: mainSizes, alt: v.full + ' / ' + (i + 1) });
+      if (image) mainFrame.querySelector('picture').outerHTML = loadedPicture(i, image, mainSizes);
       mainFrame.removeAttribute('aria-busy');
       if (image) prepare((i + 1) % N);
     });
@@ -491,22 +527,9 @@
       renderEquipment();
       return;
     }
-    /* THE VERSION HAS TO TRAVEL WITH IT.
-       _headers caches every .js on this site `immutable` for a year, which
-       is correct only because build.js stamps ?v=<hash> onto every URL it
-       writes into the HTML. This URL is built at runtime, so it is not one
-       of those — and without the stamp a re-scraped equipment list would
-       never reach anybody who had already opened that car. The page's own
-       scripts carry the current hash; this borrows it. build.js hashes
-       data/eq/ too, so re-scraping moves it. */
-    var ver = (function () {
-      var tags = D.getElementsByTagName("script");
-      for (var i = 0; i < tags.length; i++) {
-        var m = (tags[i].src || "").match(/[?&]v=([\w]+)/);
-        if (m) return m[1];
-      }
-      return "";
-    })();
+    // Equipment has its own content version, independent of other scripts.
+    var versionMeta = D.querySelector('meta[name="ah-equipment-version"]');
+    var ver = versionMeta ? versionMeta.content : '';
     var s = D.createElement("script");
     s.src = "data/eq/" + encodeURIComponent(v.id) + ".js" + (ver ? "?v=" + ver : "");
     s.async = true;
@@ -562,7 +585,8 @@
      ============================================================ */
   var lb = D.getElementById("lb"), lbImg = D.getElementById("lb-img");
   var lbStage = D.getElementById("lb-stage"), lbCount = D.getElementById("lb-count");
-  var shot = 0, opener = null, lockY = 0;
+  var shot = 0, opener = null, lockY = 0, lightboxVersion = 0;
+  var lightboxSizes = '88vw';
   function fitLightboxMargins() {
     var box = lbImg.getBoundingClientRect();
     lbImg.style.clipPath = window.AH_PHOTO_INSETS && lbImg.complete
@@ -572,6 +596,15 @@
   lbImg.addEventListener("error", function () { lbImg.style.clipPath = ""; });
   if (window.ResizeObserver) new ResizeObserver(fitLightboxMargins).observe(lbImg);
   else window.addEventListener("resize", fitLightboxMargins);
+  var lightboxResizePending = false;
+  window.addEventListener('resize', function () {
+    if (lightboxResizePending || !lb.classList.contains('open')) return;
+    lightboxResizePending = true;
+    requestAnimationFrame(function () {
+      lightboxResizePending = false;
+      if (lb.classList.contains('open')) open(shot);
+    });
+  });
 
   /* `body.style.overflow = "hidden"` looked like a scroll lock and was in fact
      a scroll RESET. When <html> is `overflow:visible` the BODY's overflow is
@@ -596,18 +629,45 @@
   function open(n, from) {
     var first = !lb.classList.contains("open");
     if (!N) return;
+    var previous = shot;
     shot = (n + N) % N;
     if (from) opener = from;
-    lbImg.style.clipPath = "";
-    lbImg.src = AH.img(shots[shot], 1280);
-    fitLightboxMargins();
+    var version = ++lightboxVersion;
+    // Start with an already visible frame/thumbnail. Keep it on screen until
+    // the responsive enlargement decodes, then swap only the latest request.
+    var frame = fs.filter(function (item) { return Number(item.dataset.i) === shot; })[0];
+    var preview = frame && frame.querySelector('img');
+    if (!preview || !preview.complete || !preview.naturalWidth) preview = thumbs[shot] && thumbs[shot].querySelector('img');
+    if ((first || previous !== shot) && preview && preview.complete && preview.naturalWidth) {
+      lbImg.style.clipPath = '';
+      lbImg.removeAttribute('srcset');
+      lbImg.src = preview.currentSrc || preview.src;
+      fitLightboxMargins();
+    }
     lbImg.alt = v.model + " — кадър " + (shot + 1);
     if (lbCount) lbCount.textContent = (shot + 1) + " / " + N;
     lb.classList.add("open");
     if (first) lockPage(true);                  /* stepping frames must not re-pin */
     if (first) D.getElementById("lb-close").focus();
+    lbStage.setAttribute('aria-busy', 'true');
+    var sizes = lbStage.clientWidth ? Math.ceil(lbStage.clientWidth) + 'px' : lightboxSizes;
+    prepare(shot, 'high', sizes).then(function (image) {
+      if (version !== lightboxVersion || !lb.classList.contains('open')) return;
+      if (image) {
+        lbImg.style.clipPath = '';
+        // The preloader chose/decoded the responsive candidate already.
+        // Assign only that URL here: srcset density-corrects naturalWidth,
+        // whereas the verified matte boundaries require original pixel sizes.
+        lbImg.removeAttribute('srcset');
+        lbImg.src = image.currentSrc || image.src;
+        fitLightboxMargins();
+      }
+      lbStage.removeAttribute('aria-busy');
+    });
   }
   function close() {
+    lightboxVersion++;
+    lbStage.removeAttribute('aria-busy');
     lb.classList.remove("open");
     lockPage(false);
     stripTo(shot);                              /* the strip follows the lightbox */

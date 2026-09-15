@@ -9,15 +9,17 @@ const origin = "https://example.test";
 const photo = "/img/v/2024-01_5-27-1280.jpg";
 
 test("lightbox removes exactly the verified photo matte across viewport scales", () => {
-  for (const scale of [.22, .5, 1, 1.5]) {
-    const clip = insets.clip(photo, 1280, 784, 1280 * scale, 784 * scale, origin);
-    assert.ok(Math.abs(Number(clip.match(/inset\(0 ([\d.]+)%\)/)[1]) - 1.015625) < 1e-10);
-  }
+  for (const [width, height, margin] of [[400, 245, 4], [800, 490, 8], [1280, 784, 13]])
+    for (const format of ['jpg', 'webp']) for (const scale of [.22, .5, 1, 1.5]) {
+      const src = photo.replace('1280.jpg', width + '.' + format);
+      const clip = insets.clip(src, width, height, width * scale, height * scale, origin);
+      assert.ok(Math.abs(Number(clip.match(/inset\(0 ([\d.]+)%\)/)[1]) - margin / width * 100) < 1e-10);
+    }
   assert.equal(insets.clip(photo, 1280, 784, 1400, 784, origin), "inset(0 " + (73 / 1400 * 100) + "%)");
 });
 
 test("unknown photos, remote replacements and changed dimensions are never clipped", () => {
-  for (const src of ["/img/v/unknown-1280.jpg", "https://other.test" + photo, "https://autohaus.bg/wp-content/uploads/2024/01/5-27.jpg", photo.replace(".jpg", ".webp")]) {
+  for (const src of ["/img/v/unknown-1280.jpg", "https://other.test" + photo, "https://autohaus.bg/wp-content/uploads/2024/01/5-27.jpg", photo.replace(".jpg", ".avif"), photo.replace('1280', '800')]) {
     assert.equal(insets.clip(src, 1280, 784, 640, 392, origin), "");
   }
   assert.equal(insets.clip(photo, 1280, 800, 640, 400, origin), "");
@@ -40,6 +42,42 @@ test("matte detection does not mistake white subject matter for the legacy frame
 
 test("every allowlisted margin is verified against the bundled photo pixels", async () => {
   assert.deepEqual(insets.keys, Object.keys(await audit()).sort());
+});
+
+test("all responsive variants preserve the audited matte at their exact scaled boundary", async () => {
+  const sharp = require('sharp');
+  for (const key of insets.keys) for (const format of ['jpg', 'webp']) {
+    for (const [width, height, margin] of [[400, 245, 4], [800, 490, 8], [1280, 784, 13]]) {
+      const file = key + '-' + width + '.' + format;
+      const { data, info } = await sharp(path.join(__dirname, '../img/v', file)).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+      assert.equal(info.width, width, file);
+      assert.equal(info.height, height, file);
+      for (const right of [false, true]) {
+        let nearWhite = 0, innerWhite = 0, total = 0;
+        for (let y = 0; y < height; y++) for (let x = 0; x < margin; x++) {
+          const at = (y * width + (right ? width - 1 - x : x)) * 3;
+          const lo = Math.min(data[at], data[at + 1], data[at + 2]);
+          const hi = Math.max(data[at], data[at + 1], data[at + 2]);
+          if (lo >= 210 && hi - lo <= 40) { nearWhite++; if (x < margin - 1) innerWhite++; }
+          total += (data[at] + data[at + 1] + data[at + 2]) / 3;
+        }
+        // Compression can blend the last matte column with the photograph;
+        // every earlier column must remain uniformly near-white.
+        assert.equal(innerWhite, height * (margin - 1), file + ' inner matte color');
+        assert.ok(nearWhite / (height * margin) > .95, file + ' boundary matte color');
+        assert.ok(total / (height * margin) > 239, file + ' matte luminance');
+      }
+    }
+  }
+});
+
+test("lightbox preview and decoded image share a stable, unstretched contain box", () => {
+  const css = fs.readFileSync(path.join(__dirname, '../style.css'), 'utf8');
+  const rule = css.match(/\.lb img\{([^}]+)\}/);
+  assert.ok(rule);
+  assert.match(rule[1], /(?:^|;)\s*width:100%/);
+  assert.match(rule[1], /(?:^|;)\s*height:100%/);
+  assert.match(rule[1], /object-fit:contain/);
 });
 
 test("homepage keeps only the actual menu button on the header left", () => {

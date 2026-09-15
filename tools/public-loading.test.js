@@ -17,6 +17,10 @@ function storage() {
 function browser(options = {}) {
   const time = options.time || { now: 1789450000000 };
   const window = { AH_VEHICLES: [], sessionStorage: options.session || storage(), localStorage: options.local || storage() };
+  if (options.earlyConsumer) {
+    window.AH_INVENTORY_READY = new Promise(resolve => { window.AH_INVENTORY_RESOLVE = resolve; });
+    window.AH_INVENTORY_READY.then(() => options.earlyConsumer(window));
+  }
   const context = { window, location: { pathname: options.path || "/legal.html", search: options.search || "" },
     fetch: options.fetch || (async () => response(null)), Date: { now: () => time.now },
     URLSearchParams, AbortController, setTimeout, clearTimeout, Promise };
@@ -41,6 +45,32 @@ test("intent prefetch is deduplicated and consumed by the next document without 
   await next.AH_INVENTORY_READY;
   assert.equal(next.AH_VEHICLES[0].id, "test-car");
   assert.equal(next.AH_INVENTORY_SOURCE, "managed");
+});
+
+test("async loader settles pre-subscribed renderers only after inventory and variants are indexed", async () => {
+  let release, observed = false;
+  const original = 'https://autohaus.bg/wp-content/uploads/2020/01/car.jpg';
+  const variants = { jpg1280: '/img/v/car-1280.jpg', webp400: '/img/v/car-400.webp' };
+  const page = browser({ path: '/', earlyConsumer: window => {
+    observed = true;
+    assert.equal(window.AH_VEHICLES[0].id, 'test-car');
+    assert.equal(window.AH_IMAGE_VARIANTS[original].webp400, variants.webp400);
+  }, fetch: async () => {
+    await new Promise(resolve => { release = resolve; });
+    return response({ authoritative: true, vehicles: [{ ...vehicle(), shots: [variants.jpg1280], managed_images: [{ original, variants }] }] });
+  } });
+  assert.equal(observed, false);
+  release();
+  await page.AH_INVENTORY_READY;
+  assert.equal(observed, true);
+});
+
+test("early subscribers are also released after a network failure", async () => {
+  let observed = false;
+  const page = browser({ path: '/', earlyConsumer: () => { observed = true; }, fetch: async () => { throw Error('offline'); } });
+  await page.AH_INVENTORY_READY;
+  assert.equal(observed, true);
+  assert.equal(page.AH_INVENTORY_SOURCE, 'static');
 });
 
 test("a response near its server deadline does not get a fresh client TTL or survive an outage", async () => {

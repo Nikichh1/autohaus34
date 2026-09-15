@@ -32,7 +32,7 @@
    with 300ms RTT: 405ms of blocking, before a single byte of our own CSS
    had been parsed.
 
-   Six files, not fifteen. Google serves latin, latin-ext, cyrillic,
+   Two downloads, not six. Google serves latin, latin-ext, cyrillic,
    cyrillic-ext and vietnamese; this site is Bulgarian and English, so it
    needs latin and cyrillic and nothing else. The `unicode-range` on each
    face is Google's own, unchanged, which is what lets the browser download
@@ -40,11 +40,10 @@
    with a Latin marque name in it fetches both, an all-Cyrillic view fetches
    one.
 
-   The weight-300 pair is preloaded from the HTML so the fetch still starts
-   with the document rather than waiting for this file to parse. 400 and 600
-   are small type (labels, buttons, the odometer) and swap in a beat later,
-   which `font-display:swap` makes invisible. See "THE CRITICAL PATH" in
-   index.html.
+   The bundled 300/400/600 files are byte-identical within each subset.
+   All three weight declarations reuse the original 300 URLs, preserving
+   their rendering while sharing the HTML preloads and browser cache.
+   Keep the explicit weights and unicode ranges unchanged.
    ============================================================ */
 @font-face{
   font-family:"Exo 2";font-style:normal;font-weight:300;font-display:swap;
@@ -58,22 +57,22 @@
 }
 @font-face{
   font-family:"Exo 2";font-style:normal;font-weight:400;font-display:swap;
-  src:url("fonts/exo2-400-latin.woff2") format("woff2");
+  src:url("fonts/exo2-300-latin.woff2") format("woff2");
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face{
   font-family:"Exo 2";font-style:normal;font-weight:400;font-display:swap;
-  src:url("fonts/exo2-400-cyrillic.woff2") format("woff2");
+  src:url("fonts/exo2-300-cyrillic.woff2") format("woff2");
   unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
 }
 @font-face{
   font-family:"Exo 2";font-style:normal;font-weight:600;font-display:swap;
-  src:url("fonts/exo2-600-latin.woff2") format("woff2");
+  src:url("fonts/exo2-300-latin.woff2") format("woff2");
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face{
   font-family:"Exo 2";font-style:normal;font-weight:600;font-display:swap;
-  src:url("fonts/exo2-600-cyrillic.woff2") format("woff2");
+  src:url("fonts/exo2-300-cyrillic.woff2") format("woff2");
   unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
 }
 
@@ -2593,7 +2592,8 @@ body:not(.ah) > main{flex:1 0 auto}
    footer then fell ~3000px as the content arrived — measured CLS 0.41, all of
    it that one element. A screenful of reserve puts the footer below the fold
    before anything renders, so the growth happens out of sight. */
-body:not(.ah) > main:empty{min-height:100vh}
+body:not(.ah) > main:empty,
+body:not(.ah) > #vd:has(> [role=status]){min-height:100vh}
 /* the lightbox's scroll lock — see lockPage() in vehicle.js. The body is
    pinned at its own offset rather than having its overflow hidden, because on
    this page the body's overflow is what propagates to the viewport and hiding
@@ -2767,7 +2767,7 @@ html:not(.js) .rv{opacity:1;transform:none}
   touch-action:pan-y;
 }
 .lb img{
-  max-width:100%;max-height:100%;object-fit:contain;
+  width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;
   user-select:none;-webkit-user-select:none;-webkit-user-drag:none;
 }
 .lb .x{

@@ -917,6 +917,7 @@
 .cpag__more:active::after{transition-duration:0s}
 @media(prefers-reduced-motion:reduce){.cpag__more::after{transition:none}}
 .cpag__note{font-size:13px;line-height:20px;color:rgba(255,255,255,.5);font-variant-numeric:tabular-nums}
+.catalog-status{grid-column:1/-1;min-height:40vh;margin:0;padding:32px 0;color:inherit}
 
 /* empty state */
 .cempty{padding-block:var(--sp-m);text-align:center;max-width:52ch;margin-inline:auto}

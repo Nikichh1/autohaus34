@@ -81,9 +81,46 @@ test("Supabase uploads use unique signed paths and verify completion",async()=>{
  assert.equal((await call("admin/images",req("POST",{public_id:"../invalid"},{action:"complete"}))).statusCode,400);
  const out=await call("admin/images",req("POST",{public_id:a.body.public_id},{action:"complete"}));assert.equal(out.statusCode,200);assert.match(out.body.image.original,/storage\/v1\/object\/public/);
 });
+test("responsive uploads sign and verify one original plus six real derivative paths",async()=>{
+ const signed=[],verified=[];
+ mockFetch((url,options)=>{
+  if(options.method==="HEAD"){verified.push(url);return response({});}
+  signed.push(url);const path=new URL(url).pathname.split("/vehicle-images/")[1];
+  return response({url:"/object/upload/sign/vehicle-images/"+path+"?token=test"});
+ });
+ const prepared=await call("admin/images",req("POST",{responsive:true},{action:"sign"}));
+ assert.equal(prepared.statusCode,200);assert.equal(prepared.body.responsive,true);
+ assert.deepEqual(Object.keys(prepared.body.uploads),["original","jpg400","jpg800","jpg1280","webp400","webp800","webp1280"]);
+ assert.equal(new Set(Object.values(prepared.body.uploads).map(item=>item.path)).size,7);
+ assert.equal(signed.length,7);assert.equal(prepared.body.uploads.original.path,prepared.body.public_id);
+ assert.match(prepared.body.uploads.jpg400.path,/-400\.jpg$/);assert.match(prepared.body.uploads.webp1280.path,/-1280\.webp$/);
+ const completed=await call("admin/images",req("POST",{public_id:prepared.body.public_id,responsive:true,width:1600,height:1067},{action:"complete"}));
+ assert.equal(completed.statusCode,200);assert.equal(verified.length,7);
+ assert.equal(completed.body.image.width,1600);assert.equal(completed.body.image.height,1067);
+ assert.equal(new Set(Object.values(completed.body.image.variants)).size,6);
+ assert.notEqual(completed.body.image.variants.webp400,completed.body.image.variants.jpg1280);
+});
+test("responsive completion fails closed when any derivative is missing",async()=>{
+ let heads=0;
+ mockFetch((url,options)=>options.method==="HEAD"?response({},++heads===4?404:200):response({}));
+ const output=await call("admin/images",req("POST",{public_id:"vehicles/"+user.id,responsive:true,width:1600,height:1000},{action:"complete"}));
+ assert.equal(output.statusCode,400);assert.equal(heads,7);
+});
 test("a photo still referenced by a vehicle cannot be destroyed",async()=>{
  mockFetch(()=>response([{id:user.id}]));
  const output=await call("admin/images",req("POST",{public_id:"vehicles/"+user.id},{action:"delete"}));assert.equal(output.statusCode,409);assert.equal(output.body.code,"IMAGE_IN_USE");
+});
+test("responsive deletion removes only the fixed object family and tolerates retry 404s",async()=>{
+ const deleted=[];
+ mockFetch((url,options)=>{
+  if(options.method==="GET")return response([]);
+  if(options.method==="DELETE"){deleted.push(new URL(url).pathname.split("/vehicle-images/")[1]);return response({},deleted.length===2?404:200);}
+  throw new Error("Unexpected provider request");
+ });
+ const root="vehicles/"+user.id;
+ const output=await call("admin/images",req("POST",{public_id:root,responsive:true},{action:"delete"}));
+ assert.equal(output.statusCode,200);assert.equal(deleted.length,7);
+ assert.deepEqual(new Set(deleted),new Set([root,root+"-400.jpg",root+"-800.jpg",root+"-1280.jpg",root+"-400.webp",root+"-800.webp",root+"-1280.webp"]));
 });
 
 test("Gemini handles free quota, incomplete and unpaired output without a paid fallback",async()=>{
