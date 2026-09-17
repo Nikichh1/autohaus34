@@ -3,13 +3,17 @@ begin;
 
 create table if not exists public.admin_settings (
   singleton boolean primary key default true check (singleton),
-  watermark_enabled boolean not null default false,
-  watermark_transparency smallint not null default 75 check (watermark_transparency between 0 and 100),
   updated_at timestamptz not null default now()
 );
 
-insert into public.admin_settings (singleton, watermark_enabled, watermark_transparency)
-values (true, false, 75)
+alter table public.admin_settings add column if not exists watermark_enabled boolean not null default false;
+alter table public.admin_settings add column if not exists watermark_transparency smallint not null default 75;
+alter table public.admin_settings drop constraint if exists admin_settings_watermark_transparency_check;
+alter table public.admin_settings add constraint admin_settings_watermark_transparency_check
+  check (watermark_transparency between 0 and 100);
+
+insert into public.admin_settings (singleton)
+values (true)
 on conflict (singleton) do nothing;
 
 alter table public.admin_settings enable row level security;
