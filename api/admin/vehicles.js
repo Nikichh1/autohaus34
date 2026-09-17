@@ -92,6 +92,41 @@ async function nextSortOrder(db) {
   return Math.max(1, Number(data[0].sort_order || 0) + 1);
 }
 
+function normalizedSettings(row) {
+  row = row || {};
+  const transparency = Number(row.watermark_transparency);
+  return {
+    watermark_enabled: row.watermark_enabled === true,
+    watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75
+  };
+}
+
+async function settingsAction(req, res, db) {
+  if (req.method === "GET") {
+    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency&limit=1", { method: "GET" });
+    const data = await readJson(response);
+    if (!response.ok) return apiError(res, response.status, "Could not load settings", data);
+    return json(res, 200, { ok: true, settings: normalizedSettings(Array.isArray(data) && data[0]) });
+  }
+  if (!["POST", "PATCH", "PUT"].includes(req.method)) return apiError(res, 405, "Method not allowed");
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  if (typeof body.watermark_enabled !== "boolean") return apiError(res, 400, "Invalid watermark setting");
+  const transparency = Number(body.watermark_transparency);
+  if (!Number.isInteger(transparency) || transparency < 0 || transparency > 100) return apiError(res, 400, "Transparency must be between 0 and 100.");
+  const response = await db("admin_settings?singleton=eq.true", {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      watermark_enabled: body.watermark_enabled,
+      watermark_transparency: transparency,
+      updated_at: new Date().toISOString()
+    })
+  });
+  const data = await readJson(response);
+  if (!response.ok || !Array.isArray(data) || !data.length) return apiError(res, response.status || 503, "Could not save settings", data);
+  return json(res, 200, { ok: true, settings: normalizedSettings(data[0]) });
+}
+
 module.exports = async function handler(req, res) {
   if (!requireSameOrigin(req, res)) return;
   const user = await requireAdmin(req, res);
@@ -104,7 +139,10 @@ module.exports = async function handler(req, res) {
   if (id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return apiError(res, 400, "Invalid vehicle ID");
 
   try {
+    if (action === "settings") return await settingsAction(req, res, db);
+
     if (req.method === "GET") {
+      if (action) return apiError(res, 400, "Unknown action");
       if (id) {
         const r = await db("vehicles?id=eq." + encodeURIComponent(id) + "&select=*&limit=1", { method: "GET" });
         const data = await readJson(r);
