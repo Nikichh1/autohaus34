@@ -7,7 +7,7 @@ const ADMIN_STYLES = ["admin/admin.css", "admin/brand.css", "admin/brand-fallbac
 const PAGES = ["index.html", "concierge.html", "vehicle.html", "legal.html", "admin/login.html", "admin/setup.html", "api/admin/page.js"];
 const PUBLIC_FILES = [
   "index.html", "vehicle.html", "concierge.html", "legal.html", "style.min.css", "catalog.min.css", "vehicle-fixes.css",
-  "main.js", "catalog.js", "catalog-prefetch.js", "showroom.js", "vehicle.js", "vehicle-i18n-runtime.js", "concierge.js", "i18n.js", "analytics.js", "watermark.js",
+  "main.js", "catalog.js", "catalog-prefetch.js", "showroom.js", "vehicle.js", "vehicle-i18n-runtime.js", "concierge.js", "i18n.js", "analytics.js", "watermark.js", "public-security.js",
   "autohaus.svg", "favicon.jpg", "_headers", "data/vehicles.base.js", "data/vehicles.js", "data/photo-insets.js",
   "admin/login.html", "admin/setup.html", "admin/admin.css", "admin/admin.js", "admin/admin-fixes.js", "admin/fast-cache.js", "admin/notes-translation.js", "admin/login.js",
   "admin/advanced.js", "admin/image-sorter.js", "admin/image-sorter.css"
@@ -86,6 +86,9 @@ function build(options = {}) {
     });
     if (["index.html", "vehicle.html", "concierge.html", "legal.html"].includes(page) && !source.includes("analytics.js?v=")) {
       source = source.replace(/<\/head>/i, '<script defer src="analytics.js?v=' + versions.get("analytics.js") + '"></script>\n</head>');
+    }
+    if (["index.html", "vehicle.html", "concierge.html", "legal.html"].includes(page) && !source.includes("public-security.js?v=")) {
+      source = source.replace(/<\/head>/i, '<script defer src="public-security.js?v=' + versions.get("public-security.js") + '"></script>\n</head>');
     }
     if (["index.html", "vehicle.html"].includes(page) && !source.includes("watermark.js?v=")) {
       source = source.replace(/<\/head>/i, '<script defer src="watermark.js?v=' + versions.get("watermark.js") + '"></script>\n</head>');

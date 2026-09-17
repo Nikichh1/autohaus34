@@ -1,9 +1,59 @@
-/* Vehicle-page mobile image fidelity.
-   The optimized product masters are 800:490 / 1280:784. The old 1.5 frame
-   was narrower, so object-fit:cover clipped a strip from both sides. */
+/* Vehicle-page image fidelity and sparse-gallery layouts.
+   Product masters are 800:490 / 1280:784. Preserve the whole photograph on
+   phones, and give one/two-photo listings a deliberate editorial layout
+   instead of stretching the old three-frame grid. */
 @media (max-width:1023px){
   .dgal__main{aspect-ratio:800 / 490;background:#f3f2ee}
   .dgal__f img{object-fit:contain;object-position:center;background:#f3f2ee}
   .dthumb{aspect-ratio:800 / 490}
   .dthumb img{object-fit:contain;object-position:center;background:#f3f2ee}
+}
+
+@media (min-width:1024px){
+  /* A single photograph is the hero, not a fake panoramic strip. */
+  .dgal--1{
+    display:block;
+    width:min(1120px,100%);
+    margin-inline:auto;
+    overflow:visible;
+    background:transparent;
+  }
+  .dgal--1 .dgal__main{
+    grid-row:auto;
+    aspect-ratio:800 / 490;
+    border-radius:8px;
+    background:#0b0e0f;
+  }
+  .dgal--1 .dgal__main picture,
+  .dgal--1 .dgal__main img{width:100%;height:100%}
+  .dgal--1 .dgal__main img{object-fit:contain;object-position:center;background:#0b0e0f}
+
+  /* Two images read as one main photograph plus one supporting frame. The
+     supporting frame stays fixed while the arrows step only the main frame. */
+  .dgal--2{
+    grid-template-columns:minmax(0,1.62fr) minmax(250px,.72fr);
+    grid-template-rows:auto;
+    gap:8px;
+    align-items:stretch;
+  }
+  .dgal--2 .dgal__main{
+    grid-row:auto;
+    aspect-ratio:800 / 490;
+    border-radius:8px 0 0 8px;
+  }
+  .dgal--2 .dgal__side{
+    display:block;
+    grid-row:auto;
+    align-self:stretch;
+    aspect-ratio:auto;
+    min-height:100%;
+    border-radius:0 8px 8px 0;
+  }
+  .dgal--2 .dgal__side picture,
+  .dgal--2 .dgal__side img{width:100%;height:100%}
+  .dgal--2 .dgal__side img{object-fit:cover;object-position:center}
+}
+
+@media (min-width:1024px) and (max-width:1199px){
+  .dgal--2{grid-template-columns:minmax(0,1.5fr) minmax(220px,.65fr)}
 }
