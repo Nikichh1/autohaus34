@@ -136,7 +136,7 @@ function contentTypeIsJson(req) {
   return /^application\/json(?:\s*;|$)/i.test(String(req.headers["content-type"] || ""));
 }
 
-function buildVehicle(body) {
+function buildVehicle(body, req) {
   const vehicle = body.vehicle || {};
   const contact = body.contact || {};
   const name = clean(contact.name, 120);
@@ -149,7 +149,7 @@ function buildVehicle(body) {
   let page = "";
   try {
     const candidate = new URL(clean(body.page, 500));
-    if ((candidate.protocol === "https:" || candidate.protocol === "http:") && candidate.origin === expectedOriginFromPage(candidate)) page = candidate.href;
+    if ((candidate.protocol === "https:" || candidate.protocol === "http:") && candidate.origin === expectedOrigin(req)) page = candidate.href;
   } catch (_) {}
 
   if (!name || !message || (!phone && !email)) {
@@ -185,12 +185,6 @@ function buildVehicle(body) {
     (page ? '<p><a href="' + escapeHtml(page) + '">Отвори страницата на автомобила</a></p>' : "");
 
   return { subject, text: lines.join("\n"), html, replyTo: email || undefined, fingerprint: [vehicleId, name, phone, email, message].join("|") };
-}
-
-/* Only retain same-site page links in emails. This helper intentionally
-   returns the page's own origin so a pasted external URL is discarded. */
-function expectedOriginFromPage(candidate) {
-  return candidate && candidate.origin || "";
 }
 
 function buildConcierge(body) {
@@ -250,7 +244,7 @@ module.exports = async function handler(req, res) {
   if (clean(body.website, 200)) return json(res, 200, { ok: true });
   if (!validChallenge(req, body.challenge)) return json(res, 403, { ok: false, error: "Please reload the page and try again.", code: "INVALID_CHALLENGE" });
 
-  const built = body.kind === "vehicle" ? buildVehicle(body) : buildConcierge(body);
+  const built = body.kind === "vehicle" ? buildVehicle(body, req) : buildConcierge(body);
   if (built.error) return json(res, 400, { ok: false, error: built.error });
   if (duplicateRequest(req, built.fingerprint || built.text)) return json(res, 200, { ok: true, duplicate: true });
 
