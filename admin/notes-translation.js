@@ -1,24 +1,48 @@
 /* AutoHaus automatic note translation.
-   Bulgarian notes remain the editor source of truth; English is prepared while
-   the user types and is guaranteed again immediately before a vehicle save. */
+   The admin is Bulgarian-only. Bulgarian notes are the source of truth and a
+   live read-only English preview is kept beside them for the public EN site. */
 (function () {
   "use strict";
 
+  /* The admin no longer has a language switch. Clear any old preference before
+     admin.js reads it so a browser that was previously set to EN opens in BG. */
+  try { localStorage.removeItem("ah-admin-language"); } catch (_) {}
+  document.documentElement.lang = "bg";
+
   var baseFetch = window.fetch.bind(window);
-  var CACHE_KEY = "autohaus-note-translation-v1";
+  var CACHE_KEY = "autohaus-note-translation-v2";
   var cache = Object.create(null);
   var pending = Object.create(null);
   var bindObserver;
 
+  /* Current AutoHaus note vocabulary is deterministic and should never depend
+     on an external translation service. Unknown future notes still use the
+     server translation endpoint and are cached once translated. */
   var KNOWN = {
-    "Пълна сервизна история!": "Full service history!",
+    "Автомобил с 6+1 места": "6+1-seat vehicle",
+    "Автомобил с удължено междуосие Long Wheelbase (LWB)": "Long Wheelbase (LWB) vehicle",
+    "Автомобилът е с електроника и компоненти за повишаване на мощността до 800 к.с.!": "Electronics and components fitted to increase power to 800 hp!",
+    "Автомобилът е цялостно облепен в предпазно фолио с матиращ ефект!": "Fully wrapped in protective film with a matte effect!",
+    "Автомобилът е цялостно облепен с предпазно фолио в светло сив цвят!": "Fully wrapped in light-grey protective film!",
+    "Автомобилът е цялостно фолиран в сив мат.": "Fully wrapped in matte grey film.",
+    "Автомобилът е цялостно фолиран с предпазно фолио черен мат!": "Fully wrapped in matte-black protective film!",
+    "Автомобиълт е облепен с безцветно предпазно фолио!": "The vehicle is covered with clear protective film!",
     "Възможен бартер!": "Part-exchange available!",
     "Възможен лизинг!": "Leasing available!",
+    "Добавен екстериорен пакет от G63 AMG!": "G63 AMG exterior package added!",
+    "Добавена е спортна изпускателна система MILLTEK Sport!": "MILLTEK Sport exhaust system added!",
+    "Проверка на кола!": "Car inspection available!",
+    "Пълна сервизна история!": "Full service history!",
+    "Сертификат N1 за товарен автомобил!": "N1 commercial-vehicle certificate!",
+    "Удължена фабрична гаранция до 01.2031 г. или 200 000 км.": "Extended factory warranty until 01/2031 or 200,000 km.",
+    "Удължена фабрична гаранция до 03.2027 г. или 200 000 км.!": "Extended factory warranty until 03/2027 or 200,000 km!",
+    "Удължена фабрична гаранция до 5 години от първа регистрация или 200 000 км.!": "Extended factory warranty for up to 5 years from first registration or 200,000 km!",
+    "Фабрична гаранция до 07.2026 г. или 200 000 км.!": "Factory warranty until 07/2026 or 200,000 km!",
+    "Фабрично нов автомобил!": "Brand-new vehicle!",
     "Цена без начислен 20% ДДС": "Price excluding 20% VAT",
     "Цена без начислен 20% ДДС!": "Price excluding 20% VAT!"
   };
 
-  function tr(bg, en) { return document.documentElement.lang === "en" ? en : bg; }
   function lineList(value) {
     var source = Array.isArray(value) ? value : String(value || "").split(/\r?\n/);
     return source.map(function (line) { return String(line || "").trim(); }).filter(Boolean);
@@ -39,12 +63,6 @@
     try { return new URL(typeof input === "string" ? input : input && input.url, location.href); }
     catch (_) { return null; }
   }
-  function errorResponse(message) {
-    return new Response(JSON.stringify({ ok: false, error: message, code: "NOTES_TRANSLATION_REQUIRED" }), {
-      status: 422,
-      headers: { "Content-Type": "application/json; charset=utf-8" }
-    });
-  }
 
   function translateMissing(lines) {
     var missing = [];
@@ -64,7 +82,7 @@
       }).then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (data) {
           if (!response.ok || !data || data.ok !== true || !Array.isArray(data.lines) || data.lines.length !== missing.length) {
-            throw new Error(data && data.error || tr("Автоматичният превод временно не успя.", "Automatic translation is temporarily unavailable."));
+            throw new Error(data && data.error || "Автоматичният превод за новия ред временно не е наличен.");
           }
           missing.forEach(function (line, index) { cache[line] = String(data.lines[index] || "").trim(); });
           saveCache();
@@ -80,15 +98,16 @@
     if (!lines.length) return Promise.resolve([]);
     return translateMissing(lines).then(function (translated) {
       if (translated.length !== lines.length || translated.some(function (line) { return !String(line || "").trim(); })) {
-        throw new Error(tr("Английският превод не е пълен.", "The English translation is incomplete."));
+        throw new Error("Английският превод не е пълен.");
       }
       return translated;
     });
   }
 
-  /* This wrapper is installed BEFORE admin-fixes.js. The later VAT wrapper
-     therefore edits the Bulgarian note array first, then reaches us, so the
-     English array always matches exactly what will actually be saved. */
+  /* Translation is enrichment, never a reason to lose an admin edit. For the
+     current vocabulary this path is fully local. If a brand-new sentence and
+     the translation service both fail, save the Bulgarian edit and keep the
+     existing English value until translation is available again. */
   window.fetch = function (input, init) {
     init = init || {};
     var url = apiUrl(input);
@@ -103,24 +122,34 @@
 
     return translateNotes(body.notes).then(function (notesEn) {
       body.notes_en = notesEn;
-      var next = Object.assign({}, init, { body: JSON.stringify(body) });
-      return baseFetch(input, next);
-    }).catch(function (error) {
-      return errorResponse(error && error.message || tr("Автоматичният превод временно не успя.", "Automatic translation is temporarily unavailable."));
+      return baseFetch(input, Object.assign({}, init, { body: JSON.stringify(body) }));
+    }).catch(function () {
+      return baseFetch(input, init);
     });
   };
 
-  function ensureStatus(textarea) {
+  function ensureUI(textarea) {
     var label = textarea && textarea.closest && textarea.closest("label.field");
-    if (!label) return null;
+    if (!label) return {};
     var status = label.querySelector(".ah-note-translation-status");
-    if (status) return status;
-    status = document.createElement("small");
-    status.className = "field-hint ah-note-translation-status";
-    status.setAttribute("role", "status");
-    status.style.cssText = "display:block;margin-top:7px;min-height:1.2em";
-    label.appendChild(status);
-    return status;
+    if (!status) {
+      status = document.createElement("small");
+      status.className = "field-hint ah-note-translation-status";
+      status.setAttribute("role", "status");
+      status.style.cssText = "display:block;margin-top:7px;min-height:1.2em";
+      label.appendChild(status);
+    }
+
+    var preview = label.parentNode && label.parentNode.querySelector(":scope > .ah-note-preview");
+    if (!preview && label.parentNode) {
+      preview = document.createElement("div");
+      preview.className = "field ah-note-preview";
+      preview.style.cssText = "margin-top:14px";
+      preview.innerHTML = '<span style="display:block;margin-bottom:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Преглед на английски · автоматичен</span>' +
+        '<textarea class="ah-note-preview-box" readonly spellcheck="false" aria-label="Преглед на бележките на английски" style="width:100%;min-height:132px;resize:vertical;background:#f5f5f3;color:#222;border:1px solid #aaa;padding:12px 14px;font:inherit;line-height:1.5"></textarea>';
+      label.insertAdjacentElement("afterend", preview);
+    }
+    return { status: status, box: preview && preview.querySelector(".ah-note-preview-box") };
   }
 
   function bindNotes() {
@@ -128,17 +157,30 @@
     var textarea = form && form.elements && form.elements.notes;
     if (!textarea || textarea.dataset.ahAutoTranslate === "1") return;
     textarea.dataset.ahAutoTranslate = "1";
-    var status = ensureStatus(textarea);
+    var ui = ensureUI(textarea);
+    var status = ui.status, box = ui.box;
     var timer = 0, sequence = 0;
+
+    function renderKnown(lines) {
+      if (!box) return;
+      box.value = lines.map(function (line) { return cache[line] || "…"; }).join("\n");
+    }
 
     function run() {
       var version = ++sequence;
       var lines = lineList(textarea.value);
-      if (!lines.length) { if (status) status.textContent = ""; return; }
-      if (status) status.textContent = tr("Превеждане на английски…", "Preparing English translation…");
-      translateNotes(lines).then(function () {
+      if (!lines.length) {
+        if (status) status.textContent = "";
+        if (box) box.value = "";
+        return;
+      }
+      renderKnown(lines);
+      var hasMissing = lines.some(function (line) { return !cache[line]; });
+      if (status) status.textContent = hasMissing ? "Превеждане на новия текст…" : "Английският преглед е готов.";
+      translateNotes(lines).then(function (translated) {
         if (version !== sequence || !textarea.isConnected) return;
-        if (status) status.textContent = tr("Английският превод е готов.", "English translation ready.");
+        if (box) box.value = translated.join("\n");
+        if (status) status.textContent = "Английският преглед е готов.";
       }).catch(function (error) {
         if (version !== sequence || !textarea.isConnected) return;
         if (status) status.textContent = error.message;
@@ -147,8 +189,10 @@
 
     textarea.addEventListener("input", function () {
       clearTimeout(timer);
-      if (status) status.textContent = tr("Подготовка на превода…", "Preparing translation…");
-      timer = setTimeout(run, 220);
+      var lines = lineList(textarea.value);
+      renderKnown(lines);
+      if (status) status.textContent = "Подготовка на английския преглед…";
+      timer = setTimeout(run, 180);
     });
     setTimeout(run, 0);
   }
