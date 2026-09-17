@@ -234,15 +234,19 @@ module.exports = async function handler(req, res) {
 
   const length = Number(req.headers["content-length"] || 0);
   if (!Number.isFinite(length) || length < 0 || length > MAX_BODY_BYTES) return json(res, 413, { ok: false, error: "Request too large" });
-  if (rateLimited(req)) {
-    res.setHeader("Retry-After", String(Math.ceil(WINDOW_MS / 1000)));
-    return json(res, 429, { ok: false, error: "Too many requests. Please try again later." });
-  }
 
   const body = req.body && typeof req.body === "object" ? req.body : {};
   if (Buffer.byteLength(JSON.stringify(body), "utf8") > MAX_BODY_BYTES) return json(res, 413, { ok: false, error: "Request too large" });
   if (clean(body.website, 200)) return json(res, 200, { ok: true });
   if (!validChallenge(req, body.challenge)) return json(res, 403, { ok: false, error: "Please reload the page and try again.", code: "INVALID_CHALLENGE" });
+
+  /* Invalid cross-site/direct bot traffic never consumes the small quota used
+     by real enquiries. The user-facing throttle starts only after the signed,
+     same-origin challenge has passed. */
+  if (rateLimited(req)) {
+    res.setHeader("Retry-After", String(Math.ceil(WINDOW_MS / 1000)));
+    return json(res, 429, { ok: false, error: "Too many requests. Please try again later." });
+  }
 
   const built = body.kind === "vehicle" ? buildVehicle(body, req) : buildConcierge(body);
   if (built.error) return json(res, 400, { ok: false, error: built.error });
