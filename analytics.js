@@ -42,9 +42,7 @@
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){start();if(!consent())banner();});else{start();if(!consent())banner();}
 })();
 
-/* Public-site interaction guard and small shared UI repairs. This is a
-   deterrent against casual saving/dragging, not a claim that browser-delivered
-   media can be made impossible to copy. */
+/* Public-site interaction guard, shared UI repairs and public watermark display. */
 (function(){
   "use strict";
 
@@ -61,7 +59,11 @@
       ".mob-close{color:#fff!important;border-color:rgba(255,255,255,.18)!important}",
       ".mob-close svg{color:#fff!important;stroke:#fff!important;fill:none!important}",
       ".mob nav a[data-contact],.mob nav a[data-contact]:visited{color:#f4f3ee!important}",
-      ".mob nav a[data-contact]:hover,.mob nav a[data-contact]:focus-visible{color:var(--primary)!important}"
+      ".mob nav a[data-contact]:hover,.mob nav a[data-contact]:focus-visible{color:var(--primary)!important}",
+      ".ctc__sheet,.ctc__h{color:#fff!important}",
+      "html.ah-watermark-on .lc__pic,html.ah-watermark-on .dgal__f,html.ah-watermark-on #lb-stage{position:relative;isolation:isolate}",
+      "html.ah-watermark-on .lc__pic::after,html.ah-watermark-on .dgal__f::after,html.ah-watermark-on #lb-stage::after{content:\"\";position:absolute;left:50%;top:50%;width:min(38%,300px);aspect-ratio:481.9/85;transform:translate(-50%,-50%);background:url('/autohaus.svg') center/contain no-repeat;opacity:var(--ah-watermark-opacity,.25);filter:drop-shadow(0 1px 3px rgba(0,0,0,.42));pointer-events:none;z-index:8}",
+      "html.ah-watermark-on #lb-stage::after{width:min(34%,360px)}"
     ].join("");
     document.head.appendChild(s);
   }
@@ -84,6 +86,19 @@
     document.querySelectorAll(".wcard-panel .wcard-cta").forEach(function(el){el.remove();});
   }
 
+  function loadWatermarkSetting(){
+    fetch("/api/public/vehicles?settings=1",{headers:{Accept:"application/json"},credentials:"omit",cache:"no-store"})
+      .then(function(response){return response.ok?response.json():null;})
+      .then(function(data){
+        var cfg=data&&data.settings;
+        if(!cfg)return;
+        var transparency=Math.max(0,Math.min(100,Number(cfg.watermark_transparency)));
+        if(!Number.isFinite(transparency))transparency=75;
+        document.documentElement.style.setProperty("--ah-watermark-opacity",String((100-transparency)/100));
+        document.documentElement.classList.toggle("ah-watermark-on",cfg.watermark_enabled===true);
+      }).catch(function(){});
+  }
+
   function init(){
     if(!document.body)return;
     installStyle();
@@ -91,6 +106,7 @@
     if(/\/(?:concierge|legal)\.html$/i.test(location.pathname))document.body.classList.add("ah-text-open");
     normalizeMedia(document);
     landingCleanup();
+    loadWatermarkSetting();
 
     document.addEventListener("dragstart",function(event){
       var target=event.target&&event.target.closest?event.target.closest("img,picture,a"):null;
