@@ -26,6 +26,34 @@ function staticVariants(url) {
   return variants;
 }
 
+function translatedNotes(value, expected) {
+  if (value == null) return null;
+  if (!Array.isArray(value) || value.length > 80 || value.some((line) => typeof line !== "string" || line.length > 2000)) {
+    return { error: "Invalid or oversized notes_en." };
+  }
+  const lines = value.map((line) => clean(line, 2000)).filter(Boolean);
+  if (lines.length && lines.length !== expected) return { error: "Bulgarian and English notes must have the same number of lines." };
+  return { lines };
+}
+
+function normalizeWithTranslations(source) {
+  const normalized = normalizeVehicle(source);
+  if (normalized.error) return normalized;
+  const translated = translatedNotes(source && source.notes_en, normalized.row.notes.length);
+  if (translated && translated.error) return translated;
+  if (translated) normalized.row.notes_en = translated.lines;
+  return normalized;
+}
+
+function isFullVehicleUpdate(body) {
+  return body && typeof body === "object" &&
+    typeof body.make === "string" && typeof body.model === "string" &&
+    Array.isArray(body.images) && Array.isArray(body.notes) &&
+    Array.isArray(body.equipment_bg) && Array.isArray(body.equipment_en) &&
+    Object.prototype.hasOwnProperty.call(body, "fuel") &&
+    Object.prototype.hasOwnProperty.call(body, "transmission");
+}
+
 function legacyToRow(v, index, equipment) {
   const normalized = normalizeVehicle({
     slug: v.id,
@@ -82,14 +110,6 @@ function initialInventory() {
     if (equipment && equipment.id !== vehicle.id) throw new Error("Equipment vehicle mismatch");
     return legacyToRow(vehicle, index, equipment);
   });
-}
-
-async function nextSortOrder(db) {
-  const r = await db("vehicles?select=sort_order&order=sort_order.desc&limit=1", { method: "GET" });
-  const data = await readJson(r);
-  if (!r.ok || !Array.isArray(data)) throw new Error("Could not determine inventory order");
-  if (!data.length) return 1;
-  return Math.max(1, Number(data[0].sort_order || 0) + 1);
 }
 
 function normalizedSettings(row) {
@@ -173,9 +193,11 @@ module.exports = async function handler(req, res) {
     if (action) return apiError(res, 400, "Unknown action");
 
     if (req.method === "POST") {
-      const normalized = normalizeVehicle(req.body);
+      const normalized = normalizeWithTranslations(req.body);
       if (normalized.error) return apiError(res, 400, normalized.error);
-      const row = Object.assign({ created_at: new Date().toISOString(), sort_order: await nextSortOrder(db) }, normalized.row);
+      // Public ordering is updated_at DESC; using epoch seconds avoids an extra
+      // database read solely to allocate a cosmetic tie-breaker.
+      const row = Object.assign({ created_at: new Date().toISOString(), sort_order: Math.min(2147483647, Math.floor(Date.now() / 1000)) }, normalized.row);
       const r = await db("vehicles", {
         method: "POST",
         headers: { Prefer: "return=representation" },
@@ -187,15 +209,24 @@ module.exports = async function handler(req, res) {
     }
 
     if ((req.method === "PUT" || req.method === "PATCH") && id) {
-      const previousResponse = await db("vehicles?id=eq." + encodeURIComponent(id) + "&select=*&limit=1", { method: "GET" });
-      const previous = await readJson(previousResponse);
-      if (!previousResponse.ok) return apiError(res, previousResponse.status, "Could not load vehicle");
-      if (!Array.isArray(previous) || !previous.length) return apiError(res, 404, "Vehicle not found");
       const body = req.body && typeof req.body === "object" ? req.body : {};
-      const normalized = normalizeVehicle(Object.assign({}, previous[0], body));
-      if (normalized.error) return apiError(res, 400, normalized.error);
       const version = body.if_unmodified_since;
       if (version && (typeof version !== "string" || !Number.isFinite(Date.parse(version)))) return apiError(res, 400, "Invalid saved version");
+
+      let normalized;
+      if (isFullVehicleUpdate(body)) {
+        // The editor sends the complete editable vehicle. Normalize it directly
+        // so a normal Save is one database round-trip instead of GET + PATCH.
+        normalized = normalizeWithTranslations(body);
+      } else {
+        const previousResponse = await db("vehicles?id=eq." + encodeURIComponent(id) + "&select=*&limit=1", { method: "GET" });
+        const previous = await readJson(previousResponse);
+        if (!previousResponse.ok) return apiError(res, previousResponse.status, "Could not load vehicle");
+        if (!Array.isArray(previous) || !previous.length) return apiError(res, 404, "Vehicle not found");
+        normalized = normalizeWithTranslations(Object.assign({}, previous[0], body));
+      }
+      if (normalized.error) return apiError(res, 400, normalized.error);
+
       const r = await db("vehicles?id=eq." + encodeURIComponent(id) + (version ? "&updated_at=eq." + encodeURIComponent(version) : ""), {
         method: "PATCH",
         headers: { Prefer: "return=representation" },

@@ -1,0 +1,9 @@
+/* Vehicle-page mobile image fidelity.
+   The optimized product masters are 800:490 / 1280:784. The old 1.5 frame
+   was narrower, so object-fit:cover clipped a strip from both sides. */
+@media (max-width:1023px){
+  .dgal__main{aspect-ratio:800 / 490;background:#f3f2ee}
+  .dgal__f img{object-fit:contain;object-position:center;background:#f3f2ee}
+  .dthumb{aspect-ratio:800 / 490}
+  .dthumb img{object-fit:contain;object-position:center;background:#f3f2ee}
+}
