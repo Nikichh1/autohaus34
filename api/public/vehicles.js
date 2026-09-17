@@ -89,13 +89,15 @@ function remember(key, body, started, order, status = 200) {
 }
 
 async function publicSettings() {
-  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency&limit=1", { method: "GET" });
+  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size&limit=1", { method: "GET" });
   const rows = await parse(response);
   const row = rows[0] || {};
   const transparency = Number(row.watermark_transparency);
+  const size = Number(row.watermark_size);
   return {
     watermark_enabled: row.watermark_enabled === true,
-    watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75
+    watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75,
+    watermark_size: Number.isFinite(size) ? Math.max(10, Math.min(60, Math.round(size))) : 34
   };
 }
 
@@ -116,8 +118,6 @@ async function inventory(id, cacheKey) {
     "transmission", "fuel", "mileage", "first_registration_year", "first_registration_month",
     "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "source_url", "sort_order", "updated_at"
   ].join(",");
-  /* A publish or any saved edit refreshes updated_at, so the latest work is
-     deliberately first. sort_order remains a stable tie-breaker for legacy data. */
   const r = await db("vehicles?published=eq.true&select=" + fields + "&order=updated_at.desc,sort_order.asc", { method: "GET" });
   const rows = await parse(r);
   if (!rows.length) {
@@ -140,7 +140,7 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { ok: true, settings: await publicSettings() });
     } catch (err) {
       console.error("Public settings API failed", err);
-      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75 } });
+      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34 } });
     }
   }
 
