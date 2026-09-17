@@ -88,6 +88,17 @@ function remember(key, body, started, order, status = 200) {
   return body;
 }
 
+async function publicSettings() {
+  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency&limit=1", { method: "GET" });
+  const rows = await parse(response);
+  const row = rows[0] || {};
+  const transparency = Number(row.watermark_transparency);
+  return {
+    watermark_enabled: row.watermark_enabled === true,
+    watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75
+  };
+}
+
 async function inventory(id, cacheKey) {
   const started = Date.now();
   const order = ++requestOrder;
@@ -121,6 +132,17 @@ async function inventory(id, cacheKey) {
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") return json(res, 405, { ok: false, error: "Method not allowed" });
   if (!configured()) return json(res, 200, { ok: true, authoritative: false, vehicles: [] });
+
+  const settingsOnly = clean((req.query && req.query.settings) || "", 8) === "1";
+  if (settingsOnly) {
+    res.setHeader("Cache-Control", "no-store, max-age=0");
+    try {
+      return json(res, 200, { ok: true, settings: await publicSettings() });
+    } catch (err) {
+      console.error("Public settings API failed", err);
+      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75 } });
+    }
+  }
 
   const id = clean((req.query && req.query.id) || "", 180);
   if (id && !/^[a-z0-9-]+$/.test(id)) return json(res, 400, { ok: false, error: "Invalid vehicle ID" });
