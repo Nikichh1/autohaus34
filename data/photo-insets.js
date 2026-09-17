@@ -25,11 +25,12 @@
   return { clip: clip, keys: Array.from(audited) };
 });
 
-/* Desktop dossier gallery: preserve every photo's complete frame instead of
-   cropping it into the layout. Mobile is intentionally untouched. The 3:2
-   split makes the 4:3 lead frame exactly as tall as two 16:9 side frames,
-   keeping the established three-photo composition balanced while using
-   object-fit:contain for arbitrary source aspect ratios. */
+/* Desktop vehicle gallery polish. The desktop composition keeps the large
+   lead photo plus two supporting photos, but the cells now follow each
+   photo's native aspect ratio instead of forcing letterbox-shaped boxes.
+   With the 2:1 column split, photo sets shot at a consistent aspect ratio
+   line up naturally: one full-size lead equals two full-size side frames.
+   Mobile remains exactly as before. */
 (function () {
   "use strict";
   if (typeof document === "undefined" || document.getElementById("ah-desktop-gallery-fit")) return;
@@ -37,17 +38,27 @@
   style.id = "ah-desktop-gallery-fit";
   style.textContent = [
     "@media(min-width:1024px){",
-    ".dgal{grid-template-columns:minmax(0,3fr) minmax(0,2fr);grid-template-rows:1fr 1fr;align-items:stretch;background:transparent}",
-    ".dgal__f{background:var(--ink)}",
+    ".dgal{grid-template-columns:minmax(0,2fr) minmax(280px,1fr);grid-template-rows:auto auto;gap:8px;align-items:start;overflow:visible;border-radius:0;background:transparent}",
+    ".dgal__f{align-self:start;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:2px}",
+    ".dgal__f picture,.dgal__f img{display:block;width:100%;height:auto}",
     ".dgal__f img{object-fit:contain;object-position:center}",
-    ".dgal__main{grid-row:1 / 3;aspect-ratio:4 / 3}",
-    ".dgal__side{display:block;aspect-ratio:16 / 9}",
-    ".dgal--2{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto}",
-    ".dgal--2 .dgal__main,.dgal--2 .dgal__side{grid-row:auto;aspect-ratio:3 / 2}",
-    ".dgal--1{display:block;max-width:min(1100px,78vw);margin-inline:auto;overflow:visible;background:transparent}",
-    ".dgal--1 .dgal__main{display:grid;place-items:center;grid-row:auto;aspect-ratio:auto;background:transparent;overflow:visible}",
-    ".dgal--1 .dgal__main picture,.dgal--1 .dgal__main img{height:auto}",
-    ".dgal--1 .dgal__main img{width:auto;max-width:100%;max-height:72vh;object-fit:contain;margin-inline:auto}",
+    ".dgal__main{grid-column:1;grid-row:1 / span 2;aspect-ratio:auto}",
+    ".dgal__side{display:block;grid-column:2;aspect-ratio:auto}",
+    ".dgal__main + .dgal__side{grid-row:1}",
+    ".dgal__main + .dgal__side + .dgal__side{grid-row:2}",
+    ".dgal__n{right:10px;bottom:10px;padding:5px 8px;background:rgba(247,246,242,.94);color:var(--ink);border:1px solid rgba(20,19,18,.18);font-size:11px;line-height:16px;letter-spacing:.06em;clip-path:none;box-shadow:0 1px 3px rgba(20,19,18,.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}",
+    ".dgal--1{display:block;max-width:min(1120px,78vw);margin-inline:auto;overflow:visible;background:transparent}",
+    ".dgal--1 .dgal__main{display:block;width:100%;grid-column:auto;grid-row:auto;overflow:visible;background:transparent;border:0}",
+    ".dgal--1 .dgal__main picture,.dgal--1 .dgal__main img{width:auto;max-width:100%;height:auto;max-height:74vh;margin-inline:auto}",
+    ".dgal--1 .dgal__n{display:none}",
+    ".dgal--2{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto;max-width:1500px;margin-inline:auto}",
+    ".dgal--2 .dgal__main,.dgal--2 .dgal__side{grid-column:auto;grid-row:auto;aspect-ratio:auto}",
+    ".dthumbs{gap:10px;padding:12px 0 6px}",
+    ".dthumb{flex:0 0 92px;aspect-ratio:3 / 2;padding:0;border:1px solid var(--line);background:#fff;opacity:.72;transition:opacity var(--ui-dur) var(--ui-ease),border-color var(--ui-dur) var(--ui-ease)}",
+    ".dthumb picture,.dthumb img{width:100%;height:100%;object-fit:contain;background:#fff}",
+    ".dthumb:hover,.dthumb:focus-visible{opacity:1;border-color:var(--line-2)}",
+    ".dthumb.is-active{opacity:1;border-color:var(--ink);box-shadow:inset 0 -2px 0 var(--primary)}",
+    ".dgal-bar{padding-top:6px}",
     "}"
   ].join("");
   document.head.appendChild(style);
