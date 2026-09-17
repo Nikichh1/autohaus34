@@ -19,6 +19,10 @@
   },
   "rewrites": [
     {
+      "source": "/api/admin/settings",
+      "destination": "/api/admin/vehicles?action=settings"
+    },
+    {
       "source": "/admin",
       "destination": "/api/admin/page"
     },

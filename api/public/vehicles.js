@@ -40,9 +40,6 @@ function publicVehicle(row) {
 
 function compactVehicle(row) {
   const v = publicVehicle(row);
-  // Cards need the cover only. The full gallery belongs to the detail endpoint.
-  // Keep only the cover's responsive variants: dropping them made every
-  // card srcset candidate point at the same full-size remote photograph.
   v.managed_images = (v.managed_images || []).map((image) => ({
     original: image.original, variants: image.variants
   }));
@@ -83,7 +80,6 @@ function cached(req, res, key) {
 function remember(key, body, started, order, status = 200) {
   body.fresh_until = started + FRESH_MS;
   const previous = memory.get(key);
-  // A slower, older request must not replace a post-edit refresh.
   if (!previous || previous.order < order) {
     memory.delete(key);
     memory.set(key, { body, order, status });
@@ -99,8 +95,6 @@ async function inventory(id, cacheKey) {
     const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,description_bg,description_en,equipment_bg,equipment_en,images,source_url,published,sort_order,updated_at&limit=1", { method: "GET" });
     const rows = await parse(r);
     if (!rows.length) {
-      // Remember authoritative absence as well, so an older in-flight result
-      // cannot put an unpublished vehicle back into the cache.
       return { status: 404, body: remember(cacheKey, { ok: false, authoritative: true, vehicle: null, vehicles: [], error: "Vehicle not found" }, started, order, 404) };
     }
     return { status: 200, body: remember(cacheKey, { ok: true, authoritative: true, vehicle: publicVehicle(rows[0]) }, started, order) };
@@ -109,9 +103,11 @@ async function inventory(id, cacheKey) {
   const fields = [
     "id", "slug", "ref", "make", "model", "full_name", "body_type", "colour",
     "transmission", "fuel", "mileage", "first_registration_year", "first_registration_month",
-    "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "source_url", "sort_order"
+    "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "source_url", "sort_order", "updated_at"
   ].join(",");
-  const r = await db("vehicles?published=eq.true&select=" + fields + "&order=sort_order.asc,updated_at.desc", { method: "GET" });
+  /* A publish or any saved edit refreshes updated_at, so the latest work is
+     deliberately first. sort_order remains a stable tie-breaker for legacy data. */
+  const r = await db("vehicles?published=eq.true&select=" + fields + "&order=updated_at.desc,sort_order.asc", { method: "GET" });
   const rows = await parse(r);
   if (!rows.length) {
     const stateResponse = await db("inventory_state?select=initialized&singleton=eq.true", { method: "GET" });
@@ -143,7 +139,6 @@ module.exports = async function handler(req, res) {
     return send(req, res, result.status, result.body);
   } catch (err) {
     console.error("Public inventory API failed", err);
-    // Never resurrect an expired published listing after an outage.
     return json(res, 200, { ok: true, authoritative: false, vehicles: [] });
   }
 };
