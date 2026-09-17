@@ -1,6 +1,7 @@
 /* Public inventory only. Intent-prefetched details survive page navigation;
-   fresh data is used normally, with a very short stale-while-revalidate window
-   so repeat page visits can paint immediately instead of waiting on a network. */
+   fresh data is used normally, while the last known-good public payload remains
+   available for a bounded stale window so a brief API/database hiccup never
+   turns a normal vehicle click into an empty error page. */
 (function () {
   "use strict";
   window.AH_VEHICLES = window.AH_VEHICLES || [];
@@ -12,8 +13,8 @@
   var CACHE_KEY = "autohaus-public-inventory-v2";
   var CHANGE_KEY = "autohaus-inventory-changed";
   var MAX_AGE = 30000;
-  var STALE_AGE = 120000;
-  var MAX_ENTRIES = 12;
+  var STALE_AGE = 30 * 60 * 1000;
+  var MAX_ENTRIES = 20;
   var pending = Object.create(null);
   var persistentCache;
 
@@ -89,7 +90,7 @@
       timer = setTimeout(function () {
         if (controller) controller.abort();
         resolve(null);
-      }, ms || 4500);
+      }, ms || 6000);
     });
     var request = fetch(url, {
       headers: { Accept: "application/json" },
@@ -113,7 +114,7 @@
     var refresh = refreshedAt > 0 && Date.now() - refreshedAt < MAX_AGE;
     var url = "/api/public/vehicles" + (id ? "?id=" + encodeURIComponent(id) : "");
     if (refresh) url += (id ? "&" : "?") + "fresh=" + encodeURIComponent(currentRevision);
-    pending[requestKey] = timedJson(url, prefetch ? 4500 : 8000, refresh).then(function (data) {
+    pending[requestKey] = timedJson(url, prefetch ? 5000 : 10000, refresh).then(function (data) {
       if (revision() !== currentRevision) return prefetch ? null : loadInventory(id, false);
       if (validPayload(data, id, false)) cachePut(key, data, currentRevision);
       return data;
@@ -129,7 +130,6 @@
 
     var stale = cacheHit(key, id, currentRevision, true);
     if (stale) {
-      // Paint from the last known-good payload now and refresh it in parallel.
       networkLoad(id, true, currentRevision, key);
       return Promise.resolve(stale);
     }
