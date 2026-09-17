@@ -7,7 +7,7 @@ const ADMIN_STYLES = ["admin/admin.css", "admin/brand.css", "admin/brand-fallbac
 const PAGES = ["index.html", "concierge.html", "vehicle.html", "legal.html", "admin/login.html", "admin/setup.html", "api/admin/page.js"];
 const PUBLIC_FILES = [
   "index.html", "vehicle.html", "concierge.html", "legal.html", "style.min.css", "catalog.min.css", "vehicle-fixes.css",
-  "main.js", "catalog.js", "showroom.js", "vehicle.js", "vehicle-i18n-runtime.js", "concierge.js", "i18n.js", "analytics.js", "watermark.js",
+  "main.js", "catalog.js", "catalog-prefetch.js", "showroom.js", "vehicle.js", "vehicle-i18n-runtime.js", "concierge.js", "i18n.js", "analytics.js", "watermark.js",
   "autohaus.svg", "favicon.jpg", "_headers", "data/vehicles.base.js", "data/vehicles.js", "data/photo-insets.js",
   "admin/login.html", "admin/setup.html", "admin/admin.css", "admin/admin.js", "admin/admin-fixes.js", "admin/fast-cache.js", "admin/notes-translation.js", "admin/login.js",
   "admin/advanced.js", "admin/image-sorter.js", "admin/image-sorter.css"
@@ -58,8 +58,6 @@ function build(options = {}) {
     built.push({ file, dest, before: Buffer.byteLength(source), after: Buffer.byteLength(output) });
   }
 
-  // Hash the exact bytes served. The admin stylesheet includes its two brand
-  // layers in production, so either layer must invalidate its version too.
   const adminCss = ADMIN_STYLES.map(file => fs.readFileSync(path.join(root, file), "utf8")).join("\n");
   const versions = new Map();
   for (const file of PUBLIC_FILES) {
@@ -67,8 +65,6 @@ function build(options = {}) {
     versions.set(file, digest(file === "admin/admin.css" ? adminCss : fs.readFileSync(path.join(root, file))));
   }
 
-  // Legacy equipment is loaded dynamically. Its independent version travels
-  // in page metadata instead of borrowing an unrelated script's cache key.
   const equipmentDir = path.join(root, "data", "eq"), equipmentHash = crypto.createHash("sha256");
   if (fs.existsSync(equipmentDir)) {
     for (const file of fs.readdirSync(equipmentDir).sort()) {
@@ -93,6 +89,11 @@ function build(options = {}) {
     }
     if (["index.html", "vehicle.html"].includes(page) && !source.includes("watermark.js?v=")) {
       source = source.replace(/<\/head>/i, '<script defer src="watermark.js?v=' + versions.get("watermark.js") + '"></script>\n</head>');
+    }
+    if (page === "index.html" && !source.includes("catalog-prefetch.js?v=")) {
+      source = source.replace(/<script defer src="showroom\.js[^>]*><\/script>/i, function (tag) {
+        return '<script defer src="catalog-prefetch.js?v=' + versions.get("catalog-prefetch.js") + '"></script>\n' + tag;
+      });
     }
     if (page === "vehicle.html") {
       if (!source.includes("vehicle-fixes.css?v=")) {
