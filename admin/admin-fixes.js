@@ -205,7 +205,7 @@
 /* Global watermark settings and the Settings route. */
 (function () {
   "use strict";
-  var DEFAULT_SETTINGS = { watermark_enabled: false, watermark_transparency: 75 };
+  var DEFAULT_SETTINGS = { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34 };
   var cached = null, cachedAt = 0, pending = null, busy = false, logoPromise = null;
 
   function tr(bg, en) { return document.documentElement.lang === "en" ? en : bg; }
@@ -213,8 +213,14 @@
   function normalize(value) {
     value = value || {};
     var n = Math.round(Number(value.watermark_transparency));
+    var s = Math.round(Number(value.watermark_size));
     if (!Number.isFinite(n)) n = 75;
-    return { watermark_enabled: value.watermark_enabled === true, watermark_transparency: Math.max(0, Math.min(100, n)) };
+    if (!Number.isFinite(s)) s = 34;
+    return {
+      watermark_enabled: value.watermark_enabled === true,
+      watermark_transparency: Math.max(0, Math.min(100, n)),
+      watermark_size: Math.max(10, Math.min(60, s))
+    };
   }
   function status(text) { var el = document.getElementById("upload-status"); if (el) el.textContent = text; }
 
@@ -242,7 +248,7 @@
     return logoPromise;
   }
 
-  async function watermark(file, transparency) {
+  async function watermark(file, transparency, sizePercent) {
     var url = URL.createObjectURL(file);
     var image = new Image();
     try {
@@ -260,7 +266,8 @@
       ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, w, h); ctx.drawImage(image, 0, 0, w, h);
       var mark = await logo();
       var ratio = (mark.naturalWidth || 482) / (mark.naturalHeight || 85);
-      var markW = Math.min(w * .34, h * .14 * ratio), markH = markW / ratio;
+      var size = Math.max(10, Math.min(60, Number(sizePercent) || 34)) / 100;
+      var markW = Math.min(w * size, h * .22 * ratio), markH = markW / ratio;
       ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, 1 - transparency / 100));
       ctx.drawImage(mark, (w - markW) / 2, (h - markH) / 2, markW, markH); ctx.restore();
       var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, "image/png"); });
@@ -287,7 +294,7 @@
           files = [];
           for (var i = 0; i < originals.length; i++) {
             status(tr("Воден знак: ", "Watermark: ") + (i + 1) + " / " + originals.length);
-            files.push(await watermark(originals[i], cfg.watermark_transparency));
+            files.push(await watermark(originals[i], cfg.watermark_transparency, cfg.watermark_size));
           }
         }
         var transfer = new DataTransfer();
@@ -317,20 +324,24 @@
         if (!body || !body.isConnected) return;
         var disabled = app.canWrite ? "" : " disabled";
         body.innerHTML = '<form id="ah-settings-form" style="display:grid;gap:22px">' +
-          '<label class="check" style="align-items:flex-start"><input id="ah-watermark-enabled" type="checkbox"' + (cfg.watermark_enabled ? " checked" : "") + disabled + '><span><strong>' + esc(t("Добавяй AutoHaus воден знак автоматично", "Add the AutoHaus watermark automatically")) + '</strong><br><small class="muted">' + esc(t("Прилага се в центъра на всяка нова продуктова снимка преди оптимизацията.", "Applied to the centre of every newly uploaded product image before optimization.")) + '</small></span></label>' +
+          '<label class="check" style="align-items:flex-start"><input id="ah-watermark-enabled" type="checkbox"' + (cfg.watermark_enabled ? " checked" : "") + disabled + '><span><strong>' + esc(t("Добавяй AutoHaus воден знак автоматично", "Add the AutoHaus watermark automatically")) + '</strong><br><small class="muted">' + esc(t("Прилага се в центъра на всички продуктови снимки. Новите качвания използват същите настройки.", "Applied to the centre of all product images. New uploads use the same settings.")) + '</small></span></label>' +
           '<label class="field" style="max-width:520px"><span>' + esc(t("Прозрачност", "Transparency")) + ' — <b id="ah-watermark-value">' + cfg.watermark_transparency + '%</b></span><input id="ah-watermark-transparency" type="range" min="0" max="100" step="1" value="' + cfg.watermark_transparency + '"' + disabled + '></label>' +
-          '<p class="muted" style="margin:0">' + esc(t("75% е стойността по подразбиране. Настройката е глобална и важи за всички автомобили.", "75% is the default. This global setting applies to every vehicle.")) + '</p>' +
+          '<label class="field" style="max-width:520px"><span>' + esc(t("Размер", "Size")) + ' — <b id="ah-watermark-size-value">' + cfg.watermark_size + '%</b></span><input id="ah-watermark-size" type="range" min="10" max="60" step="1" value="' + cfg.watermark_size + '"' + disabled + '></label>' +
+          '<p class="muted" style="margin:0">' + esc(t("75% прозрачност и 34% размер са стойностите по подразбиране. Настройките са глобални и важат за всички автомобили.", "75% transparency and 34% size are the defaults. These global settings apply to every vehicle.")) + '</p>' +
           (app.canWrite ? '<div><button class="primary" id="ah-settings-save" type="submit">' + esc(t("Запази настройките", "Save settings")) + '</button></div>' : '') + '<div id="ah-settings-status" class="muted" role="status"></div></form>';
         var range = document.getElementById("ah-watermark-transparency");
         var value = document.getElementById("ah-watermark-value");
+        var sizeRange = document.getElementById("ah-watermark-size");
+        var sizeValue = document.getElementById("ah-watermark-size-value");
         if (range) range.oninput = function () { value.textContent = range.value + "%"; };
+        if (sizeRange) sizeRange.oninput = function () { sizeValue.textContent = sizeRange.value + "%"; };
         var form = document.getElementById("ah-settings-form");
         if (form && app.canWrite) form.onsubmit = async function (event) {
           event.preventDefault();
           var save = document.getElementById("ah-settings-save"), message = document.getElementById("ah-settings-status");
           save.disabled = true; message.textContent = t("Записване…", "Saving…");
           try {
-            var response = await fetch("/api/admin/settings", { method: "PATCH", credentials: "same-origin", headers: { Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ watermark_enabled: document.getElementById("ah-watermark-enabled").checked, watermark_transparency: Number(range.value) }) });
+            var response = await fetch("/api/admin/settings", { method: "PATCH", credentials: "same-origin", headers: { Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ watermark_enabled: document.getElementById("ah-watermark-enabled").checked, watermark_transparency: Number(range.value), watermark_size: Number(sizeRange.value) }) });
             var data = await response.json().catch(function () { return {}; });
             if (!response.ok) throw new Error(data.error || t("Настройките не бяха записани.", "Settings could not be saved."));
             cached = normalize(data.settings); cachedAt = Date.now();
