@@ -6,10 +6,10 @@ const SHEETS = ["style.css", "catalog.css"];
 const ADMIN_STYLES = ["admin/admin.css", "admin/brand.css", "admin/brand-fallback.css"];
 const PAGES = ["index.html", "concierge.html", "vehicle.html", "legal.html", "admin/login.html", "admin/setup.html", "api/admin/page.js"];
 const PUBLIC_FILES = [
-  "index.html", "vehicle.html", "concierge.html", "legal.html", "style.min.css", "catalog.min.css",
-  "main.js", "catalog.js", "showroom.js", "vehicle.js", "concierge.js", "i18n.js", "analytics.js", "watermark.js",
+  "index.html", "vehicle.html", "concierge.html", "legal.html", "style.min.css", "catalog.min.css", "vehicle-fixes.css",
+  "main.js", "catalog.js", "showroom.js", "vehicle.js", "vehicle-i18n-runtime.js", "concierge.js", "i18n.js", "analytics.js", "watermark.js",
   "autohaus.svg", "favicon.jpg", "_headers", "data/vehicles.base.js", "data/vehicles.js", "data/photo-insets.js",
-  "admin/login.html", "admin/setup.html", "admin/admin.css", "admin/admin.js", "admin/admin-fixes.js", "admin/login.js",
+  "admin/login.html", "admin/setup.html", "admin/admin.css", "admin/admin.js", "admin/admin-fixes.js", "admin/fast-cache.js", "admin/notes-translation.js", "admin/login.js",
   "admin/advanced.js", "admin/image-sorter.js", "admin/image-sorter.css"
 ];
 
@@ -95,6 +95,16 @@ function build(options = {}) {
       source = source.replace(/<\/head>/i, '<script defer src="watermark.js?v=' + versions.get("watermark.js") + '"></script>\n</head>');
     }
     if (page === "vehicle.html") {
+      if (!source.includes("vehicle-fixes.css?v=")) {
+        source = source.replace(/<link rel="stylesheet" href="catalog\.min\.css[^>]*>/i, function (tag) {
+          return tag + '\n<link rel="stylesheet" href="vehicle-fixes.css?v=' + versions.get("vehicle-fixes.css") + '">';
+        });
+      }
+      if (!source.includes("vehicle-i18n-runtime.js?v=")) {
+        source = source.replace(/<script defer src="i18n\.js[^>]*><\/script>/i, function (tag) {
+          return '<script defer src="vehicle-i18n-runtime.js?v=' + versions.get("vehicle-i18n-runtime.js") + '"></script>\n' + tag;
+        });
+      }
       const tag = '<meta name="ah-equipment-version" content="' + equipmentVersion + '">';
       const existing = /<meta\b[^>]*\bname=["']ah-equipment-version["'][^>]*>/i;
       source = existing.test(source) ? source.replace(existing, tag) : source.replace(/<\/head>/i, tag + "\n</head>");
