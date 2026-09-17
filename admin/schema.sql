@@ -25,6 +25,7 @@ create table if not exists public.vehicles (
   chapter text not null default 'saloon',
   tags jsonb not null default '[]'::jsonb,
   notes jsonb not null default '[]'::jsonb,
+  notes_en jsonb not null default '[]'::jsonb,
   description_bg text not null default '',
   description_en text not null default '',
   description_source text not null default '',
@@ -45,6 +46,7 @@ create table if not exists public.vehicles (
 );
 
 alter table public.vehicles add column if not exists sort_order integer not null default 0;
+alter table public.vehicles add column if not exists notes_en jsonb not null default '[]'::jsonb;
 alter table public.vehicles add column if not exists description_source text not null default '';
 alter table public.vehicles add column if not exists description_review_notes jsonb not null default '[]'::jsonb;
 
@@ -132,13 +134,13 @@ begin
   insert into public.vehicles (
     slug, ref, make, model, full_name, body_type, colour, transmission, fuel,
     mileage, first_registration_year, first_registration_month, unregistered,
-    horsepower, price, chapter, tags, notes, description_bg, description_en,
+    horsepower, price, chapter, tags, notes, notes_en, description_bg, description_en,
     description_source, description_review_notes, equipment_bg, equipment_en,
     images, source_url, published, sort_order
   ) select
     slug, ref, make, model, full_name, body_type, colour, transmission, fuel,
     mileage, first_registration_year, first_registration_month, unregistered,
-    horsepower, price, chapter, tags, notes, description_bg, description_en,
+    horsepower, price, chapter, tags, notes, notes_en, description_bg, description_en,
     description_source, description_review_notes, equipment_bg, equipment_en,
     images, source_url, published, sort_order
   from jsonb_populate_recordset(null::public.vehicles, initial_vehicles);
