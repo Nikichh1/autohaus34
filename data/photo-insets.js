@@ -63,3 +63,15 @@
   ].join("");
   document.head.appendChild(style);
 })();
+
+/* Load the final geometric desktop gallery layer. Kept as a separate file so
+   the legacy photo-inset module stays auditable and the override is isolated. */
+(function () {
+  "use strict";
+  if (typeof document === "undefined" || document.querySelector('script[data-ah-gallery-geometric="1"]')) return;
+  var script = document.createElement("script");
+  script.src = "data/eq/gallery-geometric.js?v=2";
+  script.async = false;
+  script.dataset.ahGalleryGeometric = "1";
+  document.head.appendChild(script);
+})();
