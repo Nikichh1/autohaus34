@@ -56,7 +56,7 @@
 
     var requestKey = JSON.stringify(missing);
     if (!pending[requestKey]) {
-      pending[requestKey] = baseFetch("/api/admin/translate", {
+      pending[requestKey] = baseFetch("/api/admin/description?action=translate", {
         method: "POST",
         credentials: "same-origin",
         headers: { Accept: "application/json", "Content-Type": "application/json" },
@@ -150,8 +150,6 @@
       if (status) status.textContent = tr("Подготовка на превода…", "Preparing translation…");
       timer = setTimeout(run, 220);
     });
-    // Prime existing lines in the background so pressing Save later is not
-    // forced to wait for a translation request.
     setTimeout(run, 0);
   }
 
