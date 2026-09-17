@@ -66,7 +66,7 @@ function send(req, res, status, body) {
   res.setHeader("ETag", etag);
   const remaining = Math.max(0, Math.floor((Number(body.fresh_until) - Date.now()) / 1000));
   res.setHeader("Cache-Control", remaining
-    ? "public, max-age=" + remaining + ", s-maxage=" + remaining + ", stale-while-revalidate=120"
+    ? "public, max-age=" + remaining + ", s-maxage=" + remaining + ", stale-while-revalidate=300"
     : "no-store");
   if (req.headers && req.headers["if-none-match"] === etag) { res.statusCode = 304; return res.end(); }
   res.statusCode = status;
@@ -109,7 +109,7 @@ async function inventory(id, cacheKey) {
   const started = Date.now();
   const order = ++requestOrder;
   if (id) {
-    const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,notes_en,description_bg,description_en,equipment_bg,equipment_en,images,source_url,published,sort_order,updated_at&limit=1", { method: "GET" });
+    const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,notes_en,description_bg,description_en,equipment_bg,equipment_en,images,published,sort_order,updated_at&limit=1", { method: "GET" });
     const rows = await parse(r);
     if (!rows.length) {
       return { status: 404, body: remember(cacheKey, { ok: false, authoritative: true, vehicle: null, vehicles: [], error: "Vehicle not found" }, started, order, 404) };
@@ -120,7 +120,7 @@ async function inventory(id, cacheKey) {
   const fields = [
     "id", "slug", "ref", "make", "model", "full_name", "body_type", "colour",
     "transmission", "fuel", "mileage", "first_registration_year", "first_registration_month",
-    "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "source_url", "sort_order", "updated_at"
+    "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "sort_order", "updated_at"
   ].join(",");
   const r = await db("vehicles?published=eq.true&select=" + fields + "&order=updated_at.desc,sort_order.asc", { method: "GET" });
   const rows = await parse(r);
