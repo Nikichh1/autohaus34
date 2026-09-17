@@ -1,12 +1,8 @@
 /* AutoHaus public protection layer.
-   - Adds a short-lived signed challenge to enquiry submissions without adding
-     any visible CAPTCHA or extra step for a normal visitor.
-   - Removes direct full-image gallery links and de-links rendered product
-     images from their source URLs after they are already decoded. This blocks
-     common DOM-based image extractors while preserving normal rendering,
-     caching, responsive loading and the gallery UX.
-   This is deterrence, not DRM: pixels displayed by a browser can never be made
-   mathematically impossible to capture. */
+   Keep protection deliberately lightweight: normal browsing and image loading
+   must always win over anti-scraping tricks. This module only adds the signed
+   enquiry challenge, removes direct full-image gallery links and keeps gallery
+   arrows focused on the main frame. It never re-downloads or rewrites images. */
 (function () {
   "use strict";
 
@@ -15,7 +11,6 @@
   var challengeAt = 0;
   var challengePromise = null;
   var CHALLENGE_CACHE_MS = 8 * 60 * 1000;
-  var IMAGE_SELECTOR = ".lc__pic img,.dgal__f img,.dthumb img,#lb-stage img";
   var idle = window.requestIdleCallback || function (fn) { return setTimeout(fn, 900); };
 
   function urlFor(input) {
@@ -44,9 +39,6 @@
     return challengePromise;
   }
 
-  /* All public enquiry code already uses fetch with a JSON body. Wrapping it
-     here lets vehicle.js and concierge.js stay simple and means a bot posting
-     straight at /api/inquiry does not get the server-signed browser challenge. */
   window.fetch = function (input, init) {
     init = init || {};
     var url = urlFor(input);
@@ -82,72 +74,10 @@
     });
   }
 
-  function deLinkImage(img) {
-    if (!img || !img.isConnected || img.dataset.ahImageShieldState) return;
-    var sourceUrl = img.currentSrc || img.src;
-    if (!sourceUrl || /^(?:blob:|data:)/i.test(sourceUrl)) return;
-    var url = urlFor(sourceUrl);
-    if (!url || !/^https?:$/.test(url.protocol)) return;
-
-    img.dataset.ahImageShieldState = "working";
-    nativeFetch(url.href, {
-      method: "GET",
-      credentials: url.origin === location.origin ? "same-origin" : "omit",
-      mode: url.origin === location.origin ? "same-origin" : "cors",
-      cache: "force-cache",
-      referrerPolicy: "same-origin"
-    }).then(function (response) {
-      if (!response.ok) throw new Error("image fetch " + response.status);
-      return response.blob();
-    }).then(function (blob) {
-      if (!img.isConnected || !blob || !/^image\//i.test(blob.type || "image/unknown")) throw new Error("image changed");
-      var objectUrl = URL.createObjectURL(blob);
-      var picture = img.closest("picture");
-
-      /* The visible pixels are already decoded before this runs. Replacing the
-         DOM URL with a short-lived object URL happens during idle time and
-         does not introduce another network download because force-cache is
-         used. Common extractors that inspect <img src/srcset> after rendering
-         therefore receive an already-revoked blob URL instead of the clean
-         source path. */
-      if (picture) picture.querySelectorAll("source").forEach(function (source) {
-        source.removeAttribute("srcset");
-        source.removeAttribute("sizes");
-      });
-      img.removeAttribute("srcset");
-      img.removeAttribute("sizes");
-      img.src = objectUrl;
-      img.dataset.ahImageShieldState = "done";
-      img.setAttribute("draggable", "false");
-      img.style.webkitUserDrag = "none";
-      var decoded = img.decode ? img.decode().catch(function () {}) : Promise.resolve();
-      decoded.finally(function () {
-        setTimeout(function () { URL.revokeObjectURL(objectUrl); }, 1200);
-      });
-    }).catch(function () {
-      /* CORS/privacy extensions can reject the secondary cache read. Keep the
-         original image untouched in that case; protection must never make a
-         legitimate visitor lose a photograph. */
-      if (img) img.dataset.ahImageShieldState = "fallback";
-    });
-  }
-
-  function armImage(img) {
-    if (!img || img.dataset.ahImageShieldArmed === "1") return;
-    img.dataset.ahImageShieldArmed = "1";
-    img.setAttribute("draggable", "false");
-    function schedule() {
-      idle(function () { deLinkImage(img); }, { timeout: 2600 });
-    }
-    if (img.complete && img.naturalWidth) schedule();
-    else img.addEventListener("load", schedule, { once: true, passive: true });
-  }
-
-  function protectImages(root) {
+  function normalizeImages(root) {
     if (!root) return;
-    if (root.nodeType === 1 && root.matches && root.matches(IMAGE_SELECTOR)) armImage(root);
-    if (root.querySelectorAll) root.querySelectorAll(IMAGE_SELECTOR).forEach(armImage);
-    scrubGalleryLinks(root.nodeType === 1 || root.nodeType === 9 ? root : document);
+    if (root.nodeType === 1 && root.matches && root.matches("img")) root.setAttribute("draggable", "false");
+    if (root.querySelectorAll) root.querySelectorAll("img").forEach(function (img) { img.setAttribute("draggable", "false"); });
   }
 
   function installMainOnlyGalleryArrows(root) {
@@ -171,7 +101,8 @@
   }
 
   function protectNode(root) {
-    protectImages(root);
+    normalizeImages(root);
+    scrubGalleryLinks(root.nodeType === 1 || root.nodeType === 9 ? root : document);
     installMainOnlyGalleryArrows(root.nodeType === 9 ? document : root);
   }
 
@@ -186,9 +117,6 @@
     });
     if (document.body) observer.observe(document.body, { childList: true, subtree: true });
 
-    /* Warm the invisible anti-spam challenge without delaying rendering or
-       form interaction. It is also refreshed on intent so a long-open tab is
-       never punished. */
     idle(function () { getChallenge(false).catch(function () {}); }, { timeout: 3500 });
     ["pointerdown", "focusin", "touchstart"].forEach(function (name) {
       document.addEventListener(name, function (event) {
