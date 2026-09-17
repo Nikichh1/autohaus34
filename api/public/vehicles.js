@@ -34,6 +34,7 @@ async function parse(r) {
 
 function publicVehicle(row) {
   const v = legacyVehicle(row);
+  v.notes_en = Array.isArray(row.notes_en) ? row.notes_en : [];
   v.local_shots = (v.managed_images || []).filter((image) => LOCAL_PHOTOS.has(image.original)).map((image) => image.original);
   return v;
 }
@@ -48,6 +49,7 @@ function compactVehicle(row) {
   delete v.equipment_bg;
   delete v.equipment_en;
   delete v.notes;
+  delete v.notes_en;
   return v;
 }
 
@@ -63,7 +65,9 @@ function send(req, res, status, body) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("ETag", etag);
   const remaining = Math.max(0, Math.floor((Number(body.fresh_until) - Date.now()) / 1000));
-  res.setHeader("Cache-Control", remaining ? "public, max-age=" + remaining + ", s-maxage=" + remaining + ", must-revalidate" : "no-store");
+  res.setHeader("Cache-Control", remaining
+    ? "public, max-age=" + remaining + ", s-maxage=" + remaining + ", stale-while-revalidate=120"
+    : "no-store");
   if (req.headers && req.headers["if-none-match"] === etag) { res.statusCode = 304; return res.end(); }
   res.statusCode = status;
   res.end(raw);
@@ -105,7 +109,7 @@ async function inventory(id, cacheKey) {
   const started = Date.now();
   const order = ++requestOrder;
   if (id) {
-    const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,description_bg,description_en,equipment_bg,equipment_en,images,source_url,published,sort_order,updated_at&limit=1", { method: "GET" });
+    const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,notes_en,description_bg,description_en,equipment_bg,equipment_en,images,source_url,published,sort_order,updated_at&limit=1", { method: "GET" });
     const rows = await parse(r);
     if (!rows.length) {
       return { status: 404, body: remember(cacheKey, { ok: false, authoritative: true, vehicle: null, vehicles: [], error: "Vehicle not found" }, started, order, 404) };
