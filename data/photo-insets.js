@@ -24,3 +24,31 @@
   }
   return { clip: clip, keys: Array.from(audited) };
 });
+
+/* Desktop dossier gallery: preserve every photo's complete frame instead of
+   cropping it into the layout. Mobile is intentionally untouched. The 3:2
+   split makes the 4:3 lead frame exactly as tall as two 16:9 side frames,
+   keeping the established three-photo composition balanced while using
+   object-fit:contain for arbitrary source aspect ratios. */
+(function () {
+  "use strict";
+  if (typeof document === "undefined" || document.getElementById("ah-desktop-gallery-fit")) return;
+  var style = document.createElement("style");
+  style.id = "ah-desktop-gallery-fit";
+  style.textContent = [
+    "@media(min-width:1024px){",
+    ".dgal{grid-template-columns:minmax(0,3fr) minmax(0,2fr);grid-template-rows:1fr 1fr;align-items:stretch;background:transparent}",
+    ".dgal__f{background:var(--ink)}",
+    ".dgal__f img{object-fit:contain;object-position:center}",
+    ".dgal__main{grid-row:1 / 3;aspect-ratio:4 / 3}",
+    ".dgal__side{display:block;aspect-ratio:16 / 9}",
+    ".dgal--2{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto}",
+    ".dgal--2 .dgal__main,.dgal--2 .dgal__side{grid-row:auto;aspect-ratio:3 / 2}",
+    ".dgal--1{display:block;max-width:min(1100px,78vw);margin-inline:auto;overflow:visible;background:transparent}",
+    ".dgal--1 .dgal__main{display:grid;place-items:center;grid-row:auto;aspect-ratio:auto;background:transparent;overflow:visible}",
+    ".dgal--1 .dgal__main picture,.dgal--1 .dgal__main img{height:auto}",
+    ".dgal--1 .dgal__main img{width:auto;max-width:100%;max-height:72vh;object-fit:contain;margin-inline:auto}",
+    "}"
+  ].join("");
+  document.head.appendChild(style);
+})();
