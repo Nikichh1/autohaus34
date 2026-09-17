@@ -1,5 +1,6 @@
 /* Public inventory only. Intent-prefetched details survive page navigation;
-   every cache layer shares the server's short, absolute freshness deadline. */
+   fresh data is used normally, with a very short stale-while-revalidate window
+   so repeat page visits can paint immediately instead of waiting on a network. */
 (function () {
   "use strict";
   window.AH_VEHICLES = window.AH_VEHICLES || [];
@@ -8,28 +9,29 @@
   window.AH_INVENTORY_SOURCE = "static";
 
   var bundledShots = Object.create(null);
-  var CACHE_KEY = "autohaus-public-inventory-v1";
+  var CACHE_KEY = "autohaus-public-inventory-v2";
   var CHANGE_KEY = "autohaus-inventory-changed";
   var MAX_AGE = 30000;
+  var STALE_AGE = 120000;
   var MAX_ENTRIES = 12;
   var pending = Object.create(null);
-  var sessionCache;
+  var persistentCache;
 
   function revision() {
     try { return window.localStorage.getItem(CHANGE_KEY) || ""; } catch (_) { return ""; }
   }
 
   function readCache() {
-    if (sessionCache) return sessionCache;
+    if (persistentCache) return persistentCache;
     var entries;
-    try { entries = JSON.parse(window.sessionStorage.getItem(CACHE_KEY) || "{}"); } catch (_) {}
-    sessionCache = entries && typeof entries === "object" && !Array.isArray(entries) ? entries : {};
-    return sessionCache;
+    try { entries = JSON.parse(window.localStorage.getItem(CACHE_KEY) || "{}"); } catch (_) {}
+    persistentCache = entries && typeof entries === "object" && !Array.isArray(entries) ? entries : {};
+    return persistentCache;
   }
 
-  function validPayload(data, id) {
+  function validPayload(data, id, allowStale) {
     if (!data || data.authoritative !== true) return false;
-    if (data.fresh_until != null && Number(data.fresh_until) <= Date.now()) return false;
+    if (!allowStale && data.fresh_until != null && Number(data.fresh_until) <= Date.now()) return false;
     var vehicles = id && data.vehicle ? [data.vehicle] : data.vehicles;
     return Array.isArray(vehicles) && vehicles.every(function (v) {
       return v && typeof v.id === "string" && (!id || v.id === id) &&
@@ -38,10 +40,12 @@
     });
   }
 
-  function cacheHit(key, id, currentRevision) {
+  function cacheHit(key, id, currentRevision, allowStale) {
     var hit = readCache()[key];
-    return hit && hit.revision === currentRevision && hit.expires > Date.now() &&
-      hit.expires <= Date.now() + MAX_AGE && validPayload(hit.data, id) ? hit.data : null;
+    if (!hit || hit.revision !== currentRevision) return null;
+    var limit = allowStale ? Number(hit.staleUntil || hit.expires) : Number(hit.expires);
+    if (limit <= Date.now() || !validPayload(hit.data, id, allowStale)) return null;
+    return hit.data;
   }
 
   function cachePut(key, data, currentRevision) {
@@ -50,12 +54,12 @@
     if (expires <= now || revision() !== currentRevision) return;
     var entries = readCache();
     Object.keys(entries).forEach(function (k) {
-      if (!entries[k] || entries[k].expires <= now || entries[k].revision !== currentRevision) delete entries[k];
+      if (!entries[k] || Number(entries[k].staleUntil || entries[k].expires) <= now || entries[k].revision !== currentRevision) delete entries[k];
     });
-    entries[key] = { data: data, expires: expires, revision: currentRevision };
-    Object.keys(entries).sort(function (a, b) { return entries[b].expires - entries[a].expires; })
+    entries[key] = { data: data, expires: expires, staleUntil: now + STALE_AGE, revision: currentRevision };
+    Object.keys(entries).sort(function (a, b) { return Number(entries[b].staleUntil || 0) - Number(entries[a].staleUntil || 0); })
       .slice(MAX_ENTRIES).forEach(function (k) { delete entries[k]; });
-    try { window.sessionStorage.setItem(CACHE_KEY, JSON.stringify(entries)); } catch (_) {}
+    try { window.localStorage.setItem(CACHE_KEY, JSON.stringify(entries)); } catch (_) {}
   }
 
   function directVariants(url) {
@@ -73,13 +77,8 @@
         if (url) window.AH_IMAGE_VARIANTS[url] = variants;
       });
     });
-    // New/changed live photos do not exist in the bundled img/v directory.
-    // Mark them as direct remote variants so the image helper never invents
-    // a local path that can 404.
     (v.shots || []).forEach(function (url) {
-      if (url && !bundledShots[url] && !window.AH_IMAGE_VARIANTS[url]) {
-        window.AH_IMAGE_VARIANTS[url] = directVariants(url);
-      }
+      if (url && !bundledShots[url] && !window.AH_IMAGE_VARIANTS[url]) window.AH_IMAGE_VARIANTS[url] = directVariants(url);
     });
   }
 
@@ -107,11 +106,7 @@
     });
   }
 
-  function loadInventory(id, prefetch) {
-    var currentRevision = revision();
-    var key = id ? "vehicle:" + id : "catalog";
-    var hit = cacheHit(key, id, currentRevision);
-    if (hit) return Promise.resolve(hit);
+  function networkLoad(id, prefetch, currentRevision, key) {
     var requestKey = key + ":" + currentRevision;
     if (pending[requestKey]) return pending[requestKey];
     var refreshedAt = Number(currentRevision);
@@ -119,21 +114,31 @@
     var url = "/api/public/vehicles" + (id ? "?id=" + encodeURIComponent(id) : "");
     if (refresh) url += (id ? "&" : "?") + "fresh=" + encodeURIComponent(currentRevision);
     pending[requestKey] = timedJson(url, prefetch ? 4500 : 8000, refresh).then(function (data) {
-      // An edit published while this request was in flight invalidates it too.
       if (revision() !== currentRevision) return prefetch ? null : loadInventory(id, false);
-      if (validPayload(data, id)) cachePut(key, data, currentRevision);
+      if (validPayload(data, id, false)) cachePut(key, data, currentRevision);
       return data;
-    }).then(function (data) {
-      delete pending[requestKey];
-      return data;
-    });
+    }).finally(function () { delete pending[requestKey]; });
     return pending[requestKey];
+  }
+
+  function loadInventory(id, prefetch) {
+    var currentRevision = revision();
+    var key = id ? "vehicle:" + id : "catalog";
+    var fresh = cacheHit(key, id, currentRevision, false);
+    if (fresh) return Promise.resolve(fresh);
+
+    var stale = cacheHit(key, id, currentRevision, true);
+    if (stale) {
+      // Paint from the last known-good payload now and refresh it in parallel.
+      networkLoad(id, true, currentRevision, key);
+      return Promise.resolve(stale);
+    }
+    return networkLoad(id, prefetch, currentRevision, key);
   }
 
   window.AH_PREFETCH_VEHICLE = function (id) {
     if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id)) return Promise.resolve(null);
-    // Avoid filling the connection queue while a pointer crosses many cards.
-    if (Object.keys(pending).length >= 2 && !pending["vehicle:" + id + ":" + revision()]) return Promise.resolve(null);
+    if (Object.keys(pending).length >= 3 && !pending["vehicle:" + id + ":" + revision()]) return Promise.resolve(null);
     return loadInventory(id, true);
   };
 
@@ -149,15 +154,12 @@
 
   var ready = request.then(function (data) {
     var vehicles = requestedId && data && data.vehicle ? [data.vehicle] : data && data.vehicles;
-    if (!validPayload(data, requestedId)) return;
+    if (!validPayload(data, requestedId, true)) return;
 
     window.AH_VEHICLES = vehicles;
     window.AH_INVENTORY_SOURCE = "managed";
     vehicles.forEach(indexVehicle);
   });
-  // The small async loader starts alongside CSS and HTML parsing. Consumers
-  // can subscribe before it arrives; settle their existing promise only once
-  // the inventory and image indexes are usable.
   if (typeof window.AH_INVENTORY_RESOLVE === "function") {
     ready.then(window.AH_INVENTORY_RESOLVE, window.AH_INVENTORY_RESOLVE);
   } else {
