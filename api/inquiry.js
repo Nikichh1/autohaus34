@@ -1,15 +1,24 @@
 /* Vercel serverless function: sends AutoHaus enquiries via Resend.
+   Abuse controls are deliberately server-side so bots cannot bypass them by
+   disabling JavaScript.
    Required Vercel env vars:
      RESEND_API_KEY
      RESEND_FROM_EMAIL  (a sender on a domain verified in Resend)
    No provider secret is ever exposed to the browser. */
 
+const crypto = require("crypto");
 const DESTINATION = "autohaussale@gmail.com";
 const MAX_BODY_BYTES = 24 * 1024;
 const MAX_MESSAGE = 4000;
 const WINDOW_MS = 10 * 60 * 1000;
-const MAX_PER_WINDOW = 6;
+const MAX_PER_WINDOW = 4;
+const GLOBAL_WINDOW_MS = 60 * 1000;
+const GLOBAL_MAX_PER_WINDOW = 80;
+const DUPLICATE_WINDOW_MS = 30 * 60 * 1000;
+const DUPLICATE_MAX = 2;
 const buckets = globalThis.__autoHouseInquiryRate || (globalThis.__autoHouseInquiryRate = new Map());
+const duplicates = globalThis.__autoHouseInquiryDupes || (globalThis.__autoHouseInquiryDupes = new Map());
+const globalBurst = globalThis.__autoHouseInquiryGlobal || (globalThis.__autoHouseInquiryGlobal = { started: Date.now(), count: 0 });
 
 function json(res, status, body) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -40,24 +49,59 @@ function clientIp(req) {
   return clean((req.headers["x-forwarded-for"] || "unknown").split(",")[0], 80) || "unknown";
 }
 
+function fingerprint(req) {
+  const raw = clientIp(req) + "\n" + clean(req.headers["user-agent"] || "", 300);
+  return crypto.createHash("sha256").update(raw).digest("hex").slice(0, 32);
+}
+
 function rateLimited(req) {
   const now = Date.now();
-  const ip = clientIp(req);
-  let item = buckets.get(ip);
+  const key = fingerprint(req);
+  let item = buckets.get(key);
   if (!item || now - item.started > WINDOW_MS) item = { started: now, count: 0 };
   item.count += 1;
-  buckets.set(ip, item);
-  if (buckets.size > 500) {
-    for (const [key, value] of buckets) if (now - value.started > WINDOW_MS) buckets.delete(key);
+  buckets.set(key, item);
+
+  if (now - globalBurst.started > GLOBAL_WINDOW_MS) {
+    globalBurst.started = now;
+    globalBurst.count = 0;
   }
-  return item.count > MAX_PER_WINDOW;
+  globalBurst.count += 1;
+
+  if (buckets.size > 800) {
+    for (const [bucketKey, value] of buckets) if (now - value.started > WINDOW_MS) buckets.delete(bucketKey);
+  }
+  return item.count > MAX_PER_WINDOW || globalBurst.count > GLOBAL_MAX_PER_WINDOW;
+}
+
+function duplicateLimited(req, body) {
+  const now = Date.now();
+  const contact = body && body.contact || {};
+  const signature = [
+    fingerprint(req),
+    clean(contact.email || "", 180).toLowerCase(),
+    clean(contact.phone || "", 60),
+    clean(body && body.message || body && body.text || "", 1000)
+  ].join("\n");
+  const key = crypto.createHash("sha256").update(signature).digest("hex");
+  let item = duplicates.get(key);
+  if (!item || now - item.started > DUPLICATE_WINDOW_MS) item = { started: now, count: 0 };
+  item.count += 1;
+  duplicates.set(key, item);
+  if (duplicates.size > 1000) {
+    for (const [dupeKey, value] of duplicates) if (now - value.started > DUPLICATE_WINDOW_MS) duplicates.delete(dupeKey);
+  }
+  return item.count > DUPLICATE_MAX;
 }
 
 function sameOrigin(req) {
-  const origin = req.headers.origin;
-  if (!origin) return true;
+  const origin = String(req.headers.origin || req.headers.referer || "");
+  if (!origin) return false;
   try {
-    return new URL(origin).host === req.headers.host;
+    const actual = new URL(origin);
+    if (actual.host !== String(req.headers.host || "")) return false;
+    const site = String(req.headers["sec-fetch-site"] || "");
+    return !site || site === "same-origin";
   } catch (_) {
     return false;
   }
@@ -135,14 +179,24 @@ module.exports = async function handler(req, res) {
     return json(res, 405, { ok: false, error: "Method not allowed" });
   }
   if (!sameOrigin(req)) return json(res, 403, { ok: false, error: "Origin not allowed" });
+  if (!/^application\/json(?:\s*;|$)/i.test(String(req.headers["content-type"] || ""))) {
+    return json(res, 415, { ok: false, error: "JSON request required" });
+  }
 
   const length = Number(req.headers["content-length"] || 0);
   if (length > MAX_BODY_BYTES) return json(res, 413, { ok: false, error: "Request too large" });
-  if (rateLimited(req)) return json(res, 429, { ok: false, error: "Too many requests. Please try again later." });
+  if (rateLimited(req)) {
+    res.setHeader("Retry-After", "600");
+    return json(res, 429, { ok: false, error: "Too many requests. Please try again later." });
+  }
 
   const body = req.body && typeof req.body === "object" ? req.body : {};
   if (Buffer.byteLength(JSON.stringify(body), "utf8") > MAX_BODY_BYTES) return json(res, 413, { ok: false, error: "Request too large" });
   if (clean(body.website, 200)) return json(res, 200, { ok: true });
+  if (duplicateLimited(req, body)) {
+    res.setHeader("Retry-After", "1800");
+    return json(res, 429, { ok: false, error: "This enquiry was already received." });
+  }
 
   const built = body.kind === "vehicle" ? buildVehicle(body) : buildConcierge(body);
   if (built.error) return json(res, 400, { ok: false, error: built.error });
