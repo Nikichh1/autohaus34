@@ -287,19 +287,23 @@
       '<label class="check"><input type="checkbox" name="unregistered"' + (car.unregistered ? " checked" : "") + '><span>' + t("Без първа регистрация", "No first registration") + '</span></label>' +
       field(t("Първа регистрация — година", "First registration — year"), "first_registration_year", car.first_registration_year, "number", "min=1900 max=2100 step=1") +
       select(t("Месец", "Month"), "first_registration_month", String(car.first_registration_month || ""), [["", "—"]].concat(Array.from({ length: 12 }, function (_, i) { return [String(i + 1), String(i + 1).padStart(2, "0")]; }))) +
-      '</div></section><section class="card" id="description"><h2>' + t("Описание и оборудване", "Description and equipment") + '</h2>' +
-      '<p class="field-hint">Пишете само на български. Английската версия се превежда автоматично и се показва веднага отдолу.</p>' +
-      '<div class="auto-translation-fields">' +
-      '<label class="field"><span>Описание · Български</span><textarea id="desc-bg" lang="bg" maxlength="20000" rows="5">' + esc(car.description_bg) + '</textarea></label>' +
-      '<label class="field auto-translation-preview"><span>English preview</span><textarea id="desc-en" lang="en" maxlength="20000" rows="5" readonly tabindex="-1">' + esc(car.description_en) + '</textarea><small class="field-hint" data-auto-translate-status="description"></small></label>' +
-      '<label class="field"><span>Оборудване · по един елемент на ред</span><textarea id="equipment-bg" lang="bg" rows="9">' + esc(lines(car.equipment_bg)) + '</textarea></label>' +
-      '<label class="field auto-translation-preview"><span>Equipment · English preview</span><textarea id="equipment-en" lang="en" rows="9" readonly tabindex="-1">' + esc(lines(car.equipment_en)) + '</textarea><small class="field-hint" data-auto-translate-status="equipment"></small></label>' +
-      '</div></section>' +
+      '</div></section><section class="card" id="description"><div class="section-title"><h2>Оборудване</h2>' +
+      '<div class="admin-lang-tabs" data-admin-lang-tabs="equipment" role="tablist" aria-label="Език на оборудването">' +
+      '<button type="button" data-admin-lang-target="equipment-bg-panel" aria-selected="true">Български</button>' +
+      '<button type="button" data-admin-lang-target="equipment-en-panel" aria-selected="false">English</button></div></div>' +
+      '<div id="equipment-bg-panel" data-admin-lang-panel="equipment"><label class="field"><span>Оборудване · по един елемент на ред</span><textarea id="equipment-bg" lang="bg" rows="10">' + esc(lines(car.equipment_bg)) + '</textarea></label></div>' +
+      '<div id="equipment-en-panel" data-admin-lang-panel="equipment" hidden><label class="field auto-translation-preview"><span>Equipment · English</span><textarea id="equipment-en" lang="en" rows="10" readonly tabindex="-1">' + esc(lines(car.equipment_en)) + '</textarea><small class="field-hint" data-auto-translate-status="equipment"></small></label></div>' +
+      '<p class="field-hint">Пишете оборудването на български. English се превежда автоматично и е само за преглед.</p></section>' +
       '<details class="card more-details"><summary>' + t("Допълнителни данни", "Additional details") + '</summary><div class="field-grid">' +
       field(t("Пълно име", "Display name"), "full_name", car.full_name, "text", "maxlength=320") +
       field(t("Референция", "Reference"), "ref", car.ref, "text", "maxlength=80") +
       field(t("Адрес на страницата", "Page address"), "slug", car.slug, "text", "maxlength=180 autocapitalize=none spellcheck=false") +
-      '<label class="field"><span>' + t("Бележки · по една на ред", "Notes · one per line") + '</span><textarea name="notes" rows="3">' + esc(lines(car.notes)) + '</textarea></label></div></details>' +
+      '</div><div class="admin-language-block"><div class="admin-lang-tabs" data-admin-lang-tabs="notes" role="tablist" aria-label="Език на бележките">' +
+      '<button type="button" data-admin-lang-target="notes-bg-panel" aria-selected="true">Български</button>' +
+      '<button type="button" data-admin-lang-target="notes-en-panel" aria-selected="false">English</button></div>' +
+      '<div id="notes-bg-panel" data-admin-lang-panel="notes"><label class="field"><span>Бележки · по една на ред</span><textarea name="notes" rows="4">' + esc(lines(car.notes)) + '</textarea></label></div>' +
+      '<div id="notes-en-panel" data-admin-lang-panel="notes" hidden><label class="field auto-translation-preview"><span>Notes · English</span><textarea id="notes-en-preview" lang="en" rows="4" readonly tabindex="-1">' + esc(lines(car.notes_en || [])) + '</textarea><small class="field-hint" data-auto-translate-status="notes"></small></label></div>' +
+      '</div></details>' +
       '<section class="card manage-card"><h2>' + t("Управление", "Manage") + '</h2><div class="manage-actions">' +
       (!isNew && car.slug ? '<a class="secondary" href="/vehicle.html?id=' + encodeURIComponent(car.slug) + '" target="_blank" rel="noopener">' + t("Виж страницата ↗", "View page ↗") + '</a>' : "") +
       (car.published ? '<button type="button" class="secondary" id="unpublish-car">' + t("Свали от сайта", "Unpublish") + '</button>' : "") +
@@ -307,7 +311,7 @@
       (isNew ? '<p class="muted">' + t("Черновата се вижда само от екипа.", "Only your team can see a draft.") + '</p>' : "") +
       '</div></section></fieldset><aside class="editor-side"><div class="save-card"><div id="save-state" class="save-state" role="status"></div><div class="save-actions"><button type="submit" class="' +
       (car.published ? "primary" : "secondary") + '" id="save-car"></button>' + (!car.published ? '<button type="button" class="primary" id="publish-car">' + t("Публикувай", "Publish") + '</button>' : "") +
-      '</div><div class="editor-shortcuts"><a href="#photos" data-scroll="photos">' + t("Снимки", "Photos") + '</a><a href="#description" data-scroll="description">' + t("Описание", "Description") +
+      '</div><div class="editor-shortcuts"><a href="#photos" data-scroll="photos">' + t("Снимки", "Photos") + '</a><a href="#description" data-scroll="description">' + t("Оборудване", "Equipment") +
       '</a></div></div></aside></form>';
     renderImages(); bindEditor(); updateSaveState();
   }
@@ -323,7 +327,7 @@
       // Legacy catalog metadata is no longer edited here; keep it intact on save.
       unregistered: unregistered, chapter: state.current.chapter || "saloon", tags: clone(state.current.tags || []), notes: splitLines(value("notes")),
       description_source: state.current.description_source || "", description_review_notes: [],
-      description_bg: D.getElementById("desc-bg").value.trim(), description_en: D.getElementById("desc-en").value.trim(),
+      description_bg: state.current.description_bg || "", description_en: state.current.description_en || "",
       equipment_bg: splitLines(D.getElementById("equipment-bg").value), equipment_en: splitLines(D.getElementById("equipment-en").value),
       images: clone(state.current.images || []), source_url: state.current.source_url || "", published: !!state.current.published };
   }
@@ -336,7 +340,6 @@
     if (data.first_registration_month != null && data.first_registration_year == null) invalid.push(form.elements.first_registration_year);
     if (invalid.length) {
       invalid.forEach(function (el) { el.setAttribute("aria-invalid", "true"); var details = el.closest("details"); if (details) details.open = true; });
-      if (invalid[0].closest(".review-output")) selectReviewLanguage(invalid[0].lang);
       invalid[0].focus(); toast(t("Проверете отбелязаните полета.", "Check the highlighted fields."), true); return false;
     }
     if (data.images.length > 80) { toast(t("Максимум 80 снимки за автомобил.", "A car can have up to 80 photos."), true); return false; }
@@ -539,6 +542,22 @@
     } catch (error) { state.failedFiles = files; retry.hidden = false; statusEl.textContent = error.message; toast(error.message, true); }
     finally { state.uploadBusy = false; updateSaveState(); persistDraft(); }
   }
+  function bindAdminLanguageTabs() {
+    view.querySelectorAll("[data-admin-lang-tabs]").forEach(function (tabs) {
+      var group = tabs.dataset.adminLangTabs;
+      var buttons = Array.from(tabs.querySelectorAll("[data-admin-lang-target]"));
+      function show(targetId) {
+        buttons.forEach(function (button) {
+          var selected = button.dataset.adminLangTarget === targetId;
+          button.setAttribute("aria-selected", String(selected));
+        });
+        view.querySelectorAll('[data-admin-lang-panel="' + group + '"]').forEach(function (panel) {
+          panel.hidden = panel.id !== targetId;
+        });
+      }
+      buttons.forEach(function (button) { button.onclick = function () { show(button.dataset.adminLangTarget); }; });
+    });
+  }
   function bindEditor() {
     var form = D.getElementById("car-form");
     form.oninput = function () { setDirty(); };
@@ -556,7 +575,7 @@
     ["dragleave", "drop"].forEach(function (name) { dropzone.addEventListener(name, function (event) { event.preventDefault(); dropzone.classList.remove("is-drag"); }); });
     dropzone.ondrop = function (event) { event.preventDefault(); uploadFiles(event.dataTransfer.files); };
     view.querySelectorAll("[data-scroll]").forEach(function (link) { link.onclick = function (event) { event.preventDefault(); D.getElementById(link.dataset.scroll).scrollIntoView({ behavior: "smooth", block: "start" }); }; });
-    syncRegistration(); bindCommon(); applyRole();
+    bindAdminLanguageTabs(); syncRegistration(); bindCommon(); applyRole();
   }
   function syncRegistration() {
     var form = D.getElementById("car-form"), disabled = form.elements.unregistered.checked;
