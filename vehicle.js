@@ -54,8 +54,8 @@
 
   var shots = (v.shots || []).filter(Boolean);
   var N = shots.length;
-  function gallerySizes(count) {
-    return count === 1 ? '100vw' : '(min-width:1024px) 46vw, 100vw';
+  function gallerySizes() {
+    return '(min-width:1400px) 62vw, (min-width:900px) 68vw, 100vw';
   }
   var mainSizes = gallerySizes(N);
   var chapterName = AH.chapterName[v.chapter] || "";
@@ -441,7 +441,7 @@
         busy = false;
         button.disabled = false;
         form.removeAttribute("aria-busy");
-        bilingual(button, "Изпрати", "Send");
+        bilingual(button, "Изпрати запитване", "Send enquiry");
       });
     });
   }
@@ -477,7 +477,7 @@
       if (!list || !clamp || !btn) return;
       list.innerHTML = built.html;
       list.classList.toggle('deq--simple', built.simple);
-      if (count) count.textContent = built.n ? "· " + built.n : "";
+      if (count) count.textContent = built.n ? (built.n + (useEnglish ? " items" : " позиции")) : "";
       sec.hidden = !built.n;
       armClamp(clamp, btn);
     }
