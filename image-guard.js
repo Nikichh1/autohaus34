@@ -1,6 +1,7 @@
-/* AutoHaus image interaction protection.
-   Deliberately scoped to vehicle photos only. It does NOT intercept page
-   clicks, keyboard shortcuts, navigation, fetch(), or pointer events. */
+/* AutoHaus public interaction protection.
+   Right-click is disabled across the public site. Image dragging remains
+   scoped to vehicle photos. Normal left-clicks, navigation, scrolling,
+   keyboard use, fetch(), and pointer events are untouched. */
 (function () {
   "use strict";
 
@@ -33,7 +34,7 @@
   }, true);
 
   document.addEventListener("contextmenu", function (event) {
-    if (protectedImage(event.target)) event.preventDefault();
+    event.preventDefault();
   }, true);
 
   if (document.readyState === "loading") {
