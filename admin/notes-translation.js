@@ -76,6 +76,32 @@
     return out;
   }
 
+  function requestBatch(batch) {
+    var requestKey = JSON.stringify(batch);
+    if (!pending[requestKey]) {
+      pending[requestKey] = baseFetch("/api/admin/description?action=translate", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ target: "en", lines: batch })
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; }).then(function (data) {
+          if (!response.ok || !data || data.ok !== true || !Array.isArray(data.lines) || data.lines.length !== batch.length) {
+            throw new Error(data && data.error || "Автоматичният превод временно не успя. Опитайте отново.");
+          }
+          batch.forEach(function (line, index) {
+            var translated = String(data.lines[index] || "").trim();
+            if (!translated) throw new Error("Английският превод не е пълен.");
+            cache[line] = translated;
+          });
+          saveCache();
+          return true;
+        });
+      }).finally(function () { delete pending[requestKey]; });
+    }
+    return pending[requestKey];
+  }
+
   function translateMissing(units) {
     var missing = [];
     var seen = Object.create(null);
@@ -89,30 +115,9 @@
       return Promise.resolve(units.map(function (unit) { return cache[unit] || unit; }));
     }
 
-    var requestKey = JSON.stringify(missing);
-    if (!pending[requestKey]) {
-      pending[requestKey] = baseFetch("/api/admin/description?action=translate", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { Accept: "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({ target: "en", lines: missing })
-      }).then(function (response) {
-        return response.json().catch(function () { return {}; }).then(function (data) {
-          if (!response.ok || !data || data.ok !== true || !Array.isArray(data.lines) || data.lines.length !== missing.length) {
-            throw new Error(data && data.error || "Автоматичният превод временно не успя. Опитайте отново.");
-          }
-          missing.forEach(function (line, index) {
-            var translated = String(data.lines[index] || "").trim();
-            if (!translated) throw new Error("Английският превод не е пълен.");
-            cache[line] = translated;
-          });
-          saveCache();
-          return true;
-        });
-      }).finally(function () { delete pending[requestKey]; });
-    }
-
-    return pending[requestKey].then(function () {
+    var batches = [];
+    for (var i = 0; i < missing.length; i += 60) batches.push(missing.slice(i, i + 60));
+    return Promise.all(batches.map(requestBatch)).then(function () {
       return units.map(function (unit) { return cache[unit] || unit; });
     });
   }
