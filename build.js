@@ -1,5 +1,6 @@
 /* AutoHaus build: generate CSS, version delivered assets and prepare public-only dist. */
 "use strict";
+// Production deploy trigger: admin tabs + stable 16:9 vehicle media
 const fs = require("fs"), path = require("path"), crypto = require("crypto");
 
 const SHEETS = ["style.css", "catalog.css"];
