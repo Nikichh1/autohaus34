@@ -34,3 +34,14 @@
 @media(min-width:900px){
   .auto-translation-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
 }
+
+
+/* Compact per-section BG / English inspection tabs. Bulgarian remains editable. */
+.admin-lang-tabs{display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(37,40,42,.18);padding:3px;background:#f3f4f2}
+.admin-lang-tabs button{min-height:32px;border:0;padding:6px 12px;background:transparent;color:var(--muted,#62676b);font:inherit;font-size:12px;cursor:pointer}
+.admin-lang-tabs button[aria-selected="true"]{background:#fff;color:#25282a;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.admin-language-block{display:grid;gap:10px;margin-top:16px}
+.auto-translation-preview textarea[readonly]{background:#f4f5f3!important}
+#description .section-title{align-items:center;gap:12px;flex-wrap:wrap}
+#description .section-title .admin-lang-tabs{margin-left:auto}
+.more-details .admin-lang-tabs{width:max-content}
