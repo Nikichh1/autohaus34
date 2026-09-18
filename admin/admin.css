@@ -19,3 +19,18 @@
 .ah-note-translation-preview>strong{display:block;margin:0 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#62676b)}
 .ah-note-translation-preview__box{width:100%;min-height:96px;resize:vertical;background:#f4f5f3!important;color:#25282a!important;border:1px solid rgba(37,40,42,.22)!important;cursor:default}
 .ah-note-translation-preview__box:focus{outline:none;box-shadow:none}
+
+
+/* Simplified Bulgarian-first translation workflow. */
+.auto-translation-fields{display:grid;gap:14px}
+.auto-translation-preview textarea,
+.ah-note-translation-preview__box{background:#f3f4f2!important;color:#25282a!important;border:1px solid rgba(37,40,42,.18)!important}
+.auto-translation-preview textarea[readonly],
+.ah-note-translation-preview__box[readonly]{cursor:default}
+.auto-translation-preview [data-auto-translate-status],
+.ah-note-translation-preview [data-auto-translate-status]{display:block;min-height:1.2em;margin-top:6px}
+.auto-translation-preview [data-auto-translate-status].is-error,
+.ah-note-translation-preview [data-auto-translate-status].is-error{color:#9b2f2f}
+@media(min-width:900px){
+  .auto-translation-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+}
