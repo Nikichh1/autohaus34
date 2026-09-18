@@ -351,7 +351,7 @@
     if (data.published && (!data.fuel || !data.transmission)) { toast(t("Изберете гориво и трансмисия преди публикуване.", "Choose fuel and transmission before publishing."), true); D.getElementById("car-form").elements[!data.fuel ? "fuel" : "transmission"].focus(); return; }
     if (state.current.updated_at) data.if_unmodified_since = state.current.updated_at;
     if (data.published && !data.images.length) { toast(t("Добавете поне една снимка преди публикуване.", "Add at least one photo before publishing."), true); D.getElementById("choose-images").focus(); return; }
-    var currentId = state.current.id, wasPublished = state.current.published, source = D.getElementById("source-text").value, removed = state.removed.slice();
+    var currentId = state.current.id, wasPublished = state.current.published, removed = state.removed.slice();
     state.saveBusy = true; updateSaveState(); persistDraft();
     try {
       var result = await api("/api/admin/vehicles" + (currentId ? "?id=" + encodeURIComponent(currentId) : ""), { method: currentId ? "PATCH" : "POST", body: data });
@@ -363,7 +363,7 @@
       state.saveBusy = false;
       if (!currentId || wasPublished !== result.vehicle.published) editor(result.vehicle, false);
       else view.querySelector(".editor-heading h1").textContent = carName(result.vehicle);
-      state.saved = true; updateSaveState(); D.getElementById("source-text").value = source;
+      state.saved = true; updateSaveState();
       toast(data.published ? t("Промените са публикувани", "Changes published") : t("Черновата е записана", "Draft saved"));
       // Only remove storage assets after the vehicle no longer references them.
       await Promise.all(removed.filter(function (img) { return img.public_id && !img.legacy; }).map(function (img) {
