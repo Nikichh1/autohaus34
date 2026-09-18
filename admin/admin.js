@@ -112,7 +112,7 @@
     if (el) { el.textContent = text; el.className = "save-state" + (state.dirty ? " is-dirty" : " is-saved"); }
     if (save) { save.disabled = busy; save.textContent = state.saveBusy ? t("Записване…", "Saving…") : state.current.published ? t("Запиши промените", "Save changes") : t("Запиши чернова", "Save draft"); }
     if (publish) { publish.disabled = busy; publish.textContent = t("Публикувай", "Publish"); }
-    ["delete-car", "unpublish-car", "choose-images", "take-photo", "retry-images", "process-description"].forEach(function (id) {
+    ["delete-car", "unpublish-car", "choose-images", "take-photo", "retry-images"].forEach(function (id) {
       var button = D.getElementById(id); if (button) button.disabled = busy;
     });
     var fields = D.getElementById("editor-fields");
@@ -583,7 +583,7 @@
   }
   function applyRole() {
     D.querySelectorAll('[data-route="new"],[data-go="new"],[data-quick-publish]').forEach(function (el) { el.hidden = role === "viewer"; });
-    ["save-car", "publish-car", "unpublish-car", "choose-images", "take-photo", "process-description", "delete-car"].forEach(function(id) { var el = D.getElementById(id); if (el) el.hidden = role === "viewer" || (id === "delete-car" && role === "editor"); });
+    ["save-car", "publish-car", "unpublish-car", "choose-images", "take-photo", "delete-car"].forEach(function(id) { var el = D.getElementById(id); if (el) el.hidden = role === "viewer" || (id === "delete-car" && role === "editor"); });
     var fields = D.getElementById("editor-fields"); if (fields && role === "viewer") fields.disabled = true;
   }
   function bindCommon() {
