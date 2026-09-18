@@ -54,19 +54,20 @@ html.ah-safe [data-reveal],html.ah-safe .wcard-item{opacity:1!important;transfor
   function bootSafety(){
     unlock();
     document.documentElement.classList.add("ah-safe");
-    /* Independent menu fallback. Primary main.js may also bind these; setting
-       the same final state twice is harmless, while a main.js exception can
-       no longer leave the site with a dead burger. */
-    ["hd-menu","plate-menu"].forEach(function(id){
-      var b=document.getElementById(id);
-      if(b&&!b.hasAttribute("data-ah-safe-bound")){
-        b.setAttribute("data-ah-safe-bound","");
-        b.addEventListener("click",function(){setMenu(true,b);});
-      }
-    });
-    var close=document.getElementById("mob-close"),scrim=document.getElementById("mob-scrim");
-    if(close&&!close.hasAttribute("data-ah-safe-bound")){close.setAttribute("data-ah-safe-bound","");close.addEventListener("click",function(){setMenu(false);});}
-    if(scrim&&!scrim.hasAttribute("data-ah-safe-bound")){scrim.setAttribute("data-ah-safe-bound","");scrim.addEventListener("click",function(){setMenu(false);});}
+    /* Bind the independent menu only when main.js did not reach its critical
+       navigation initialization. This is recovery, never a second controller. */
+    if(!window.AH_MAIN_READY){
+      ["hd-menu","plate-menu"].forEach(function(id){
+        var b=document.getElementById(id);
+        if(b&&!b.hasAttribute("data-ah-safe-bound")){
+          b.setAttribute("data-ah-safe-bound","");
+          b.addEventListener("click",function(){setMenu(true,b);});
+        }
+      });
+      var close=document.getElementById("mob-close"),scrim=document.getElementById("mob-scrim");
+      if(close&&!close.hasAttribute("data-ah-safe-bound")){close.setAttribute("data-ah-safe-bound","");close.addEventListener("click",function(){setMenu(false);});}
+      if(scrim&&!scrim.hasAttribute("data-ah-safe-bound")){scrim.setAttribute("data-ah-safe-bound","");scrim.addEventListener("click",function(){setMenu(false);});}
+    }
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootSafety,{once:true});else bootSafety();
   addEventListener("pageshow",unlock);
