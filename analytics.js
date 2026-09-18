@@ -52,9 +52,7 @@
     var s=document.createElement("style");
     s.id="ah-public-guard-style";
     s.textContent=[
-      ".ah-site-guard,.ah-site-guard *{-webkit-user-select:none;user-select:none}",
-      ".ah-site-guard img,.ah-site-guard picture,.ah-site-guard a{-webkit-user-drag:none}",
-      ".ah-site-guard h1,.ah-site-guard h2,.ah-site-guard h3,.ah-site-guard h4,.ah-site-guard h5,.ah-site-guard h6,.ah-site-guard .h1,.ah-site-guard .h2,.ah-site-guard .h3,.ah-site-guard .h4,.ah-site-guard .h5,.ah-site-guard .h6,.ah-site-guard .dprose,.ah-site-guard .dnotes,.ah-site-guard .dspec,.ah-site-guard .deq-v,.ah-site-guard .deq-sub,.ah-site-guard .lc__body,.ah-site-guard .ctc__sheet,.ah-site-guard input,.ah-site-guard textarea,.ah-site-guard select,.ah-site-guard option,.ah-site-guard label,.ah-site-guard [contenteditable=true]{-webkit-user-select:text;user-select:text}",
+      ".ah-site-guard img,.ah-site-guard picture{-webkit-user-select:none;user-select:none;-webkit-user-drag:none}",
       ".ah-site-guard .wall,.ah-site-guard .wall *,.ah-site-guard .wcard,.ah-site-guard .wcard *{-webkit-user-select:none!important;user-select:none!important;-webkit-user-drag:none!important}",
       ".ah-site-guard.ah-text-open main,.ah-site-guard.ah-text-open main *,.ah-site-guard.ah-text-open form,.ah-site-guard.ah-text-open form *{-webkit-user-select:text;user-select:text}",
       ".mob-close{color:#fff!important;border-color:rgba(255,255,255,.18)!important}",
@@ -94,17 +92,12 @@
     document.documentElement.classList.remove("ah-watermark-on");
 
     document.addEventListener("dragstart",function(event){
-      var target=event.target&&event.target.closest?event.target.closest("img,picture,a"):null;
+      var target=event.target&&event.target.closest?event.target.closest("img,picture"):null;
       if(target)event.preventDefault();
     },true);
     document.addEventListener("contextmenu",function(event){
-      var editable=event.target&&event.target.closest&&event.target.closest("input,textarea,select,[contenteditable=true]");
-      if(!editable)event.preventDefault();
-    },true);
-    document.addEventListener("keydown",function(event){
-      if((event.ctrlKey||event.metaKey)&&!event.altKey&&String(event.key).toLowerCase()==="u"){
-        event.preventDefault();event.stopPropagation();
-      }
+      var target=event.target&&event.target.closest?event.target.closest("img,picture"):null;
+      if(target)event.preventDefault();
     },true);
 
     var observer=new MutationObserver(function(records){
