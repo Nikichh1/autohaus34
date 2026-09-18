@@ -45,6 +45,20 @@
   var all = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
   var fmt = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " "); };
 
+  /* FAIL OPEN AFTER BFCache / INTERRUPTED OVERLAYS.
+     Never preserve a page-wide scroll/input lock without a matching visible
+     overlay. This keeps a stale modal class from freezing the public site. */
+  var releaseStalePageLocks = function () {
+    if (document.querySelector(".mob.is-open,.ctc.is-open,.cat.is-open,.wcard-item.is-open,.lb.open,.focus.is-open")) return;
+    var html = document.documentElement;
+    ["mob-open","ctc-open","cw-open","shw-open","lb-open"].forEach(function (name) {
+      html.classList.remove(name);
+    });
+    if (document.body && document.body.style.top) document.body.style.top = "";
+  };
+  releaseStalePageLocks();
+  addEventListener("pageshow", releaseStalePageLocks);
+
   /* ============================================================
      0. DATA LAYER  (added in v35)
 
