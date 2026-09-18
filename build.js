@@ -88,7 +88,7 @@ function build(options = {}) {
     if (["index.html", "vehicle.html", "concierge.html", "legal.html"].includes(page) && !source.includes("analytics.js?v=")) {
       source = source.replace(/<\/head>/i, '<script defer src="analytics.js?v=' + versions.get("analytics.js") + '"></script>\n</head>');
     }
-    if (page === "vehicle.html" && !source.includes("watermark.js?v=")) {
+    if (["index.html", "vehicle.html"].includes(page) && !source.includes("watermark.js?v=")) {
       source = source.replace(/<\/head>/i, '<script defer src="watermark.js?v=' + versions.get("watermark.js") + '"></script>\n</head>');
     }
     if (page === "vehicle.html") {
