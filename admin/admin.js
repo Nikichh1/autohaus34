@@ -269,7 +269,7 @@
       '<section class="card" id="basics"><h2>' + t("Автомобил", "Car") + '</h2><div class="field-grid">' +
       field(t("Марка *", "Make *"), "make", car.make, "text", "required maxlength=120 autocomplete=off") +
       field(t("Модел *", "Model *"), "model", car.model, "text", "required maxlength=220 autocomplete=off") +
-      field(t("Цена (€)", "Price (€)"), "price", car.price, "number", "min=0 step=0.01") +
+      field(t("Цена (€)", "Price (€)"), "price", car.price == null || car.price === "" ? "" : Math.round(Number(car.price)), "text", 'inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="Цена при запитване" autocomplete="off"') +
       field(t("Пробег (км)", "Mileage (km)"), "mileage", car.mileage, "number", "min=0 step=1") +
       '</div></section><section class="card" id="photos"><div class="section-title"><h2>' + t("Снимки", "Photos") + '</h2><span class="muted" id="image-count"></span></div>' +
       '<div class="dropzone" id="dropzone"><input id="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple>' +
@@ -322,7 +322,7 @@
     var unregistered = form.elements.unregistered.checked, make = value("make"), model = value("model");
     return { make: make, model: model, full_name: value("full_name") || [make, model].filter(Boolean).join(" "),
       slug: value("slug") || slugify(make + " " + model), ref: value("ref"), body_type: value("body_type"), colour: value("colour"),
-      transmission: value("transmission"), fuel: value("fuel"), mileage: number("mileage"), horsepower: number("horsepower"), price: number("price"),
+      transmission: value("transmission"), fuel: value("fuel"), mileage: number("mileage"), horsepower: number("horsepower"), price: value("price") === "" ? null : parseInt(value("price"), 10),
       first_registration_year: unregistered ? null : number("first_registration_year"), first_registration_month: unregistered ? null : number("first_registration_month"),
       // Legacy catalog metadata is no longer edited here; keep it intact on save.
       unregistered: unregistered, chapter: state.current.chapter || "saloon", tags: clone(state.current.tags || []), notes: splitLines(value("notes")),
@@ -575,6 +575,13 @@
   }
   function bindEditor() {
     var form = D.getElementById("car-form");
+    var priceInput = form && form.elements && form.elements.price;
+    if (priceInput) {
+      priceInput.addEventListener("input", function () {
+        var cleaned = priceInput.value.replace(/[^0-9]/g, "");
+        if (priceInput.value !== cleaned) priceInput.value = cleaned;
+      });
+    }
     form.oninput = function () { setDirty(); };
     form.onchange = function () { setDirty(); syncRegistration(); };
     form.onsubmit = function (event) { event.preventDefault(); saveCar(); };
