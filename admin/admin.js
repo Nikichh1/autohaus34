@@ -2,7 +2,8 @@
 (function () {
   "use strict";
   var D = document, view = D.getElementById("admin-view"), toastEl = D.getElementById("toast");
-  var lang = readStorage("localStorage", "ah-admin-language") === "en" ? "en" : "bg";
+  var lang = "bg";
+  try { localStorage.removeItem("ah-admin-language"); } catch (_) {}
   var draftKey = "autohaus-admin-draft:" + (D.body.dataset.adminUser || "admin");
   var state = { vehicles: [], current: null, route: "", dirty: false, saved: false,
     saveBusy: false, uploadBusy: false, aiBusy: false, search: "", filter: "all", removed: [], failedFiles: [], canImport: false, aiNeedsReview: false, reviewNotes: [] };
@@ -33,7 +34,7 @@
     }).finally(function () { if (detailRequests.get(id) === request) detailRequests.delete(id); });
     detailRequests.set(id, request); return request;
   }
-  function t(bg, en) { return lang === "en" ? en : bg; }
+  function t(bg, en) { return bg; }
   function esc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
   function clone(v) { return JSON.parse(JSON.stringify(v)); }
   function lines(v) { return (Array.isArray(v) ? v : []).join("\n"); }
@@ -143,9 +144,9 @@
   }
   function closeMenu() { D.body.classList.remove("menu-open"); D.getElementById("mobile-menu").setAttribute("aria-expanded", "false"); D.getElementById("menu-backdrop").hidden = true; }
   function translateShell() {
-    D.documentElement.lang = lang;
-    D.querySelectorAll("[data-bg][data-en]").forEach(function (el) { el.textContent = el.dataset[lang]; });
-    D.querySelectorAll("[data-language]").forEach(function (button) { button.setAttribute("aria-pressed", button.dataset.language === lang ? "true" : "false"); });
+    lang = "bg";
+    D.documentElement.lang = "bg";
+    D.querySelectorAll("[data-bg]").forEach(function (el) { el.textContent = el.dataset.bg; });
   }
   async function loadVehicles(recover) {
     var savedDraft = recover ? draft() : null, initialRoute = requestedRoute();
@@ -699,14 +700,6 @@
     history.replaceState(null, "", "#dashboard"); state.route = "dashboard"; markNav("dashboard"); dashboard();
   }
   D.querySelectorAll("[data-route]").forEach(function (button) { button.onclick = function () { go(button.dataset.route); }; });
-  D.querySelectorAll("[data-language]").forEach(function (button) { button.onclick = function () {
-    if (isBusy() || lang === button.dataset.language) return;
-    var data = state.current ? Object.assign({}, state.current, collectForm()) : null;
-    var recovery = data ? { silent: true, source: D.getElementById("source-text").value, needsReview: state.aiNeedsReview, removed: state.removed.slice() } : null, dirty = state.dirty;
-    lang = button.dataset.language; writeStorage("localStorage", "ah-admin-language", lang); translateShell();
-    if (data) { editor(data, !data.id, recovery); state.dirty = dirty; updateSaveState(); } else renderRoute(state.route);
-    closeMenu();
-  }; });
   applyRole();
   D.getElementById("logout").onclick = async function () {
     if (!canLeave()) return;
