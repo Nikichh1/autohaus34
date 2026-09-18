@@ -144,11 +144,28 @@
   var params = new URLSearchParams(location.search);
   var requestedId = isVehiclePage ? params.get("id") : "";
   if (requestedId && !/^[a-z0-9-]+$/.test(requestedId)) requestedId = "";
-  /* Homepage recovery path: the bundled snapshot is already complete enough
-     to render and must never wait on an API before navigation becomes usable. */
+  /* Homepage boot is deterministic: vehicles.base.js has already populated
+     the bundled snapshot before this loader executes. Render from it
+     immediately, then refresh live inventory in the background. */
   if (isCatalogPage) {
     window.AH_VEHICLES.forEach(indexVehicle);
+    if (typeof window.AH_INVENTORY_RESOLVE === "function") {
+      try { window.AH_INVENTORY_RESOLVE(); } catch (_) {}
+    }
     window.AH_INVENTORY_READY = Promise.resolve();
+
+    setTimeout(function () {
+      loadInventory("", false).then(function (data) {
+        if (!validPayload(data, "")) return;
+        window.AH_VEHICLES = data.vehicles;
+        window.AH_INVENTORY_SOURCE = "managed";
+        data.vehicles.forEach(indexVehicle);
+        if (window.AH) window.AH.all = data.vehicles;
+        try {
+          window.dispatchEvent(new CustomEvent("ah:inventory-updated", { detail: data }));
+        } catch (_) {}
+      }).catch(function () {});
+    }, 1200);
   } else {
     var request = requestedId ? loadInventory(requestedId, false)
       : isConciergePage ? loadInventory("", false) : Promise.resolve(null);
