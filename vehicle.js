@@ -154,22 +154,18 @@
     /* ---------- 1. GALLERY ---------- */
     '<section class="dgallery" aria-label="Галерия">' +
       '<div class="dgal-wrap" id="dgal-wrap">' +
-      '<div class="dgal dgal--' + Math.min(N, 3) + '" id="dgal">' +
-        shots.slice(0, 3).map(function (s, i) {
-          return '<a class="dgal__f ' + (i === 0 ? "dgal__main" : "dgal__side") + '"' +
-            ' href="' + AH.esc(s) + '" data-i="' + i + '"' +
-            ' aria-label="Кадър ' + (i + 1) + " от " + N + ' — уголеми">' +
-            AH.picture(s, { eager: i === 0, width: 800, height: 490,
-                            sizes: mainSizes, src: 800,
-                            alt: v.full + " — кадър " + (i + 1) }) +
-            '<span class="dgal__n">' + (i + 1) + " / " + N + "</span></a>";
-        }).join("") +
+      '<div class="dgal dgal--1" id="dgal">' +
+        (N ? '<a class="dgal__f dgal__main" href="' + AH.esc(shots[0]) + '" data-i="0" aria-label="Кадър 1 от ' + N + ' — уголеми">' +
+          AH.picture(shots[0], { eager: true, width: 1600, height: 900,
+                                sizes: mainSizes, src: 1280,
+                                alt: v.full + " — кадър 1" }) +
+          '<span class="dgal__n">1 / ' + N + '</span></a>' : '') +
       "</div>" +
       (!N ? '<div class="dgal-empty" data-ah-bg="Очаквайте снимки" data-ah-en="Photos coming soon">Очаквайте снимки</div>' : '') +
       "</div>" +
       (N > 1 ? '<div class="dthumbs" id="dthumbs" role="group" aria-label="Избери снимка">' + shots.map(function (s, i) {
         return '<button type="button" class="dthumb' + (!i ? ' is-active' : '') + '" data-i="' + i + '" aria-pressed="' + (!i) + '" aria-label="' + (i + 1) + ' / ' + N + '">' +
-          AH.picture(s, { width: 120, height: 80, widths: [400], src: 400, sizes: "96px", alt: v.full + ' / ' + (i + 1) }) + '</button>';
+          AH.picture(s, { width: 160, height: 90, widths: [400], src: 400, sizes: "96px", alt: v.full + ' / ' + (i + 1) }) + '</button>';
       }).join('') + '</div>' : '') +
       '<div class="dgal-bar">' +
         (N ? '<span class="dgal-bar__n" id="dgal-n" aria-live="polite" data-nt>1 / ' + N + '</span>' : '') +
@@ -218,7 +214,6 @@
          width. The box reserves its own height so the arrival shifts
          nothing, and if the file is missing (four cars have been sold and
          their listings are gone) the section simply never appears. */
-      '<section class="dsec" id="managed-description" hidden><h2 class="dsec__h" data-ah-bg="Описание" data-ah-en="Description">Описание</h2><div class="dprose" data-nt></div></section>' +
       '<section class="dsec" id="deq-sec" hidden>' +
         '<h2 class="dsec__h">Оборудване <span class="dsec__n" id="deq-n"></span></h2>' +
         '<div class="dclamp" id="deq-clamp"><div class="deq" id="deq"></div></div>' +
@@ -276,20 +271,6 @@
   // Gallery media is visible as soon as it decodes; catalog card fades do
   // not apply to this selectable image stage or its thumbnail controls.
   bindVehicleInquiry(D.getElementById("vehicle-inquiry-form"));
-  function renderManagedDescription() {
-    var section = D.getElementById("managed-description");
-    if (!section) return;
-    var en = window.AHLang && window.AHLang.get() === "en";
-    var text = en ? v.description_en : v.description_bg;
-    text = String(text || '').replace(/\r\n?/g, '\n').trim();
-    section.hidden = !text;
-    section.querySelector(".dprose").innerHTML = text.split(/\n\s*\n/).filter(Boolean).map(function (paragraph) {
-      return '<p>' + AH.esc(paragraph.trim()).replace(/\n/g, '<br>') + '</p>';
-    }).join('');
-  }
-  renderManagedDescription();
-  addEventListener("ah:languagechange", renderManagedDescription);
-
   /* Gallery selection is independent of layout: thumbnails, arrows and
      touch all update one main frame, with enlarged viewing on request. */
   var gal = D.getElementById("dgal");
@@ -347,7 +328,7 @@
   function loadedPicture(i, image, sizes) {
     // Keep the successfully decoded format, including JPEG fallback. Switching
     // back to a fresh <source> here would retry a failed WebP derivative.
-    return '<picture><img decoding="async" fetchpriority="high" width="800" height="490"' +
+    return '<picture><img decoding="async" fetchpriority="high" width="1600" height="900"' +
       ' src="' + AH.esc(image.currentSrc || image.src) + '" srcset="' + AH.esc(image.srcset || '') + '"' +
       ' sizes="' + AH.esc(sizes) + '" alt="' + AH.esc(v.full + ' / ' + (i + 1)) + '"></picture>';
   }
@@ -365,18 +346,13 @@
       thumb.classList.toggle('is-active', index === i);
       thumb.setAttribute('aria-pressed', String(index === i));
     });
-    if (thumbRail && thumbs[i]) {
-      var left = thumbs[i].offsetLeft - thumbRail.offsetLeft;
-      if (left < thumbRail.scrollLeft) thumbRail.scrollLeft = left;
-      else if (left + thumbs[i].offsetWidth > thumbRail.scrollLeft + thumbRail.clientWidth) thumbRail.scrollLeft = left + thumbs[i].offsetWidth - thumbRail.clientWidth;
-    }
     if (!changed) return;
     var version = ++selectionVersion;
     // The already-loaded thumbnail gives immediate feedback while the full
     // responsive image decodes. The stage never changes its dimensions.
     var preview = thumbs[i] && thumbs[i].querySelector('img');
     if (preview && preview.complete && preview.naturalWidth) {
-      mainFrame.querySelector('picture').innerHTML = '<img src="' + AH.esc(preview.currentSrc || preview.src) + '" alt="' + AH.esc(v.full) + '" width="800" height="490">';
+      mainFrame.querySelector('picture').innerHTML = '<img src="' + AH.esc(preview.currentSrc || preview.src) + '" alt="' + AH.esc(v.full) + '" width="1600" height="900">';
     }
     mainFrame.setAttribute('aria-busy', 'true');
     prepare(i, 'high').then(function (image) {
