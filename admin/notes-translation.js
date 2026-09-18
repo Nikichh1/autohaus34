@@ -242,7 +242,7 @@
     var form = document.getElementById("car-form");
     var source = form && form.elements && form.elements.notes;
     if (!source || source.dataset.ahAutoTranslate === "1") return;
-    var target = ensureNotesPreview(source);
+    var target = document.getElementById("notes-en-preview") || ensureNotesPreview(source);
     if (!target) return;
     target.id = target.id || "notes-en-preview";
     bindPairByElements(source, target, "notes");
@@ -279,7 +279,6 @@
   }
 
   function bindAll() {
-    bindPair("desc-bg", "desc-en", "description", false);
     bindPair("equipment-bg", "equipment-en", "equipment", true);
     bindNotes();
   }
@@ -294,18 +293,15 @@
 
     var body;
     try { body = JSON.parse(init.body); } catch (_) { return baseFetch(input, init); }
-    var hasTranslationSources = Array.isArray(body.notes) || Array.isArray(body.equipment_bg) ||
-      typeof body.description_bg === "string";
+    var hasTranslationSources = Array.isArray(body.notes) || Array.isArray(body.equipment_bg);
     if (!hasTranslationSources) return baseFetch(input, init);
 
     return Promise.all([
       translateList(body.notes || []),
-      translateList(body.equipment_bg || []),
-      translateText(body.description_bg || "")
+      translateList(body.equipment_bg || [])
     ]).then(function (values) {
       body.notes_en = values[0];
       body.equipment_en = values[1];
-      body.description_en = values[2];
       var next = Object.assign({}, init, { body: JSON.stringify(body) });
       return baseFetch(input, next);
     }).catch(function (error) {
