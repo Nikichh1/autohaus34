@@ -16,14 +16,8 @@
   var MAX_ENTRIES = 20;
   var pending = Object.create(null);
   var persistentCache;
-  var externalResolve = typeof window.AH_INVENTORY_RESOLVE === "function" ? window.AH_INVENTORY_RESOLVE : null;
-  var externalSettled = false;
-
-  function settleExternal() {
-    if (externalSettled) return;
-    externalSettled = true;
-    if (externalResolve) { try { externalResolve(); } catch (_) {} }
-  }
+  var SUPABASE_URL = "https://ajoiqomflplhadyhxvfe.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_gBEUBrOjT_JsBRjAnGL9PQ_ra-1hY0g";
   function revision() {
     try { return window.localStorage.getItem(CHANGE_KEY) || ""; } catch (_) { return ""; }
   }
@@ -105,11 +99,100 @@
     if (refresh) url += (id ? "&" : "?") + "fresh=" + Date.now();
     return timedJson(url, refresh ? 4500 : 2500, refresh);
   }
+
+  function rowImageList(row) {
+    if (Array.isArray(row.images)) return row.images;
+    return row.cover && typeof row.cover === "object" ? [row.cover] : [];
+  }
+  function rowToVehicle(row, detail) {
+    row = row || {};
+    var images = rowImageList(row);
+    var shots = images.map(function (image) {
+      var variants = image && image.variants || {};
+      return variants.jpg1280 || image && image.original || "";
+    }).filter(Boolean);
+    var vehicle = {
+      id: row.slug || "",
+      db_id: row.id,
+      ref: row.ref || "",
+      make: row.make || "",
+      model: row.model || "",
+      full: row.full_name || [row.make, row.model].filter(Boolean).join(" "),
+      body_type: row.body_type || "",
+      year: row.first_registration_year,
+      month: row.first_registration_month,
+      unreg: !!row.unregistered,
+      km: row.mileage,
+      hp: row.horsepower,
+      fuel: row.fuel || "",
+      gear: row.transmission || "",
+      colour: row.colour || "",
+      price: row.price == null ? null : Number(row.price),
+      chapter: row.chapter || "saloon",
+      tags: Array.isArray(row.tags) ? row.tags : [],
+      notes: detail && Array.isArray(row.notes) ? row.notes : [],
+      notes_en: detail && Array.isArray(row.notes_en) ? row.notes_en : [],
+      shots: shots,
+      managed_images: images,
+      description_bg: detail ? (row.description_bg || "") : "",
+      description_en: detail ? (row.description_en || "") : "",
+      equipment_bg: detail && Array.isArray(row.equipment_bg) ? row.equipment_bg : [],
+      equipment_en: detail && Array.isArray(row.equipment_en) ? row.equipment_en : []
+    };
+    return vehicle;
+  }
+  function supabaseJson(path, ms) {
+    var controller = typeof AbortController === "function" ? new AbortController() : null;
+    var timer;
+    var timeout = new Promise(function (resolve) {
+      timer = setTimeout(function () { if (controller) controller.abort(); resolve(null); }, ms || 3500);
+    });
+    var request = fetch(SUPABASE_URL + "/rest/v1/" + path, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY
+      },
+      credentials: "omit",
+      cache: "no-store",
+      signal: controller ? controller.signal : undefined
+    }).then(function (response) {
+      return response.ok ? response.json() : null;
+    }).catch(function () { return null; });
+    return Promise.race([request, timeout]).then(function (data) { clearTimeout(timer); return data; });
+  }
+  function directLoad(id) {
+    var common = "id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,sort_order,updated_at";
+    if (id) {
+      var detailFields = common + ",notes,notes_en,description_bg,description_en,equipment_bg,equipment_en,images";
+      return supabaseJson("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=" + encodeURIComponent(detailFields) + "&limit=1", 4200)
+        .then(function (rows) {
+          if (!Array.isArray(rows)) return null;
+          if (!rows.length) return { ok: false, authoritative: true, vehicle: null, vehicles: [], error: "Vehicle not found", fresh_until: Date.now() + 15000 };
+          return { ok: true, authoritative: true, vehicle: rowToVehicle(rows[0], true), fresh_until: Date.now() + 15000 };
+        });
+    }
+    var listFields = common + ",cover:images->0";
+    return supabaseJson("vehicles?published=eq.true&select=" + encodeURIComponent(listFields) + "&order=updated_at.desc,sort_order.asc", 4200)
+      .then(function (rows) {
+        if (!Array.isArray(rows) || !rows.length) return null;
+        return {
+          ok: true,
+          authoritative: true,
+          count: rows.length,
+          vehicles: rows.map(function (row) { return rowToVehicle(row, false); }),
+          fresh_until: Date.now() + 15000
+        };
+      });
+  }
   function networkLoad(id, currentRevision, key) {
     var requestKey = key + ":" + currentRevision;
     if (pending[requestKey]) return pending[requestKey];
     pending[requestKey] = apiLoad(id, false).then(function (data) {
       return validPayload(data, id, false) ? data : apiLoad(id, true);
+    }).then(function (data) {
+      return validPayload(data, id, false) ? data : directLoad(id);
     }).then(function (data) {
       if (revision() !== currentRevision) return loadInventory(id, true);
       if (validPayload(data, id, false)) cachePut(key, data, currentRevision, id);
@@ -204,8 +287,7 @@
     else fn();
   }
 
-  afterDom(function () { loadingState(); setTimeout(revealCriticalUI, 3000); });
-  var watchdog = setTimeout(function () { settleExternal(); afterDom(recoverPreview); }, 8000);
+  afterDom(function () { loadingState(); setTimeout(revealCriticalUI, 2200); });
 
   var path = location.pathname;
   var isVehiclePage = /(?:^|\/)vehicle\.html$/.test(path);
@@ -216,14 +298,29 @@
   if (requestedId && !/^[a-z0-9-]+$/.test(requestedId)) requestedId = "";
   var request = requestedId ? loadInventory(requestedId, false) :
     (isCatalogPage || isConciergePage) ? loadInventory("", false) : Promise.resolve(null);
-  var ready = request.then(function (data) { applyPayload(data, requestedId); }).catch(function () { return null; });
+
+  var ready = request.then(function (data) {
+    applyPayload(data, requestedId);
+    return data;
+  }).catch(function () { return null; });
+
+  // UI modules subscribe to one deterministic promise. A data outage may
+  // produce an empty catalogue message, but it must never freeze navigation,
+  // scrolling, menus or the rest of the landing page.
+  window.AH_INVENTORY_READY = ready;
+
+  var watchdog = setTimeout(function () {
+    revealCriticalUI();
+    if (isCatalogPage) afterDom(recoverPreview);
+  }, 5500);
 
   ready.then(function () {
-    clearTimeout(watchdog); settleExternal();
-    if (isCatalogPage) afterDom(function () { setTimeout(recoverPreview, 350); });
+    clearTimeout(watchdog);
+    revealCriticalUI();
+    if (isCatalogPage) afterDom(function () { setTimeout(recoverPreview, 80); });
   }, function () {
-    clearTimeout(watchdog); settleExternal();
+    clearTimeout(watchdog);
+    revealCriticalUI();
     if (isCatalogPage) afterDom(recoverPreview);
   });
-  if (!externalResolve) window.AH_INVENTORY_READY = ready;
 })();
