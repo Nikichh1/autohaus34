@@ -3,8 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>window.AH_INVENTORY_READY = new Promise(function (resolve) { window.AH_INVENTORY_RESOLVE = resolve; });</script>
-<script async src="data/vehicles.js?v=cc4cd34d" onerror="window.AH_INVENTORY_RESOLVE()"></script>
 <link rel="icon" href="favicon.jpg" type="image/jpeg">
 <link rel="preload" href="fonts/exo2-300-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/exo2-300-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -19,7 +17,11 @@
      SPEC-JAMESEDITION.md. -->
 <link rel="stylesheet" href="catalog.min.css?v=cc4cd34d" media="print" onload="this.media='all';this.onload=null">
 <noscript><link rel="stylesheet" href="catalog.min.css?v=cc4cd34d"></noscript>
-<!-- Ordered deferred modules: inventory resolves before rendering. -->
+<!-- Ordered deferred modules. The bundled snapshot is available before the
+     live loader and every UI module, so the catalogue can render immediately
+     even if the network inventory refresh is slow or unavailable. -->
+<script defer src="data/vehicles.base.js?v=cc4cd34d"></script>
+<script defer src="data/vehicles.js?v=cc4cd34d"></script>
 <script defer src="main.js?v=cc4cd34d"></script>
 <script defer src="catalog.js?v=cc4cd34d"></script>
 <script defer src="showroom.js?v=cc4cd34d"></script>
