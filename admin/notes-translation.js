@@ -43,16 +43,34 @@
     "Цена без начислен 20% ДДС!": "Price excluding 20% VAT!"
   };
 
+  function normalizeNote(value) {
+    return String(value || "")
+      .normalize ? String(value || "").normalize("NFC") : String(value || "");
+  }
+  function noteKey(value) {
+    return normalizeNote(value)
+      .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+  var KNOWN_BY_KEY = Object.create(null);
+  Object.keys(KNOWN).forEach(function (key) { KNOWN_BY_KEY[noteKey(key)] = KNOWN[key]; });
+  function cachedTranslation(line) {
+    return cache[line] || cache[noteKey(line)] || KNOWN_BY_KEY[noteKey(line)] || "";
+  }
   function lineList(value) {
     var source = Array.isArray(value) ? value : String(value || "").split(/\r?\n/);
-    return source.map(function (line) { return String(line || "").trim(); }).filter(Boolean);
+    return source.map(function (line) { return noteKey(line); }).filter(Boolean);
   }
   function loadCache() {
     try {
       var stored = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
       if (stored && typeof stored === "object") cache = stored;
     } catch (_) {}
-    Object.keys(KNOWN).forEach(function (key) { cache[key] = KNOWN[key]; });
+    Object.keys(KNOWN).forEach(function (key) {
+      cache[key] = KNOWN[key];
+      cache[noteKey(key)] = KNOWN[key];
+    });
   }
   function saveCache() {
     var keys = Object.keys(cache);
@@ -68,9 +86,9 @@
     var missing = [];
     var seen = Object.create(null);
     lines.forEach(function (line) {
-      if (!cache[line] && !seen[line]) { seen[line] = true; missing.push(line); }
+      if (!cachedTranslation(line) && !seen[noteKey(line)]) { seen[noteKey(line)] = true; missing.push(line); }
     });
-    if (!missing.length) return Promise.resolve(lines.map(function (line) { return cache[line] || line; }));
+    if (!missing.length) return Promise.resolve(lines.map(function (line) { return cachedTranslation(line) || line; }));
 
     var requestKey = JSON.stringify(missing);
     if (!pending[requestKey]) {
@@ -90,7 +108,7 @@
         });
       }).finally(function () { delete pending[requestKey]; });
     }
-    return pending[requestKey].then(function () { return lines.map(function (line) { return cache[line] || line; }); });
+    return pending[requestKey].then(function () { return lines.map(function (line) { return cachedTranslation(line) || line; }); });
   }
 
   function translateNotes(value) {
@@ -163,7 +181,7 @@
 
     function renderKnown(lines) {
       if (!box) return;
-      box.value = lines.map(function (line) { return cache[line] || "…"; }).join("\n");
+      box.value = lines.map(function (line) { return cachedTranslation(line) || "…"; }).join("\n");
     }
 
     function run() {
@@ -175,7 +193,7 @@
         return;
       }
       renderKnown(lines);
-      var hasMissing = lines.some(function (line) { return !cache[line]; });
+      var hasMissing = lines.some(function (line) { return !cachedTranslation(line); });
       if (status) status.textContent = hasMissing ? "Превеждане на новия текст…" : "Английският преглед е готов.";
       translateNotes(lines).then(function (translated) {
         if (version !== sequence || !textarea.isConnected) return;

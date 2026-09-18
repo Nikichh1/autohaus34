@@ -299,22 +299,29 @@
   if (requestedId && !/^[a-z0-9-]+$/.test(requestedId)) requestedId = "";
 
   /* PRODUCTION-SAFE BOOT
-     The homepage must never wait on an API, a retry, or Supabase before it is
-     usable. vehicles.base.js is a last-known-good local snapshot and is the
-     first paint. Live inventory refreshes later, in the background. Vehicle
-     detail pages still await their specific managed record so descriptions
-     and equipment stay complete. */
+     Every public page starts from the bundled last-known-good snapshot. A live
+     API refresh is enrichment only; it must never decide whether the page can
+     render. This is especially important for vehicle detail pages on a fresh
+     Vercel project where the backend may still be warming up. */
   var bundled = Array.isArray(window.AH_VEHICLES) ? window.AH_VEHICLES.slice() : [];
   bundled.forEach(indexVehicle);
-
+  var bundledVehicle = requestedId ? bundled.filter(function (item) { return item && item.id === requestedId; })[0] || null : null;
   var fastPublicBoot = (isCatalogPage || isConciergePage) && bundled.length > 0;
-  var request = requestedId ? loadInventory(requestedId, false) :
-    (!fastPublicBoot && (isCatalogPage || isConciergePage)) ? loadInventory("", false) :
+  var fastVehicleBoot = isVehiclePage && !!bundledVehicle;
+
+  var request = (!fastPublicBoot && !fastVehicleBoot && requestedId) ? loadInventory(requestedId, false) :
+    (!fastPublicBoot && !fastVehicleBoot && (isCatalogPage || isConciergePage)) ? loadInventory("", false) :
     Promise.resolve(null);
 
   var ready;
-  if (fastPublicBoot) {
-    ready = Promise.resolve({
+  if (fastPublicBoot || fastVehicleBoot) {
+    ready = Promise.resolve(fastVehicleBoot ? {
+      ok: true,
+      authoritative: true,
+      vehicle: bundledVehicle,
+      vehicles: [bundledVehicle],
+      fresh_until: Date.now() + 15000
+    } : {
       ok: true,
       authoritative: true,
       count: bundled.length,
@@ -322,18 +329,25 @@
       fresh_until: Date.now() + 15000
     });
 
-    /* Do not compete with CSS, the hero image, or interaction startup.
-       A backend outage can only make this refresh fail silently; it can never
-       hold the public page in a loading state. */
+    /* Refresh after first paint. Failure is silent because the bundled record
+       is already usable and must remain usable. */
     setTimeout(function () {
-      loadInventory("", false).then(function (data) {
-        if (!validPayload(data, "", true)) return;
-        applyPayload(data, "");
+      var refreshId = fastVehicleBoot ? requestedId : "";
+      loadInventory(refreshId, false).then(function (data) {
+        if (!validPayload(data, refreshId, true)) return;
+        if (refreshId) {
+          if (data.vehicle) {
+            window.AH_MANAGED_VEHICLES[refreshId] = data.vehicle;
+            indexVehicle(data.vehicle);
+          }
+        } else {
+          applyPayload(data, "");
+        }
         try {
           window.dispatchEvent(new CustomEvent("ah:inventory-updated", { detail: data }));
         } catch (_) {}
       }).catch(function () {});
-    }, 1500);
+    }, fastVehicleBoot ? 700 : 1500);
   } else {
     ready = request.then(function (data) {
       applyPayload(data, requestedId);
