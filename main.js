@@ -45,28 +45,6 @@
   var all = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
   var fmt = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " "); };
 
-  /* FAIL OPEN AFTER BFCache / INTERRUPTED OVERLAYS.
-     Never preserve a page-wide scroll/input lock without a matching visible
-     overlay. This keeps a stale modal class from freezing the public site. */
-  var releaseStalePageLocks = function () {
-    if (document.querySelector(".mob.is-open,.ctc.is-open,.cat.is-open,.wcard-item.is-open,.lb.open,.focus.is-open")) return;
-    var html = document.documentElement, body = document.body;
-    ["mob-open","ctc-open","cw-open","shw-open","lb-open"].forEach(function (name) {
-      html.classList.remove(name);
-    });
-    if (body) {
-      body.style.top = "";
-      body.style.position = "";
-      body.style.left = "";
-      body.style.right = "";
-      body.style.width = "";
-      body.style.overflow = "";
-    }
-  };
-  releaseStalePageLocks();
-  addEventListener("pageshow", releaseStalePageLocks);
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", releaseStalePageLocks, { once: true });
-
   /* ============================================================
      0. DATA LAYER  (added in v35)
 
@@ -1687,11 +1665,6 @@
       ctc.set(true, t);
     });
   }
-
-  /* The critical public navigation is initialized. The tiny inline recovery
-     layer in index.html only binds its own menu handlers when this flag is
-     absent, so normal production never gets duplicate listeners. */
-  window.AH_MAIN_READY = true;
 
   /* ---- THE BRAND PLATE ------------------------------------------------
      Armed by the hero itself rather than by a scroll offset. `isIntersecting`
