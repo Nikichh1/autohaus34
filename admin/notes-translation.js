@@ -154,29 +154,6 @@
     });
   }
 
-  function translateText(value) {
-    var raw = String(value || "");
-    if (!raw.trim()) return Promise.resolve("");
-    var rows = raw.replace(/\r/g, "").split("\n");
-    var parts = [];
-    var map = [];
-    rows.forEach(function (row) {
-      if (!row.trim()) {
-        map.push({ blank: true });
-        return;
-      }
-      var chunks = splitLong(row, 1800);
-      map.push({ start: parts.length, count: chunks.length });
-      parts.push.apply(parts, chunks);
-    });
-    return translateMissing(parts).then(function (translated) {
-      return map.map(function (item) {
-        if (item.blank) return "";
-        return translated.slice(item.start, item.start + item.count).join(" ").trim();
-      }).join("\n");
-    });
-  }
-
   function statusFor(key) {
     return document.querySelector('[data-auto-translate-status="' + key + '"]');
   }
