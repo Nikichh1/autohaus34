@@ -14,6 +14,11 @@
     "Пълна сервизна история!": "Full service history!",
     "Възможен бартер!": "Part-exchange available!",
     "Възможен лизинг!": "Leasing available!",
+    "Брокерски оглед": "Broker inspection",
+    "Брокерски оглед!": "Broker inspection!",
+    "Пълна сервизна история": "Full service history",
+    "Възможен бартер": "Part-exchange available",
+    "Възможен лизинг": "Leasing available",
     "Цена без начислен 20% ДДС": "Price excluding 20% VAT",
     "Цена без начислен 20% ДДС!": "Price excluding 20% VAT!"
   };
@@ -123,22 +128,50 @@
     return status;
   }
 
+  function ensurePreview(textarea) {
+    var label = textarea && textarea.closest && textarea.closest("label.field");
+    if (!label) return null;
+    var wrap = label.querySelector(".ah-note-translation-preview");
+    if (wrap) return wrap.querySelector("textarea");
+    wrap = document.createElement("div");
+    wrap.className = "ah-note-translation-preview";
+    var title = document.createElement("strong");
+    title.textContent = "English preview";
+    var preview = document.createElement("textarea");
+    preview.className = "ah-note-translation-preview__box";
+    preview.readOnly = true;
+    preview.tabIndex = -1;
+    preview.rows = Math.max(3, Number(textarea.rows) || 3);
+    preview.lang = "en";
+    preview.setAttribute("aria-label", "English preview of notes");
+    wrap.appendChild(title);
+    wrap.appendChild(preview);
+    label.appendChild(wrap);
+    return preview;
+  }
+
   function bindNotes() {
     var form = document.getElementById("car-form");
     var textarea = form && form.elements && form.elements.notes;
     if (!textarea || textarea.dataset.ahAutoTranslate === "1") return;
     textarea.dataset.ahAutoTranslate = "1";
     var status = ensureStatus(textarea);
+    var preview = ensurePreview(textarea);
     var timer = 0, sequence = 0;
 
     function run() {
       var version = ++sequence;
       var lines = lineList(textarea.value);
-      if (!lines.length) { if (status) status.textContent = ""; return; }
-      if (status) status.textContent = tr("Превеждане на английски…", "Preparing English translation…");
-      translateNotes(lines).then(function () {
+      if (!lines.length) {
+        if (status) status.textContent = "";
+        if (preview) preview.value = "";
+        return;
+      }
+      if (status) status.textContent = "Превеждане на английски…";
+      translateNotes(lines).then(function (translated) {
         if (version !== sequence || !textarea.isConnected) return;
-        if (status) status.textContent = tr("Английският превод е готов.", "English translation ready.");
+        if (preview) preview.value = translated.join("\n");
+        if (status) status.textContent = "English preview е обновен.";
       }).catch(function (error) {
         if (version !== sequence || !textarea.isConnected) return;
         if (status) status.textContent = error.message;
@@ -147,7 +180,7 @@
 
     textarea.addEventListener("input", function () {
       clearTimeout(timer);
-      if (status) status.textContent = tr("Подготовка на превода…", "Preparing translation…");
+      if (status) status.textContent = "Подготовка на English preview…";
       timer = setTimeout(run, 220);
     });
     setTimeout(run, 0);
