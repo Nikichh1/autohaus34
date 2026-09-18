@@ -45,17 +45,6 @@
     catch (_) { return null; }
   }
 
-  function errorResponse(message) {
-    return new Response(JSON.stringify({
-      ok: false,
-      error: message || "Автоматичният превод временно не успя. Опитайте отново.",
-      code: "AUTO_TRANSLATION_REQUIRED"
-    }), {
-      status: 422,
-      headers: { "Content-Type": "application/json; charset=utf-8" }
-    });
-  }
-
   function normalizeLines(value) {
     var source = Array.isArray(value) ? value : String(value || "").split(/\r?\n/);
     return source.map(function (line) { return String(line || "").trim(); }).filter(Boolean);
@@ -87,16 +76,23 @@
       }).then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (data) {
           if (!response.ok || !data || data.ok !== true || !Array.isArray(data.lines) || data.lines.length !== batch.length) {
-            throw new Error(data && data.error || "Автоматичният превод временно не успя. Опитайте отново.");
+            return { pending: true, retryAfter: 3500 };
           }
-          batch.forEach(function (line, index) {
-            var translated = String(data.lines[index] || "").trim();
-            if (!translated) throw new Error("Английският превод не е пълен.");
-            cache[line] = translated;
-          });
-          saveCache();
-          return true;
+          if (!data.pending) {
+            batch.forEach(function (line, index) {
+              var translated = String(data.lines[index] || "").trim();
+              if (translated) cache[line] = translated;
+            });
+            saveCache();
+          }
+          return {
+            pending: !!data.pending,
+            retryAfter: Math.max(1500, Math.min(15000, Number(data.retry_after_ms) || 3500)),
+            lines: data.lines
+          };
         });
+      }).catch(function () {
+        return { pending: true, retryAfter: 3500 };
       }).finally(function () { delete pending[requestKey]; });
     }
     return pending[requestKey];
@@ -117,14 +113,29 @@
 
     var batches = [];
     for (var i = 0; i < missing.length; i += 60) batches.push(missing.slice(i, i + 60));
-    return Promise.all(batches.map(requestBatch)).then(function () {
-      return units.map(function (unit) { return cache[unit] || unit; });
+    return Promise.all(batches.map(requestBatch)).then(function (results) {
+      var pendingAny = results.some(function (result) { return result && result.pending; });
+      var translatedByLine = Object.create(null);
+      results.forEach(function (result, batchIndex) {
+        var batch = batches[batchIndex];
+        var values = result && Array.isArray(result.lines) ? result.lines : [];
+        batch.forEach(function (line, index) {
+          translatedByLine[line] = cache[line] || String(values[index] || "").trim() || line;
+        });
+      });
+      return {
+        lines: units.map(function (unit) { return cache[unit] || translatedByLine[unit] || unit; }),
+        pending: pendingAny,
+        retryAfter: results.reduce(function (max, result) {
+          return Math.max(max, Number(result && result.retryAfter) || 0);
+        }, 0) || 3500
+      };
     });
   }
 
   function translateList(value) {
     var lines = normalizeLines(value);
-    if (!lines.length) return Promise.resolve([]);
+    if (!lines.length) return Promise.resolve({ lines: [], pending: false, retryAfter: 0 });
     var parts = [];
     var map = [];
     lines.forEach(function (line) {
@@ -132,10 +143,14 @@
       map.push({ start: parts.length, count: chunks.length });
       parts.push.apply(parts, chunks);
     });
-    return translateMissing(parts).then(function (translated) {
-      return map.map(function (item) {
-        return translated.slice(item.start, item.start + item.count).join(" ").trim();
-      });
+    return translateMissing(parts).then(function (result) {
+      return {
+        lines: map.map(function (item) {
+          return result.lines.slice(item.start, item.start + item.count).join(" ").trim();
+        }),
+        pending: result.pending,
+        retryAfter: result.retryAfter
+      };
     });
   }
 
@@ -173,11 +188,23 @@
     el.classList.toggle("is-error", !!error);
   }
 
+  function seedLineCache(sourceValue, targetValue) {
+    var sourceLines = normalizeLines(sourceValue);
+    var targetLines = normalizeLines(targetValue);
+    if (!sourceLines.length || sourceLines.length !== targetLines.length) return;
+    sourceLines.forEach(function (line, index) {
+      var translated = String(targetLines[index] || "").trim();
+      if (translated && translated !== line) cache[line] = translated;
+    });
+    saveCache();
+  }
+
   function bindPair(sourceId, targetId, key, listMode) {
     var source = document.getElementById(sourceId);
     var target = document.getElementById(targetId);
     if (!source || !target || source.dataset.ahAutoTranslate === "1") return;
 
+    seedLineCache(source.value, target.value);
     source.dataset.ahAutoTranslate = "1";
     target.readOnly = true;
     target.tabIndex = -1;
@@ -193,14 +220,23 @@
         return;
       }
       setStatus(key, "Превеждане…");
-      var request = listMode ? translateList(raw).then(function (lines) { return lines.join("\n"); }) : translateText(raw);
-      request.then(function (translated) {
+      var request = listMode ? translateList(raw) : Promise.resolve({ lines: [raw], pending: false, retryAfter: 0 });
+      request.then(function (result) {
         if (current !== version || !source.isConnected) return;
+        var translated = listMode ? result.lines.join("\n") : result.lines[0];
         target.value = translated;
-        setStatus(key, "English preview е обновен.");
-      }).catch(function (error) {
+        if (result.pending) {
+          setStatus(key, "English preview се дообработва автоматично…");
+          clearTimeout(timer);
+          timer = setTimeout(run, result.retryAfter || 3500);
+        } else {
+          setStatus(key, "English preview е обновен.");
+        }
+      }).catch(function () {
         if (current !== version || !source.isConnected) return;
-        setStatus(key, error && error.message || "Преводът временно не успя.", true);
+        setStatus(key, "English preview ще се обнови автоматично…");
+        clearTimeout(timer);
+        timer = setTimeout(run, 3500);
       });
     }
 
@@ -250,6 +286,7 @@
 
   function bindPairByElements(source, target, key) {
     if (!source || !target || source.dataset.ahAutoTranslate === "1") return;
+    seedLineCache(source.value, target.value);
     source.dataset.ahAutoTranslate = "1";
     var timer = 0;
     var version = 0;
@@ -261,13 +298,21 @@
         return;
       }
       setStatus(key, "Превеждане…");
-      translateList(source.value).then(function (lines) {
+      translateList(source.value).then(function (result) {
         if (current !== version || !source.isConnected) return;
-        target.value = lines.join("\n");
-        setStatus(key, "English preview е обновен.");
-      }).catch(function (error) {
+        target.value = result.lines.join("\n");
+        if (result.pending) {
+          setStatus(key, "English preview се дообработва автоматично…");
+          clearTimeout(timer);
+          timer = setTimeout(run, result.retryAfter || 3500);
+        } else {
+          setStatus(key, "English preview е обновен.");
+        }
+      }).catch(function () {
         if (current !== version || !source.isConnected) return;
-        setStatus(key, error && error.message || "Преводът временно не успя.", true);
+        setStatus(key, "English preview ще се обнови автоматично…");
+        clearTimeout(timer);
+        timer = setTimeout(run, 3500);
       });
     }
     source.addEventListener("input", function () {
@@ -300,12 +345,20 @@
       translateList(body.notes || []),
       translateList(body.equipment_bg || [])
     ]).then(function (values) {
-      body.notes_en = values[0];
-      body.equipment_en = values[1];
+      body.notes_en = values[0].lines;
+      body.equipment_en = values[1].lines;
       var next = Object.assign({}, init, { body: JSON.stringify(body) });
       return baseFetch(input, next);
-    }).catch(function (error) {
-      return errorResponse(error && error.message);
+    }).catch(function () {
+      /* Saving Bulgarian source data is more important than a transient
+         translation outage. Preserve already-rendered English previews when
+         available and never block the vehicle save. */
+      var notesPreview = document.getElementById("notes-en-preview");
+      var equipmentPreview = document.getElementById("equipment-en");
+      if (notesPreview) body.notes_en = normalizeLines(notesPreview.value);
+      if (equipmentPreview) body.equipment_en = normalizeLines(equipmentPreview.value);
+      var next = Object.assign({}, init, { body: JSON.stringify(body) });
+      return baseFetch(input, next);
     });
   };
 
