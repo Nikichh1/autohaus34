@@ -149,108 +149,93 @@
      RENDER
      ============================================================ */
   root.innerHTML = '' +
-  '<div class="vd-body" style="padding-top:24px">' +
+  '<div class="vd-body vd-premium">' +
+    '<div class="vehicle-hero">' +
 
-    /* ---------- 1. GALLERY ---------- */
-    '<section class="dgallery" aria-label="Галерия">' +
-      '<div class="dgal-wrap" id="dgal-wrap">' +
-      '<div class="dgal dgal--1" id="dgal">' +
-        (N ? '<a class="dgal__f dgal__main" href="' + AH.esc(shots[0]) + '" data-i="0" aria-label="Кадър 1 от ' + N + ' — уголеми">' +
-          AH.picture(shots[0], { eager: true, width: 1600, height: 900,
-                                sizes: mainSizes, src: 1280,
-                                alt: v.full + " — кадър 1" }) +
-          '<span class="dgal__n">1 / ' + N + '</span></a>' : '') +
-      "</div>" +
-      (!N ? '<div class="dgal-empty" data-ah-bg="Очаквайте снимки" data-ah-en="Photos coming soon">Очаквайте снимки</div>' : '') +
-      "</div>" +
-      (N > 1 ? '<div class="dthumbs" id="dthumbs" role="group" aria-label="Избери снимка">' + shots.map(function (s, i) {
-        return '<button type="button" class="dthumb' + (!i ? ' is-active' : '') + '" data-i="' + i + '" aria-pressed="' + (!i) + '" aria-label="' + (i + 1) + ' / ' + N + '">' +
-          AH.picture(s, { width: 160, height: 90, widths: [400], src: 400, sizes: "96px", alt: v.full + ' / ' + (i + 1) }) + '</button>';
-      }).join('') + '</div>' : '') +
-      '<div class="dgal-bar">' +
-        (N ? '<span class="dgal-bar__n" id="dgal-n" aria-live="polite" data-nt>1 / ' + N + '</span>' : '') +
-        (N > 1 ? '<div class="dgal-controls"><button type="button" id="dgal-prev" aria-label="Предишен кадър"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-l"/></svg></button><button type="button" id="dgal-next" aria-label="Следващ кадър"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-r"/></svg></button></div>' : '') +
-      "</div>" +
-    "</section>" +
+      /* ---------- GALLERY ---------- */
+      '<section class="dgallery vehicle-gallery" aria-label="Галерия">' +
+        '<div class="dgal-wrap" id="dgal-wrap">' +
+          '<div class="dgal dgal--1" id="dgal">' +
+            (N ? '<a class="dgal__f dgal__main" href="' + AH.esc(shots[0]) + '" data-i="0" aria-label="Кадър 1 от ' + N + ' — уголеми">' +
+              AH.picture(shots[0], { eager: true, width: 1600, height: 900,
+                                    sizes: mainSizes, src: 1280,
+                                    alt: v.full + " — кадър 1" }) +
+              '<span class="dgal__n" id="dgal-n">1 / ' + N + '</span></a>' : '') +
+          '</div>' +
+          (!N ? '<div class="dgal-empty" data-ah-bg="Очаквайте снимки" data-ah-en="Photos coming soon">Очаквайте снимки</div>' : '') +
+          (N > 1 ? '<div class="dgal-controls dgal-controls--overlay">' +
+            '<button type="button" id="dgal-prev" aria-label="Предишен кадър"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-l"/></svg></button>' +
+            '<button type="button" id="dgal-next" aria-label="Следващ кадър"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#ic-chev-r"/></svg></button>' +
+          '</div>' : '') +
+        '</div>' +
+        (N > 1 ? '<div class="dthumbs" id="dthumbs" role="group" aria-label="Избери снимка">' + shots.map(function (shotUrl, i) {
+          return '<button type="button" class="dthumb' + (!i ? ' is-active' : '') + '" data-i="' + i + '" aria-pressed="' + (!i) + '" aria-label="' + (i + 1) + ' / ' + N + '">' +
+            AH.picture(shotUrl, { width: 160, height: 90, widths: [400], src: 400, sizes: "112px", alt: v.full + ' / ' + (i + 1) }) + '</button>';
+        }).join('') + '</div>' : '') +
+      '</section>' +
 
-    /* ---------- 2. BODY ---------- */
-    '<div class="dbody">' +
-    '<div class="dossier">' +
-    '<div class="dossier-content">' +
+      /* ---------- VEHICLE SUMMARY / CONTACT RAIL ---------- */
+      '<aside class="vehicle-rail">' +
+        '<section class="vehicle-summary-card">' +
+          '<div class="vehicle-summary-top">' +
+            '<p class="vehicle-eyebrow">AutoHaus</p>' +
+            '<p class="dtitle__make">' + AH.esc(v.make) + '</p>' +
+          '</div>' +
+          '<h1 class="vehicle-title">' + AH.esc(v.model) + '</h1>' +
+          '<div class="vehicle-price-row">' +
+            '<p class="dtitle__price">' + (v.price == null ? 'Цена при запитване' : AH.fmt(v.price) + ' €') + '</p>' +
+            (vatNote ? '<p class="dtitle__vat">' + AH.esc(vatNote) + '</p>' : '') +
+          '</div>' +
+          '<dl class="vehicle-spec-grid" aria-label="Спецификация">' +
+            specRows().map(function (row) {
+              return '<div><dt>' + row[0] + '</dt><dd>' + AH.esc(String(row[1])) + '</dd></div>';
+            }).join('') +
+          '</dl>' +
+          (notes.length ? '<ul class="vehicle-notes">' + notes.map(function (note) {
+            return '<li>' + CHECK + '<span>' + AH.esc(note) + '</span></li>';
+          }).join('') + '</ul>' : '') +
+        '</section>' +
 
-      /* a) title / price */
-      '<section class="dsec dsummary">' +
-        '<p class="dtitle__make">' + AH.esc(v.make) + '</p>' +
-        '<div class="dtitle">' +
-          "<h1>" + AH.esc(v.model) + "</h1>" +
-          '<div class="dtitle__pw">' +
-            '<p class="dtitle__price">' +
-              (v.price == null ? "Цена при запитване" : AH.fmt(v.price) + " €") + "</p>" +
-            (vatNote ? '<p class="dtitle__vat">' + AH.esc(vatNote) + "</p>" : "") +
-          "</div>" +
-        "</div>" +
-
-      /* b) THE SPECIFICATION — one block, the eight rows the listing has.
-         It was a scrolling strip of six, a table of ten underneath it and a
-         sentence restating all six a third time. */
-        '<dl class="dspec" aria-label="Спецификация">' +
-          specRows().map(function (r) {
-            return "<div><dt>" + r[0] + "</dt><dd>" + AH.esc(String(r[1])) + "</dd></div>";
-          }).join("") +
-        "</dl>" +
-        /* the listing's own notes, in its own words. Never a fixed set: of
-           the 83 published cars, 25 carry the VAT line and 60 the service
-           history, and a car that says neither says neither here. */
-        (notes.length
-          ? '<ul class="dnotes">' + notes.map(function (t) {
-              return "<li>" + CHECK + "<span>" + AH.esc(t) + "</span></li>";
-            }).join("") + "</ul>"
-          : "") +
-      "</section>" +
-
-      /* c) THE EQUIPMENT.
-         Loaded per car from data/eq/<id>.js after this render — it is the
-         one heavy thing on the page and it is below the fold at every
-         width. The box reserves its own height so the arrival shifts
-         nothing, and if the file is missing (four cars have been sold and
-         their listings are gone) the section simply never appears. */
-      '<section class="dsec" id="deq-sec" hidden>' +
-        '<h2 class="dsec__h">Оборудване <span class="dsec__n" id="deq-n"></span></h2>' +
-        '<div class="dclamp" id="deq-clamp"><div class="deq" id="deq"></div></div>' +
-        '<button type="button" class="dmore" id="deq-more" aria-expanded="false" aria-controls="deq-clamp" hidden>' +
-          "Прочети още</button>" +
-      "</section>" +
-
-      '</div>' +
-      '<section class="dsec dinquiry" id="vehicle-inquiry">' +
-        '<h2 class="dsec__h">Запитване</h2>' +
-        '<div class="dinq-layout">' +
+        '<section class="vehicle-contact-card" id="vehicle-inquiry">' +
+          '<div class="vehicle-contact-head">' +
+            '<div><p class="vehicle-eyebrow" data-ah-bg="Продажби" data-ah-en="Sales">Продажби</p>' +
+            '<h2 data-ah-bg="Интересувате се от автомобила?" data-ah-en="Interested in this vehicle?">Интересувате се от автомобила?</h2></div>' +
+            '<a class="vehicle-call" href="tel:' + AH.esc(CFG.expertPhone) + '" aria-label="Обади се">' + PHONE + '</a>' +
+          '</div>' +
           '<div class="dseller dseller--clean">' +
             '<p class="dseller__n" data-ah-bg="Иван Манев" data-ah-en="Ivan Manev">Иван Манев</p>' +
             '<div class="dseller__acts">' +
-              '<a href="tel:' + AH.esc(CFG.expertPhone) + '">' + PHONE + AH.esc(prettyPhone(CFG.expertPhone)) + '</a>' +
+              '<a href="tel:' + AH.esc(CFG.expertPhone) + '">' + AH.esc(prettyPhone(CFG.expertPhone)) + '</a>' +
               '<a class="dseller__mail" href="mailto:autohaussale@gmail.com">autohaussale@gmail.com</a>' +
             '</div>' +
           '</div>' +
-          '<form class="dinq" id="vehicle-inquiry-form" novalidate>' +
+          '<form class="dinq vehicle-inquiry-form" id="vehicle-inquiry-form" novalidate>' +
             '<div class="dinq__grid">' +
-              '<label class="dinq__field"><span class="dinq__label">Име</span><input class="dinq__input" name="name" autocomplete="name" maxlength="120" required></label>' +
-              '<label class="dinq__field"><span class="dinq__label">Телефон</span><input class="dinq__input" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="60"></label>' +
-              '<label class="dinq__field"><span class="dinq__label">Имейл</span><input class="dinq__input" name="email" type="email" autocomplete="email" maxlength="180"></label>' +
+              '<label class="dinq__field"><span class="dinq__label" data-ah-bg="Име" data-ah-en="Name">Име</span><input class="dinq__input" name="name" autocomplete="name" maxlength="120" required></label>' +
+              '<label class="dinq__field"><span class="dinq__label" data-ah-bg="Телефон" data-ah-en="Phone">Телефон</span><input class="dinq__input" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="60"></label>' +
+              '<label class="dinq__field"><span class="dinq__label" data-ah-bg="Имейл" data-ah-en="Email">Имейл</span><input class="dinq__input" name="email" type="email" autocomplete="email" maxlength="180"></label>' +
             '</div>' +
-            '<label class="dinq__field"><span class="dinq__label">Вашето запитване</span>' +
+            '<label class="dinq__field"><span class="dinq__label" data-ah-bg="Вашето запитване" data-ah-en="Your enquiry">Вашето запитване</span>' +
               '<textarea class="dask" name="message" rows="3" maxlength="4000" required placeholder="Напишете въпроса си за този автомобил…"></textarea></label>' +
             '<label class="dinq__trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>' +
-            '<div class="dinq__actions"><button class="btn-primary" type="submit">Изпрати</button></div>' +
+            '<div class="dinq__actions"><button class="vehicle-submit" type="submit" data-ah-bg="Изпрати запитване" data-ah-en="Send enquiry">Изпрати запитване</button></div>' +
             '<p class="dinq__status" role="status" aria-live="polite" aria-atomic="true"></p>' +
           '</form>' +
-        '</div>' +
-      '</section>' +
+        '</section>' +
+      '</aside>' +
+    '</div>' +
 
-    "</div>" +
-    "</div>" +
-
-  "</div>";
+    /* ---------- EQUIPMENT ---------- */
+    '<section class="vehicle-content-card" id="deq-sec" hidden>' +
+      '<div class="vehicle-content-head">' +
+        '<div><p class="vehicle-eyebrow" data-ah-bg="Детайли" data-ah-en="Details">Детайли</p>' +
+        '<h2 class="vehicle-content-title" data-ah-bg="Оборудване" data-ah-en="Equipment">Оборудване</h2></div>' +
+        '<span class="vehicle-content-count" id="deq-n"></span>' +
+      '</div>' +
+      '<div class="dclamp" id="deq-clamp"><div class="deq" id="deq"></div></div>' +
+      '<button type="button" class="dmore" id="deq-more" aria-expanded="false" aria-controls="deq-clamp" hidden>Прочети още</button>' +
+    '</section>' +
+  '</div>';
 
   /* ---------- 4. the two phone bars ---------- */
   if (mini) mini.innerHTML =
