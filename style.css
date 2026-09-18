@@ -5540,14 +5540,3 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
  .ctc__reveal,.shw__sheet{transition-duration:.24s!important}
  .reveal,.appear{transition-delay:0s!important;transition-duration:.3s!important}
 }
-
-
-/* ===== INTERACTION SAFETY: CLOSED OVERLAYS NEVER EAT CLICKS ===== */
-.mob:not(.is-open),
-.ctc:not(.is-open),
-.shw:not(.is-open),
-.focus:not(.is-open),
-.fsheet:not(.is-open),
-.cat:not(.is-open),
-.lb:not(.open){pointer-events:none!important}
-.mob.is-open,.ctc.is-open,.shw.is-open,.focus.is-open,.fsheet.is-open,.cat.is-open,.lb.open{pointer-events:auto}
