@@ -1,5 +1,6 @@
 /* AutoHaus build: generate CSS, version delivered assets and prepare public-only dist. */
 "use strict";
+// Production recovery redeploy marker 2026-09-18
 const fs = require("fs"), path = require("path"), crypto = require("crypto");
 
 const SHEETS = ["style.css", "catalog.css"];
