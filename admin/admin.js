@@ -275,7 +275,7 @@
       '<div class="dropzone" id="dropzone"><input id="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple>' +
       '<input id="camera-input" type="file" accept="image/*" capture="environment"><div class="upload-actions"><button type="button" class="primary" id="choose-images">' +
       t("+ Добави снимки", "+ Add photos") + '</button><button type="button" class="secondary" id="take-photo">' + t("Камера", "Camera") + '</button></div>' +
-      '<p>' + t("Изберете няколко снимки. Първата е главна.", "Select multiple photos. The first is the cover.") +
+      '<p>' + t("Изберете няколко снимки. Първата е главна. Всички снимки се изрязват автоматично до 16:9.", "Select multiple photos. The first is the cover. Every photo is automatically cropped to 16:9.") +
       '</p><div class="upload-status" id="upload-status" role="status"></div><button type="button" class="secondary" id="retry-images" hidden>' + t("Опитай неуспешните отново", "Retry failed photos") +
       '</button></div><p class="field-hint" id="photo-order-hint">' + t("Подредете снимките чрез влачене на дръжката. Първата е главна. Запишете автомобила, за да запазите реда.", "Drag the handle to reorder photos. The first is the cover. Save the car to keep the new order.") + '</p><div class="image-grid" id="image-list" aria-describedby="photo-order-hint"></div></section>' +
       '<section class="card"><h2>' + t("Характеристики", "Specifications") + '</h2><div class="field-grid">' +
@@ -429,24 +429,39 @@
     try {
       img.src = url; await img.decode();
       if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth * img.naturalHeight > 140000000) throw new Error("Unsafe image dimensions");
+
+      /* Every managed vehicle photo is stored as a real 16:9 crop.
+         Portrait/3:4 phone photos are center-cropped from the top and bottom;
+         extra-wide photos are center-cropped from the sides. */
+      var targetRatio = 16 / 9;
+      var sourceRatio = img.naturalWidth / img.naturalHeight;
+      var sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+      if (sourceRatio < targetRatio) {
+        sh = Math.round(sw / targetRatio);
+        sy = Math.max(0, Math.round((img.naturalHeight - sh) / 2));
+      } else if (sourceRatio > targetRatio) {
+        sw = Math.round(sh * targetRatio);
+        sx = Math.max(0, Math.round((img.naturalWidth - sw) / 2));
+      }
+
       var canvas = D.createElement("canvas");
       async function encode(width, height, type, quality) {
         canvas.width = Math.max(1, Math.round(width)); canvas.height = Math.max(1, Math.round(height));
         var ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Canvas unavailable");
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-        ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
         var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, type, quality); });
         if (!blob || (type === "image/webp" && blob.type !== "image/webp")) throw new Error(type === "image/webp" ? "WebP encoding unavailable" : "Image conversion failed");
         return blob;
       }
       function widthSize(target) {
-        var width = Math.min(target, img.naturalWidth), scale = width / img.naturalWidth;
-        return { width: width, height: Math.max(1, Math.round(img.naturalHeight * scale)) };
+        var width = Math.min(target, sw);
+        return { width: width, height: Math.max(1, Math.round(width * 9 / 16)) };
       }
-      var originalScale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
-      var width = Math.max(1, Math.round(img.naturalWidth * originalScale));
-      var height = Math.max(1, Math.round(img.naturalHeight * originalScale));
+      var width = Math.max(1, Math.round(Math.min(1600, sw)));
+      var height = Math.max(1, Math.round(width * 9 / 16));
       var files = { original: await encode(width, height, "image/jpeg", .86) };
       for (var i = 0; i < 3; i++) {
         var target = [400, 800, 1280][i], size = widthSize(target);
