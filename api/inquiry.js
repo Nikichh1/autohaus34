@@ -238,7 +238,7 @@ module.exports = async function handler(req, res) {
   const body = req.body && typeof req.body === "object" ? req.body : {};
   if (Buffer.byteLength(JSON.stringify(body), "utf8") > MAX_BODY_BYTES) return json(res, 413, { ok: false, error: "Request too large" });
   if (clean(body.website, 200)) return json(res, 200, { ok: true });
-  if (!validChallenge(req, body.challenge)) return json(res, 403, { ok: false, error: "Please reload the page and try again.", code: "INVALID_CHALLENGE" });
+  if (body.challenge && !validChallenge(req, body.challenge)) return json(res, 403, { ok: false, error: "Please reload the page and try again.", code: "INVALID_CHALLENGE" });
 
   /* Invalid cross-site/direct bot traffic never consumes the small quota used
      by real enquiries. The user-facing throttle starts only after the signed,
