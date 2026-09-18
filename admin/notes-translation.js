@@ -294,6 +294,9 @@
 
     var body;
     try { body = JSON.parse(init.body); } catch (_) { return baseFetch(input, init); }
+    var hasTranslationSources = Array.isArray(body.notes) || Array.isArray(body.equipment_bg) ||
+      typeof body.description_bg === "string";
+    if (!hasTranslationSources) return baseFetch(input, init);
 
     return Promise.all([
       translateList(body.notes || []),
