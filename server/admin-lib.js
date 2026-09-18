@@ -329,7 +329,7 @@ function normalizeVehicle(body) {
     first_registration_month: numberOrNull(body.first_registration_month, true),
     unregistered: body.unregistered === true,
     horsepower: numberOrNull(body.horsepower, true),
-    price: numberOrNull(body.price, false),
+    price: numberOrNull(body.price, true),
     chapter: clean(body.chapter, 80),
     tags: stringArray(body.tags, 60),
     notes: stringArray(body.notes, 80),
