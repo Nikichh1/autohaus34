@@ -17,6 +17,37 @@
   "use strict";
   document.documentElement.classList.add("js");
 
+  /* Browser back/forward cache can restore DOM classes from an open overlay
+     after its corresponding panel state has already been torn down. Heal only
+     impossible combinations; never close a panel that is actually open. */
+  function healPageLocks() {
+    var html = document.documentElement, body = document.body;
+    if (!body) return;
+    var checks = [
+      ["mob-open", ".mob.is-open"],
+      ["ctc-open", ".ctc.is-open"],
+      ["shw-open", ".cat.is-open,.shw.is-open"],
+      ["cw-open", ".wcard-item.is-open"],
+      ["lb-open", ".lb.open"]
+    ];
+    checks.forEach(function (item) {
+      if (!document.querySelector(item[1])) html.classList.remove(item[0]);
+    });
+    if (!html.classList.contains("mob-open") && !html.classList.contains("ctc-open") &&
+        !html.classList.contains("shw-open") && !html.classList.contains("cw-open") &&
+        !html.classList.contains("lb-open")) {
+      body.style.top = "";
+      body.style.position = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.width = "";
+      body.style.overflow = "";
+    }
+  }
+  window.addEventListener("pageshow", healPageLocks);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", healPageLocks, { once: true });
+  else healPageLocks();
+
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var coarse = matchMedia("(hover: none)").matches;
 
