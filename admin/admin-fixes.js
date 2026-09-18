@@ -1,4 +1,4 @@
-/* AutoHaus admin polish: defaults, VAT, equipment-only editor and global image settings. */
+/* AutoHaus admin polish: defaults, VAT and global image settings. */
 (function () {
   "use strict";
 
@@ -111,29 +111,9 @@
   function simplifyEquipmentEditor() {
     var section = document.getElementById("description");
     if (!section) return;
-    setText("#description > h2", "Оборудване", "Equipment");
-    setText("#description-generator > summary", "Генериране на оборудване от поставен текст (по избор)", "Generate equipment from pasted text (optional)");
-    setText("#source-help", "Поставете списък или текст с оборудването. Системата ще го подреди и преведе на български и английски. Изходният текст не се показва на сайта.", "Paste an equipment list or source text. It will be structured and translated into Bulgarian and English. The source text is not shown on the website.");
-    setText('#description-generator label.field > span', "Поставете оригиналното оборудване тук", "Paste the original equipment here");
-    setText("#process-description", "Генерирай оборудване BG + EN", "Generate equipment BG + EN");
-    setText(".processor-results .workflow-heading", "Оборудване за сайта", "Website equipment");
-
-    var source = document.getElementById("source-text");
-    var placeholder = tr("Напр. кодове и списък с оборудване…", "For example: option codes and equipment list…");
-    if (source && source.placeholder !== placeholder) source.placeholder = placeholder;
-
-    var hint = section.querySelector(".processor-results > .field-hint");
-    var hintText = tr("Редактирайте оборудването директно или използвайте генерирането по-горе. Проверете BG и EN преди запис.", "Edit the equipment directly or use the generator above. Check BG and EN before saving.");
-    if (hint && hint.textContent !== hintText) hint.textContent = hintText;
-
-    ["desc-bg", "desc-en"].forEach(function (id) {
-      var area = document.getElementById(id);
-      var label = area && area.closest("label.field");
-      if (label && !label.hidden) { label.hidden = true; label.setAttribute("aria-hidden", "true"); }
-    });
+    setText("#description > h2", "Описание и оборудване", "Description and equipment");
     var shortcut = document.querySelector('.editor-shortcuts a[data-scroll="description"]');
-    var shortcutText = tr("Оборудване", "Equipment");
-    if (shortcut && shortcut.textContent !== shortcutText) shortcut.textContent = shortcutText;
+    if (shortcut) shortcut.textContent = tr("Описание", "Description");
   }
 
   function enhanceEditor() {
