@@ -193,11 +193,13 @@
   };
   // Navigation and static interactions never depend on the inventory request.
   // Data-driven consumers await this same promise after these helpers exist.
-  (window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
+  function syncInventoryFromWindow() {
     V = window.AH_VEHICLES || [];
     V.forEach(function (v) { if (v.chapter === "guard") v.chapter = "chauffeur"; });
     AH.all = V;
-  });
+  }
+  (window.AH_INVENTORY_READY || Promise.resolve()).then(syncInventoryFromWindow, syncInventoryFromWindow);
+  addEventListener("ah:inventory-updated", syncInventoryFromWindow);
 
 
   /* ---- SEARCH -------------------------------------------------------------
