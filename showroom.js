@@ -764,12 +764,15 @@
     }
     if (location.hash === "#cars" || location.hash === "#collection" || location.hash === "#avtomobili") open({ fromURL: true });
   })();
-  (window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
+  function syncInventoryUI() {
     inventoryReady = true;
     if (isOpen) apply(true);
     var previewVisible = pvGrid && pvGrid.getBoundingClientRect().top < innerHeight + 100;
     if (previewVisible) paintPreview();
     else if (typeof requestIdleCallback === "function") requestIdleCallback(paintPreview, { timeout: 250 });
     else setTimeout(paintPreview, 1);
-  });
+  }
+
+  (window.AH_INVENTORY_READY || Promise.resolve()).then(syncInventoryUI, syncInventoryUI);
+  addEventListener("ah:inventory-updated", syncInventoryUI);
 })();
