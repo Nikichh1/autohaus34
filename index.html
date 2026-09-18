@@ -3,62 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>window.AH_INVENTORY_READY = new Promise(function (resolve) { window.AH_INVENTORY_RESOLVE = resolve; });</script>
+<script async src="data/vehicles.js?v=cc4cd34d" onerror="window.AH_INVENTORY_RESOLVE()"></script>
 <link rel="icon" href="favicon.jpg" type="image/jpeg">
 <link rel="preload" href="fonts/exo2-300-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/exo2-300-latin.woff2" as="font" type="font/woff2" crossorigin>
 <title>AutoHaus</title>
 <meta name="description" content="Автомобили в наличност, лизинг, застраховки, сервиз и Auto Spa. AutoHaus, Пловдив.">
-<!-- AUTOHAUS EMERGENCY INTERACTION GUARD 2026-09-18
-     Closed full-screen layers must never intercept the public page, even if
-     an older cached stylesheet or interrupted BFCache state is restored. -->
-<style id="ah-interaction-guard">
-/* Production safety: the public page is usable even if an enhancement script
-   fails, a cached modal state is restored, or the inventory backend is down. */
-.mob:not(.is-open),.ctc:not(.is-open),.cat:not(.is-open),.shw:not(.is-open),.focus:not(.is-open),.fsheet:not(.is-open),.lb:not(.open){pointer-events:none!important}
-.stage{--entry-state:running!important}
-.stage-item[data-i="0"] .stage-bg,.stage-item[data-i="0"] .stage-media,.stage-item[data-i="0"] .stage-content{animation-play-state:running!important}
-html.ah-safe [data-reveal],html.ah-safe .wcard-item{opacity:1!important;transform:none!important;visibility:visible!important}
-</style>
-<script>
-(function(){
-  function unlock(){
-    var open=document.querySelector(".mob.is-open,.ctc.is-open,.cat.is-open,.shw.is-open,.focus.is-open,.fsheet.is-open,.lb.open");
-    if(open)return;
-    var h=document.documentElement,b=document.body;
-    ["mob-open","ctc-open","cw-open","shw-open","lb-open"].forEach(function(x){h.classList.remove(x);});
-    if(b){
-      b.style.top="";b.style.position="";b.style.left="";b.style.right="";
-      b.style.width="";b.style.overflow="";b.style.pointerEvents="";
-    }
-    [".mob",".ctc",".cat",".shw",".focus",".fsheet"].forEach(function(s){
-      document.querySelectorAll(s+":not(.is-open)").forEach(function(el){el.setAttribute("inert","");});
-    });
-    document.querySelectorAll(".lb:not(.open)").forEach(function(el){el.style.pointerEvents="none";});
-    h.classList.add("ah-safe");
-  }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",unlock,{once:true});else unlock();
-  addEventListener("pageshow",unlock);
-  setTimeout(unlock,0);setTimeout(unlock,1500);
-})();
-</script>
 <!-- the hero frame, which gates the whole entrance choreography (see main.js) -->
 <!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=20260918r3" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=cc4cd34d" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
-<link rel="stylesheet" href="catalog.min.css?v=20260918r3" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="catalog.min.css?v=20260918r3"></noscript>
+<link rel="stylesheet" href="catalog.min.css?v=cc4cd34d" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="catalog.min.css?v=cc4cd34d"></noscript>
 <!-- Ordered deferred modules: inventory resolves before rendering. -->
-<script defer src="data/vehicles.base.js?v=20260918r3"></script>
-<script defer src="data/vehicles.js?v=20260918r3"></script>
-<script defer src="main.js?v=20260918r3"></script>
-<script defer src="catalog.js?v=20260918r3"></script>
-<script defer src="showroom.js?v=20260918r3"></script>
-<script defer src="i18n.js?v=20260918r3"></script>
+<script defer src="main.js?v=cc4cd34d"></script>
+<script defer src="catalog.js?v=cc4cd34d"></script>
+<script defer src="showroom.js?v=cc4cd34d"></script>
+<script defer src="i18n.js?v=cc4cd34d"></script>
 
-<script defer src="analytics.js?v=20260918r3"></script>
+<script defer src="analytics.js?v=cc4cd34d"></script>
 </head>
 <body class="ah">
 
@@ -91,7 +58,7 @@ html.ah-safe [data-reveal],html.ah-safe .wcard-item{opacity:1!important;transfor
     </div>
 
     <a class="hd-logo" href="#top" aria-label="AutoHaus — начало">
-      <img class="logo" src="autohaus.svg?v=20260918r3" width="482" height="85" alt="">
+      <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
     </a>
 
     <ul class="hd-zone hd-zone--end">
@@ -144,7 +111,7 @@ html.ah-safe [data-reveal],html.ah-safe .wcard-item{opacity:1!important;transfor
       <span class="plate__menu-l">Меню</span>
     </button>
     <a class="plate__mark" href="#top" aria-label="AutoHaus — към началото">
-      <img class="logo" src="autohaus.svg?v=20260918r3" width="482" height="85" alt="">
+      <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
     </a>
     <div class="lang" role="group" aria-label="Език / Language">
       <i class="lang__ind" aria-hidden="true"></i>
@@ -167,12 +134,12 @@ html.ah-safe [data-reveal],html.ah-safe .wcard-item{opacity:1!important;transfor
 
 <!-- mobile nav overlay -->
 <!-- THE MENU — a panel, not a takeover. See "THE MENU" in style.css. -->
-<div class="mob" id="mob" aria-hidden="true" inert>
+<div class="mob" id="mob" aria-hidden="true">
   <div class="mob__scrim" id="mob-scrim"></div>
   <div class="mob__reveal">
     <div class="mob__sheet">
       <a class="mob-mark" href="index.html" aria-label="AutoHaus">
-        <img class="logo" src="autohaus.svg?v=20260918r3" width="482" height="85" alt="">
+        <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
       </a>
       <button class="mob-close" id="mob-close" aria-label="Затвори">
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
@@ -211,7 +178,7 @@ html.ah-safe [data-reveal],html.ah-safe .wcard-item{opacity:1!important;transfor
      The figures below are the ones published on autohaus.bg/контакти —
      six departments, each with its own line and its own hours. They are
      the only place on this site those numbers appear in full. -->
-<div class="ctc" id="ctc" aria-hidden="true" inert>
+<div class="ctc" id="ctc" aria-hidden="true">
   <div class="ctc__scrim" id="ctc-scrim"></div>
   <div class="ctc__reveal">
     <div class="ctc__sheet" role="dialog" aria-modal="true" aria-labelledby="ctc-h">
@@ -618,7 +585,7 @@ html.ah-safe [data-reveal],html.ah-safe .wcard-item{opacity:1!important;transfor
     <div class="row">
       <div class="col span-12 ft-end">
         <a class="ft-logo" href="#top" aria-label="AutoHaus — начало">
-          <img class="logo" src="autohaus.svg?v=20260918r3" width="482" height="85" alt="">
+          <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
         </a>
         <ul class="ft-social" aria-label="AutoHaus в социалните мрежи">
           <li><a href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg>Facebook</a></li>
@@ -650,7 +617,7 @@ html.ah-safe [data-reveal],html.ah-safe .wcard-item{opacity:1!important;transfor
      The grid inside is the same .cgrid of the same .lc cards as the preview
      above, at the same column count, so the expansion reads as one room
      getting bigger rather than a second room arriving. -->
-<div class="cat cat--pale" id="catalog" aria-hidden="true" inert>
+<div class="cat cat--pale" id="catalog" aria-hidden="true">
   <div class="cat__scrim" id="cat-scrim"></div>
   <div class="cat__panel pale" role="dialog" aria-modal="true" aria-label="Автомобили на AutoHaus">
 
@@ -662,7 +629,7 @@ html.ah-safe [data-reveal],html.ah-safe .wcard-item{opacity:1!important;transfor
            identity exactly where the reader last saw it. -->
       <div class="cat__id">
         <a class="cat__mark" href="index.html" aria-label="AutoHaus">
-          <img class="logo" src="autohaus.svg?v=20260918r3" width="482" height="85" alt="">
+          <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
         </a>
       </div>
       <div class="cat__make" id="cat-tools">
