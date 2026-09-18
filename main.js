@@ -1688,6 +1688,11 @@
     });
   }
 
+  /* The critical public navigation is initialized. The tiny inline recovery
+     layer in index.html only binds its own menu handlers when this flag is
+     absent, so normal production never gets duplicate listeners. */
+  window.AH_MAIN_READY = true;
+
   /* ---- THE BRAND PLATE ------------------------------------------------
      Armed by the hero itself rather than by a scroll offset. `isIntersecting`
      goes false only once the whole stage is above the viewport, which is
