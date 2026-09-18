@@ -22,10 +22,8 @@
     style.id = "ah-watermark-v3-style";
     style.textContent = [
       ".ah-watermark-target{position:relative!important;isolation:isolate}",
-      ".ah-watermark-mark{display:none;position:absolute;left:50%;top:50%;width:var(--ah-watermark-size,34%);max-width:360px;min-width:92px;aspect-ratio:481.9/85;transform:translate(-50%,-50%);pointer-events:none!important;z-index:40}",
+      ".ah-watermark-mark{display:none;position:absolute;left:50%;top:50%;width:var(--ah-watermark-size,34%);max-width:360px;min-width:92px;aspect-ratio:481.9/85;transform:translate(-50%,-50%);pointer-events:none!important;z-index:40;background:transparent url('/autohaus.svg') center/contain no-repeat!important;opacity:var(--ah-watermark-opacity,.25);filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));box-shadow:none!important;border:0!important}",
       ".ah-watermark-v2-on .ah-watermark-mark{display:block}",
-      ".ah-watermark-mark::before{content:\"\";position:absolute;inset:0;background:url('/autohaus.svg') center/contain no-repeat;filter:brightness(0);opacity:var(--ah-watermark-opacity,.25);transform:translate(1px,1px);pointer-events:none}",
-      ".ah-watermark-mark>img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;opacity:var(--ah-watermark-opacity,.25);filter:drop-shadow(0 1px 1px rgba(0,0,0,.72)) drop-shadow(0 0 3px rgba(0,0,0,.34));user-select:none;-webkit-user-drag:none;pointer-events:none!important}",
       ".lc__pic>.ah-watermark-mark{max-width:260px;min-width:70px}",
       ".dgal__f>.ah-watermark-mark{max-width:380px}",
       ".dthumb>.ah-watermark-mark{min-width:0;max-width:70%}",
@@ -49,12 +47,6 @@
     var mark = document.createElement("span");
     mark.className = "ah-watermark-mark";
     mark.setAttribute("aria-hidden", "true");
-    var image = document.createElement("img");
-    image.src = "/autohaus.svg";
-    image.alt = "";
-    image.draggable = false;
-    image.decoding = "async";
-    mark.appendChild(image);
     target.appendChild(mark);
   }
 
