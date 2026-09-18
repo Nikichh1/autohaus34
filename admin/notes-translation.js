@@ -108,7 +108,11 @@
       }
     });
     if (!missing.length) {
-      return Promise.resolve(units.map(function (unit) { return cache[unit] || unit; }));
+      return Promise.resolve({
+        lines: units.map(function (unit) { return cache[unit] || unit; }),
+        pending: false,
+        retryAfter: 0
+      });
     }
 
     var batches = [];
