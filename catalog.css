@@ -40,7 +40,7 @@
   --line-d:rgba(255,255,255,.14);
 
   /* geometry — measured, theirs */
-  --cat-ratio: 1.634;            /* 412 / 252 — the card photograph */
+  --cat-ratio: 16 / 9;            /* 412 / 252 — the card photograph */
   --cat-card-min: 300px;         /* below this the grid drops a column */
   --cat-gap-row: 30px;
   --cat-gap-col: 23px;
