@@ -111,9 +111,9 @@
   function simplifyEquipmentEditor() {
     var section = document.getElementById("description");
     if (!section) return;
-    setText("#description > h2", "Описание и оборудване", "Description and equipment");
+    setText("#description > .section-title h2, #description > h2", "Оборудване", "Equipment");
     var shortcut = document.querySelector('.editor-shortcuts a[data-scroll="description"]');
-    if (shortcut) shortcut.textContent = tr("Описание", "Description");
+    if (shortcut) shortcut.textContent = tr("Оборудване", "Equipment");
   }
 
   function enhanceEditor() {
