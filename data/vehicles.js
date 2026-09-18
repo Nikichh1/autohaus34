@@ -144,23 +144,27 @@
   var params = new URLSearchParams(location.search);
   var requestedId = isVehiclePage ? params.get("id") : "";
   if (requestedId && !/^[a-z0-9-]+$/.test(requestedId)) requestedId = "";
-  var request = requestedId ? loadInventory(requestedId, false)
-    : (isCatalogPage || isConciergePage) ? loadInventory("", false) : Promise.resolve(null);
-
-  var ready = request.then(function (data) {
-    var vehicles = requestedId && data && data.vehicle ? [data.vehicle] : data && data.vehicles;
-    if (!validPayload(data, requestedId)) return;
-
-    window.AH_VEHICLES = vehicles;
-    window.AH_INVENTORY_SOURCE = "managed";
-    vehicles.forEach(indexVehicle);
-  });
-  // The small async loader starts alongside CSS and HTML parsing. Consumers
-  // can subscribe before it arrives; settle their existing promise only once
-  // the inventory and image indexes are usable.
-  if (typeof window.AH_INVENTORY_RESOLVE === "function") {
-    ready.then(window.AH_INVENTORY_RESOLVE, window.AH_INVENTORY_RESOLVE);
+  /* Homepage recovery path: the bundled snapshot is already complete enough
+     to render and must never wait on an API before navigation becomes usable. */
+  if (isCatalogPage) {
+    window.AH_VEHICLES.forEach(indexVehicle);
+    window.AH_INVENTORY_READY = Promise.resolve();
   } else {
-    window.AH_INVENTORY_READY = ready;
+    var request = requestedId ? loadInventory(requestedId, false)
+      : isConciergePage ? loadInventory("", false) : Promise.resolve(null);
+
+    var ready = request.then(function (data) {
+      var vehicles = requestedId && data && data.vehicle ? [data.vehicle] : data && data.vehicles;
+      if (!validPayload(data, requestedId)) return;
+
+      window.AH_VEHICLES = vehicles;
+      window.AH_INVENTORY_SOURCE = "managed";
+      vehicles.forEach(indexVehicle);
+    });
+    if (typeof window.AH_INVENTORY_RESOLVE === "function") {
+      ready.then(window.AH_INVENTORY_RESOLVE, window.AH_INVENTORY_RESOLVE);
+    } else {
+      window.AH_INVENTORY_READY = ready;
+    }
   }
 })();
