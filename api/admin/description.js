@@ -6,6 +6,20 @@ const GATEWAY_MODEL = "inclusionai/ling-3.0-flash-vl-free";
 const GATEWAY_ENDPOINT = "https://ai-gateway.vercel.sh/v1/chat/completions";
 const NO_KEY_AI_ENDPOINT = "https://text.pollinations.ai/openai";
 const GOOGLE_TRANSLATE_ENDPOINT = "https://translate.googleapis.com/translate_a/single";
+const MYMEMORY_TRANSLATE_ENDPOINT = "https://api.mymemory.translated.net/get";
+
+const KNOWN_BG_EN = new Map([
+  ["Пълна сервизна история!", "Full service history!"],
+  ["Пълна сервизна история", "Full service history"],
+  ["Възможен бартер!", "Part-exchange available!"],
+  ["Възможен бартер", "Part-exchange available"],
+  ["Възможен лизинг!", "Leasing available!"],
+  ["Възможен лизинг", "Leasing available"],
+  ["Брокерски оглед", "Broker inspection"],
+  ["Брокерски оглед!", "Broker inspection!"],
+  ["Цена без начислен 20% ДДС", "Price excluding 20% VAT"],
+  ["Цена без начислен 20% ДДС!", "Price excluding 20% VAT!"]
+]);
 
 const SCHEMA = {
   type: "object",
@@ -142,13 +156,32 @@ function extractGoogleTranslation(data) {
 async function translateText(text, target) {
   const input = String(text || "").trim();
   if (!input) return "";
-  const url = GOOGLE_TRANSLATE_ENDPOINT +
+  if (target === "en" && KNOWN_BG_EN.has(input)) return KNOWN_BG_EN.get(input);
+
+  const googleUrl = GOOGLE_TRANSLATE_ENDPOINT +
     "?client=gtx&sl=auto&tl=" + encodeURIComponent(target) +
     "&dt=t&q=" + encodeURIComponent(input);
-  const r = await timedFetch(url, { method: "GET", headers: { "Accept": "application/json" } }, 15000);
-  if (!r.ok) throw new Error("translation_http_" + r.status);
-  const data = await r.json().catch(() => null);
-  const translated = extractGoogleTranslation(data);
+  try {
+    const r = await timedFetch(googleUrl, { method: "GET", headers: { "Accept": "application/json" } }, 12000);
+    if (r.ok) {
+      const data = await r.json().catch(() => null);
+      const translated = extractGoogleTranslation(data);
+      if (translated) return translated;
+    }
+  } catch (_) {}
+
+  const source = target === "en" ? "bg" : "en";
+  const memoryUrl = MYMEMORY_TRANSLATE_ENDPOINT +
+    "?q=" + encodeURIComponent(input) +
+    "&langpair=" + encodeURIComponent(source + "|" + target);
+  const fallback = await timedFetch(memoryUrl, {
+    method: "GET",
+    headers: { "Accept": "application/json", "User-Agent": "AutoHaus/1.0" }
+  }, 12000);
+  if (!fallback.ok) throw new Error("translation_http_" + fallback.status);
+  const payload = await fallback.json().catch(() => null);
+  const translated = payload && payload.responseData && typeof payload.responseData.translatedText === "string"
+    ? payload.responseData.translatedText.trim() : "";
   if (!translated) throw new Error("translation_empty");
   return translated;
 }
