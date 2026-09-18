@@ -1,33 +1,27 @@
-/* AutoHaus automatic note translation.
-   Bulgarian notes remain the editor source of truth; English is prepared while
-   the user types and is guaranteed again immediately before a vehicle save. */
+/* AutoHaus automatic Bulgarian -> English translation for admin fields.
+   Bulgarian is the only editable source. English previews are read-only and
+   every vehicle save regenerates English from the Bulgarian source. */
 (function () {
   "use strict";
 
   var baseFetch = window.fetch.bind(window);
-  var CACHE_KEY = "autohaus-note-translation-v1";
+  var CACHE_KEY = "autohaus-auto-translation-v2";
   var cache = Object.create(null);
   var pending = Object.create(null);
-  var bindObserver;
 
   var KNOWN = {
     "Пълна сервизна история!": "Full service history!",
+    "Пълна сервизна история": "Full service history",
     "Възможен бартер!": "Part-exchange available!",
+    "Възможен бартер": "Part-exchange available",
     "Възможен лизинг!": "Leasing available!",
+    "Възможен лизинг": "Leasing available",
     "Брокерски оглед": "Broker inspection",
     "Брокерски оглед!": "Broker inspection!",
-    "Пълна сервизна история": "Full service history",
-    "Възможен бартер": "Part-exchange available",
-    "Възможен лизинг": "Leasing available",
     "Цена без начислен 20% ДДС": "Price excluding 20% VAT",
     "Цена без начислен 20% ДДС!": "Price excluding 20% VAT!"
   };
 
-  function tr(bg, en) { return document.documentElement.lang === "en" ? en : bg; }
-  function lineList(value) {
-    var source = Array.isArray(value) ? value : String(value || "").split(/\r?\n/);
-    return source.map(function (line) { return String(line || "").trim(); }).filter(Boolean);
-  }
   function loadCache() {
     try {
       var stored = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
@@ -35,29 +29,65 @@
     } catch (_) {}
     Object.keys(KNOWN).forEach(function (key) { cache[key] = KNOWN[key]; });
   }
+
   function saveCache() {
     var keys = Object.keys(cache);
-    if (keys.length > 500) keys.slice(0, keys.length - 500).forEach(function (key) { if (!KNOWN[key]) delete cache[key]; });
+    if (keys.length > 800) {
+      keys.slice(0, keys.length - 800).forEach(function (key) {
+        if (!Object.prototype.hasOwnProperty.call(KNOWN, key)) delete cache[key];
+      });
+    }
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch (_) {}
   }
+
   function apiUrl(input) {
     try { return new URL(typeof input === "string" ? input : input && input.url, location.href); }
     catch (_) { return null; }
   }
+
   function errorResponse(message) {
-    return new Response(JSON.stringify({ ok: false, error: message, code: "NOTES_TRANSLATION_REQUIRED" }), {
+    return new Response(JSON.stringify({
+      ok: false,
+      error: message || "Автоматичният превод временно не успя. Опитайте отново.",
+      code: "AUTO_TRANSLATION_REQUIRED"
+    }), {
       status: 422,
       headers: { "Content-Type": "application/json; charset=utf-8" }
     });
   }
 
-  function translateMissing(lines) {
+  function normalizeLines(value) {
+    var source = Array.isArray(value) ? value : String(value || "").split(/\r?\n/);
+    return source.map(function (line) { return String(line || "").trim(); }).filter(Boolean);
+  }
+
+  function splitLong(value, max) {
+    var text = String(value || "").trim();
+    if (!text) return [];
+    if (text.length <= max) return [text];
+    var out = [];
+    while (text.length > max) {
+      var cut = text.lastIndexOf(" ", max);
+      if (cut < Math.floor(max * 0.6)) cut = max;
+      out.push(text.slice(0, cut).trim());
+      text = text.slice(cut).trim();
+    }
+    if (text) out.push(text);
+    return out;
+  }
+
+  function translateMissing(units) {
     var missing = [];
     var seen = Object.create(null);
-    lines.forEach(function (line) {
-      if (!cache[line] && !seen[line]) { seen[line] = true; missing.push(line); }
+    units.forEach(function (unit) {
+      if (!cache[unit] && !seen[unit]) {
+        seen[unit] = true;
+        missing.push(unit);
+      }
     });
-    if (!missing.length) return Promise.resolve(lines.map(function (line) { return cache[line] || line; }));
+    if (!missing.length) {
+      return Promise.resolve(units.map(function (unit) { return cache[unit] || unit; }));
+    }
 
     var requestKey = JSON.stringify(missing);
     if (!pending[requestKey]) {
@@ -69,70 +99,120 @@
       }).then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (data) {
           if (!response.ok || !data || data.ok !== true || !Array.isArray(data.lines) || data.lines.length !== missing.length) {
-            throw new Error(data && data.error || tr("Автоматичният превод временно не успя.", "Automatic translation is temporarily unavailable."));
+            throw new Error(data && data.error || "Автоматичният превод временно не успя. Опитайте отново.");
           }
-          missing.forEach(function (line, index) { cache[line] = String(data.lines[index] || "").trim(); });
+          missing.forEach(function (line, index) {
+            var translated = String(data.lines[index] || "").trim();
+            if (!translated) throw new Error("Английският превод не е пълен.");
+            cache[line] = translated;
+          });
           saveCache();
           return true;
         });
       }).finally(function () { delete pending[requestKey]; });
     }
-    return pending[requestKey].then(function () { return lines.map(function (line) { return cache[line] || line; }); });
+
+    return pending[requestKey].then(function () {
+      return units.map(function (unit) { return cache[unit] || unit; });
+    });
   }
 
-  function translateNotes(value) {
-    var lines = lineList(value);
+  function translateList(value) {
+    var lines = normalizeLines(value);
     if (!lines.length) return Promise.resolve([]);
-    return translateMissing(lines).then(function (translated) {
-      if (translated.length !== lines.length || translated.some(function (line) { return !String(line || "").trim(); })) {
-        throw new Error(tr("Английският превод не е пълен.", "The English translation is incomplete."));
+    var parts = [];
+    var map = [];
+    lines.forEach(function (line) {
+      var chunks = splitLong(line, 1800);
+      map.push({ start: parts.length, count: chunks.length });
+      parts.push.apply(parts, chunks);
+    });
+    return translateMissing(parts).then(function (translated) {
+      return map.map(function (item) {
+        return translated.slice(item.start, item.start + item.count).join(" ").trim();
+      });
+    });
+  }
+
+  function translateText(value) {
+    var raw = String(value || "");
+    if (!raw.trim()) return Promise.resolve("");
+    var rows = raw.replace(/\r/g, "").split("\n");
+    var parts = [];
+    var map = [];
+    rows.forEach(function (row) {
+      if (!row.trim()) {
+        map.push({ blank: true });
+        return;
       }
-      return translated;
+      var chunks = splitLong(row, 1800);
+      map.push({ start: parts.length, count: chunks.length });
+      parts.push.apply(parts, chunks);
+    });
+    return translateMissing(parts).then(function (translated) {
+      return map.map(function (item) {
+        if (item.blank) return "";
+        return translated.slice(item.start, item.start + item.count).join(" ").trim();
+      }).join("\n");
     });
   }
 
-  /* This wrapper is installed BEFORE admin-fixes.js. The later VAT wrapper
-     therefore edits the Bulgarian note array first, then reaches us, so the
-     English array always matches exactly what will actually be saved. */
-  window.fetch = function (input, init) {
-    init = init || {};
-    var url = apiUrl(input);
-    var method = String(init.method || "GET").toUpperCase();
-    var isVehicleWrite = url && url.origin === location.origin && url.pathname === "/api/admin/vehicles" &&
-      (method === "POST" || method === "PATCH" || method === "PUT") && typeof init.body === "string";
-    if (!isVehicleWrite) return baseFetch(input, init);
-
-    var body;
-    try { body = JSON.parse(init.body); } catch (_) { return baseFetch(input, init); }
-    if (!Array.isArray(body.notes)) return baseFetch(input, init);
-
-    return translateNotes(body.notes).then(function (notesEn) {
-      body.notes_en = notesEn;
-      var next = Object.assign({}, init, { body: JSON.stringify(body) });
-      return baseFetch(input, next);
-    }).catch(function (error) {
-      return errorResponse(error && error.message || tr("Автоматичният превод временно не успя.", "Automatic translation is temporarily unavailable."));
-    });
-  };
-
-  function ensureStatus(textarea) {
-    var label = textarea && textarea.closest && textarea.closest("label.field");
-    if (!label) return null;
-    var status = label.querySelector(".ah-note-translation-status");
-    if (status) return status;
-    status = document.createElement("small");
-    status.className = "field-hint ah-note-translation-status";
-    status.setAttribute("role", "status");
-    status.style.cssText = "display:block;margin-top:7px;min-height:1.2em";
-    label.appendChild(status);
-    return status;
+  function statusFor(key) {
+    return document.querySelector('[data-auto-translate-status="' + key + '"]');
   }
 
-  function ensurePreview(textarea) {
+  function setStatus(key, text, error) {
+    var el = statusFor(key);
+    if (!el) return;
+    el.textContent = text || "";
+    el.classList.toggle("is-error", !!error);
+  }
+
+  function bindPair(sourceId, targetId, key, listMode) {
+    var source = document.getElementById(sourceId);
+    var target = document.getElementById(targetId);
+    if (!source || !target || source.dataset.ahAutoTranslate === "1") return;
+
+    source.dataset.ahAutoTranslate = "1";
+    target.readOnly = true;
+    target.tabIndex = -1;
+    var timer = 0;
+    var version = 0;
+
+    function run() {
+      var current = ++version;
+      var raw = source.value;
+      if (!String(raw || "").trim()) {
+        target.value = "";
+        setStatus(key, "");
+        return;
+      }
+      setStatus(key, "Превеждане…");
+      var request = listMode ? translateList(raw).then(function (lines) { return lines.join("\n"); }) : translateText(raw);
+      request.then(function (translated) {
+        if (current !== version || !source.isConnected) return;
+        target.value = translated;
+        setStatus(key, "English preview е обновен.");
+      }).catch(function (error) {
+        if (current !== version || !source.isConnected) return;
+        setStatus(key, error && error.message || "Преводът временно не успя.", true);
+      });
+    }
+
+    source.addEventListener("input", function () {
+      clearTimeout(timer);
+      setStatus(key, "Подготовка на превода…");
+      timer = setTimeout(run, 260);
+    });
+    setTimeout(run, 0);
+  }
+
+  function ensureNotesPreview(textarea) {
     var label = textarea && textarea.closest && textarea.closest("label.field");
     if (!label) return null;
     var wrap = label.querySelector(".ah-note-translation-preview");
     if (wrap) return wrap.querySelector("textarea");
+
     wrap = document.createElement("div");
     wrap.className = "ah-note-translation-preview";
     var title = document.createElement("strong");
@@ -143,52 +223,91 @@
     preview.tabIndex = -1;
     preview.rows = Math.max(3, Number(textarea.rows) || 3);
     preview.lang = "en";
-    preview.setAttribute("aria-label", "English preview of notes");
+    var status = document.createElement("small");
+    status.className = "field-hint";
+    status.setAttribute("data-auto-translate-status", "notes");
     wrap.appendChild(title);
     wrap.appendChild(preview);
+    wrap.appendChild(status);
     label.appendChild(wrap);
     return preview;
   }
 
   function bindNotes() {
     var form = document.getElementById("car-form");
-    var textarea = form && form.elements && form.elements.notes;
-    if (!textarea || textarea.dataset.ahAutoTranslate === "1") return;
-    textarea.dataset.ahAutoTranslate = "1";
-    var status = ensureStatus(textarea);
-    var preview = ensurePreview(textarea);
-    var timer = 0, sequence = 0;
+    var source = form && form.elements && form.elements.notes;
+    if (!source || source.dataset.ahAutoTranslate === "1") return;
+    var target = ensureNotesPreview(source);
+    if (!target) return;
+    target.id = target.id || "notes-en-preview";
+    bindPairByElements(source, target, "notes");
+  }
 
+  function bindPairByElements(source, target, key) {
+    if (!source || !target || source.dataset.ahAutoTranslate === "1") return;
+    source.dataset.ahAutoTranslate = "1";
+    var timer = 0;
+    var version = 0;
     function run() {
-      var version = ++sequence;
-      var lines = lineList(textarea.value);
-      if (!lines.length) {
-        if (status) status.textContent = "";
-        if (preview) preview.value = "";
+      var current = ++version;
+      if (!source.value.trim()) {
+        target.value = "";
+        setStatus(key, "");
         return;
       }
-      if (status) status.textContent = "Превеждане на английски…";
-      translateNotes(lines).then(function (translated) {
-        if (version !== sequence || !textarea.isConnected) return;
-        if (preview) preview.value = translated.join("\n");
-        if (status) status.textContent = "English preview е обновен.";
+      setStatus(key, "Превеждане…");
+      translateList(source.value).then(function (lines) {
+        if (current !== version || !source.isConnected) return;
+        target.value = lines.join("\n");
+        setStatus(key, "English preview е обновен.");
       }).catch(function (error) {
-        if (version !== sequence || !textarea.isConnected) return;
-        if (status) status.textContent = error.message;
+        if (current !== version || !source.isConnected) return;
+        setStatus(key, error && error.message || "Преводът временно не успя.", true);
       });
     }
-
-    textarea.addEventListener("input", function () {
+    source.addEventListener("input", function () {
       clearTimeout(timer);
-      if (status) status.textContent = "Подготовка на English preview…";
-      timer = setTimeout(run, 220);
+      setStatus(key, "Подготовка на превода…");
+      timer = setTimeout(run, 260);
     });
     setTimeout(run, 0);
   }
 
+  function bindAll() {
+    bindPair("desc-bg", "desc-en", "description", false);
+    bindPair("equipment-bg", "equipment-en", "equipment", true);
+    bindNotes();
+  }
+
+  window.fetch = function (input, init) {
+    init = init || {};
+    var url = apiUrl(input);
+    var method = String(init.method || "GET").toUpperCase();
+    var isVehicleWrite = url && url.origin === location.origin && url.pathname === "/api/admin/vehicles" &&
+      (method === "POST" || method === "PATCH" || method === "PUT") && typeof init.body === "string";
+    if (!isVehicleWrite) return baseFetch(input, init);
+
+    var body;
+    try { body = JSON.parse(init.body); } catch (_) { return baseFetch(input, init); }
+
+    return Promise.all([
+      translateList(body.notes || []),
+      translateList(body.equipment_bg || []),
+      translateText(body.description_bg || "")
+    ]).then(function (values) {
+      body.notes_en = values[0];
+      body.equipment_en = values[1];
+      body.description_en = values[2];
+      var next = Object.assign({}, init, { body: JSON.stringify(body) });
+      return baseFetch(input, next);
+    }).catch(function (error) {
+      return errorResponse(error && error.message);
+    });
+  };
+
   loadCache();
-  bindObserver = new MutationObserver(function () { bindNotes(); });
-  bindObserver.observe(document.documentElement, { childList: true, subtree: true });
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindNotes);
-  else bindNotes();
+  var observer = new MutationObserver(bindAll);
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindAll);
+  else bindAll();
 })();
