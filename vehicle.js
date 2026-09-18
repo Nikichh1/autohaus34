@@ -564,9 +564,9 @@
   var shot = 0, opener = null, lockY = 0, lightboxVersion = 0;
   var lightboxSizes = '88vw';
   function fitLightboxMargins() {
-    var box = lbImg.getBoundingClientRect();
-    lbImg.style.clipPath = window.AH_PHOTO_INSETS && lbImg.complete
-      ? window.AH_PHOTO_INSETS.clip(lbImg.currentSrc || lbImg.src, lbImg.naturalWidth, lbImg.naturalHeight, box.width, box.height, location.origin) : "";
+    /* Gallery images already use a centered 16:9 crop. Do not apply legacy
+       per-image matte clipping on top of that crop. */
+    lbImg.style.clipPath = "";
   }
   lbImg.addEventListener("load", fitLightboxMargins);
   lbImg.addEventListener("error", function () { lbImg.style.clipPath = ""; });
