@@ -250,6 +250,9 @@
   function loadingState() {
     var grid = document.getElementById("pv-grid");
     if (!grid || grid.children.length) return;
+    /* The bundled catalogue is the production-safe first paint. Never replace
+       real local inventory with a network spinner while live data refreshes. */
+    if (Array.isArray(window.AH_VEHICLES) && window.AH_VEHICLES.length) return;
     var head = document.querySelector("#avtomobili .csec__head");
     if (head) head.classList.add("is-in");
     grid.style.minHeight = "180px";
@@ -287,8 +290,6 @@
     else fn();
   }
 
-  afterDom(function () { loadingState(); setTimeout(revealCriticalUI, 2200); });
-
   var path = location.pathname;
   var isVehiclePage = /(?:^|\/)vehicle\.html$/.test(path);
   var isConciergePage = /(?:^|\/)concierge\.html$/.test(path);
@@ -296,28 +297,69 @@
   var params = new URLSearchParams(location.search);
   var requestedId = isVehiclePage ? params.get("id") : "";
   if (requestedId && !/^[a-z0-9-]+$/.test(requestedId)) requestedId = "";
+
+  /* PRODUCTION-SAFE BOOT
+     The homepage must never wait on an API, a retry, or Supabase before it is
+     usable. vehicles.base.js is a last-known-good local snapshot and is the
+     first paint. Live inventory refreshes later, in the background. Vehicle
+     detail pages still await their specific managed record so descriptions
+     and equipment stay complete. */
+  var bundled = Array.isArray(window.AH_VEHICLES) ? window.AH_VEHICLES.slice() : [];
+  bundled.forEach(indexVehicle);
+
+  var fastPublicBoot = (isCatalogPage || isConciergePage) && bundled.length > 0;
   var request = requestedId ? loadInventory(requestedId, false) :
-    (isCatalogPage || isConciergePage) ? loadInventory("", false) : Promise.resolve(null);
+    (!fastPublicBoot && (isCatalogPage || isConciergePage)) ? loadInventory("", false) :
+    Promise.resolve(null);
 
-  var ready = request.then(function (data) {
-    applyPayload(data, requestedId);
-    return data;
-  }).catch(function () { return null; });
+  var ready;
+  if (fastPublicBoot) {
+    ready = Promise.resolve({
+      ok: true,
+      authoritative: true,
+      count: bundled.length,
+      vehicles: bundled,
+      fresh_until: Date.now() + 15000
+    });
 
-  // UI modules subscribe to one deterministic promise. A data outage may
-  // produce an empty catalogue message, but it must never freeze navigation,
-  // scrolling, menus or the rest of the landing page.
+    /* Do not compete with CSS, the hero image, or interaction startup.
+       A backend outage can only make this refresh fail silently; it can never
+       hold the public page in a loading state. */
+    setTimeout(function () {
+      loadInventory("", false).then(function (data) {
+        if (!validPayload(data, "", true)) return;
+        applyPayload(data, "");
+        try {
+          window.dispatchEvent(new CustomEvent("ah:inventory-updated", { detail: data }));
+        } catch (_) {}
+      }).catch(function () {});
+    }, 1500);
+  } else {
+    ready = request.then(function (data) {
+      applyPayload(data, requestedId);
+      return data;
+    }).catch(function () { return null; });
+  }
+
   window.AH_INVENTORY_READY = ready;
 
+  afterDom(function () {
+    loadingState();
+    revealCriticalUI();
+    if (isCatalogPage) recoverPreview();
+  });
+
+  /* Last-resort UI watchdog only. It does not wait for data and never locks
+     navigation or scrolling. */
   var watchdog = setTimeout(function () {
     revealCriticalUI();
     if (isCatalogPage) afterDom(recoverPreview);
-  }, 5500);
+  }, 1800);
 
   ready.then(function () {
     clearTimeout(watchdog);
     revealCriticalUI();
-    if (isCatalogPage) afterDom(function () { setTimeout(recoverPreview, 80); });
+    if (isCatalogPage) afterDom(recoverPreview);
   }, function () {
     clearTimeout(watchdog);
     revealCriticalUI();
