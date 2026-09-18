@@ -1337,3 +1337,20 @@
 .lc__meta-item::after{display:none!important}
 .spec-icon{width:16px;height:18px;flex:0 0 16px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
 @media(max-width:599px){.lc__meta{grid-template-columns:minmax(0,1fr);gap:5px}.lc__meta-item{gap:6px}.spec-icon{width:14px;flex-basis:14px;height:16px}}
+
+
+/* Vehicle photos are a single stable 16:9 system across desktop and mobile.
+   Arrow navigation changes only the main frame; the thumbnail rail stays put. */
+.dgal{display:block!important}
+.dgal__main{display:block!important;aspect-ratio:16/9!important}
+.dgal__side{display:none!important}
+.dgal__f picture,.dgal__f img{width:100%;height:100%;object-fit:cover;object-position:center}
+.dthumb{aspect-ratio:16/9!important}
+.dthumb picture,.dthumb img{width:100%;height:100%;object-fit:cover;object-position:center}
+@media(min-width:1024px){
+  .dgal,.dgal--1,.dgal--2,.dgal--3{display:block!important;grid-template:none!important}
+  .dgal__main,.dgal--1 .dgal__main,.dgal--2 .dgal__main{grid-row:auto!important;aspect-ratio:16/9!important}
+}
+@media(max-width:599px){
+  .dgal__main{aspect-ratio:16/9!important}
+}
