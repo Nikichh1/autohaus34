@@ -89,7 +89,7 @@
     var form = collectForm();
     if (!form) return;
     writeStorage("sessionStorage", draftKey, JSON.stringify({ vehicle: Object.assign({}, state.current, form), route: state.route,
-      source: D.getElementById("source-text").value, needsReview: state.aiNeedsReview, removed: state.removed, at: Date.now() }));
+      source: "", needsReview: false, removed: state.removed, at: Date.now() }));
   }
   function clearDraft() { clearTimeout(draftTimer); writeStorage("sessionStorage", draftKey, null); }
   function draft() {
@@ -260,7 +260,7 @@
     destroyImageSorter();
     state.current = clone(v); state.dirty = !!recovered; state.saved = false; state.removed = recovered ? recovered.removed || [] : []; state.failedFiles = [];
     D.body.classList.add("is-editing"); markNav(isNew ? "new" : state.route);
-    var car = state.current; state.reviewNotes = car.description_review_notes || []; state.aiNeedsReview = !!(recovered && recovered.needsReview);
+    var car = state.current; state.reviewNotes = []; state.aiNeedsReview = false;
     view.innerHTML = '<div class="view-head editor-heading"><div class="view-title"><a class="back-link" href="#cars" data-go="cars">← ' + t("Автомобили", "Cars") +
       '</a><h1>' + esc(isNew ? t("Нов автомобил", "New car") : carName(car)) + '</h1><div class="heading-status">' + pill(car.published) +
       '</div></div></div>' +
@@ -287,23 +287,14 @@
       '<label class="check"><input type="checkbox" name="unregistered"' + (car.unregistered ? " checked" : "") + '><span>' + t("Без първа регистрация", "No first registration") + '</span></label>' +
       field(t("Първа регистрация — година", "First registration — year"), "first_registration_year", car.first_registration_year, "number", "min=1900 max=2100 step=1") +
       select(t("Месец", "Month"), "first_registration_month", String(car.first_registration_month || ""), [["", "—"]].concat(Array.from({ length: 12 }, function (_, i) { return [String(i + 1), String(i + 1).padStart(2, "0")]; }))) +
-      '</div></section><section class="card" id="description"><h2>' + t("Описание и оборудване", "Description and equipment") + '</h2><div class="processor">' +
-      '<details class="processor-source" id="description-generator"' + (!(car.description_bg || car.description_en || (car.equipment_bg || []).length || (car.equipment_en || []).length) ? ' open' : '') + '><summary>' + t("Генериране от поставен текст (по избор)", "Generate from pasted text (optional)") + '</summary>' +
-      '<p class="field-hint" id="source-help">' + t("Поставете описанието и оборудването заедно в полето по-долу. AI ще ги раздели и преведе на български и английски. Този изходен текст не се показва на сайта.", "Paste the description and equipment together below. AI will separate them and translate them into Bulgarian and English. This source text is not shown on the website.") + '</p>' +
-      '<label class="field"><span>' + t("Поставете оригиналното описание и оборудване тук", "Paste the original description and equipment here") + '</span><textarea id="source-text" aria-describedby="source-help" maxlength="30000" rows="5" placeholder="' +
-      t("Напр. сервизна история, състояние, списък с оборудване…", "For example: service history, condition, equipment list…") + '">' + esc(recovered ? recovered.source : car.description_source || "") + '</textarea></label>' +
-      '<button type="button" class="primary process-button" id="process-description">' + t("Генерирай описание и оборудване BG + EN", "Generate description and equipment BG + EN") + '</button>' +
-      '<p id="processor-note" class="processor-note" role="status">' + t("Резултатът ще попълни полетата за сайта по-долу. Прегледайте двата езика преди запис. Нищо не се записва или публикува автоматично.", "The result fills the website fields below. Review both languages before saving. Nothing is saved or published automatically.") + '</p></details>' +
-      '<div class="processor-results"><h3 class="workflow-heading">' + t("Описание и оборудване за сайта", "Website description and equipment") + '</h3>' +
-      '<p class="field-hint">' + t("Това е съдържанието на обявата. Редактирайте го директно или използвайте генерирането по-горе. Проверете BG и EN, след което натиснете бутона за запис на автомобила.", "This is the listing content. Edit it directly or use the generator above. Check BG and EN, then use the car’s Save button.") + '</p>' +
-      '<div class="review-tabs" role="tablist" aria-label="' + t("Език на резултата", "Result language") + '">' +
-      '<button type="button" role="tab" id="review-tab-bg" data-review-language="bg" aria-controls="review-bg" aria-selected="true">Български</button>' +
-      '<button type="button" role="tab" id="review-tab-en" data-review-language="en" aria-controls="review-en" aria-selected="false" tabindex="-1">English</button></div>' +
-      '<div id="review-bg" class="review-output" role="tabpanel" aria-labelledby="review-tab-bg"><label class="field"><span>' + t("Описание · Български", "Description · Bulgarian") + '</span><textarea id="desc-bg" lang="bg" maxlength="20000" rows="4">' + esc(car.description_bg) +
-      '</textarea></label><label class="field"><span>' + t("Оборудване · Български", "Equipment · Bulgarian") + '</span><textarea id="equipment-bg" lang="bg" rows="8">' + esc(lines(car.equipment_bg)) + '</textarea></label></div>' +
-      '<div id="review-en" class="review-output" role="tabpanel" aria-labelledby="review-tab-en" hidden><label class="field"><span>Description · English</span><textarea id="desc-en" lang="en" maxlength="20000" rows="4">' + esc(car.description_en) +
-      '</textarea></label><label class="field"><span>Equipment · English</span><textarea id="equipment-en" lang="en" rows="8">' + esc(lines(car.equipment_en)) + '</textarea></label></div>' +
-      '<p class="field-hint">' + t("Оборудване: по един елемент на ред, в еднакъв ред за BG и EN.", "Equipment: one item per line, in the same order in BG and EN.") + '</p><div id="review-notes"></div></div></div></section>' +
+      '</div></section><section class="card" id="description"><h2>' + t("Описание и оборудване", "Description and equipment") + '</h2>' +
+      '<p class="field-hint">Пишете само на български. Английската версия се превежда автоматично и се показва веднага отдолу.</p>' +
+      '<div class="auto-translation-fields">' +
+      '<label class="field"><span>Описание · Български</span><textarea id="desc-bg" lang="bg" maxlength="20000" rows="5">' + esc(car.description_bg) + '</textarea></label>' +
+      '<label class="field auto-translation-preview"><span>English preview</span><textarea id="desc-en" lang="en" maxlength="20000" rows="5" readonly tabindex="-1">' + esc(car.description_en) + '</textarea><small class="field-hint" data-auto-translate-status="description"></small></label>' +
+      '<label class="field"><span>Оборудване · по един елемент на ред</span><textarea id="equipment-bg" lang="bg" rows="9">' + esc(lines(car.equipment_bg)) + '</textarea></label>' +
+      '<label class="field auto-translation-preview"><span>Equipment · English preview</span><textarea id="equipment-en" lang="en" rows="9" readonly tabindex="-1">' + esc(lines(car.equipment_en)) + '</textarea><small class="field-hint" data-auto-translate-status="equipment"></small></label>' +
+      '</div></section>' +
       '<details class="card more-details"><summary>' + t("Допълнителни данни", "Additional details") + '</summary><div class="field-grid">' +
       field(t("Пълно име", "Display name"), "full_name", car.full_name, "text", "maxlength=320") +
       field(t("Референция", "Reference"), "ref", car.ref, "text", "maxlength=80") +
@@ -318,7 +309,7 @@
       (car.published ? "primary" : "secondary") + '" id="save-car"></button>' + (!car.published ? '<button type="button" class="primary" id="publish-car">' + t("Публикувай", "Publish") + '</button>' : "") +
       '</div><div class="editor-shortcuts"><a href="#photos" data-scroll="photos">' + t("Снимки", "Photos") + '</a><a href="#description" data-scroll="description">' + t("Описание", "Description") +
       '</a></div></div></aside></form>';
-    renderImages(); bindEditor(); renderReview({ review_notes: state.reviewNotes }); if (state.aiNeedsReview) showReviewConfirmation(); updateSaveState();
+    renderImages(); bindEditor(); updateSaveState();
   }
   function collectForm() {
     var form = D.getElementById("car-form"); if (!form || !state.current) return null;
@@ -331,7 +322,7 @@
       first_registration_year: unregistered ? null : number("first_registration_year"), first_registration_month: unregistered ? null : number("first_registration_month"),
       // Legacy catalog metadata is no longer edited here; keep it intact on save.
       unregistered: unregistered, chapter: state.current.chapter || "saloon", tags: clone(state.current.tags || []), notes: splitLines(value("notes")),
-      description_source: D.getElementById("source-text").value, description_review_notes: state.reviewNotes.slice(),
+      description_source: state.current.description_source || "", description_review_notes: [],
       description_bg: D.getElementById("desc-bg").value.trim(), description_en: D.getElementById("desc-en").value.trim(),
       equipment_bg: splitLines(D.getElementById("equipment-bg").value), equipment_en: splitLines(D.getElementById("equipment-en").value),
       images: clone(state.current.images || []), source_url: state.current.source_url || "", published: !!state.current.published };
@@ -347,11 +338,6 @@
       invalid.forEach(function (el) { el.setAttribute("aria-invalid", "true"); var details = el.closest("details"); if (details) details.open = true; });
       if (invalid[0].closest(".review-output")) selectReviewLanguage(invalid[0].lang);
       invalid[0].focus(); toast(t("Проверете отбелязаните полета.", "Check the highlighted fields."), true); return false;
-    }
-    if (data.equipment_bg.length !== data.equipment_en.length) {
-      selectReviewLanguage("en");
-      D.getElementById("equipment-en").setAttribute("aria-invalid", "true"); D.getElementById("equipment-en").focus();
-      toast(t("Оборудването BG и EN трябва да има еднакъв брой редове.", "BG and EN equipment must have the same number of lines."), true); return false;
     }
     if (data.images.length > 80) { toast(t("Максимум 80 снимки за автомобил.", "A car can have up to 80 photos."), true); return false; }
     return true;
@@ -630,16 +616,6 @@
     D.getElementById("take-photo").onclick = function () { D.getElementById("camera-input").click(); };
     ["image-input", "camera-input"].forEach(function (id) { D.getElementById(id).onchange = function (event) { uploadFiles(event.target.files); event.target.value = ""; }; });
     D.getElementById("retry-images").onclick = function () { uploadFiles(state.failedFiles.slice()); };
-    D.getElementById("process-description").onclick = processDescription;
-    view.querySelectorAll("[data-review-language]").forEach(function (tab) {
-      tab.onclick = function () { selectReviewLanguage(tab.dataset.reviewLanguage); };
-      tab.onkeydown = function (event) {
-        if (["ArrowLeft", "ArrowRight", "Home", "End"].indexOf(event.key) < 0) return;
-        event.preventDefault();
-        var next = event.key === "Home" ? "bg" : event.key === "End" ? "en" : tab.dataset.reviewLanguage === "bg" ? "en" : "bg";
-        selectReviewLanguage(next); D.getElementById("review-tab-" + next).focus();
-      };
-    });
     var dropzone = D.getElementById("dropzone");
     ["dragenter", "dragover"].forEach(function (name) { dropzone.addEventListener(name, function (event) { event.preventDefault(); dropzone.classList.add("is-drag"); }); });
     ["dragleave", "drop"].forEach(function (name) { dropzone.addEventListener(name, function (event) { event.preventDefault(); dropzone.classList.remove("is-drag"); }); });
