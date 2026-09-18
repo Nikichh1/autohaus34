@@ -27,7 +27,7 @@
   "use strict";
   var D = document, AH = window.AH;
   if (!AH || !AH.card) return;
-  var inventoryReady = false;
+  var inventoryReady = !!(AH.all && AH.all.length);
 
   /* their "Next" page is one screen of results; 12 keeps a 2-, 3- and
      4-column grid whole, which 10 does not */
@@ -436,7 +436,10 @@
       return;
     }
     catGrid.removeAttribute("aria-busy");
-    if (window.AH_INVENTORY_SOURCE !== "managed") {
+    /* A valid bundled snapshot is a real catalogue, not an error state.
+       Live data replaces it when the API succeeds, but a network/API issue
+       must never turn the entire public site into an empty shell. */
+    if (!AH.all || !AH.all.length) {
       catGrid.innerHTML = '<p class="catalog-status" role="status" data-ah-bg="Каталогът временно е недостъпен. Моля, презаредете страницата." data-ah-en="The catalogue is temporarily unavailable. Please reload the page.">Каталогът временно е недостъпен. Моля, презаредете страницата.</p>';
       catPag.hidden = true;
       catEmpty.hidden = true;
@@ -755,15 +758,21 @@
 
   /* A selected make remains shareable; obsolete search/filter parameters are
      ignored so an old link cannot silently narrow the inventory. */
+  /* Never auto-open a full-screen, body-pinning layer on page load.
+     Old share URLs may still seed the make filter, but only an explicit user
+     click is allowed to lock the page and open the catalogue. */
   (function boot() {
     var p = new URLSearchParams(location.search);
-    if (p.has("make")) {
-      S.make = p.get("make") || "";
-      open({ fromURL: true });
-      return;
+    if (p.has("make")) S.make = p.get("make") || "";
+    if (location.hash === "#cars" || location.hash === "#collection") {
+      try { history.replaceState(history.state, "", location.pathname + location.search + "#avtomobili"); } catch (_) {}
     }
-    if (location.hash === "#cars" || location.hash === "#collection" || location.hash === "#avtomobili") open({ fromURL: true });
   })();
+
+  /* The bundled last-known-good inventory is available before the live
+     request finishes, so paint it immediately. Live inventory repaints below. */
+  if (inventoryReady) paintPreview();
+
   (window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
     inventoryReady = true;
     if (isOpen) apply(true);
