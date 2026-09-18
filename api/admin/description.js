@@ -7,6 +7,8 @@ const GATEWAY_ENDPOINT = "https://ai-gateway.vercel.sh/v1/chat/completions";
 const NO_KEY_AI_ENDPOINT = "https://text.pollinations.ai/openai";
 const GOOGLE_TRANSLATE_ENDPOINT = "https://translate.googleapis.com/translate_a/single";
 const MYMEMORY_TRANSLATE_ENDPOINT = "https://api.mymemory.translated.net/get";
+const TRANSLATION_CACHE = globalThis.__autohausTranslationCache || (globalThis.__autohausTranslationCache = new Map());
+const MAX_TRANSLATION_CACHE = 2500;
 
 const KNOWN_BG_EN = new Map([
   ["Пълна сервизна история!", "Full service history!"],
@@ -153,37 +155,104 @@ function extractGoogleTranslation(data) {
   return segments.map((part) => Array.isArray(part) && typeof part[0] === "string" ? part[0] : "").join("").trim();
 }
 
+function cachedTranslation(text, target) {
+  return TRANSLATION_CACHE.get(target + "\u0000" + text) || "";
+}
+
+function rememberTranslation(text, target, translated) {
+  const value = String(translated || "").trim();
+  if (!value) return "";
+  const key = target + "\u0000" + text;
+  TRANSLATION_CACHE.delete(key);
+  TRANSLATION_CACHE.set(key, value);
+  while (TRANSLATION_CACHE.size > MAX_TRANSLATION_CACHE) {
+    TRANSLATION_CACHE.delete(TRANSLATION_CACHE.keys().next().value);
+  }
+  return value;
+}
+
+async function translateLinesWithAi(lines, target) {
+  if (!lines.length) return [];
+  const targetName = target === "bg" ? "Bulgarian" : "English";
+  const instructions = [
+    "Translate each input string faithfully into " + targetName + ".",
+    "Return only one JSON array of strings.",
+    "Keep exactly the same number of items and the same order.",
+    "Preserve OEM codes, model names, numbers, units and punctuation.",
+    "Do not explain, summarize, merge or split items."
+  ].join("\n");
+  const raw = JSON.stringify(lines);
+
+  const token = String(process.env.VERCEL_OIDC_TOKEN || "").trim();
+  if (token) {
+    try {
+      const r = await gatewayRequest(token, instructions, {}, raw, false);
+      const data = await r.json().catch(() => ({}));
+      if (r.ok) {
+        const parsed = safeJson(responseText(data));
+        if (Array.isArray(parsed) && parsed.length === lines.length &&
+            parsed.every((item) => typeof item === "string" && item.trim())) {
+          return parsed.map((item) => item.trim());
+        }
+      }
+    } catch (_) {}
+  }
+
+  try {
+    const r = await noKeyAiRequest(instructions, {}, raw);
+    const data = await r.json().catch(() => ({}));
+    if (r.ok) {
+      const parsed = safeJson(responseText(data));
+      if (Array.isArray(parsed) && parsed.length === lines.length &&
+          parsed.every((item) => typeof item === "string" && item.trim())) {
+        return parsed.map((item) => item.trim());
+      }
+    }
+  } catch (_) {}
+  return [];
+}
+
 async function translateText(text, target) {
   const input = String(text || "").trim();
   if (!input) return "";
-  if (target === "en" && KNOWN_BG_EN.has(input)) return KNOWN_BG_EN.get(input);
+  if (target === "en" && KNOWN_BG_EN.has(input)) return rememberTranslation(input, target, KNOWN_BG_EN.get(input));
+  const cached = cachedTranslation(input, target);
+  if (cached) return cached;
 
   const googleUrl = GOOGLE_TRANSLATE_ENDPOINT +
     "?client=gtx&sl=auto&tl=" + encodeURIComponent(target) +
     "&dt=t&q=" + encodeURIComponent(input);
-  try {
-    const r = await timedFetch(googleUrl, { method: "GET", headers: { "Accept": "application/json" } }, 12000);
-    if (r.ok) {
-      const data = await r.json().catch(() => null);
-      const translated = extractGoogleTranslation(data);
-      if (translated) return translated;
-    }
-  } catch (_) {}
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await timedFetch(googleUrl, { method: "GET", headers: { "Accept": "application/json" } }, 7000);
+      if (r.ok) {
+        const data = await r.json().catch(() => null);
+        const translated = extractGoogleTranslation(data);
+        if (translated) return rememberTranslation(input, target, translated);
+      }
+    } catch (_) {}
+  }
 
   const source = target === "en" ? "bg" : "en";
   const memoryUrl = MYMEMORY_TRANSLATE_ENDPOINT +
     "?q=" + encodeURIComponent(input) +
     "&langpair=" + encodeURIComponent(source + "|" + target);
-  const fallback = await timedFetch(memoryUrl, {
-    method: "GET",
-    headers: { "Accept": "application/json", "User-Agent": "AutoHaus/1.0" }
-  }, 12000);
-  if (!fallback.ok) throw new Error("translation_http_" + fallback.status);
-  const payload = await fallback.json().catch(() => null);
-  const translated = payload && payload.responseData && typeof payload.responseData.translatedText === "string"
-    ? payload.responseData.translatedText.trim() : "";
-  if (!translated) throw new Error("translation_empty");
-  return translated;
+  try {
+    const fallback = await timedFetch(memoryUrl, {
+      method: "GET",
+      headers: { "Accept": "application/json", "User-Agent": "AutoHaus/1.0" }
+    }, 7000);
+    if (fallback.ok) {
+      const payload = await fallback.json().catch(() => null);
+      const translated = payload && payload.responseData && typeof payload.responseData.translatedText === "string"
+        ? payload.responseData.translatedText.trim() : "";
+      if (translated) return rememberTranslation(input, target, translated);
+    }
+  } catch (_) {}
+
+  const ai = await translateLinesWithAi([input], target);
+  if (ai.length === 1) return rememberTranslation(input, target, ai[0]);
+  return "";
 }
 
 function chunkLines(lines, maxChars) {
@@ -246,18 +315,32 @@ async function translateOnly(req, res, body) {
   }
   const lines = body.lines.map((line) => clean(line, 2000)).filter(Boolean);
   if (!lines.length) return json(res, 200, { ok: true, lines: [] });
+
   try {
-    const translated = await translateLines(lines, target);
-    if (translated.length !== lines.length) throw new Error("translation_alignment");
-    return json(res, 200, { ok: true, lines: translated });
-  } catch (err) {
-    console.error("Automatic note translation failed", err && err.message || err);
-    return json(res, 502, {
-      ok: false,
-      error: target === "en" ? "Автоматичният превод временно не успя. Опитайте отново." : "Automatic translation is temporarily unavailable. Try again.",
-      code: "TRANSLATION_TEMPORARY"
-    });
-  }
+    let translated = await translateLines(lines, target);
+    if (translated.length === lines.length && translated.every(Boolean)) {
+      return json(res, 200, { ok: true, lines: translated, pending: false });
+    }
+  } catch (_) {}
+
+  try {
+    const ai = await translateLinesWithAi(lines, target);
+    if (ai.length === lines.length) {
+      ai.forEach((value, index) => rememberTranslation(lines[index], target, value));
+      return json(res, 200, { ok: true, lines: ai, pending: false });
+    }
+  } catch (_) {}
+
+  /* Never block the editor because every external translation provider is
+     temporarily unavailable. Reuse cached values when possible and keep the
+     source line as a temporary preview otherwise. The browser retries later. */
+  const fallback = lines.map((line) => cachedTranslation(line, target) || line);
+  return json(res, 200, {
+    ok: true,
+    lines: fallback,
+    pending: true,
+    retry_after_ms: 3500
+  });
 }
 
 module.exports = async function handler(req, res) {
