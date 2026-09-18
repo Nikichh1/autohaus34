@@ -27,7 +27,7 @@
   "use strict";
   var D = document, AH = window.AH;
   if (!AH || !AH.card) return;
-  var inventoryReady = !!(AH.all && AH.all.length);
+  var inventoryReady = false;
 
   /* their "Next" page is one screen of results; 12 keeps a 2-, 3- and
      4-column grid whole, which 10 does not */
@@ -233,6 +233,10 @@
      ============================================================ */
   var cat = $("catalog");
   if (!cat) return;
+  // A closed full-screen layer must be completely inert. This is a hard
+  // safety boundary: even if a transition stylesheet loads late, the layer
+  // cannot sit invisibly above the landing page and eat clicks.
+  cat.setAttribute("inert", "");
 
   var catPanel = cat.querySelector(".cat__panel");
   var catBody = $("cat-body"), catGrid = $("cat-grid"), catBar = $("cat-bar");
@@ -436,10 +440,7 @@
       return;
     }
     catGrid.removeAttribute("aria-busy");
-    /* A valid bundled snapshot is a real catalogue, not an error state.
-       Live data replaces it when the API succeeds, but a network/API issue
-       must never turn the entire public site into an empty shell. */
-    if (!AH.all || !AH.all.length) {
+    if (window.AH_INVENTORY_SOURCE !== "managed") {
       catGrid.innerHTML = '<p class="catalog-status" role="status" data-ah-bg="Каталогът временно е недостъпен. Моля, презаредете страницата." data-ah-en="The catalogue is temporarily unavailable. Please reload the page.">Каталогът временно е недостъпен. Моля, презаредете страницата.</p>';
       catPag.hidden = true;
       catEmpty.hidden = true;
@@ -653,6 +654,7 @@
     /* the clip start state must be committed BEFORE is-open, or the first
        painted frame is already full-screen and there is nothing to grow */
     growFrom(opener);
+    cat.removeAttribute("inert");
     cat.classList.add("is-open");
     cat.setAttribute("aria-hidden", "false");
     void cat.offsetWidth;                     /* flush so focus() lands */
@@ -678,6 +680,7 @@
     shrinkTo(opener);
     cat.classList.remove("is-open");
     cat.setAttribute("aria-hidden", "true");
+    cat.setAttribute("inert", "");
     D.documentElement.classList.remove("shw-open");
     D.body.style.top = "";
 
@@ -749,6 +752,9 @@
     var t = e.target.closest && e.target.closest("[data-catalog]");
     if (!t) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
+    // Before inventory exists, keep the link's ordinary #avtomobili
+    // behaviour. Never pin the whole document behind an empty layer.
+    if (!inventoryReady) return;
     e.preventDefault();
     open({
       opener: t,
@@ -756,29 +762,34 @@
     });
   });
 
-  /* A selected make remains shareable; obsolete search/filter parameters are
-     ignored so an old link cannot silently narrow the inventory. */
-  /* Never auto-open a full-screen, body-pinning layer on page load.
-     Old share URLs may still seed the make filter, but only an explicit user
-     click is allowed to lock the page and open the catalogue. */
+  /* Hash navigation is normal page navigation, not permission to create a
+     full-screen modal during startup. In particular #avtomobili must scroll
+     to the visible stock section and leave the rest of the site interactive. */
+  var bootMake = "";
   (function boot() {
     var p = new URLSearchParams(location.search);
-    if (p.has("make")) S.make = p.get("make") || "";
-    if (location.hash === "#cars" || location.hash === "#collection") {
-      try { history.replaceState(history.state, "", location.pathname + location.search + "#avtomobili"); } catch (_) {}
-    }
+    if (p.has("make")) bootMake = p.get("make") || "";
   })();
-
-  /* The bundled last-known-good inventory is available before the live
-     request finishes, so paint it immediately. Live inventory repaints below. */
-  if (inventoryReady) paintPreview();
 
   (window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
     inventoryReady = true;
-    if (isOpen) apply(true);
+    if (bootMake) {
+      S.make = bootMake;
+      open({ fromURL: true });
+    } else if (isOpen) {
+      apply(true);
+    }
     var previewVisible = pvGrid && pvGrid.getBoundingClientRect().top < innerHeight + 100;
     if (previewVisible) paintPreview();
     else if (typeof requestIdleCallback === "function") requestIdleCallback(paintPreview, { timeout: 250 });
     else setTimeout(paintPreview, 1);
+  }).catch(function () {
+    inventoryReady = true;
+    // Data failure is not a navigation failure. Keep the page usable.
+    cat.classList.remove("is-open");
+    cat.setAttribute("aria-hidden", "true");
+    cat.setAttribute("inert", "");
+    D.documentElement.classList.remove("shw-open");
+    D.body.style.top = "";
   });
 })();
