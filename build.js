@@ -90,11 +90,6 @@ function build(options = {}) {
     if (page === "vehicle.html" && !source.includes("watermark.js?v=")) {
       source = source.replace(/<\/head>/i, '<script defer src="watermark.js?v=' + versions.get("watermark.js") + '"></script>\n</head>');
     }
-    if (page === "index.html" && !source.includes("catalog-prefetch.js?v=")) {
-      source = source.replace(/<script defer src="showroom\.js[^>]*><\/script>/i, function (tag) {
-        return '<script defer src="catalog-prefetch.js?v=' + versions.get("catalog-prefetch.js") + '"></script>\n' + tag;
-      });
-    }
     if (page === "vehicle.html") {
       if (!source.includes("vehicle-fixes.css?v=")) {
         source = source.replace(/<link rel="stylesheet" href="catalog\.min\.css[^>]*>/i, function (tag) {
