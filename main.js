@@ -50,14 +50,22 @@
      overlay. This keeps a stale modal class from freezing the public site. */
   var releaseStalePageLocks = function () {
     if (document.querySelector(".mob.is-open,.ctc.is-open,.cat.is-open,.wcard-item.is-open,.lb.open,.focus.is-open")) return;
-    var html = document.documentElement;
+    var html = document.documentElement, body = document.body;
     ["mob-open","ctc-open","cw-open","shw-open","lb-open"].forEach(function (name) {
       html.classList.remove(name);
     });
-    if (document.body && document.body.style.top) document.body.style.top = "";
+    if (body) {
+      body.style.top = "";
+      body.style.position = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.width = "";
+      body.style.overflow = "";
+    }
   };
   releaseStalePageLocks();
   addEventListener("pageshow", releaseStalePageLocks);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", releaseStalePageLocks, { once: true });
 
   /* ============================================================
      0. DATA LAYER  (added in v35)
