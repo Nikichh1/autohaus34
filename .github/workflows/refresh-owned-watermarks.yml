@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   refresh:
     if: contains(github.event.head_commit.message, 'Run owned-v2 watermark refresh')
@@ -15,9 +18,8 @@ jobs:
       - name: Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
       - name: Install image tooling
-        run: npm install --omit=dev
+        run: npm install --no-audit --no-fund
       - name: Generate owned-v2 protected variants
         run: node scripts/refresh-owned-watermarks.js
