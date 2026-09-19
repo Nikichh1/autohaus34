@@ -5,7 +5,7 @@
   "use strict";
 
   var ROOT = document.documentElement;
-  var TARGET_SELECTOR = ".lc__pic,.dgal__f,.dthumb,#lb-stage";
+  var TARGET_SELECTOR = ".lc__pic,.dgal__f,#lb-stage";
   var enabled = false;
   var lastFetch = 0;
   var bodyObserver = null;
@@ -26,8 +26,9 @@
       ".ah-watermark-v2-on .ah-watermark-mark{display:block}",
       ".lc__pic>.ah-watermark-mark{max-width:260px;min-width:70px}",
       ".dgal__f>.ah-watermark-mark{max-width:380px}",
-      ".dthumb>.ah-watermark-mark{min-width:0;max-width:70%}",
       "#lb-stage>.ah-watermark-mark{max-width:460px}",
+      "html.lb-open .dgallery .ah-watermark-mark{display:none!important}",
+      "html.lb-open #lb-stage>.ah-watermark-mark{display:block!important}",
       ".lb .x{z-index:200!important;pointer-events:auto!important}",
       ".lb__nav{position:relative;z-index:200}",
       "#lb-stage{z-index:1}",
@@ -171,9 +172,19 @@
   function installLightboxUX() {
     var lb = document.getElementById("lb");
     var stage = document.getElementById("lb-stage");
+    var image = document.getElementById("lb-img");
     var close = document.getElementById("lb-close");
     if (!lb || !stage || !close || lb.dataset.ahCloseFix === "1") return;
     lb.dataset.ahCloseFix = "1";
+
+    /* The lightbox reuses one <img> and only changes its src. Re-evaluate the
+       watermark after every decoded frame so the stage always contains
+       exactly one correct mark for the currently visible image. */
+    if (image) {
+      image.addEventListener("load", function () {
+        if (enabled) markerFor(stage);
+      });
+    }
 
     /* The image itself remains interactive for drag/swipe. The unused black
        stage around the contained image is a dismissal target. */
@@ -181,8 +192,6 @@
       if (event.target === stage) close.click();
     });
 
-    /* Keep the close control above the stage/watermark stacking context and
-       make sure a pointer press on it cannot start the gallery drag gesture. */
     close.addEventListener("pointerdown", function (event) {
       event.stopPropagation();
     });
