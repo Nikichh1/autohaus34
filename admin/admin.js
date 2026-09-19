@@ -453,11 +453,14 @@
   async function preparePhoto(file, mediaSettings) {
     mediaSettings = mediaSettings || {};
     var aspectRatio = mediaSettings.photo_aspect_ratio === "16:10" ? "16:10" : "16:9";
-    var watermark = null;
-    if (mediaSettings.watermark_enabled === true) watermark = await watermarkAsset();
-    var watermarkTransparency = Math.max(0, Math.min(100, Number(mediaSettings.watermark_transparency)));
-    if (!Number.isFinite(watermarkTransparency)) watermarkTransparency = 75;
-    var watermarkSize = Math.max(10, Math.min(60, Number(mediaSettings.watermark_size)));
+    /* Every public upload gets a pixel-level protection mark. If the visible
+       watermark is enabled, use its exact settings. If it is disabled, keep a
+       very faint security mark so direct downloads are still not pristine. */
+    var watermark = await watermarkAsset();
+    var visibleWatermark = mediaSettings.watermark_enabled === true;
+    var watermarkTransparency = visibleWatermark ? Math.max(0, Math.min(100, Number(mediaSettings.watermark_transparency))) : 93;
+    if (!Number.isFinite(watermarkTransparency)) watermarkTransparency = visibleWatermark ? 75 : 93;
+    var watermarkSize = visibleWatermark ? Math.max(10, Math.min(60, Number(mediaSettings.watermark_size))) : 13;
     if (!Number.isFinite(watermarkSize)) watermarkSize = 13;
     var watermarkOpacity = (100 - watermarkTransparency) / 100;
 
@@ -519,7 +522,7 @@
         files["webp" + target] = await encode(size.width, size.height, "image/webp", .88);
       }
       canvas.width = 1; canvas.height = 1;
-      return { width: width, height: height, files: files, embeddedWatermark: !!watermark };
+      return { width: width, height: height, files: files, embeddedWatermark: true };
     } catch (error) {
       var webp = error && error.message === "WebP encoding unavailable";
       throw new Error(webp ? t("Този браузър не може да подготви оптимизирани WebP снимки. Обновете браузъра и опитайте отново.", "This browser cannot prepare optimized WebP photos. Update it and try again.") :
