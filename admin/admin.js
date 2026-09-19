@@ -286,7 +286,7 @@
       '<div class="dropzone" id="dropzone"><input id="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple>' +
       '<input id="camera-input" type="file" accept="image/*" capture="environment"><div class="upload-actions"><button type="button" class="primary" id="choose-images">' +
       t("+ Добави снимки", "+ Add photos") + '</button><button type="button" class="secondary" id="take-photo">' + t("Камера", "Camera") + '</button></div>' +
-      '<p>' + t("Изберете няколко снимки. Първата е главна. Всички снимки се изрязват автоматично до 16:9.", "Select multiple photos. The first is the cover. Every photo is automatically cropped to 16:9.") +
+      '<p>' + t("Изберете няколко снимки. Първата е главна. Новите снимки се изрязват автоматично до формата, избран в Настройки.", "Select multiple photos. The first is the cover. New photos are automatically cropped to the format selected in Settings.") +
       '</p><div class="upload-status" id="upload-status" role="status"></div><button type="button" class="secondary" id="retry-images" hidden>' + t("Опитай неуспешните отново", "Retry failed photos") +
       '</button></div><p class="field-hint" id="photo-order-hint">' + t("Подредете снимките чрез влачене на дръжката. Първата е главна. Запишете автомобила, за да запазите реда.", "Drag the handle to reorder photos. The first is the cover. Save the car to keep the new order.") + '</p><div class="image-grid" id="image-list" aria-describedby="photo-order-hint"></div></section>' +
       '<section class="card"><h2>' + t("Характеристики", "Specifications") + '</h2><div class="field-grid">' +
