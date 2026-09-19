@@ -191,7 +191,8 @@
     watermark_size: 34,
     photo_aspect_ratio: "16:9",
     photo_filter: "none",
-    photo_filter_strength: 35
+    photo_filter_strength: 35,
+    desktop_gallery_scale: 84
   };
   var cached = null, cachedAt = 0, pending = null;
 
@@ -205,13 +206,16 @@
     if (!Number.isFinite(s)) s = 34;
     var strength = Math.round(Number(value.photo_filter_strength));
     if (!Number.isFinite(strength)) strength = 35;
+    var galleryScale = Math.round(Number(value.desktop_gallery_scale));
+    if (!Number.isFinite(galleryScale)) galleryScale = 84;
     return {
       watermark_enabled: value.watermark_enabled === true,
       watermark_transparency: Math.max(0, Math.min(100, n)),
       watermark_size: Math.max(10, Math.min(60, s)),
       photo_aspect_ratio: value.photo_aspect_ratio === "16:10" ? "16:10" : "16:9",
-      photo_filter: ["none", "natural", "balanced", "showroom"].indexOf(value.photo_filter) >= 0 ? value.photo_filter : "none",
-      photo_filter_strength: Math.max(0, Math.min(100, strength))
+      photo_filter: ["none", "balanced", "showroom"].indexOf(value.photo_filter) >= 0 ? value.photo_filter : "none",
+      photo_filter_strength: Math.max(0, Math.min(100, strength)),
+      desktop_gallery_scale: Math.max(70, Math.min(100, galleryScale))
     };
   }
 
@@ -219,7 +223,6 @@
     var k = Math.sqrt(Math.max(0, Math.min(100, Number(strength) || 0)) / 100);
     var presets = {
       none: { brightness: 1, contrast: 1, saturate: 1, vignette: 0 },
-      natural: { brightness: 1 - .04 * k, contrast: 1 + .07 * k, saturate: 1 + .10 * k, vignette: .18 * k },
       balanced: { brightness: 1 - .09 * k, contrast: 1 + .12 * k, saturate: 1 + .18 * k, vignette: .28 * k },
       showroom: { brightness: 1 - .14 * k, contrast: 1 + .18 * k, saturate: 1 + .26 * k, vignette: .38 * k }
     };
@@ -304,12 +307,13 @@
           '<label class="field" style="max-width:520px"><span><strong>' + esc(t("Филтър за снимките", "Photo filter")) + '</strong></span>' +
           '<select id="ah-photo-filter"' + disabled + '>' +
           option("none", cfg.photo_filter, t("Без", "None")) +
-          option("natural", cfg.photo_filter, "Natural") +
           option("balanced", cfg.photo_filter, "Balanced") +
           option("showroom", cfg.photo_filter, "Showroom") +
           '</select></label>' +
           '<label class="field" style="max-width:520px"><span>' + esc(t("Сила на филтъра", "Filter strength")) + ' — <b id="ah-photo-filter-strength-value">' + cfg.photo_filter_strength + '%</b></span>' +
           '<input id="ah-photo-filter-strength" type="range" min="0" max="100" step="1" value="' + cfg.photo_filter_strength + '"' + disabled + '></label>' +
+          '<label class="field" style="max-width:520px"><span>' + esc(t("Размер на галерията на компютър", "Desktop gallery size")) + ' — <b id="ah-desktop-gallery-scale-value">' + cfg.desktop_gallery_scale + '%</b></span>' +
+          '<input id="ah-desktop-gallery-scale" type="range" min="70" max="100" step="1" value="' + cfg.desktop_gallery_scale + '"' + disabled + '></label>' +
           (app.canWrite ? '<div><button class="primary" id="ah-media-save" type="submit">' + esc(t("Запази обработката на снимките", "Save photo processing")) + '</button></div>' : '') +
           '<div id="ah-media-status" class="muted" role="status"></div></form>';
 
@@ -322,6 +326,9 @@
         var filterStrength = document.getElementById("ah-photo-filter-strength");
         var filterStrengthValue = document.getElementById("ah-photo-filter-strength-value");
         if (filterStrength) filterStrength.oninput = function () { filterStrengthValue.textContent = filterStrength.value + "%"; };
+        var desktopGalleryScale = document.getElementById("ah-desktop-gallery-scale");
+        var desktopGalleryScaleValue = document.getElementById("ah-desktop-gallery-scale-value");
+        if (desktopGalleryScale) desktopGalleryScale.oninput = function () { desktopGalleryScaleValue.textContent = desktopGalleryScale.value + "%"; };
 
         var watermarkForm = document.getElementById("ah-watermark-form");
         if (watermarkForm && app.canWrite) watermarkForm.onsubmit = async function (event) {
@@ -350,7 +357,8 @@
             await saveSettings({
               photo_aspect_ratio: document.getElementById("ah-photo-ratio").value,
               photo_filter: document.getElementById("ah-photo-filter").value,
-              photo_filter_strength: Number(document.getElementById("ah-photo-filter-strength").value)
+              photo_filter_strength: Number(document.getElementById("ah-photo-filter-strength").value),
+              desktop_gallery_scale: Number(document.getElementById("ah-desktop-gallery-scale").value)
             });
             message.textContent = t("Форматът и филтърът са активни за всички продуктови снимки.", "Format and filter are active for all product photos.");
           } catch (error) { message.textContent = error.message; }
