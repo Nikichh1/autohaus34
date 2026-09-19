@@ -22,4 +22,7 @@ jobs:
       - name: Install image tooling
         run: npm install --no-audit --no-fund
       - name: Generate owned-v2 protected variants
+        env:
+          ONLY_SLUG: s8-4-0-tfsi-quattro-8
+          ONLY_INDEX: "0"
         run: node scripts/refresh-owned-watermarks.js
