@@ -250,6 +250,94 @@ const MIG_URL = "https://ajoiqomflplhadyhxvfe.supabase.co";
 const MIG_KEY = "sb_publishable_gBEUBrOjT_JsBRjAnGL9PQ_ra-1hY0g";
 const MIG_BUCKET = "vehicle-images";
 const MIG_PREFIX = "owned-mig-8f31d9c20b7a4ed0/";
+const MIGRATION_LIVE_SLUGS = Object.freeze([
+  "m550d-xdrive",
+  "rr-sport-p525-autobio",
+  "escalade-600-premium",
+  "caddy-maxi-2-0-tdi-comfortline",
+  "maybach-s-580-4matic-7",
+  "avensis-1-6",
+  "rr-p530-autobiography-2",
+  "rs6-4-0-tfsi-quattro-2",
+  "amg-gt-63-s-e-performance",
+  "a6-e-tron-avant-performance",
+  "rs6-4-0-tfsi-quattro",
+  "maybach-gls-600-4matic-8",
+  "g-350-bluetec-3",
+  "maybach-s-680-4matic",
+  "g-400-d-amg-3",
+  "760i-protection-xdrive",
+  "g-63-amg-11",
+  "maybach-gls-600-4matic-7",
+  "amalfi-f169m",
+  "911-targa-4-gts",
+  "g-63-amg-10",
+  "s-600-guard-b7-vr9",
+  "tundra-3-5-4x4-limited-trd",
+  "rr-sport-sdv6",
+  "maybach-s-600-guard-vr9",
+  "s-350-d-l-amg",
+  "rr-4-4-sdv8-autobiography",
+  "maybach-s-600-guard-vr10",
+  "rs6-4-0-v8-tfsi-quattro",
+  "gls-580-4matic-amg-6",
+  "ix-m60",
+  "a6-allroad-3-0-bitdi-quattro",
+  "panamera-turbo-sport-turismo",
+  "tt-rs-coupe-2-5-tfsi-quattro",
+  "a6-allroad-3-0-tdi-quattro-13",
+  "s8-4-0-tfsi-quattro-7",
+  "land-cruiser-200-v8-4",
+  "a8l-6-3-w12-fsi-quattro-security",
+  "granturismo-mc",
+  "mazda-6-skyactiv-g-2-0-2",
+  "e-350-bt-4matic-edition-e",
+  "sprinter-516-cdi-freezer",
+  "530d-xdrive-touring-lci",
+  "s-63-amg-l-4matic-7",
+  "rr-sport-p525-v8",
+  "grancabrio",
+  "land-cruiser-150-2-8d",
+  "911-turbo-s-coupe-4",
+  "x5-xdrive30d-4",
+  "s-560-l-4matic-amg-6",
+  "cayenne-s-3",
+  "x5-xdrive30d-m-sport-2",
+  "x5-xdrive40e-iperformance",
+  "rr-sport-d350-autobiography",
+  "s-580-l-4matic",
+  "land-cruiser-70-hardtop-lx",
+  "m550i-xdrive-g30-lci",
+  "g-450-d",
+  "a6-allroad-3-0-bitdi-quattro-2",
+  "glc-250-d-4matic-amg-2",
+  "m850i-xdrive-coupe-3",
+  "r-1100-rt",
+  "x5-m50i-xdrive",
+  "levante-v6-q4",
+  "cayenne-turbo-8",
+  "s-500-l-4matic-amg-17",
+  "g-500-amg-11",
+  "panamera-turbo-s-e-hybrid-4",
+  "g-55-amg-2",
+  "x-250-d-4matic-power-edition",
+  "911-carrera-4s-coupe-2",
+  "lr-discovery-4-sdv6-landmark",
+  "amg-gt-r-pro",
+  "530d-gran-turismo",
+  "amg-s-63-4matic-brabus",
+  "mercedes-benz-g-350-d-professional",
+  "s-63-l-amg-4matic",
+  "gl-63-amg-4matic",
+  "continental-gt-diamond-series",
+  "sl-350",
+  "v-300-d-4m-long-vip",
+  "v-300-d-4matic-vip",
+  "g-350-cdi-amg-cabrio",
+  "sl-63-amg-3",
+  "420-sel",
+  "rs6-5-0-v10-tfsi-quattro"
+]);
 
 function migHeaders(extra) {
   return Object.assign({ apikey: MIG_KEY, "Content-Type": "application/json" }, extra || {});
@@ -355,8 +443,13 @@ async function migAlreadyStaged() {
 }
 
 async function runOwnershipStaging() {
-  const live = await discoverLiveCars();
-  if (live.length < 20) throw new Error("Refusing suspicious live inventory count: " + live.length);
+  /* One-time ownership migration is pinned to the live archive snapshot
+     verified on 2026-09-20. The origin's /car/ response is cached differently
+     by region and returned an older inventory from Vercel, so discovery is not
+     authoritative for this transfer. Individual vehicle pages are still
+     fetched live and must succeed before they are staged. */
+  const live = MIGRATION_LIVE_SLUGS.slice();
+  if (live.length !== 86) throw new Error("Invalid pinned migration inventory");
   const done = await migAlreadyStaged();
   const pending = live.map((slug, index) => ({ slug, sortOrder:index + 1 })).filter(item => !done.has(item.slug));
   console.log("AutoHaus ownership staging: " + live.length + " live vehicles; " + pending.length + " remaining");
