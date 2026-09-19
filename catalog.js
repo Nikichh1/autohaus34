@@ -90,7 +90,7 @@
     return '' +
     '<article class="lc' + (opts.paper ? " lc--paper" : "") + '" data-id="' + AH.esc(v.id) + '">' +
       '<a class="lc__link" href="' + AH.vehicleUrl(v) + '">' +
-        '<span class="lc__pic">' +
+        '<span class="lc__pic"' + (AH.watermarkEmbedded && AH.watermarkEmbedded(v, 0, shots[0]) ? ' data-ah-watermark-embedded="1"' : '') + '>' +
           /* <picture>, not <img srcset>: the format switch has to be a
              <source type>, because a browser without WebP still picks a WebP
              candidate out of a srcset and then cannot decode it */
