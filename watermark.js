@@ -22,7 +22,7 @@
     style.id = "ah-watermark-v3-style";
     style.textContent = [
       ".ah-watermark-target{position:relative!important;isolation:isolate}",
-      ".ah-watermark-mark{display:none;position:absolute;left:50%;top:50%;width:var(--ah-watermark-size,34%);max-width:360px;min-width:92px;aspect-ratio:481.9/85;transform:translate(-50%,-50%);pointer-events:none!important;z-index:40;background:transparent url('/autohaus.svg') center/contain no-repeat!important;opacity:var(--ah-watermark-opacity,.25);filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));box-shadow:none!important;border:0!important}",
+      ".ah-watermark-mark{display:none;position:absolute;left:50%;top:50%;width:var(--ah-watermark-size,34%);max-width:360px;min-width:92px;aspect-ratio:481.9/85;transform:translate(-50%,-50%);pointer-events:none!important;z-index:40;background:transparent url('/autohaus.svg') center/contain no-repeat!important;opacity:var(--ah-watermark-opacity,.25);filter:none!important;box-shadow:none!important;border:0!important}",
       ".ah-watermark-v2-on .ah-watermark-mark{display:block}",
       ".lc__pic>.ah-watermark-mark{max-width:260px;min-width:70px}",
       ".dgal__f>.ah-watermark-mark{max-width:380px}",
@@ -40,10 +40,50 @@
     if (ROOT.classList.contains("ah-watermark-on")) ROOT.classList.remove("ah-watermark-on");
   }
 
+  function imageSource(target) {
+    var img = target && target.querySelector && target.querySelector("img");
+    return img ? String(img.currentSrc || img.src || "") : "";
+  }
+
+  function hasEmbeddedAutoHausWatermark(target) {
+    var src = imageSource(target);
+    if (!src) return false;
+    try {
+      var url = new URL(src, location.href);
+      return url.hostname === "autohaus.bg" || url.hostname === "www.autohaus.bg";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function directMarks(target) {
+    return Array.prototype.slice.call(target.querySelectorAll(":scope > .ah-watermark-mark"));
+  }
+
   function markerFor(target) {
     if (!target || target.nodeType !== 1) return;
+
+    var marks = directMarks(target);
+
+    /* Legacy AutoHaus source photos already contain the AutoHaus mark in the
+       image pixels. Never stack a new overlay on top of those files. */
+    if (hasEmbeddedAutoHausWatermark(target)) {
+      marks.forEach(function (mark) { mark.remove(); });
+      target.classList.remove("ah-watermark-target");
+      target.dataset.ahWatermarkMode = "embedded";
+      return;
+    }
+
     target.classList.add("ah-watermark-target");
-    if (target.querySelector(":scope > .ah-watermark-mark")) return;
+    target.dataset.ahWatermarkMode = "overlay";
+
+    /* Keep exactly one overlay even if this script is re-run or a framework
+       clone accidentally carries an old marker with it. */
+    if (marks.length) {
+      marks.slice(1).forEach(function (mark) { mark.remove(); });
+      return;
+    }
+
     var mark = document.createElement("span");
     mark.className = "ah-watermark-mark";
     mark.setAttribute("aria-hidden", "true");
@@ -107,8 +147,16 @@
         removeLegacyOverlay();
         if (!enabled) return;
         records.forEach(function (record) {
+          var owner = record.target && record.target.nodeType === 1 && record.target.closest
+            ? record.target.closest(TARGET_SELECTOR) : null;
+          if (owner) markerFor(owner);
+
           record.addedNodes.forEach(function (node) {
-            if (node.nodeType === 1) decorate(node);
+            if (node.nodeType !== 1) return;
+            decorate(node);
+            var parentOwner = node.parentElement && node.parentElement.closest
+              ? node.parentElement.closest(TARGET_SELECTOR) : null;
+            if (parentOwner) markerFor(parentOwner);
           });
         });
       });
