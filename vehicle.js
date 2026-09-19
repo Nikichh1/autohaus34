@@ -286,35 +286,22 @@
   var selected = 0, selectionVersion = 0, suppressClick = false;
   var decoded = Object.create(null);
 
-  /* The two side frames are part of the older three-image composition and
-     are intentionally static. Arrow/swipe navigation must only replace the
-     large main frame. Keep a tiny immutable snapshot so no async image swap
-     can accidentally rewrite the side pictures. */
-  var sideFrameState = sideFrames.map(function (frame) {
-    var picture = frame.querySelector('picture');
-    var counter = frame.querySelector('.dgal__n');
-    return {
-      frame: frame,
-      index: frame.getAttribute('data-i') || '',
-      href: frame.getAttribute('href') || '',
-      label: frame.getAttribute('aria-label') || '',
-      pictureHTML: picture ? picture.innerHTML : '',
-      counter: counter ? counter.textContent : ''
-    };
-  });
-  function restoreSideFrames() {
-    sideFrameState.forEach(function (state) {
-      var frame = state.frame;
-      if (!frame || !frame.isConnected) return;
-      if (frame.getAttribute('data-i') !== state.index) frame.setAttribute('data-i', state.index);
-      if (frame.getAttribute('href') !== state.href) frame.setAttribute('href', state.href);
-      if (frame.getAttribute('aria-label') !== state.label) frame.setAttribute('aria-label', state.label);
-      var picture = frame.querySelector('picture');
-      if (picture && picture.innerHTML !== state.pictureHTML) picture.innerHTML = state.pictureHTML;
-      var counter = frame.querySelector('.dgal__n');
-      if (counter && counter.textContent !== state.counter) counter.textContent = state.counter;
+  /* Keep one permanent main image node. Replacing <picture> on every arrow
+     press caused browser grid re-measurement and occasional side-frame
+     repainting. The two right-hand frames are never touched by arrow state. */
+  var mainPicture = mainFrame && mainFrame.querySelector('picture');
+  var mainImg = mainPicture && mainPicture.querySelector('img');
+  if (mainPicture && mainImg) {
+    Array.prototype.slice.call(mainPicture.querySelectorAll('source')).forEach(function (source) {
+      source.remove();
     });
+    mainImg.removeAttribute('srcset');
+    mainImg.removeAttribute('sizes');
+    mainImg.width = 800;
+    mainImg.height = 490;
+    mainImg.decoding = 'async';
   }
+
   function canWarmImages() {
     var connection = navigator.connection;
     return !connection || (!connection.saveData && !/^(slow-2g|2g|3g)$/.test(connection.effectiveType || '') &&
@@ -359,25 +346,48 @@
     });
     return entry.promise;
   }
-  function loadedPicture(i, image, sizes) {
-    // Keep the successfully decoded format, including JPEG fallback. Switching
-    // back to a fresh <source> here would retry a failed WebP derivative.
-    return '<picture><img decoding="async" fetchpriority="high" width="800" height="490"' +
-      ' src="' + AH.esc(image.currentSrc || image.src) + '" srcset="' + AH.esc(image.srcset || '') + '"' +
-      ' sizes="' + AH.esc(sizes) + '" alt="' + AH.esc(v.full + ' / ' + (i + 1)) + '"></picture>';
-  }
   function stripTo(i) {
-    if (!mainFrame || !N) return;
-    restoreSideFrames();
+    if (!mainFrame || !mainImg || !N) return;
     i = (i + N) % N;
     var changed = selected !== i;
     selected = i;
+
     mainFrame.dataset.i = String(i);
     mainFrame.href = shots[i];
     mainFrame.setAttribute('aria-label', v.full + ' / ' + (i + 1) + ' / ' + N);
-    mainFrame.querySelector('.dgal__n').textContent = (i + 1) + ' / ' + N;
+    var mainCounter = mainFrame.querySelector('.dgal__n');
+    if (mainCounter) mainCounter.textContent = (i + 1) + ' / ' + N;
     if (nEl) nEl.textContent = (i + 1) + ' / ' + N;
+
     thumbs.forEach(function (thumb, index) {
+      thumb.classList.toggle('is-active', index === i);
+      thumb.setAttribute('aria-pressed', String(index === i));
+    });
+
+    if (!changed) return;
+
+    var version = ++selectionVersion;
+    mainFrame.setAttribute('aria-busy', 'true');
+
+    /* Do not replace the visible DOM with a thumbnail while loading. Keep the
+       previous full image in place until the requested frame is fully decoded.
+       Rapid arrow presses therefore cannot cause flicker or layout resize. */
+    prepare(i, 'high').then(function (image) {
+      if (version !== selectionVersion) return;
+      if (image) {
+        mainImg.removeAttribute('srcset');
+        mainImg.removeAttribute('sizes');
+        mainImg.src = image.currentSrc || image.src;
+        mainImg.alt = v.full + ' / ' + (i + 1);
+        mainImg.width = 800;
+        mainImg.height = 490;
+      }
+      mainFrame.removeAttribute('aria-busy');
+      if (image) prepare((i + 1) % N);
+    });
+  }
+
+  thumbs.forEach(function (thumb, index) {
       thumb.classList.toggle('is-active', index === i);
       thumb.setAttribute('aria-pressed', String(index === i));
     });
@@ -415,7 +425,6 @@
     var control = D.getElementById('dgal-' + direction);
     if (control) control.addEventListener('click', function () {
       stripTo(selected + (direction === 'next' ? 1 : -1));
-      restoreSideFrames();
     });
   });
   if (mainFrame && N > 1) {
