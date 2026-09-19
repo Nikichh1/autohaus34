@@ -1,4 +1,5 @@
 "use strict";
+// one-time GitHub Actions watermark migration trigger
 
 const fs = require("fs");
 const path = require("path");
