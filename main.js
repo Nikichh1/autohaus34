@@ -160,16 +160,10 @@
         ' alt="' + esc(o.alt || "") + '">' +
       '</picture>';
   }
-  function watermarkEmbedded(vehicle, index, url) {
+  function watermarkEmbedded(vehicle, index) {
     var images = vehicle && Array.isArray(vehicle.managed_images) ? vehicle.managed_images : [];
     var meta = images[index] || null;
-    if (meta && (meta.embedded_watermark === true || meta.legacy === true)) return true;
-    try {
-      var parsed = new URL(String(url || ""), location.href);
-      return parsed.hostname === "autohaus.bg" || parsed.hostname === "www.autohaus.bg";
-    } catch (_) {
-      return false;
-    }
+    return !!(meta && meta.embedded_watermark === true);
   }
 
   var priceTxt = function (v) { return v == null ? null : fmt(v) + " €"; };
