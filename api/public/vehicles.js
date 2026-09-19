@@ -120,19 +120,21 @@ function remember(key, body, started, order, status = 200) {
 }
 
 async function publicSettings() {
-  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength&limit=1", { method: "GET" });
+  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale&limit=1", { method: "GET" });
   const rows = await parse(response);
   const row = rows[0] || {};
   const transparency = Number(row.watermark_transparency);
   const size = Number(row.watermark_size);
   const strength = Number(row.photo_filter_strength);
+  const galleryScale = Number(row.desktop_gallery_scale);
   return {
     watermark_enabled: row.watermark_enabled === true,
     watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75,
     watermark_size: Number.isFinite(size) ? Math.max(10, Math.min(60, Math.round(size))) : 34,
     photo_aspect_ratio: row.photo_aspect_ratio === "16:10" ? "16:10" : "16:9",
-    photo_filter: ["none", "natural", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none",
-    photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35
+    photo_filter: ["none", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none",
+    photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35,
+    desktop_gallery_scale: Number.isFinite(galleryScale) ? Math.max(70, Math.min(100, Math.round(galleryScale))) : 84
   };
 }
 
@@ -175,7 +177,7 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { ok: true, settings: await publicSettings() });
     } catch (err) {
       console.error("Public settings API failed", err);
-      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35 } });
+      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84 } });
     }
   }
 
