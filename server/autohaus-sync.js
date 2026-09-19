@@ -334,4 +334,15 @@ async function migExisting(slug) {
   return Array.isArray(data) && data[0] ? data[0] : null;
 }
 
+async function migStageVehicle(slug, sortOrder) {
+  const existing = await migExisting(slug);
+  const row = await fetchVehicle(slug, existing, sortOrder);
+  row.images = await migCopyImages(slug, row.images);
+  row.notes_en = existing && Array.isArray(existing.notes_en) ? existing.notes_en : [];
+  row.published = true;
+  row.sort_order = sortOrder;
+  await migStage(row);
+  return { slug, images: row.images.length };
+}
+
 module.exports = { ARCHIVE, discoverLiveCars, fetchVehicle, parseVehicle, discoverFromHtml };
