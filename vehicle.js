@@ -156,8 +156,10 @@
       '<div class="dgal-wrap" id="dgal-wrap">' +
       '<div class="dgal dgal--' + Math.min(N, 3) + '" id="dgal">' +
         shots.slice(0, 3).map(function (s, i) {
+          var embedded = AH.watermarkEmbedded && AH.watermarkEmbedded(v, i, s);
           return '<a class="dgal__f ' + (i === 0 ? "dgal__main" : "dgal__side") + '"' +
             ' href="' + AH.esc(s) + '" data-i="' + i + '"' +
+            (embedded ? ' data-ah-watermark-embedded="1"' : '') +
             ' aria-label="Кадър ' + (i + 1) + " от " + N + ' — уголеми">' +
             AH.picture(s, { eager: i === 0, width: 800, height: 490,
                             sizes: mainSizes, src: 800,
@@ -642,6 +644,14 @@
     shot = (n + N) % N;
     if (from) opener = from;
     var version = ++lightboxVersion;
+
+    /* Preserve embedded-watermark metadata through responsive/local image
+       optimization. The lightbox may display img/v/... even when the original
+       source was autohaus.bg, so URL inspection alone is not sufficient. */
+    var embeddedWatermark = AH.watermarkEmbedded && AH.watermarkEmbedded(v, shot, shots[shot]);
+    if (embeddedWatermark) lbStage.setAttribute("data-ah-watermark-embedded", "1");
+    else lbStage.removeAttribute("data-ah-watermark-embedded");
+
     // Start with an already visible frame/thumbnail. Keep it on screen until
     // the responsive enlargement decodes, then swap only the latest request.
     var frame = fs.filter(function (item) { return Number(item.dataset.i) === shot; })[0];
