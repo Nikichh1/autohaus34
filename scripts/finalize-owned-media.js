@@ -47,13 +47,31 @@ async function protectedVariant(input, width, format) {
     ? pipe.webp({ quality: 88, effort: 4 }).toBuffer()
     : pipe.jpeg({ quality: 90, progressive: true, chromaSubsampling: "4:2:0" }).toBuffer();
 }
+async function retry(label, fn, attempts) {
+  attempts = attempts || 5;
+  let last;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const value = await fn(i);
+      return value;
+    } catch (error) {
+      last = error;
+      if (i + 1 >= attempts) break;
+      await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, i)));
+    }
+  }
+  throw new Error(label + ": " + (last && last.message || last || "failed"));
+}
+
 async function put(bucket, key, bytes, contentType) {
-  const r = await fetch(SUPABASE_URL + "/storage/v1/object/" + bucket + "/" + objectPath(key), {
-    method: "POST",
-    headers: headers({ "Content-Type": contentType, "x-upsert": "true", "cache-control": "31536000" }),
-    body: bytes
+  return retry("Upload " + bucket + "/" + key, async function () {
+    const r = await fetch(SUPABASE_URL + "/storage/v1/object/" + bucket + "/" + objectPath(key), {
+      method: "POST",
+      headers: headers({ "Content-Type": contentType, "x-upsert": "true", "cache-control": "31536000" }),
+      body: bytes
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));
   });
-  if (!r.ok) throw new Error("Upload " + bucket + "/" + key + " failed " + r.status + " " + (await r.text()).slice(0, 200));
 }
 async function removeTemp(key) {
   const r = await fetch(SUPABASE_URL + "/storage/v1/object/" + PUBLIC_BUCKET + "/" + objectPath(key), {
@@ -73,10 +91,16 @@ function publicUrl(key) {
 async function processImage(slug, image, index) {
   const source = String(image && image.original || "");
   if (!source.includes("/" + PUBLIC_BUCKET + "/" + TEMP_PREFIX)) throw new Error("Unexpected staged source for " + slug + " image " + (index + 1));
-  const r = await fetch(source, { headers: { Accept: "image/*" } });
-  if (!r.ok) throw new Error("Source fetch failed " + r.status + " for " + slug + " image " + (index + 1));
-  const type = r.headers.get("content-type") || "image/jpeg";
-  const input = Buffer.from(await r.arrayBuffer());
+  const sourceData = await retry("Source fetch for " + slug + " image " + (index + 1), async function () {
+    const r = await fetch(source, { headers: { Accept: "image/*" } });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return {
+      type: r.headers.get("content-type") || "image/jpeg",
+      input: Buffer.from(await r.arrayBuffer())
+    };
+  });
+  const type = sourceData.type;
+  const input = sourceData.input;
   const n = String(index + 1).padStart(2, "0");
   const masterKey = FINAL_PREFIX + slug + "/" + n + "." + extFor(type);
   await put(PRIVATE_BUCKET, masterKey, input, type);
@@ -107,12 +131,14 @@ async function processImage(slug, image, index) {
 }
 
 async function updateStage(slug, payload) {
-  const r = await fetch(SUPABASE_URL + "/rest/v1/autohaus_migration_stage?slug=eq." + encodeURIComponent(slug), {
-    method: "PATCH",
-    headers: headers({ "Content-Type": "application/json", Prefer: "return=minimal" }),
-    body: JSON.stringify({ payload, created_at: new Date().toISOString() })
+  return retry("Stage update " + slug, async function () {
+    const r = await fetch(SUPABASE_URL + "/rest/v1/autohaus_migration_stage?slug=eq." + encodeURIComponent(slug), {
+      method: "PATCH",
+      headers: headers({ "Content-Type": "application/json", Prefer: "return=minimal" }),
+      body: JSON.stringify({ payload, created_at: new Date().toISOString() })
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 240));
   });
-  if (!r.ok) throw new Error("Stage update failed " + r.status + " " + (await r.text()).slice(0, 240));
 }
 
 async function processRow(row) {
@@ -171,7 +197,15 @@ async function run() {
   console.log("AutoHaus owned media finalization complete");
 }
 
-run().catch(function (error) {
-  console.error(error && error.stack || error);
+run().catch(async function (error) {
+  const message = String(error && (error.stack || error.message) || error || "Unknown finalization error").slice(0, 12000);
+  console.error(message);
+  try {
+    await fetch(SUPABASE_URL + "/rest/v1/autohaus_migration_diagnostics", {
+      method: "POST",
+      headers: headers({ "Content-Type": "application/json", Prefer: "return=minimal" }),
+      body: JSON.stringify({ message: "FINALIZE: " + message })
+    });
+  } catch (_) {}
   process.exitCode = 1;
 });
