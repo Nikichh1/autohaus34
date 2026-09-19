@@ -44,7 +44,7 @@ function publicVehicle(row) {
     width: image.width || null,
     height: image.height || null,
     legacy: image.legacy === true,
-    embedded_watermark: image.legacy === true,
+    embedded_watermark: image.embedded_watermark === true || image.legacy === true,
     variants: image.variants || {}
   }));
   delete v.src;
