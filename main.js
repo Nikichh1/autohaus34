@@ -160,6 +160,18 @@
         ' alt="' + esc(o.alt || "") + '">' +
       '</picture>';
   }
+  function watermarkEmbedded(vehicle, index, url) {
+    var images = vehicle && Array.isArray(vehicle.managed_images) ? vehicle.managed_images : [];
+    var meta = images[index] || null;
+    if (meta && (meta.embedded_watermark === true || meta.legacy === true)) return true;
+    try {
+      var parsed = new URL(String(url || ""), location.href);
+      return parsed.hostname === "autohaus.bg" || parsed.hostname === "www.autohaus.bg";
+    } catch (_) {
+      return false;
+    }
+  }
+
   var priceTxt = function (v) { return v == null ? null : fmt(v) + " €"; };
   var kmTxt = function (v) { return v == null ? "—" : fmt(v) + " км"; };
   var yrTxt = function (v) { return v.unreg ? "Нов" : (v.year || "—"); };
@@ -170,7 +182,7 @@
   var AH = window.AH = {
     cfg: CFG, all: V, chapters: CHAPTERS, chapterName: CH_NAME, fuel: FUEL,
     fmt: fmt, price: priceTxt, km: kmTxt, yr: yrTxt, esc: esc,
-    img: img, srcset: srcset, webpset: webpset, picture: picture,
+    img: img, srcset: srcset, webpset: webpset, picture: picture, watermarkEmbedded: watermarkEmbedded,
     byId: function (id) { return V.filter(function (v) { return v.id === id; })[0] || null; },
     count: function (fn) { return V.filter(fn).length; },
     countOf: function (k) {
