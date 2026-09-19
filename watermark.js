@@ -87,15 +87,15 @@
     var size = clamp(settings.watermark_size, 10, 60, 34);
     var opacity = (100 - transparency) / 100;
     var ratio = settings.photo_aspect_ratio === "16:10" ? "16:10" : "16:9";
-    var filterName = ["none", "natural", "balanced", "showroom"].indexOf(settings.photo_filter) >= 0 ? settings.photo_filter : "none";
+    var filterName = ["none", "balanced", "showroom"].indexOf(settings.photo_filter) >= 0 ? settings.photo_filter : "none";
     var strength = clamp(settings.photo_filter_strength, 0, 100, 35);
+    var galleryScale = clamp(settings.desktop_gallery_scale, 70, 100, 84);
     /* Human-facing strength should feel useful through the whole slider.
        sqrt() gives the lower/middle range real authority while preserving
        exact zero and a controlled 100% ceiling. */
     var k = Math.sqrt(strength / 100);
     var presets = {
       none: { brightness: 1, contrast: 1, saturate: 1, vignette: 0 },
-      natural: { brightness: 1 - .04 * k, contrast: 1 + .07 * k, saturate: 1 + .10 * k, vignette: .18 * k },
       balanced: { brightness: 1 - .09 * k, contrast: 1 + .12 * k, saturate: 1 + .18 * k, vignette: .28 * k },
       showroom: { brightness: 1 - .14 * k, contrast: 1 + .18 * k, saturate: 1 + .26 * k, vignette: .38 * k }
     };
@@ -107,6 +107,7 @@
     ROOT.style.setProperty("--ah-watermark-size", String(size) + "%");
     ROOT.style.setProperty("--ah-photo-ratio", ratio === "16:10" ? "16 / 10" : "16 / 9");
     ROOT.style.setProperty("--ah-gallery-ratio", ratio === "16:10" ? "12 / 5" : "8 / 3");
+    ROOT.style.setProperty("--ah-gallery-desktop-scale", String(galleryScale) + "%");
     ROOT.style.setProperty("--ah-photo-brightness", String(preset.brightness));
     ROOT.style.setProperty("--ah-photo-contrast", String(preset.contrast));
     ROOT.style.setProperty("--ah-photo-saturate", String(preset.saturate));
@@ -128,12 +129,14 @@
       size: size,
       photo_aspect_ratio: ratio,
       photo_filter: filterName,
-      photo_filter_strength: strength
+      photo_filter_strength: strength,
+      desktop_gallery_scale: galleryScale
     }}));
     window.dispatchEvent(new CustomEvent("ah:photosettingschange", { detail: {
       photo_aspect_ratio: ratio,
       photo_filter: filterName,
-      photo_filter_strength: strength
+      photo_filter_strength: strength,
+      desktop_gallery_scale: galleryScale
     }}));
   }
 
