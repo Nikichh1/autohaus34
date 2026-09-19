@@ -117,7 +117,53 @@ function owned(images) {
   );
 }
 
-module.exports = async function handler(req, res) {
+
+async function mapLimit(items, limit, worker) {
+  let cursor = 0;
+  async function run() {
+    while (cursor < items.length) {
+      const index = cursor++;
+      await worker(items[index], index);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length || 1) }, run));
+}
+
+async function runOwnershipMigration() {
+  const live = await discoverLiveCars();
+  if (live.length < 20) throw new Error("Refusing suspicious live inventory count: " + live.length);
+  console.log("AutoHaus ownership migration: " + live.length + " live vehicles");
+
+  await mapLimit(live, 3, async function (slug, index) {
+    const result = await migrateOne(slug, index + 1);
+    console.log("  migrated " + (index + 1) + "/" + live.length + " " + result.slug + " (" + result.images + " images)");
+  });
+
+  const current = await readRows("vehicles?select=slug,images,published,source_url");
+  const bySlug = new Map(current.map(r => [r.slug, r]));
+  const missing = live.filter(slug => !bySlug.has(slug));
+  const badImages = live.filter(slug => bySlug.has(slug) && !owned(bySlug.get(slug).images));
+  if (missing.length || badImages.length) {
+    throw new Error("Ownership verification failed. Missing=" + missing.join(",") + " bad=" + badImages.join(","));
+  }
+
+  const keep = new Set(live);
+  const stale = current.filter(r => !keep.has(r.slug)).map(r => r.slug);
+  for (const slug of stale) {
+    await write("delete", null, slug);
+    console.log("  removed stale " + slug);
+  }
+
+  const finalRows = await readRows("vehicles?select=slug,images,published");
+  const external = finalRows.filter(r => Array.isArray(r.images) && r.images.some(img => /autohaus\.bg\/wp-content/i.test(String(img && img.original || ""))));
+  if (finalRows.length !== live.length || external.length) {
+    throw new Error("Final ownership check failed: db=" + finalRows.length + " live=" + live.length + " external=" + external.map(r => r.slug).join(","));
+  }
+  console.log("AutoHaus ownership migration complete: " + finalRows.length + " vehicles; removed " + stale.length + " stale rows");
+  return { live: live.length, removed: stale };
+}
+
+async function handler(req, res) {
   try {
     if (req.method !== "GET") return json(res, 405, { ok: false, error: "GET only" });
     if (!req.query || req.query.k !== KEY) return json(res, 403, { ok: false, error: "Forbidden" });
@@ -161,4 +207,7 @@ module.exports = async function handler(req, res) {
     console.error("Ownership migration failed", err);
     return json(res, 500, { ok: false, error: err && err.message ? err.message : String(err) });
   }
-};
+}
+
+module.exports = handler;
+module.exports.runOwnershipMigration = runOwnershipMigration;
