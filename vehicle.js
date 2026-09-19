@@ -355,16 +355,47 @@
     mainFrame.dataset.i = String(i);
     mainFrame.href = shots[i];
     mainFrame.setAttribute('aria-label', v.full + ' / ' + (i + 1) + ' / ' + N);
+
     var mainCounter = mainFrame.querySelector('.dgal__n');
     if (mainCounter) mainCounter.textContent = (i + 1) + ' / ' + N;
     if (nEl) nEl.textContent = (i + 1) + ' / ' + N;
 
     thumbs.forEach(function (thumb, index) {
+      thumb.classList.toggle('is-active', index === i);
+      thumb.setAttribute('aria-pressed', String(index === i));
+    });
+
+    if (!changed) return;
+
+    var version = ++selectionVersion;
+    mainFrame.setAttribute('aria-busy', 'true');
+
+    /* Keep the current full-size frame visible until the requested image has
+       decoded. Only this one permanent <img> node is updated. */
+    prepare(i, 'high').then(function (image) {
+      if (version !== selectionVersion) return;
+      if (image) {
+        mainImg.removeAttribute('srcset');
+        mainImg.removeAttribute('sizes');
+        mainImg.src = image.currentSrc || image.src;
+        mainImg.alt = v.full + ' / ' + (i + 1);
+        mainImg.width = 800;
+        mainImg.height = 490;
+      }
+      mainFrame.removeAttribute('aria-busy');
+      if (image) prepare((i + 1) % N);
+    });
+  }
+
+  thumbs.forEach(function (thumb, index) {
     thumb.addEventListener('click', function () { stripTo(index); });
     thumb.addEventListener('pointerenter', function () { prepare(index); }, { passive: true });
     thumb.addEventListener('focus', function () { prepare(index); });
     thumb.addEventListener('keydown', function (event) {
-      var next = event.key === 'ArrowRight' ? index + 1 : event.key === 'ArrowLeft' ? index - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? N - 1 : null;
+      var next = event.key === 'ArrowRight' ? index + 1 :
+        event.key === 'ArrowLeft' ? index - 1 :
+        event.key === 'Home' ? 0 :
+        event.key === 'End' ? N - 1 : null;
       if (next === null) return;
       event.preventDefault();
       next = (next + N) % N;
@@ -372,12 +403,14 @@
       stripTo(next);
     });
   });
+
   ['prev', 'next'].forEach(function (direction) {
     var control = D.getElementById('dgal-' + direction);
     if (control) control.addEventListener('click', function () {
       stripTo(selected + (direction === 'next' ? 1 : -1));
     });
   });
+
   if (mainFrame && N > 1) {
     var swipeStart = null;
     mainFrame.addEventListener('pointerdown', function (event) {
@@ -387,7 +420,8 @@
     });
     mainFrame.addEventListener('pointerup', function (event) {
       if (!swipeStart) return;
-      var dx = event.clientX - swipeStart.x, dy = event.clientY - swipeStart.y;
+      var dx = event.clientX - swipeStart.x;
+      var dy = event.clientY - swipeStart.y;
       swipeStart = null;
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) {
         suppressClick = true;
@@ -395,11 +429,11 @@
       }
     });
     mainFrame.addEventListener('pointercancel', function () { swipeStart = null; });
+
     var warmNext = function () { prepare(1); };
     if ('requestIdleCallback' in window) requestIdleCallback(warmNext, { timeout: 1800 });
     else setTimeout(warmNext, 500);
   }
-
 
   function bindVehicleInquiry(form) {
     if (!form) return;
