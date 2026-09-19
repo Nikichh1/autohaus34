@@ -116,35 +116,57 @@ function normalizedSettings(row) {
   row = row || {};
   const transparency = Number(row.watermark_transparency);
   const size = Number(row.watermark_size);
+  const ratio = row.photo_aspect_ratio === "16:10" ? "16:10" : "16:9";
+  const filter = ["none", "bright", "showroom", "contrast"].includes(row.photo_filter) ? row.photo_filter : "none";
   return {
     watermark_enabled: row.watermark_enabled === true,
     watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75,
-    watermark_size: Number.isFinite(size) ? Math.max(10, Math.min(60, Math.round(size))) : 34
+    watermark_size: Number.isFinite(size) ? Math.max(10, Math.min(60, Math.round(size))) : 34,
+    photo_aspect_ratio: ratio,
+    photo_filter: filter
   };
 }
 
 async function settingsAction(req, res, db) {
   if (req.method === "GET") {
-    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size&limit=1", { method: "GET" });
+    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter&limit=1", { method: "GET" });
     const data = await readJson(response);
     if (!response.ok) return apiError(res, response.status, "Could not load settings", data);
     return json(res, 200, { ok: true, settings: normalizedSettings(Array.isArray(data) && data[0]) });
   }
   if (!["POST", "PATCH", "PUT"].includes(req.method)) return apiError(res, 405, "Method not allowed");
   const body = req.body && typeof req.body === "object" ? req.body : {};
-  if (typeof body.watermark_enabled !== "boolean") return apiError(res, 400, "Invalid watermark setting");
-  const transparency = Number(body.watermark_transparency);
-  if (!Number.isInteger(transparency) || transparency < 0 || transparency > 100) return apiError(res, 400, "Transparency must be between 0 and 100.");
-  const update = {
-    watermark_enabled: body.watermark_enabled,
-    watermark_transparency: transparency,
-    updated_at: new Date().toISOString()
-  };
-  if (body.watermark_size != null) {
+  const update = { updated_at: new Date().toISOString() };
+  let changed = false;
+
+  if (Object.prototype.hasOwnProperty.call(body, "watermark_enabled")) {
+    if (typeof body.watermark_enabled !== "boolean") return apiError(res, 400, "Invalid watermark setting");
+    update.watermark_enabled = body.watermark_enabled;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "watermark_transparency")) {
+    const transparency = Number(body.watermark_transparency);
+    if (!Number.isInteger(transparency) || transparency < 0 || transparency > 100) return apiError(res, 400, "Transparency must be between 0 and 100.");
+    update.watermark_transparency = transparency;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "watermark_size")) {
     const size = Number(body.watermark_size);
     if (!Number.isInteger(size) || size < 10 || size > 60) return apiError(res, 400, "Watermark size must be between 10 and 60.");
     update.watermark_size = size;
+    changed = true;
   }
+  if (Object.prototype.hasOwnProperty.call(body, "photo_aspect_ratio")) {
+    if (!["16:9", "16:10"].includes(body.photo_aspect_ratio)) return apiError(res, 400, "Invalid photo aspect ratio");
+    update.photo_aspect_ratio = body.photo_aspect_ratio;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "photo_filter")) {
+    if (!["none", "bright", "showroom", "contrast"].includes(body.photo_filter)) return apiError(res, 400, "Invalid photo filter");
+    update.photo_filter = body.photo_filter;
+    changed = true;
+  }
+  if (!changed) return apiError(res, 400, "No settings to update");
   const response = await db("admin_settings?singleton=eq.true", {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
