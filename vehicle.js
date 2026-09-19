@@ -293,20 +293,35 @@
   var selected = 0, selectionVersion = 0, suppressClick = false;
   var decoded = Object.create(null);
 
-  /* The two desktop side frames are decorative fixed references. They are not
-     part of gallery selection state and must never rotate with arrows, swipe,
-     thumbnails, lightbox close, or keyboard navigation. Keep an exact snapshot
-     of their initial source state and repair any accidental mutation. */
+  /* The two desktop side frames are fixed reference images. They are outside
+     selection state: arrows, swipe, thumbnails, keyboard and lightbox closing
+     may update only the large left frame. Snapshot only source-related state so
+     harmless load classes/styles can still change without rebuilding the DOM. */
   var sideSnapshots = sideFrames.map(function (frame) {
+    var picture = frame.querySelector('picture');
+    var image = frame.querySelector('img');
     return {
       href: frame.getAttribute('href') || '',
       dataI: frame.getAttribute('data-i') || '',
       ariaLabel: frame.getAttribute('aria-label') || '',
       embedded: frame.getAttribute('data-ah-watermark-embedded') || '0',
-      html: frame.innerHTML
+      imgSrc: image ? image.getAttribute('src') || '' : '',
+      imgSrcset: image ? image.getAttribute('srcset') || '' : '',
+      imgSizes: image ? image.getAttribute('sizes') || '' : '',
+      sourceSrcsets: picture ? Array.prototype.map.call(picture.querySelectorAll('source'), function (source) {
+        return source.getAttribute('srcset') || '';
+      }) : []
     };
   });
   var restoringSideFrames = false;
+  function setOptionalAttr(node, name, value) {
+    if (!node) return;
+    if (value) {
+      if (node.getAttribute(name) !== value) node.setAttribute(name, value);
+    } else if (node.hasAttribute(name)) {
+      node.removeAttribute(name);
+    }
+  }
   function restoreSideFrames() {
     if (restoringSideFrames) return;
     restoringSideFrames = true;
@@ -319,7 +334,17 @@
       if (frame.getAttribute('data-ah-watermark-embedded') !== snap.embedded) {
         frame.setAttribute('data-ah-watermark-embedded', snap.embedded);
       }
-      if (frame.innerHTML !== snap.html) frame.innerHTML = snap.html;
+
+      var picture = frame.querySelector('picture');
+      var image = frame.querySelector('img');
+      setOptionalAttr(image, 'src', snap.imgSrc);
+      setOptionalAttr(image, 'srcset', snap.imgSrcset);
+      setOptionalAttr(image, 'sizes', snap.imgSizes);
+      if (picture) {
+        Array.prototype.forEach.call(picture.querySelectorAll('source'), function (source, sourceIndex) {
+          setOptionalAttr(source, 'srcset', snap.sourceSrcsets[sourceIndex] || '');
+        });
+      }
       if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(frame);
     });
     restoringSideFrames = false;
@@ -332,7 +357,6 @@
       sideObserver.observe(frame, {
         attributes: true,
         subtree: true,
-        childList: true,
         attributeFilter: ['href', 'src', 'srcset', 'sizes', 'data-i', 'aria-label', 'data-ah-watermark-embedded']
       });
     });
