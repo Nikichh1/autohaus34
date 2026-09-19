@@ -1,4 +1,5 @@
 "use strict";
+// retry after migration-prefix SELECT policy
 
 const DIAG_URL = "https://ajoiqomflplhadyhxvfe.supabase.co/rest/v1/autohaus_migration_diagnostics";
 const DIAG_KEY = "sb_publishable_gBEUBrOjT_JsBRjAnGL9PQ_ra-1hY0g";
