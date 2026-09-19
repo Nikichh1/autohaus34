@@ -117,19 +117,21 @@ function normalizedSettings(row) {
   const transparency = Number(row.watermark_transparency);
   const size = Number(row.watermark_size);
   const ratio = row.photo_aspect_ratio === "16:10" ? "16:10" : "16:9";
-  const filter = ["none", "bright", "showroom", "contrast"].includes(row.photo_filter) ? row.photo_filter : "none";
+  const filter = ["none", "natural", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none";
+  const strength = Number(row.photo_filter_strength);
   return {
     watermark_enabled: row.watermark_enabled === true,
     watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75,
     watermark_size: Number.isFinite(size) ? Math.max(10, Math.min(60, Math.round(size))) : 34,
     photo_aspect_ratio: ratio,
-    photo_filter: filter
+    photo_filter: filter,
+    photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35
   };
 }
 
 async function settingsAction(req, res, db) {
   if (req.method === "GET") {
-    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter&limit=1", { method: "GET" });
+    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength&limit=1", { method: "GET" });
     const data = await readJson(response);
     if (!response.ok) return apiError(res, response.status, "Could not load settings", data);
     return json(res, 200, { ok: true, settings: normalizedSettings(Array.isArray(data) && data[0]) });
@@ -162,8 +164,14 @@ async function settingsAction(req, res, db) {
     changed = true;
   }
   if (Object.prototype.hasOwnProperty.call(body, "photo_filter")) {
-    if (!["none", "bright", "showroom", "contrast"].includes(body.photo_filter)) return apiError(res, 400, "Invalid photo filter");
+    if (!["none", "natural", "balanced", "showroom"].includes(body.photo_filter)) return apiError(res, 400, "Invalid photo filter");
     update.photo_filter = body.photo_filter;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "photo_filter_strength")) {
+    const strength = Number(body.photo_filter_strength);
+    if (!Number.isInteger(strength) || strength < 0 || strength > 100) return apiError(res, 400, "Photo filter strength must be between 0 and 100.");
+    update.photo_filter_strength = strength;
     changed = true;
   }
   if (!changed) return apiError(res, 400, "No settings to update");

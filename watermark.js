@@ -87,20 +87,26 @@
     var size = clamp(settings.watermark_size, 10, 60, 34);
     var opacity = (100 - transparency) / 100;
     var ratio = settings.photo_aspect_ratio === "16:10" ? "16:10" : "16:9";
-    var filterName = ["none", "bright", "showroom", "contrast"].indexOf(settings.photo_filter) >= 0 ? settings.photo_filter : "none";
-    var filters = {
-      none: "none",
-      bright: "brightness(1.06) contrast(1.025) saturate(1.02)",
-      showroom: "brightness(1.045) contrast(1.07) saturate(1.06)",
-      contrast: "brightness(1.01) contrast(1.12) saturate(1.03)"
+    var filterName = ["none", "natural", "balanced", "showroom"].indexOf(settings.photo_filter) >= 0 ? settings.photo_filter : "none";
+    var strength = clamp(settings.photo_filter_strength, 0, 100, 35);
+    var k = strength / 100;
+    var presets = {
+      none: { brightness: 1, contrast: 1, saturate: 1, vignette: 0 },
+      natural: { brightness: 1 - .015 * k, contrast: 1 + .035 * k, saturate: 1 + .03 * k, vignette: .13 * k },
+      balanced: { brightness: 1 - .025 * k, contrast: 1 + .06 * k, saturate: 1 + .05 * k, vignette: .18 * k },
+      showroom: { brightness: 1 - .035 * k, contrast: 1 + .075 * k, saturate: 1 + .07 * k, vignette: .22 * k }
     };
+    var preset = presets[filterName] || presets.none;
 
     enabled = settings.watermark_enabled === true;
     ROOT.style.setProperty("--ah-watermark-opacity", String(opacity));
     ROOT.style.setProperty("--ah-watermark-size", String(size) + "%");
     ROOT.style.setProperty("--ah-photo-ratio", ratio === "16:10" ? "16 / 10" : "16 / 9");
     ROOT.style.setProperty("--ah-gallery-ratio", ratio === "16:10" ? "12 / 5" : "8 / 3");
-    ROOT.style.setProperty("--ah-photo-filter", filters[filterName]);
+    ROOT.style.setProperty("--ah-photo-brightness", String(preset.brightness));
+    ROOT.style.setProperty("--ah-photo-contrast", String(preset.contrast));
+    ROOT.style.setProperty("--ah-photo-saturate", String(preset.saturate));
+    ROOT.style.setProperty("--ah-photo-vignette-opacity", String(preset.vignette));
     ROOT.style.setProperty("--cat-ratio", ratio === "16:10" ? "1.6" : "1.7777778");
     ROOT.dataset.ahPhotoRatio = ratio;
     ROOT.dataset.ahPhotoFilter = filterName;
@@ -116,11 +122,13 @@
       opacity: opacity,
       size: size,
       photo_aspect_ratio: ratio,
-      photo_filter: filterName
+      photo_filter: filterName,
+      photo_filter_strength: strength
     }}));
     window.dispatchEvent(new CustomEvent("ah:photosettingschange", { detail: {
       photo_aspect_ratio: ratio,
-      photo_filter: filterName
+      photo_filter: filterName,
+      photo_filter_strength: strength
     }}));
   }
 

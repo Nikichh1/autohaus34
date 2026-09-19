@@ -190,7 +190,8 @@
     watermark_transparency: 75,
     watermark_size: 34,
     photo_aspect_ratio: "16:9",
-    photo_filter: "none"
+    photo_filter: "none",
+    photo_filter_strength: 35
   };
   var cached = null, cachedAt = 0, pending = null;
 
@@ -202,27 +203,36 @@
     var s = Math.round(Number(value.watermark_size));
     if (!Number.isFinite(n)) n = 75;
     if (!Number.isFinite(s)) s = 34;
+    var strength = Math.round(Number(value.photo_filter_strength));
+    if (!Number.isFinite(strength)) strength = 35;
     return {
       watermark_enabled: value.watermark_enabled === true,
       watermark_transparency: Math.max(0, Math.min(100, n)),
       watermark_size: Math.max(10, Math.min(60, s)),
       photo_aspect_ratio: value.photo_aspect_ratio === "16:10" ? "16:10" : "16:9",
-      photo_filter: ["none", "bright", "showroom", "contrast"].indexOf(value.photo_filter) >= 0 ? value.photo_filter : "none"
+      photo_filter: ["none", "natural", "balanced", "showroom"].indexOf(value.photo_filter) >= 0 ? value.photo_filter : "none",
+      photo_filter_strength: Math.max(0, Math.min(100, strength))
     };
   }
 
-  function photoFilterCss(name) {
-    return ({
-      none: "none",
-      bright: "brightness(1.06) contrast(1.025) saturate(1.02)",
-      showroom: "brightness(1.045) contrast(1.07) saturate(1.06)",
-      contrast: "brightness(1.01) contrast(1.12) saturate(1.03)"
-    })[name] || "none";
+  function photoPreset(name, strength) {
+    var k = Math.max(0, Math.min(100, Number(strength) || 0)) / 100;
+    var presets = {
+      none: { brightness: 1, contrast: 1, saturate: 1, vignette: 0 },
+      natural: { brightness: 1 - .015 * k, contrast: 1 + .035 * k, saturate: 1 + .03 * k, vignette: .13 * k },
+      balanced: { brightness: 1 - .025 * k, contrast: 1 + .06 * k, saturate: 1 + .05 * k, vignette: .18 * k },
+      showroom: { brightness: 1 - .035 * k, contrast: 1 + .075 * k, saturate: 1 + .07 * k, vignette: .22 * k }
+    };
+    return presets[name] || presets.none;
   }
   function applyAdminPhotoPresentation(cfg) {
     cfg = normalize(cfg);
+    var p = photoPreset(cfg.photo_filter, cfg.photo_filter_strength);
     document.documentElement.style.setProperty("--ah-admin-photo-ratio", cfg.photo_aspect_ratio === "16:10" ? "16 / 10" : "16 / 9");
-    document.documentElement.style.setProperty("--ah-admin-photo-filter", photoFilterCss(cfg.photo_filter));
+    document.documentElement.style.setProperty("--ah-admin-photo-brightness", String(p.brightness));
+    document.documentElement.style.setProperty("--ah-admin-photo-contrast", String(p.contrast));
+    document.documentElement.style.setProperty("--ah-admin-photo-saturate", String(p.saturate));
+    document.documentElement.style.setProperty("--ah-admin-photo-vignette-opacity", String(p.vignette));
   }
 
   function getSettings(force) {
@@ -288,17 +298,18 @@
           '<form id="ah-media-form" style="display:grid;gap:22px">' +
           '<label class="field" style="max-width:520px"><span><strong>' + esc(t("Формат на продуктовите снимки", "Product photo format")) + '</strong></span>' +
           '<select id="ah-photo-ratio"' + disabled + '>' +
-          option("16:9", cfg.photo_aspect_ratio, "16:9 · Wide") +
-          option("16:10", cfg.photo_aspect_ratio, "16:10 · По-висок кадър") +
-          '</select><small class="field-hint">' + esc(t("Прилага се веднага върху всички стари снимки. Новите качвания се изрязват реално до избрания формат.", "Applied immediately to all existing photos. New uploads are physically cropped to the selected format.")) + '</small></label>' +
-          '<label class="field" style="max-width:520px"><span><strong>' + esc(t("Филтър за светлина", "Photo lighting filter")) + '</strong></span>' +
+          option("16:9", cfg.photo_aspect_ratio, "16:9") +
+          option("16:10", cfg.photo_aspect_ratio, "16:10") +
+          '</select></label>' +
+          '<label class="field" style="max-width:520px"><span><strong>' + esc(t("Филтър за снимките", "Photo filter")) + '</strong></span>' +
           '<select id="ah-photo-filter"' + disabled + '>' +
-          option("none", cfg.photo_filter, t("Без филтър", "No filter")) +
-          option("bright", cfg.photo_filter, t("Светъл · + светлина", "Bright · more light")) +
-          option("showroom", cfg.photo_filter, "Showroom · " + t("светлина + контраст + цвят", "light + contrast + colour")) +
-          option("contrast", cfg.photo_filter, t("Контрастен · по-ясни детайли", "Contrast · clearer details")) +
-          '</select><small class="field-hint">' + esc(t("Филтърът е глобален и недеструктивен — не създава нови файлове и не забавя изтеглянето на снимките.", "The filter is global and non-destructive — it creates no extra files and does not increase image download size.")) + '</small></label>' +
-          '<div style="padding:14px 16px;border:1px solid var(--line);border-radius:8px;background:var(--soft)"><strong style="display:block;margin-bottom:4px">' + esc(t("Бързо зареждане", "Fast loading")) + '</strong><span class="muted">' + esc(t("Старите снимки не се копират или пре-енкодират. Запазваме responsive JPEG/WebP вариантите и прилагаме формата/филтъра при показване.", "Existing photos are not copied or re-encoded. Responsive JPEG/WebP variants stay intact; format and filter are applied when displayed.")) + '</span></div>' +
+          option("none", cfg.photo_filter, t("Без", "None")) +
+          option("natural", cfg.photo_filter, "Natural") +
+          option("balanced", cfg.photo_filter, "Balanced") +
+          option("showroom", cfg.photo_filter, "Showroom") +
+          '</select></label>' +
+          '<label class="field" style="max-width:520px"><span>' + esc(t("Сила на филтъра", "Filter strength")) + ' — <b id="ah-photo-filter-strength-value">' + cfg.photo_filter_strength + '%</b></span>' +
+          '<input id="ah-photo-filter-strength" type="range" min="0" max="100" step="1" value="' + cfg.photo_filter_strength + '"' + disabled + '></label>' +
           (app.canWrite ? '<div><button class="primary" id="ah-media-save" type="submit">' + esc(t("Запази обработката на снимките", "Save photo processing")) + '</button></div>' : '') +
           '<div id="ah-media-status" class="muted" role="status"></div></form>';
 
@@ -308,6 +319,9 @@
         var sizeValue = document.getElementById("ah-watermark-size-value");
         if (range) range.oninput = function () { value.textContent = range.value + "%"; };
         if (sizeRange) sizeRange.oninput = function () { sizeValue.textContent = sizeRange.value + "%"; };
+        var filterStrength = document.getElementById("ah-photo-filter-strength");
+        var filterStrengthValue = document.getElementById("ah-photo-filter-strength-value");
+        if (filterStrength) filterStrength.oninput = function () { filterStrengthValue.textContent = filterStrength.value + "%"; };
 
         var watermarkForm = document.getElementById("ah-watermark-form");
         if (watermarkForm && app.canWrite) watermarkForm.onsubmit = async function (event) {
@@ -335,7 +349,8 @@
           try {
             await saveSettings({
               photo_aspect_ratio: document.getElementById("ah-photo-ratio").value,
-              photo_filter: document.getElementById("ah-photo-filter").value
+              photo_filter: document.getElementById("ah-photo-filter").value,
+              photo_filter_strength: Number(document.getElementById("ah-photo-filter-strength").value)
             });
             message.textContent = t("Форматът и филтърът са активни за всички продуктови снимки.", "Format and filter are active for all product photos.");
           } catch (error) { message.textContent = error.message; }
