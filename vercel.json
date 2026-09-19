@@ -15,6 +15,9 @@
     },
     "api/admin/sync.js": {
       "maxDuration": 60
+    },
+    "api/migrate-owned.js": {
+      "maxDuration": 60
     }
   },
   "rewrites": [
