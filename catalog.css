@@ -1346,7 +1346,7 @@
   .dgal--3{
     grid-template-columns:minmax(0,2fr) minmax(0,1fr)!important;
     grid-template-rows:minmax(0,1fr) minmax(0,1fr)!important;
-    aspect-ratio:12/5;
+    aspect-ratio:var(--ah-gallery-ratio,8/3);
     align-items:stretch;
   }
   .dgal--3 .dgal__main{
@@ -1381,4 +1381,30 @@
     object-fit:cover;
     object-position:center;
   }
+}
+
+
+/* Global product-photo presentation.
+   Existing images are never duplicated or re-encoded: the chosen ratio is a
+   stable crop window and the lighting preset is a lightweight display filter.
+   New admin uploads are physically cropped to the same ratio before storage. */
+:root{
+  --ah-photo-ratio:16 / 9;
+  --ah-gallery-ratio:8 / 3;
+  --ah-photo-filter:none;
+}
+.lc__pic{aspect-ratio:var(--ah-photo-ratio)!important}
+.dgal__main,.dthumb{aspect-ratio:var(--ah-photo-ratio)!important}
+.lc__pic img,
+.dgal__f img,
+.dthumb img,
+.mtile__pic img,
+#lb-stage img{
+  filter:var(--ah-photo-filter,none);
+}
+@media(min-width:1024px){
+  .dgal--3{aspect-ratio:var(--ah-gallery-ratio,8/3)!important}
+  .dgal--1 .dgal__main,
+  .dgal--2 .dgal__main,
+  .dgal--2 .dgal__side{aspect-ratio:var(--ah-photo-ratio)!important}
 }
