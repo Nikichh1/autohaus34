@@ -1,3 +1,4 @@
+/* Production deployment marker: single-lightbox-watermark */
 /* AutoHaus public product watermark.
    The global admin setting is read on every public page load and applied to
    every product-photo surface, including content rendered after page load. */
