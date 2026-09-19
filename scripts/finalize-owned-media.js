@@ -61,3 +61,47 @@ async function removeTemp(key) {
   });
   if (!r.ok && r.status !== 404) throw new Error("Temp delete failed " + r.status + " " + (await r.text()).slice(0, 160));
 }
+
+function extFor(type) {
+  if (/png/i.test(type)) return "png";
+  if (/webp/i.test(type)) return "webp";
+  return "jpg";
+}
+function publicUrl(key) {
+  return SUPABASE_URL + "/storage/v1/object/public/" + PUBLIC_BUCKET + "/" + objectPath(key);
+}
+async function processImage(slug, image, index) {
+  const source = String(image && image.original || "");
+  if (!source.includes("/" + PUBLIC_BUCKET + "/" + TEMP_PREFIX)) throw new Error("Unexpected staged source for " + slug + " image " + (index + 1));
+  const r = await fetch(source, { headers: { Accept: "image/*" } });
+  if (!r.ok) throw new Error("Source fetch failed " + r.status + " for " + slug + " image " + (index + 1));
+  const type = r.headers.get("content-type") || "image/jpeg";
+  const input = Buffer.from(await r.arrayBuffer());
+  const n = String(index + 1).padStart(2, "0");
+  const masterKey = FINAL_PREFIX + slug + "/" + n + "." + extFor(type);
+  await put(PRIVATE_BUCKET, masterKey, input, type);
+
+  const variants = {};
+  for (const width of [400, 800, 1280]) {
+    for (const format of ["jpg", "webp"]) {
+      const key = FINAL_PREFIX + slug + "/" + n + "-" + width + "." + format;
+      const bytes = await protectedVariant(input, width, format);
+      await put(PUBLIC_BUCKET, key, bytes, format === "webp" ? "image/webp" : "image/jpeg");
+      variants[format + width] = publicUrl(key);
+    }
+  }
+  return {
+    id: image.id || slug + "-owned-" + (index + 1),
+    public_id: FINAL_PREFIX + slug + "/" + n,
+    original: variants.jpg1280,
+    source_original: image.source_original || "",
+    master_path: masterKey,
+    width: image.width || null,
+    height: image.height || null,
+    legacy: false,
+    embedded_watermark: false,
+    protected_variants: true,
+    position: index,
+    variants
+  };
+}
