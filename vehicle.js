@@ -159,7 +159,7 @@
           var embedded = AH.watermarkEmbedded && AH.watermarkEmbedded(v, i, s);
           var frameSizes = i === 0 ? '(min-width:1024px) 66vw, 100vw' : '(min-width:1024px) 33vw, 100vw';
           return '<a class="dgal__f ' + (i === 0 ? "dgal__main" : "dgal__side") + '"' +
-            ' href="' + AH.esc(s) + '" data-i="' + i + '"' +
+            ' href="' + AH.esc(AH.img(s, 1280)) + '" data-i="' + i + '"' +
             ' data-ah-watermark-embedded="' + (embedded ? '1' : '0') + '"' +
             ' aria-label="Кадър ' + (i + 1) + " от " + N + ' — уголеми">' +
             AH.picture(s, { eager: i === 0, width: i === 0 ? 1280 : 800, height: i === 0 ? 784 : 490,
@@ -426,7 +426,7 @@
     selected = i;
 
     mainFrame.dataset.i = String(i);
-    mainFrame.href = shots[i];
+    mainFrame.href = AH.img(shots[i], 1280);
     mainFrame.setAttribute('aria-label', v.full + ' / ' + (i + 1) + ' / ' + N);
 
     var embeddedWatermark = AH.watermarkEmbedded && AH.watermarkEmbedded(v, i, shots[i]);
