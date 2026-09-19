@@ -360,55 +360,6 @@
     if (nEl) nEl.textContent = (i + 1) + ' / ' + N;
 
     thumbs.forEach(function (thumb, index) {
-      thumb.classList.toggle('is-active', index === i);
-      thumb.setAttribute('aria-pressed', String(index === i));
-    });
-
-    if (!changed) return;
-
-    var version = ++selectionVersion;
-    mainFrame.setAttribute('aria-busy', 'true');
-
-    /* Do not replace the visible DOM with a thumbnail while loading. Keep the
-       previous full image in place until the requested frame is fully decoded.
-       Rapid arrow presses therefore cannot cause flicker or layout resize. */
-    prepare(i, 'high').then(function (image) {
-      if (version !== selectionVersion) return;
-      if (image) {
-        mainImg.removeAttribute('srcset');
-        mainImg.removeAttribute('sizes');
-        mainImg.src = image.currentSrc || image.src;
-        mainImg.alt = v.full + ' / ' + (i + 1);
-        mainImg.width = 800;
-        mainImg.height = 490;
-      }
-      mainFrame.removeAttribute('aria-busy');
-      if (image) prepare((i + 1) % N);
-    });
-  }
-
-  thumbs.forEach(function (thumb, index) {
-      thumb.classList.toggle('is-active', index === i);
-      thumb.setAttribute('aria-pressed', String(index === i));
-    });
-    if (!changed) return;
-    var version = ++selectionVersion;
-    // The already-loaded thumbnail gives immediate feedback while the full
-    // responsive image decodes. The stage never changes its dimensions.
-    var preview = thumbs[i] && thumbs[i].querySelector('img');
-    if (preview && preview.complete && preview.naturalWidth) {
-      mainFrame.querySelector('picture').innerHTML = '<img src="' + AH.esc(preview.currentSrc || preview.src) + '" alt="' + AH.esc(v.full) + '" width="800" height="490">';
-    }
-    mainFrame.setAttribute('aria-busy', 'true');
-    prepare(i, 'high').then(function (image) {
-      if (version !== selectionVersion) return;
-      if (image) mainFrame.querySelector('picture').outerHTML = loadedPicture(i, image, mainSizes);
-      mainFrame.removeAttribute('aria-busy');
-      restoreSideFrames();
-      if (image) prepare((i + 1) % N);
-    });
-  }
-  thumbs.forEach(function (thumb, index) {
     thumb.addEventListener('click', function () { stripTo(index); });
     thumb.addEventListener('pointerenter', function () { prepare(index); }, { passive: true });
     thumb.addEventListener('focus', function () { prepare(index); });
