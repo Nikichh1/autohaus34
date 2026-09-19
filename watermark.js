@@ -6,7 +6,7 @@
   "use strict";
 
   var ROOT = document.documentElement;
-  var TARGET_SELECTOR = ".lc__pic,.dgal__f,#lb-stage";
+  var TARGET_SELECTOR = ".lc__pic,.dgal__f,.dthumb,#lb-stage";
   var enabled = false;
   var lastFetch = 0;
   var bodyObserver = null;
@@ -31,6 +31,7 @@
       ".ah-watermark-v4-on [data-ah-watermark-mode=overlay]::before{content:\"\";position:absolute;left:50%;top:50%;width:var(--ah-watermark-size,34%);max-width:360px;min-width:92px;aspect-ratio:481.9/85;transform:translate(-50%,-50%);pointer-events:none!important;z-index:40;background:transparent url('/autohaus.svg') center/contain no-repeat!important;opacity:var(--ah-watermark-opacity,.25);filter:none!important;box-shadow:none!important;border:0!important}",
       ".ah-watermark-v4-on .lc__pic[data-ah-watermark-mode=overlay]::before{max-width:260px;min-width:70px}",
       ".ah-watermark-v4-on .dgal__f[data-ah-watermark-mode=overlay]::before{max-width:380px}",
+      ".ah-watermark-v4-on .dthumb[data-ah-watermark-mode=overlay]::before{max-width:72%;min-width:0}",
       ".ah-watermark-v4-on #lb-stage[data-ah-watermark-mode=overlay]::before{max-width:460px}",
       "html.lb-open .dgallery [data-ah-watermark-mode=overlay]::before{display:none!important}",
       "html.lb-open #lb-stage[data-ah-watermark-mode=overlay]::before{display:block!important}",
