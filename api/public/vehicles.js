@@ -20,7 +20,7 @@ const LOCAL_PHOTOS = bundledPhotoSet();
 const memory = new Map();
 const pending = new Map();
 const encoded = new WeakMap();
-const FRESH_MS = 30000;
+const FRESH_MS = 5000;
 const MAX_ENTRIES = 250;
 let requestOrder = 0;
 
@@ -80,7 +80,7 @@ function send(req, res, status, body) {
   res.setHeader("ETag", etag);
   const remaining = Math.max(0, Math.floor((Number(body.fresh_until) - Date.now()) / 1000));
   res.setHeader("Cache-Control", remaining
-    ? "public, max-age=" + remaining + ", s-maxage=" + remaining + ", stale-while-revalidate=120"
+    ? "public, max-age=" + remaining + ", s-maxage=" + remaining + ", stale-while-revalidate=15"
     : "no-store");
   if (req.headers && req.headers["if-none-match"] === etag) { res.statusCode = 304; return res.end(); }
   res.statusCode = status;
