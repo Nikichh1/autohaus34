@@ -1390,6 +1390,7 @@
 :root{
   --ah-photo-ratio:16 / 9;
   --ah-gallery-ratio:8 / 3;
+  --ah-gallery-desktop-scale:84%;
   --ah-photo-brightness:1;
   --ah-photo-contrast:1;
   --ah-photo-saturate:1;
@@ -1420,8 +1421,43 @@
   background:radial-gradient(ellipse at center,rgba(0,0,0,0) 48%,rgba(0,0,0,calc(var(--ah-photo-vignette-opacity)*.45)) 78%,rgba(0,0,0,var(--ah-photo-vignette-opacity)) 100%);
 }
 @media(min-width:1024px){
+  .dgallery{
+    width:var(--ah-gallery-desktop-scale,84%);
+    max-width:100%;
+    margin-inline:auto;
+  }
   .dgal--3{aspect-ratio:var(--ah-gallery-ratio,8/3)!important}
   .dgal--1 .dgal__main,
   .dgal--2 .dgal__main,
   .dgal--2 .dgal__side{aspect-ratio:var(--ah-photo-ratio)!important}
+}
+
+
+/* Product gallery must not wash out on pointer interaction. Keep thumbnails
+   and full-size frames at exactly the same colour/opacity before and during
+   hover; only the controls/focus outline may react. */
+.dgal__f,
+.dthumb,
+.dgal__f img,
+.dthumb img{
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+}
+.dgal__f:hover,
+.dgal__f:focus-visible,
+.dgal__f:active,
+.dthumb:hover,
+.dthumb:focus-visible,
+.dthumb:active{
+  opacity:1!important;
+}
+.dgal__f:hover img,
+.dgal__f:focus-visible img,
+.dgal__f:active img,
+.dthumb:hover img,
+.dthumb:focus-visible img,
+.dthumb:active img{
+  opacity:1!important;
+  transform:none!important;
+  filter:var(--ah-photo-filter-css,brightness(var(--ah-photo-brightness)) contrast(var(--ah-photo-contrast)) saturate(var(--ah-photo-saturate)))!important;
 }
