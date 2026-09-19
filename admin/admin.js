@@ -462,11 +462,11 @@
       }
       var width = Math.max(1, Math.round(Math.min(1600, sw)));
       var height = Math.max(1, Math.round(width * 9 / 16));
-      var files = { original: await encode(width, height, "image/jpeg", .86) };
+      var files = { original: await encode(width, height, "image/jpeg", .92) };
       for (var i = 0; i < 3; i++) {
         var target = [400, 800, 1280][i], size = widthSize(target);
-        files["jpg" + target] = await encode(size.width, size.height, "image/jpeg", .82);
-        files["webp" + target] = await encode(size.width, size.height, "image/webp", .80);
+        files["jpg" + target] = await encode(size.width, size.height, "image/jpeg", .90);
+        files["webp" + target] = await encode(size.width, size.height, "image/webp", .88);
       }
       canvas.width = 1; canvas.height = 1;
       return { width: width, height: height, files: files };
