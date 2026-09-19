@@ -32,21 +32,52 @@ async function parse(r) {
   return parsed;
 }
 
+function protectedManagedVariants(publicId) {
+  const key = crypto.createHash("sha1").update(String(publicId || "")).digest("hex").slice(0, 20);
+  const base = "/img/v/protected/managed-" + key + "-";
+  return {
+    jpg400: base + "400.jpg",
+    jpg800: base + "800.jpg",
+    jpg1280: base + "1280.jpg",
+    webp400: base + "400.webp",
+    webp800: base + "800.webp",
+    webp1280: base + "1280.webp"
+  };
+}
+
 function publicVehicle(row) {
   const v = legacyVehicle(row);
   v.notes_en = Array.isArray(row.notes_en) ? row.notes_en : [];
-  v.local_shots = (v.managed_images || []).filter((image) => LOCAL_PHOTOS.has(image.original)).map((image) => image.original);
+  const sourceImages = v.managed_images || [];
+  v.local_shots = sourceImages.filter((image) => LOCAL_PHOTOS.has(image.original)).map((image) => image.original);
+
+  /* Older managed uploads pre-date pixel watermarking. The build produces
+     deterministic, weakly watermarked local derivatives for those records.
+     New uploads carry embedded_watermark=true and keep their direct optimized
+     Supabase variants. */
+  v.shots = (v.shots || []).map((shot, index) => {
+    const image = sourceImages[index];
+    if (image && image.legacy !== true && image.embedded_watermark !== true && image.public_id) {
+      return protectedManagedVariants(image.public_id).jpg1280;
+    }
+    return shot;
+  });
 
   /* Never expose upload originals, storage object IDs or acquisition/source
-     URLs to the public inventory endpoint. The website only needs the
-     optimized derivatives already present in v.shots. */
-  v.managed_images = (v.managed_images || []).map((image) => ({
-    width: image.width || null,
-    height: image.height || null,
-    legacy: image.legacy === true,
-    embedded_watermark: image.embedded_watermark === true,
-    variants: image.variants || {}
-  }));
+     URLs to the public inventory endpoint. The website only needs optimized
+     derivatives. */
+  v.managed_images = sourceImages.map((image) => {
+    const variants = image && image.legacy !== true && image.embedded_watermark !== true && image.public_id
+      ? protectedManagedVariants(image.public_id)
+      : (image.variants || {});
+    return {
+      width: image.width || null,
+      height: image.height || null,
+      legacy: image.legacy === true,
+      embedded_watermark: image.embedded_watermark === true,
+      variants
+    };
+  });
   delete v.src;
   return v;
 }
