@@ -259,6 +259,15 @@
     var data = await response.json().catch(function () { return {}; });
     if (!response.ok) throw new Error(data.error || tr("Настройките не бяха записани.", "Settings could not be saved."));
     cached = normalize(data.settings); cachedAt = Date.now(); applyAdminPhotoPresentation(cached);
+    /* Keep the public-page first-paint cache in sync immediately after an
+       admin change. No network or reload is needed for the next vehicle page. */
+    try {
+      localStorage.setItem("autohaus-photo-presentation-v1", JSON.stringify({
+        v: 1,
+        at: Date.now(),
+        settings: cached
+      }));
+    } catch (_) {}
     window.dispatchEvent(new CustomEvent("ah:admin-settings", { detail: cached }));
     return cached;
   }
