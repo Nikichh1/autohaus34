@@ -345,16 +345,33 @@ async function migStageVehicle(slug, sortOrder) {
   return { slug, images: row.images.length };
 }
 
+async function migAlreadyStaged() {
+  const r = await timedFetch(MIG_URL + "/rest/v1/autohaus_migration_stage?select=slug", {
+    method: "GET", headers: migHeaders()
+  }, 15000);
+  if (!r.ok) throw new Error("Could not read migration staging progress: " + r.status);
+  const rows = await r.json().catch(() => []);
+  return new Set((Array.isArray(rows) ? rows : []).map(row => row && row.slug).filter(Boolean));
+}
+
 async function runOwnershipStaging() {
   const live = await discoverLiveCars();
   if (live.length < 20) throw new Error("Refusing suspicious live inventory count: " + live.length);
-  console.log("AutoHaus ownership staging: " + live.length + " live vehicles");
+  const done = await migAlreadyStaged();
+  const pending = live.map((slug, index) => ({ slug, sortOrder:index + 1 })).filter(item => !done.has(item.slug));
+  console.log("AutoHaus ownership staging: " + live.length + " live vehicles; " + pending.length + " remaining");
+
+  if (!pending.length) {
+    console.log("AutoHaus ownership staging already complete");
+    return live.length;
+  }
+
   let cursor = 0;
   async function worker() {
-    while (cursor < live.length) {
-      const index = cursor++;
-      const result = await migStageVehicle(live[index], index + 1);
-      console.log("  staged " + (index + 1) + "/" + live.length + " " + result.slug + " (" + result.images + " images)");
+    while (cursor < pending.length) {
+      const item = pending[cursor++];
+      const result = await migStageVehicle(item.slug, item.sortOrder);
+      console.log("  staged " + item.sortOrder + "/" + live.length + " " + result.slug + " (" + result.images + " images)");
     }
   }
   await Promise.all([worker(), worker()]);
