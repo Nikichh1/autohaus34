@@ -1,42 +1,14 @@
 "use strict";
 
 const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
 const { configured, json, db, legacyVehicle, clean } = require("../../server/admin-lib");
 
-function bundledPhotoSet() {
-  try {
-    const source = fs.readFileSync(path.join(__dirname, "../../data/photos.js"), "utf8");
-    const start = source.indexOf("[");
-    const end = source.lastIndexOf("]");
-    return new Set(JSON.parse(source.slice(start, end + 1)));
-  } catch (_) {
-    return new Set();
-  }
-}
-
-const LOCAL_PHOTOS = bundledPhotoSet();
 const memory = new Map();
 const pending = new Map();
 const encoded = new WeakMap();
 const FRESH_MS = 5000;
 const MAX_ENTRIES = 250;
 let requestOrder = 0;
-
-function legacyLocalVariants(url) {
-  const match = String(url || "").match(/^https?:\/\/(?:www\.)?autohaus\.bg\/wp-content\/uploads\/(\d{4})\/(\d{2})\/([^/]+?)(?:-\d+x\d+)?\.(?:jpe?g|png)$/i);
-  if (!match || !/^[a-z0-9_-]+$/i.test(match[3])) return null;
-  const base = "/img/v/" + match[1] + "-" + match[2] + "_" + match[3] + "-";
-  return {
-    jpg400: base + "400.jpg",
-    jpg800: base + "800.jpg",
-    jpg1280: base + "1280.jpg",
-    webp400: base + "400.webp",
-    webp800: base + "800.webp",
-    webp1280: base + "1280.webp"
-  };
-}
 
 async function parse(r) {
   const t = await r.text();
@@ -64,9 +36,7 @@ function publicVehicle(row) {
   v.notes_en = Array.isArray(row.notes_en) ? row.notes_en : [];
   const sourceImages = v.managed_images || [];
 
-  /* Public inventory must never expose canonical WordPress originals.
-     Legacy photos are already bundled into /img/v and build-time protected,
-     so map every legacy source to those local derivatives before serializing. */
+  /* Public inventory serves only project-owned/protected derivatives. */
   const publicVariants = sourceImages.map((image) => {
     if (!image) return {};
     /* owned-v1 media was migrated into our private masters + six protected
@@ -75,7 +45,7 @@ function publicVehicle(row) {
     if (image.protected_variants === true && image.variants && Object.keys(image.variants).length) {
       return image.variants;
     }
-    if (image.legacy === true) return legacyLocalVariants(image.original) || {};
+    if (image.legacy === true) return image.variants || {};
     if (image.embedded_watermark !== true && image.public_id) return protectedManagedVariants(image.public_id);
     return image.variants || {};
   });
@@ -85,9 +55,6 @@ function publicVehicle(row) {
     return variants.jpg1280 || variants.jpg800 || variants.jpg400 || "";
   }).filter(Boolean);
 
-  /* local_shots used to contain the original autohaus.bg URLs as an internal
-     hint for the browser helper. That hint itself was public leakage. The
-     explicit local variants above make it unnecessary. */
   v.local_shots = [];
 
   /* Never expose upload originals, storage object IDs or acquisition/source
