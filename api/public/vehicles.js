@@ -43,6 +43,8 @@ function publicVehicle(row) {
   v.managed_images = (v.managed_images || []).map((image) => ({
     width: image.width || null,
     height: image.height || null,
+    legacy: image.legacy === true,
+    embedded_watermark: image.legacy === true,
     variants: image.variants || {}
   }));
   delete v.src;
@@ -52,6 +54,8 @@ function publicVehicle(row) {
 function compactVehicle(row) {
   const v = publicVehicle(row);
   v.managed_images = (v.managed_images || []).map((image) => ({
+    legacy: image.legacy === true,
+    embedded_watermark: image.embedded_watermark === true || image.legacy === true,
     variants: image.variants || {}
   }));
   delete v.description_bg;
