@@ -1,9 +1,9 @@
-/* Vehicle-page mobile image fidelity.
-   The optimized product masters are 800:490 / 1280:784. The old 1.5 frame
-   was narrower, so object-fit:cover clipped a strip from both sides. */
+/* Vehicle-page mobile image presentation.
+   The selected global product ratio owns the frame. Photos are center-cropped
+   rather than stretched, matching desktop and the catalog. */
 @media (max-width:1023px){
-  .dgal__main{aspect-ratio:800 / 490;background:#f3f2ee}
-  .dgal__f img{object-fit:contain;object-position:center;background:#f3f2ee}
-  .dthumb{aspect-ratio:800 / 490}
-  .dthumb img{object-fit:contain;object-position:center;background:#f3f2ee}
+  .dgal__main{aspect-ratio:var(--ah-photo-ratio,16 / 9);background:#f3f2ee}
+  .dgal__f img{object-fit:cover;object-position:center;background:#f3f2ee}
+  .dthumb{aspect-ratio:var(--ah-photo-ratio,16 / 9)}
+  .dthumb img{object-fit:cover;object-position:center;background:#f3f2ee}
 }
