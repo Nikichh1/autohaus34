@@ -55,10 +55,10 @@ async function overlayFor(width) {
 }
 
 async function protectBuffer(input, format, width) {
+  const sourceMetadata = await sharp(input, { failOn: "none" }).metadata();
   let pipeline = sharp(input, { failOn: "none" }).rotate();
   if (width) pipeline = pipeline.resize({ width, withoutEnlargement: true });
-  const metadata = await pipeline.metadata();
-  const actualWidth = Number(metadata.width) || width || 1280;
+  const actualWidth = width || Number(sourceMetadata.width) || 1280;
   const overlay = await overlayFor(actualWidth);
   pipeline = pipeline.composite([{ input: overlay, gravity: "centre" }]);
   if (format === "webp") return pipeline.webp({ quality: 88, effort: 4 }).toBuffer();
