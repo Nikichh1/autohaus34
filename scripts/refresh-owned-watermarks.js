@@ -48,6 +48,11 @@ async function variant(input, width, format) {
     ? p.webp({ quality:88, effort:4 }).toBuffer()
     : p.jpeg({ quality:90, progressive:true, chromaSubsampling:"4:2:0" }).toBuffer();
 }
+function v2(url) {
+  const next = String(url || "").replace("/owned-v1/", "/owned-v2/");
+  if (next === String(url || "")) throw new Error("Expected owned-v1 URL: " + url);
+  return next;
+}
 async function put(url, bytes, contentType) {
   const key = objectKey(url);
   const r = await fetch(SUPABASE + "/storage/v1/object/" + BUCKET + "/" + encoded(key), {
@@ -83,8 +88,8 @@ async function processImage(slug, image, index) {
     const webp = await variant(input, width, "webp");
     if (!v["jpg"+width] || !v["webp"+width]) throw new Error("Incomplete variants for " + slug + " #" + (index+1));
     await Promise.all([
-      put(v["jpg"+width], jpg, "image/jpeg"),
-      put(v["webp"+width], webp, "image/webp")
+      put(v2(v["jpg"+width]), jpg, "image/jpeg"),
+      put(v2(v["webp"+width]), webp, "image/webp")
     ]);
   }
 }
@@ -94,7 +99,7 @@ async function run() {
   const jobs = [];
   rows.forEach(row => (Array.isArray(row.images) ? row.images : []).forEach((image,index) => jobs.push({slug:row.slug,image,index})));
   if (jobs.length !== 582) throw new Error("Expected 582 owned images, got " + jobs.length);
-  console.log("Refreshing embedded watermark on " + jobs.length + " images / " + (jobs.length*6) + " variants");
+  console.log("Creating owned-v2 embedded-watermark set for " + jobs.length + " images / " + (jobs.length*6) + " variants");
   let cursor = 0, done = 0;
   async function worker() {
     while (cursor < jobs.length) {
@@ -105,7 +110,7 @@ async function run() {
     }
   }
   await Promise.all(Array.from({length:CONCURRENCY}, worker));
-  console.log("Embedded watermark refresh complete");
+  console.log("owned-v2 embedded watermark generation complete");
 }
 run().catch(error => {
   console.error(error && (error.stack || error.message) || error);
