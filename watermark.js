@@ -1,7 +1,7 @@
-/* Production deployment marker: single-lightbox-watermark */
 /* AutoHaus public product watermark.
-   The global admin setting is read on every public page load and applied to
-   every product-photo surface, including content rendered after page load. */
+   One container can render at most one watermark: the mark is a CSS pseudo
+   element, never an appended DOM node. This avoids duplicate overlays even
+   if the script re-runs or the gallery changes images repeatedly. */
 (function () {
   "use strict";
 
@@ -10,7 +10,6 @@
   var enabled = false;
   var lastFetch = 0;
   var bodyObserver = null;
-  var rootObserver = null;
 
   function clamp(value, min, max, fallback) {
     value = Number(value);
@@ -18,28 +17,37 @@
   }
 
   function installStyle() {
-    if (document.getElementById("ah-watermark-v3-style")) return;
+    if (document.getElementById("ah-watermark-v4-style")) return;
+
+    /* Remove the old injected style if an older version of the script happened
+       to run before this one on a stale/cached page. */
+    var legacyStyle = document.getElementById("ah-watermark-v3-style");
+    if (legacyStyle) legacyStyle.remove();
+
     var style = document.createElement("style");
-    style.id = "ah-watermark-v3-style";
+    style.id = "ah-watermark-v4-style";
     style.textContent = [
       ".ah-watermark-target{position:relative!important;isolation:isolate}",
-      ".ah-watermark-mark{display:none;position:absolute;left:50%;top:50%;width:var(--ah-watermark-size,34%);max-width:360px;min-width:92px;aspect-ratio:481.9/85;transform:translate(-50%,-50%);pointer-events:none!important;z-index:40;background:transparent url('/autohaus.svg') center/contain no-repeat!important;opacity:var(--ah-watermark-opacity,.25);filter:none!important;box-shadow:none!important;border:0!important}",
-      ".ah-watermark-v2-on .ah-watermark-mark{display:block}",
-      ".lc__pic>.ah-watermark-mark{max-width:260px;min-width:70px}",
-      ".dgal__f>.ah-watermark-mark{max-width:380px}",
-      "#lb-stage>.ah-watermark-mark{max-width:460px}",
-      "html.lb-open .dgallery .ah-watermark-mark{display:none!important}",
-      "html.lb-open #lb-stage>.ah-watermark-mark{display:block!important}",
+      ".ah-watermark-v4-on [data-ah-watermark-mode=overlay]::before{content:\"\";position:absolute;left:50%;top:50%;width:var(--ah-watermark-size,34%);max-width:360px;min-width:92px;aspect-ratio:481.9/85;transform:translate(-50%,-50%);pointer-events:none!important;z-index:40;background:transparent url('/autohaus.svg') center/contain no-repeat!important;opacity:var(--ah-watermark-opacity,.25);filter:none!important;box-shadow:none!important;border:0!important}",
+      ".ah-watermark-v4-on .lc__pic[data-ah-watermark-mode=overlay]::before{max-width:260px;min-width:70px}",
+      ".ah-watermark-v4-on .dgal__f[data-ah-watermark-mode=overlay]::before{max-width:380px}",
+      ".ah-watermark-v4-on #lb-stage[data-ah-watermark-mode=overlay]::before{max-width:460px}",
+      "html.lb-open .dgallery [data-ah-watermark-mode=overlay]::before{display:none!important}",
+      "html.lb-open #lb-stage[data-ah-watermark-mode=overlay]::before{display:block!important}",
       ".lb .x{z-index:200!important;pointer-events:auto!important}",
       ".lb__nav{position:relative;z-index:200}",
       "#lb-stage{z-index:1}",
-      "@media(max-width:767px){.dgal__f>.ah-watermark-mark{min-width:82px}.lc__pic>.ah-watermark-mark{min-width:66px}}"
+      "@media(max-width:767px){.ah-watermark-v4-on .dgal__f[data-ah-watermark-mode=overlay]::before{min-width:82px}.ah-watermark-v4-on .lc__pic[data-ah-watermark-mode=overlay]::before{min-width:66px}}"
     ].join("");
     document.head.appendChild(style);
   }
 
-  function removeLegacyOverlay() {
-    if (ROOT.classList.contains("ah-watermark-on")) ROOT.classList.remove("ah-watermark-on");
+  function removeOldRuntimeMarks(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    scope.querySelectorAll(".ah-watermark-mark").forEach(function (mark) {
+      mark.remove();
+    });
+    ROOT.classList.remove("ah-watermark-on", "ah-watermark-v2-on");
   }
 
   function imageSource(target) {
@@ -58,45 +66,19 @@
     }
   }
 
-  function directMarks(target) {
-    return Array.prototype.slice.call(target.querySelectorAll(":scope > .ah-watermark-mark"));
-  }
-
-  function markerFor(target) {
+  function markTarget(target) {
     if (!target || target.nodeType !== 1) return;
-
-    var marks = directMarks(target);
-
-    /* Legacy AutoHaus source photos already contain the AutoHaus mark in the
-       image pixels. Never stack a new overlay on top of those files. */
-    if (hasEmbeddedAutoHausWatermark(target)) {
-      marks.forEach(function (mark) { mark.remove(); });
-      target.classList.remove("ah-watermark-target");
-      target.dataset.ahWatermarkMode = "embedded";
-      return;
-    }
+    removeOldRuntimeMarks(target);
 
     target.classList.add("ah-watermark-target");
-    target.dataset.ahWatermarkMode = "overlay";
-
-    /* Keep exactly one overlay even if this script is re-run or a framework
-       clone accidentally carries an old marker with it. */
-    if (marks.length) {
-      marks.slice(1).forEach(function (mark) { mark.remove(); });
-      return;
-    }
-
-    var mark = document.createElement("span");
-    mark.className = "ah-watermark-mark";
-    mark.setAttribute("aria-hidden", "true");
-    target.appendChild(mark);
+    target.dataset.ahWatermarkMode = hasEmbeddedAutoHausWatermark(target) ? "embedded" : "overlay";
   }
 
   function decorate(root) {
     if (!root || root.nodeType !== 1 && root.nodeType !== 9) return;
-    if (root.nodeType === 1 && root.matches && root.matches(TARGET_SELECTOR)) markerFor(root);
+    if (root.nodeType === 1 && root.matches && root.matches(TARGET_SELECTOR)) markTarget(root);
     if (!root.querySelectorAll) return;
-    root.querySelectorAll(TARGET_SELECTOR).forEach(markerFor);
+    root.querySelectorAll(TARGET_SELECTOR).forEach(markTarget);
   }
 
   function applySettings(settings) {
@@ -104,12 +86,16 @@
     var transparency = clamp(settings.watermark_transparency, 0, 100, 75);
     var size = clamp(settings.watermark_size, 10, 60, 34);
     var opacity = (100 - transparency) / 100;
+
     enabled = settings.watermark_enabled === true;
     ROOT.style.setProperty("--ah-watermark-opacity", String(opacity));
     ROOT.style.setProperty("--ah-watermark-size", String(size) + "%");
-    ROOT.classList.toggle("ah-watermark-v2-on", enabled);
-    removeLegacyOverlay();
-    if (enabled) decorate(document);
+    ROOT.classList.toggle("ah-watermark-v4-on", enabled);
+    ROOT.classList.remove("ah-watermark-on", "ah-watermark-v2-on");
+
+    removeOldRuntimeMarks(document);
+    decorate(document);
+
     window.dispatchEvent(new CustomEvent("ah:watermarkchange", { detail: {
       enabled: enabled,
       transparency: transparency,
@@ -143,52 +129,44 @@
     });
   }
 
-  function observe() {
-    if (document.body && !bodyObserver) {
-      bodyObserver = new MutationObserver(function (records) {
-        removeLegacyOverlay();
-        if (!enabled) return;
-        records.forEach(function (record) {
-          var owner = record.target && record.target.nodeType === 1 && record.target.closest
-            ? record.target.closest(TARGET_SELECTOR) : null;
-          if (owner) markerFor(owner);
+  function closestTarget(node) {
+    if (!node || node.nodeType !== 1 || !node.closest) return null;
+    return node.closest(TARGET_SELECTOR);
+  }
 
-          record.addedNodes.forEach(function (node) {
-            if (node.nodeType !== 1) return;
-            decorate(node);
-            var parentOwner = node.parentElement && node.parentElement.closest
-              ? node.parentElement.closest(TARGET_SELECTOR) : null;
-            if (parentOwner) markerFor(parentOwner);
-          });
+  function observe() {
+    if (!document.body || bodyObserver) return;
+
+    bodyObserver = new MutationObserver(function (records) {
+      records.forEach(function (record) {
+        record.addedNodes.forEach(function (node) {
+          if (!node || node.nodeType !== 1) return;
+          removeOldRuntimeMarks(node);
+          decorate(node);
+          var owner = closestTarget(node);
+          if (owner) markTarget(owner);
         });
       });
-      bodyObserver.observe(document.body, { childList: true, subtree: true });
-    }
-    if (!rootObserver) {
-      rootObserver = new MutationObserver(removeLegacyOverlay);
-      rootObserver.observe(ROOT, { attributes: true, attributeFilter: ["class"] });
-    }
+    });
+    bodyObserver.observe(document.body, { childList: true, subtree: true });
+
+    /* A gallery/lightbox reuses <img> elements and changes src. Re-evaluate
+       only that image surface after the new image has actually loaded. */
+    document.addEventListener("load", function (event) {
+      var image = event.target;
+      if (!image || image.tagName !== "IMG") return;
+      var owner = closestTarget(image);
+      if (owner) markTarget(owner);
+    }, true);
   }
 
   function installLightboxUX() {
     var lb = document.getElementById("lb");
     var stage = document.getElementById("lb-stage");
-    var image = document.getElementById("lb-img");
     var close = document.getElementById("lb-close");
     if (!lb || !stage || !close || lb.dataset.ahCloseFix === "1") return;
     lb.dataset.ahCloseFix = "1";
 
-    /* The lightbox reuses one <img> and only changes its src. Re-evaluate the
-       watermark after every decoded frame so the stage always contains
-       exactly one correct mark for the currently visible image. */
-    if (image) {
-      image.addEventListener("load", function () {
-        if (enabled) markerFor(stage);
-      });
-    }
-
-    /* The image itself remains interactive for drag/swipe. The unused black
-       stage around the contained image is a dismissal target. */
     stage.addEventListener("click", function (event) {
       if (event.target === stage) close.click();
     });
@@ -200,21 +178,26 @@
 
   function init() {
     installStyle();
-    removeLegacyOverlay();
-    observe();
+    removeOldRuntimeMarks(document);
     decorate(document);
+    observe();
     installLightboxUX();
     fetchSettings(0);
   }
 
   window.AH_WATERMARK_REFRESH = function () { return fetchSettings(0); };
+
   window.addEventListener("focus", function () {
     if (Date.now() - lastFetch > 15000) fetchSettings(0);
   });
+
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden && Date.now() - lastFetch > 15000) fetchSettings(0);
   });
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
-  else init();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
 })();
