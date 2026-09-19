@@ -10,7 +10,7 @@ const PUBLIC_FILES = [
   "index.html", "vehicle.html", "concierge.html", "legal.html", "style.min.css", "catalog.min.css", "vehicle-fixes.css",
   "main.js", "catalog.js", "catalog-prefetch.js", "showroom.js", "vehicle.js", "vehicle-i18n-runtime.js", "concierge.js", "i18n.js", "analytics.js", "watermark.js", "image-guard.js",
   "autohaus.svg", "favicon.jpg", "_headers", "data/vehicles.base.js", "data/vehicles.js", "data/photo-insets.js",
-  "admin/login.html", "admin/setup.html", "admin/admin.css", "admin/admin.js", "admin/admin-fixes.js", "admin/fast-cache.js", "admin/notes-translation.js", "admin/login.js",
+  "admin/login.html", "admin/setup.html", "admin/admin.css", "admin/admin.js", "admin/admin-fixes.js", "admin/notes-translation.js", "admin/login.js",
   "admin/advanced.js", "admin/image-sorter.js", "admin/image-sorter.css"
 ];
 
