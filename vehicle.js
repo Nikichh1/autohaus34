@@ -172,8 +172,11 @@
       (!N ? '<div class="dgal-empty" data-ah-bg="Очаквайте снимки" data-ah-en="Photos coming soon">Очаквайте снимки</div>' : '') +
       "</div>" +
       (N > 1 ? '<div class="dthumbs" id="dthumbs" role="group" aria-label="Избери снимка">' + shots.map(function (s, i) {
-        return '<button type="button" class="dthumb' + (!i ? ' is-active' : '') + '" data-i="' + i + '" aria-pressed="' + (!i) + '" aria-label="' + (i + 1) + ' / ' + N + '">' +
-          AH.picture(s, { width: 120, height: 80, widths: [400], src: 400, sizes: "96px", alt: v.full + ' / ' + (i + 1) }) + '</button>';
+        var embedded = AH.watermarkEmbedded && AH.watermarkEmbedded(v, i, s);
+        return '<button type="button" class="dthumb' + (!i ? ' is-active' : '') + '" data-i="' + i + '"' +
+          ' data-ah-watermark-embedded="' + (embedded ? '1' : '0') + '"' +
+          ' aria-pressed="' + (!i) + '" aria-label="' + (i + 1) + ' / ' + N + '">' +
+          AH.picture(s, { width: 160, height: 90, widths: [400, 800], src: 400, sizes: "96px", alt: v.full + ' / ' + (i + 1) }) + '</button>';
       }).join('') + '</div>' : '') +
       '<div class="dgal-bar">' +
         (N ? '<span class="dgal-bar__n" id="dgal-n" aria-live="polite" data-nt>1 / ' + N + '</span>' : '') +
