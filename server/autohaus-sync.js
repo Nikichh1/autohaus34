@@ -269,4 +269,46 @@ async function migStage(row) {
   }
 }
 
+function migExt(url, contentType) {
+  const m = String(url || "").match(/\.([a-z0-9]+)(?:\?|$)/i);
+  let ext = m ? m[1].toLowerCase() : "";
+  if (ext === "jpeg") ext = "jpg";
+  if (!["jpg", "png", "webp"].includes(ext)) {
+    ext = /png/i.test(contentType) ? "png" : /webp/i.test(contentType) ? "webp" : "jpg";
+  }
+  return ext;
+}
+
+async function migCopyImage(slug, source, index) {
+  const src = await timedFetch(source, {
+    method: "GET",
+    headers: { Accept: "image/avif,image/webp,image/*,*/*;q=0.8", "User-Agent": "AutoHaus media migration/1.0" }
+  }, 30000);
+  if (!src.ok) throw new Error(slug + " image " + (index + 1) + " source HTTP " + src.status);
+  const type = src.headers.get("content-type") || "image/jpeg";
+  if (!/^image\//i.test(type)) throw new Error(slug + " image " + (index + 1) + " is not an image");
+  const bytes = await src.arrayBuffer();
+  if (!bytes.byteLength || bytes.byteLength > 45 * 1024 * 1024) throw new Error(slug + " image " + (index + 1) + " invalid size");
+
+  const objectPath = MIG_PREFIX + slug + "/" + String(index + 1).padStart(2, "0") + "." + migExt(source, type);
+  const upload = await timedFetch(MIG_URL + "/storage/v1/object/" + MIG_BUCKET + "/" + migPath(objectPath), {
+    method: "POST",
+    headers: { apikey: MIG_KEY, "Content-Type": type, "x-upsert": "true", "cache-control": "31536000" },
+    body: bytes
+  }, 30000);
+  if (!upload.ok) {
+    const detail = await upload.text().catch(() => "");
+    throw new Error(slug + " image " + (index + 1) + " upload HTTP " + upload.status + " " + detail.slice(0, 180));
+  }
+
+  return {
+    id: slug + "-owned-" + (index + 1),
+    public_id: objectPath,
+    original: MIG_URL + "/storage/v1/object/public/" + MIG_BUCKET + "/" + migPath(objectPath),
+    source_original: source,
+    width: null, height: null, legacy: false, embedded_watermark: false,
+    position: index, variants: {}
+  };
+}
+
 module.exports = { ARCHIVE, discoverLiveCars, fetchVehicle, parseVehicle, discoverFromHtml };
