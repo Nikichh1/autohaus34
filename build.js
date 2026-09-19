@@ -137,7 +137,13 @@ function build(options = {}) {
   /* Product-photo theft protection is build-time only. The deployed JPEG/WebP
      bytes are already watermarked, so visitors do not pay a runtime image
      transform, proxy hop or extra request. */
-  if (fs.existsSync(path.join(root, "scripts", "run-ownership-stage.js"))) {
+  if (fs.existsSync(path.join(root, "scripts", "finalize-owned-media.js"))) {
+    childProcess.execFileSync(process.execPath, [path.join(root, "scripts", "finalize-owned-media.js")], {
+      cwd: root,
+      stdio: "inherit"
+    });
+    log("  Owned media finalized into private masters and public protected variants");
+  } else if (fs.existsSync(path.join(root, "scripts", "run-ownership-stage.js"))) {
     childProcess.execFileSync(process.execPath, [path.join(root, "scripts", "run-ownership-stage.js")], {
       cwd: root,
       stdio: "inherit"
