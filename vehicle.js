@@ -293,6 +293,51 @@
   var selected = 0, selectionVersion = 0, suppressClick = false;
   var decoded = Object.create(null);
 
+  /* The two desktop side frames are decorative fixed references. They are not
+     part of gallery selection state and must never rotate with arrows, swipe,
+     thumbnails, lightbox close, or keyboard navigation. Keep an exact snapshot
+     of their initial source state and repair any accidental mutation. */
+  var sideSnapshots = sideFrames.map(function (frame) {
+    return {
+      href: frame.getAttribute('href') || '',
+      dataI: frame.getAttribute('data-i') || '',
+      ariaLabel: frame.getAttribute('aria-label') || '',
+      embedded: frame.getAttribute('data-ah-watermark-embedded') || '0',
+      html: frame.innerHTML
+    };
+  });
+  var restoringSideFrames = false;
+  function restoreSideFrames() {
+    if (restoringSideFrames) return;
+    restoringSideFrames = true;
+    sideFrames.forEach(function (frame, index) {
+      var snap = sideSnapshots[index];
+      if (!snap) return;
+      if (frame.getAttribute('href') !== snap.href) frame.setAttribute('href', snap.href);
+      if (frame.getAttribute('data-i') !== snap.dataI) frame.setAttribute('data-i', snap.dataI);
+      if (frame.getAttribute('aria-label') !== snap.ariaLabel) frame.setAttribute('aria-label', snap.ariaLabel);
+      if (frame.getAttribute('data-ah-watermark-embedded') !== snap.embedded) {
+        frame.setAttribute('data-ah-watermark-embedded', snap.embedded);
+      }
+      if (frame.innerHTML !== snap.html) frame.innerHTML = snap.html;
+      if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(frame);
+    });
+    restoringSideFrames = false;
+  }
+  if (window.MutationObserver && sideFrames.length) {
+    var sideObserver = new MutationObserver(function () {
+      if (!restoringSideFrames) restoreSideFrames();
+    });
+    sideFrames.forEach(function (frame) {
+      sideObserver.observe(frame, {
+        attributes: true,
+        subtree: true,
+        childList: true,
+        attributeFilter: ['href', 'src', 'srcset', 'sizes', 'data-i', 'aria-label', 'data-ah-watermark-embedded']
+      });
+    });
+  }
+
   /* Keep one permanent main image node. Replacing <picture> on every arrow
      press caused browser grid re-measurement and occasional side-frame
      repainting. The two right-hand frames are never touched by arrow state. */
@@ -351,6 +396,7 @@
 
   function stripTo(i) {
     if (!mainFrame || !mainImg || !N) return;
+    restoreSideFrames();
     i = (i + N) % N;
     var changed = selected !== i;
     selected = i;
@@ -391,6 +437,7 @@
         if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(mainFrame);
       }
       mainFrame.removeAttribute('aria-busy');
+      restoreSideFrames();
       if (image) prepare((i + 1) % N);
     });
   }
