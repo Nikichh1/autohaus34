@@ -113,7 +113,11 @@ async function protectExistingManagedFiles() {
   const pending = [];
   (Array.isArray(rows) ? rows : []).forEach(function (row) {
     (Array.isArray(row.images) ? row.images : []).forEach(function (image) {
-      if (!image || image.legacy === true || image.embedded_watermark === true || !image.public_id) return;
+      /* owned-v1 variants are already pixel-watermarked and backed by a
+         private master. Reprocessing them would only waste build time and
+         double-encode the image. */
+      if (!image || image.legacy === true || image.embedded_watermark === true ||
+          image.protected_variants === true || !image.public_id) return;
       const variants = image.variants || {};
       const source = variants.jpg1280 || variants.jpg800 || image.original;
       if (!source) return;
@@ -141,9 +145,12 @@ async function run() {
   if (!fs.existsSync(VEHICLE_DIR) || !fs.existsSync(LOGO_FILE)) {
     throw new Error("Vehicle image protection inputs are missing");
   }
-  const legacy = await protectLegacyFiles();
+  /* The live inventory is now fully owned media. Legacy repo images are no
+     longer a runtime dependency, so do not re-encode hundreds of archived
+     files on every deployment. Only protect any future pre-migration managed
+     upload that somehow lacks embedded/protected variants. */
   const managed = await protectExistingManagedFiles();
-  console.log("  Protected product images: " + legacy + " static variants, " + managed + " managed source(s)");
+  console.log("  Product image protection check: " + managed + " unprotected managed source(s) processed");
 }
 
 run().catch(function (error) {
