@@ -5,7 +5,10 @@
   var lang = "bg";
   try { localStorage.removeItem("ah-admin-language"); } catch (_) {}
   try { sessionStorage.removeItem("autohaus-admin-fast-cache-v1"); } catch (_) {}
-  var draftKey = "autohaus-admin-draft:" + (D.body.dataset.adminUser || "admin");
+  var adminUserKey = D.body.dataset.adminUser || "admin";
+  var legacyDraftKey = "autohaus-admin-draft:" + adminUserKey;
+  var draftKey = "autohaus-admin-draft-v2:" + adminUserKey;
+  try { sessionStorage.removeItem(legacyDraftKey); } catch (_) {}
   var state = { vehicles: [], current: null, route: "", dirty: false, saved: false,
     saveBusy: false, uploadBusy: false, aiBusy: false, search: "", filter: "all", removed: [], failedFiles: [], canImport: false, aiNeedsReview: false, reviewNotes: [] };
   var imageSorter = null, draftTimer, searchFrame;
@@ -154,11 +157,14 @@
     D.querySelectorAll("[data-bg]").forEach(function (el) { el.textContent = el.dataset.bg; });
   }
   async function loadVehicles(recover) {
-    var savedDraft = recover ? draft() : null, initialRoute = requestedRoute();
+    var initialRoute = requestedRoute();
+    var savedDraft = recover ? draft() : null;
+    if (savedDraft && savedDraft.route !== initialRoute) savedDraft = null;
     var request = api("/api/admin/vehicles");
-    // A direct editor link loads independently of the compact inventory list.
+    // Recover only the exact editor route the user reopened. A stale draft
+    // must never hijack Dashboard/Cars navigation or replace current images.
     if (savedDraft) {
-      state.route = savedDraft.route; history.replaceState(null, "", "#" + state.route);
+      state.route = savedDraft.route;
       editor(savedDraft.vehicle, !savedDraft.vehicle.id, savedDraft);
     } else if (initialRoute === "new" || initialRoute.indexOf("edit=") === 0) renderRoute(initialRoute);
     else view.innerHTML = '<div class="empty"><strong>' + t("Зареждане…", "Loading…") + '</strong></div>';
