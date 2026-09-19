@@ -17,6 +17,9 @@ const BUCKET = "vehicle-images";
 const EXTRA_OPACITY = 0.1847826087;
 const MARK_SIZE = 0.13;
 const CONCURRENCY = 3;
+const ONLY_SLUG = String(process.env.ONLY_SLUG || "").trim();
+const ONLY_INDEX = process.env.ONLY_INDEX === undefined || process.env.ONLY_INDEX === ""
+  ? null : Number(process.env.ONLY_INDEX);
 
 function headers(extra) {
   return Object.assign({ apikey: KEY }, extra || {});
@@ -97,9 +100,14 @@ async function processImage(slug, image, index) {
 async function run() {
   if (!fs.existsSync(LOGO)) throw new Error("Watermark logo missing");
   const rows = await getInventory();
-  const jobs = [];
-  rows.forEach(row => (Array.isArray(row.images) ? row.images : []).forEach((image,index) => jobs.push({slug:row.slug,image,index})));
-  if (jobs.length !== 582) throw new Error("Expected 582 owned images, got " + jobs.length);
+  const allJobs = [];
+  rows.forEach(row => (Array.isArray(row.images) ? row.images : []).forEach((image,index) => allJobs.push({slug:row.slug,image,index})));
+  if (allJobs.length !== 582) throw new Error("Expected 582 owned images, got " + allJobs.length);
+  const jobs = allJobs.filter(job =>
+    (!ONLY_SLUG || job.slug === ONLY_SLUG) &&
+    (ONLY_INDEX === null || job.index === ONLY_INDEX)
+  );
+  if (!jobs.length) throw new Error("No matching watermark jobs");
   console.log("Creating owned-v2 embedded-watermark set for " + jobs.length + " images / " + (jobs.length*6) + " variants");
   let cursor = 0, done = 0;
   async function worker() {
