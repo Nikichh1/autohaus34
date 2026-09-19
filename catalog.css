@@ -1384,6 +1384,41 @@
 }
 
 
+/* First-paint AutoHaus watermark.
+   This is static CSS on purpose: the cached settings in <head> can activate
+   the mark before gallery JavaScript runs, so there is no late watermark pop. */
+.ah-watermark-v4-on .lc__pic:not([data-ah-watermark-embedded="1"])::before,
+.ah-watermark-v4-on .dgal__f[data-ah-watermark-embedded="0"]::before,
+.ah-watermark-v4-on .dthumb[data-ah-watermark-embedded="0"]::before,
+.ah-watermark-v4-on #lb-stage[data-ah-watermark-embedded="0"]::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:var(--ah-watermark-size,13%);
+  max-width:380px;
+  min-width:92px;
+  aspect-ratio:481.9/85;
+  transform:translate(-50%,-50%);
+  pointer-events:none!important;
+  z-index:40;
+  background:transparent url("/autohaus.svg") center/contain no-repeat!important;
+  opacity:var(--ah-watermark-opacity,.25);
+  filter:none!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+.ah-watermark-v4-on .lc__pic:not([data-ah-watermark-embedded="1"])::before{max-width:260px;min-width:70px}
+.ah-watermark-v4-on .dthumb[data-ah-watermark-embedded="0"]::before{max-width:72%;min-width:0}
+.ah-watermark-v4-on #lb-stage[data-ah-watermark-embedded="0"]::before{max-width:460px}
+html.lb-open .dgallery::before,
+html.lb-open .dgallery [data-ah-watermark-embedded="0"]::before{display:none!important}
+html.lb-open #lb-stage[data-ah-watermark-embedded="0"]::before{display:block!important}
+@media(max-width:767px){
+  .ah-watermark-v4-on .dgal__f[data-ah-watermark-embedded="0"]::before{min-width:82px}
+  .ah-watermark-v4-on .lc__pic:not([data-ah-watermark-embedded="1"])::before{min-width:66px}
+}
+
 /* Global product-photo presentation.
    Filters stay deliberately subtle: slight highlight control, restrained
    contrast/colour and a soft edge vignette. No extra image files are created. */
