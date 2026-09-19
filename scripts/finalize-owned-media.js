@@ -105,3 +105,51 @@ async function processImage(slug, image, index) {
     variants
   };
 }
+
+async function updateStage(slug, payload) {
+  const r = await fetch(SUPABASE_URL + "/rest/v1/autohaus_migration_stage?slug=eq." + encodeURIComponent(slug), {
+    method: "PATCH",
+    headers: headers({ "Content-Type": "application/json", Prefer: "return=minimal" }),
+    body: JSON.stringify({ payload, created_at: new Date().toISOString() })
+  });
+  if (!r.ok) throw new Error("Stage update failed " + r.status + " " + (await r.text()).slice(0, 240));
+}
+
+async function processRow(row) {
+  const payload = row && row.payload;
+  const slug = row && row.slug;
+  if (!payload || !slug || !Array.isArray(payload.images) || !payload.images.length) throw new Error("Invalid staging row");
+  const nextImages = new Array(payload.images.length);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < payload.images.length) {
+      const i = cursor++;
+      nextImages[i] = await processImage(slug, payload.images[i], i);
+    }
+  }
+  await Promise.all([worker(), worker()]);
+  const nextPayload = Object.assign({}, payload, { images: nextImages });
+  await updateStage(slug, nextPayload);
+  await Promise.all(payload.images.map(function (image) {
+    const source = String(image && image.original || "");
+    const marker = "/storage/v1/object/public/" + PUBLIC_BUCKET + "/";
+    const p = source.indexOf(marker);
+    if (p < 0) return Promise.resolve();
+    return removeTemp(decodeURIComponent(source.slice(p + marker.length)));
+  }));
+  console.log("  finalized " + slug + " (" + nextImages.length + " images)");
+}
+
+async function run() {
+  if (!fs.existsSync(LOGO_FILE)) throw new Error("AutoHaus watermark asset missing");
+  const rows = await fetchJson(SUPABASE_URL + "/rest/v1/autohaus_migration_stage?select=slug,payload&order=slug.asc");
+  if (!Array.isArray(rows) || rows.length < 20) throw new Error("Unexpected staging inventory size");
+  console.log("AutoHaus owned media finalization: " + rows.length + " vehicles");
+  for (const row of rows) await processRow(row);
+  console.log("AutoHaus owned media finalization complete");
+}
+
+run().catch(function (error) {
+  console.error(error && error.stack || error);
+  process.exitCode = 1;
+});
