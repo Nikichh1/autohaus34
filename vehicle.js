@@ -281,10 +281,40 @@
   var fs = Array.prototype.slice.call(gal.querySelectorAll(".dgal__f"));
   var nEl = D.getElementById("dgal-n");
   var mainFrame = gal.querySelector('.dgal__main');
+  var sideFrames = Array.prototype.slice.call(gal.querySelectorAll('.dgal__side'));
   var thumbs = Array.prototype.slice.call(D.querySelectorAll('.dthumb'));
-  var thumbRail = D.getElementById('dthumbs');
   var selected = 0, selectionVersion = 0, suppressClick = false;
   var decoded = Object.create(null);
+
+  /* The two side frames are part of the older three-image composition and
+     are intentionally static. Arrow/swipe navigation must only replace the
+     large main frame. Keep a tiny immutable snapshot so no async image swap
+     can accidentally rewrite the side pictures. */
+  var sideFrameState = sideFrames.map(function (frame) {
+    var picture = frame.querySelector('picture');
+    var counter = frame.querySelector('.dgal__n');
+    return {
+      frame: frame,
+      index: frame.getAttribute('data-i') || '',
+      href: frame.getAttribute('href') || '',
+      label: frame.getAttribute('aria-label') || '',
+      pictureHTML: picture ? picture.innerHTML : '',
+      counter: counter ? counter.textContent : ''
+    };
+  });
+  function restoreSideFrames() {
+    sideFrameState.forEach(function (state) {
+      var frame = state.frame;
+      if (!frame || !frame.isConnected) return;
+      if (frame.getAttribute('data-i') !== state.index) frame.setAttribute('data-i', state.index);
+      if (frame.getAttribute('href') !== state.href) frame.setAttribute('href', state.href);
+      if (frame.getAttribute('aria-label') !== state.label) frame.setAttribute('aria-label', state.label);
+      var picture = frame.querySelector('picture');
+      if (picture && picture.innerHTML !== state.pictureHTML) picture.innerHTML = state.pictureHTML;
+      var counter = frame.querySelector('.dgal__n');
+      if (counter && counter.textContent !== state.counter) counter.textContent = state.counter;
+    });
+  }
   function canWarmImages() {
     var connection = navigator.connection;
     return !connection || (!connection.saveData && !/^(slow-2g|2g|3g)$/.test(connection.effectiveType || '') &&
@@ -338,6 +368,7 @@
   }
   function stripTo(i) {
     if (!mainFrame || !N) return;
+    restoreSideFrames();
     i = (i + N) % N;
     var changed = selected !== i;
     selected = i;
@@ -363,6 +394,7 @@
       if (version !== selectionVersion) return;
       if (image) mainFrame.querySelector('picture').outerHTML = loadedPicture(i, image, mainSizes);
       mainFrame.removeAttribute('aria-busy');
+      restoreSideFrames();
       if (image) prepare((i + 1) % N);
     });
   }
@@ -381,7 +413,10 @@
   });
   ['prev', 'next'].forEach(function (direction) {
     var control = D.getElementById('dgal-' + direction);
-    if (control) control.addEventListener('click', function () { stripTo(selected + (direction === 'next' ? 1 : -1)); });
+    if (control) control.addEventListener('click', function () {
+      stripTo(selected + (direction === 'next' ? 1 : -1));
+      restoreSideFrames();
+    });
   });
   if (mainFrame && N > 1) {
     var swipeStart = null;
