@@ -315,7 +315,14 @@ async function migCopyImages(slug, sourceImages) {
   const sources = (sourceImages || []).map(image => image && image.original).filter(Boolean);
   if (!sources.length) throw new Error("No source images for " + slug);
   const out = new Array(sources.length);
-  for (let i = 0; i < sources.length; i++) out[i] = await migCopyImage(slug, sources[i], i);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < sources.length) {
+      const i = cursor++;
+      out[i] = await migCopyImage(slug, sources[i], i);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(3, sources.length) }, worker));
   return out;
 }
 
