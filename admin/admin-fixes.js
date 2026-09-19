@@ -186,7 +186,7 @@
 (function () {
   "use strict";
   var DEFAULT_SETTINGS = { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34 };
-  var cached = null, cachedAt = 0, pending = null, busy = false, logoPromise = null;
+  var cached = null, cachedAt = 0, pending = null;
 
   function tr(bg, en) { return document.documentElement.lang === "en" ? en : bg; }
   function esc(value) { return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) { return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
@@ -217,78 +217,6 @@
 
   window.addEventListener("ah:admin-settings", function (event) { cached = normalize(event.detail); cachedAt = Date.now(); });
 
-  function logo() {
-    if (logoPromise) return logoPromise;
-    logoPromise = new Promise(function (resolve, reject) {
-      var image = new Image();
-      image.onload = function () { resolve(image); };
-      image.onerror = function () { reject(new Error("logo")); };
-      image.src = "/autohaus.svg";
-    });
-    return logoPromise;
-  }
-
-  async function watermark(file, transparency, sizePercent) {
-    var url = URL.createObjectURL(file);
-    var image = new Image();
-    try {
-      image.src = url;
-      await image.decode();
-      if (!image.naturalWidth || !image.naturalHeight || image.naturalWidth * image.naturalHeight > 140000000) throw new Error(tr("Снимката е с неподдържан размер.", "The photo dimensions are not supported."));
-      var scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
-      var w = Math.max(1, Math.round(image.naturalWidth * scale));
-      var h = Math.max(1, Math.round(image.naturalHeight * scale));
-      var canvas = document.createElement("canvas");
-      canvas.width = w; canvas.height = h;
-      var ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error(tr("Снимката не може да бъде обработена.", "The photo cannot be processed."));
-      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-      ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, w, h); ctx.drawImage(image, 0, 0, w, h);
-      var mark = await logo();
-      var ratio = (mark.naturalWidth || 482) / (mark.naturalHeight || 85);
-      var size = Math.max(10, Math.min(60, Number(sizePercent) || 34)) / 100;
-      var markW = Math.min(w * size, h * .22 * ratio), markH = markW / ratio;
-      ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, 1 - transparency / 100));
-      ctx.drawImage(mark, (w - markW) / 2, (h - markH) / 2, markW, markH); ctx.restore();
-      var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, "image/png"); });
-      canvas.width = 1; canvas.height = 1;
-      if (!blob) throw new Error(tr("Водният знак не можа да бъде приложен.", "The watermark could not be applied."));
-      return new File([blob], String(file.name || "photo").replace(/\.[^.]+$/, "") + "-watermarked.png", { type: "image/png", lastModified: file.lastModified || Date.now() });
-    } finally { URL.revokeObjectURL(url); }
-  }
-
-  document.addEventListener("change", function (event) {
-    var input = event.target;
-    if (!input || (input.id !== "image-input" && input.id !== "camera-input")) return;
-    if (input.dataset.ahPrepared === "1") { delete input.dataset.ahPrepared; return; }
-    if (!input.files || !input.files.length) return;
-    event.preventDefault(); event.stopImmediatePropagation();
-    if (busy) return;
-    busy = true;
-    var originals = Array.from(input.files);
-    (async function () {
-      try {
-        var cfg = await getSettings(true);
-        var files = originals;
-        if (cfg.watermark_enabled) {
-          files = [];
-          for (var i = 0; i < originals.length; i++) {
-            status(tr("Воден знак: ", "Watermark: ") + (i + 1) + " / " + originals.length);
-            files.push(await watermark(originals[i], cfg.watermark_transparency, cfg.watermark_size));
-          }
-        }
-        var transfer = new DataTransfer();
-        files.forEach(function (file) { transfer.items.add(file); });
-        input.files = transfer.files;
-        input.dataset.ahPrepared = "1";
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-      } catch (error) {
-        console.error(error);
-        status(tr("Обработката на снимките не успя. Опитайте отново.", "Photo processing failed. Try again."));
-      } finally { busy = false; }
-    })();
-  }, true);
-
   function installRoute() {
     var app = window.AH_ADMIN, view = document.getElementById("admin-view");
     if (!app || !view || app.__watermarkSettingsRoute) return;
@@ -304,7 +232,7 @@
         if (!body || !body.isConnected) return;
         var disabled = app.canWrite ? "" : " disabled";
         body.innerHTML = '<form id="ah-settings-form" style="display:grid;gap:22px">' +
-          '<label class="check" style="align-items:flex-start"><input id="ah-watermark-enabled" type="checkbox"' + (cfg.watermark_enabled ? " checked" : "") + disabled + '><span><strong>' + esc(t("Добавяй AutoHaus воден знак автоматично", "Add the AutoHaus watermark automatically")) + '</strong><br><small class="muted">' + esc(t("Прилага се в центъра на всички продуктови снимки. Новите качвания използват същите настройки.", "Applied to the centre of all product images. New uploads use the same settings.")) + '</small></span></label>' +
+          '<label class="check" style="align-items:flex-start"><input id="ah-watermark-enabled" type="checkbox"' + (cfg.watermark_enabled ? " checked" : "") + disabled + '><span><strong>' + esc(t("Добавяй AutoHaus воден знак автоматично", "Add the AutoHaus watermark automatically")) + '</strong><br><small class="muted">' + esc(t("Показва се върху продуктовите снимки в сайта, без да променя оригиналните качени файлове.", "Shown on public product images without modifying the uploaded source files.")) + '</small></span></label>' +
           '<label class="field" style="max-width:520px"><span>' + esc(t("Прозрачност", "Transparency")) + ' — <b id="ah-watermark-value">' + cfg.watermark_transparency + '%</b></span><input id="ah-watermark-transparency" type="range" min="0" max="100" step="1" value="' + cfg.watermark_transparency + '"' + disabled + '></label>' +
           '<label class="field" style="max-width:520px"><span>' + esc(t("Размер", "Size")) + ' — <b id="ah-watermark-size-value">' + cfg.watermark_size + '%</b></span><input id="ah-watermark-size" type="range" min="10" max="60" step="1" value="' + cfg.watermark_size + '"' + disabled + '></label>' +
           '<p class="muted" style="margin:0">' + esc(t("75% прозрачност и 34% размер са стойностите по подразбиране. Настройките са глобални и важат за всички автомобили.", "75% transparency and 34% size are the defaults. These global settings apply to every vehicle.")) + '</p>' +
