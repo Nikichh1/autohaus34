@@ -291,7 +291,7 @@ function sanitizeImages(v) {
     width: numberOrNull(img && img.width, true),
     height: numberOrNull(img && img.height, true),
     legacy: !!(img && img.legacy),
-    embedded_watermark: !!(img && (img.embedded_watermark || img.legacy)),
+    embedded_watermark: !!(img && img.embedded_watermark),
     position: i,
     variants: img && typeof img.variants === "object" && img.variants ? {
       jpg400: safeUrl(img.variants.jpg400, true),
