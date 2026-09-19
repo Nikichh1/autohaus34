@@ -1,7 +1,7 @@
 /* AutoHaus build: generate CSS, version delivered assets and prepare public-only dist. */
 "use strict";
 // Production deploy trigger: admin tabs + stable 16:9 vehicle media
-const fs = require("fs"), path = require("path"), crypto = require("crypto"), childProcess = require("child_process");
+const fs = require("fs"), path = require("path"), crypto = require("crypto");
 
 const SHEETS = ["style.css", "catalog.css"];
 const ADMIN_STYLES = ["admin/admin.css", "admin/brand.css", "admin/brand-fallback.css"];
@@ -134,27 +134,10 @@ function build(options = {}) {
     });
   }
 
-  /* Product-photo theft protection is build-time only. The deployed JPEG/WebP
-     bytes are already watermarked, so visitors do not pay a runtime image
-     transform, proxy hop or extra request. */
-  if (fs.existsSync(path.join(root, "scripts", "finalize-owned-media.js"))) {
-    childProcess.execFileSync(process.execPath, [path.join(root, "scripts", "finalize-owned-media.js")], {
-      cwd: root,
-      stdio: "inherit"
-    });
-    log("  Owned media finalized into private masters and public protected variants");
-  } else if (fs.existsSync(path.join(root, "scripts", "run-ownership-stage.js"))) {
-    childProcess.execFileSync(process.execPath, [path.join(root, "scripts", "run-ownership-stage.js")], {
-      cwd: root,
-      stdio: "inherit"
-    });
-    log("  Owned-media staging resumed for missing live vehicles");
-  } else {
-    childProcess.execFileSync(process.execPath, [path.join(root, "scripts", "protect-product-images.js")], {
-      cwd: root,
-      stdio: "inherit"
-    });
-  }
+  /* Product media is fully self-owned now. Migrated inventory uses immutable
+     owned-v1 masters plus pre-generated protected variants, while new admin
+     uploads are protected before upload. Production builds perform no remote
+     image migration or runtime image processing. */
 
   log("AutoHaus build");
   built.forEach(item => log("  " + item.file.padEnd(14) + size(item.before) + " -> " + item.dest.padEnd(18) + size(item.after) + "   (-" + Math.round((1 - item.after / item.before) * 100) + "%)"));
