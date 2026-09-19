@@ -12,9 +12,6 @@
     },
     "api/admin/description.js": {
       "maxDuration": 60
-    },
-    "api/admin/sync.js": {
-      "maxDuration": 60
     }
   },
   "rewrites": [
