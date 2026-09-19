@@ -1,9 +1,6 @@
 name: AutoHaus ownership staging
 
 on:
-  push:
-    paths:
-      - ".github/workflows/ownership-staging.yml"
   pull_request:
     paths:
       - ".github/ownership-stage-trigger"
@@ -17,9 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Copy live inventory and media into staging
-        run: node scripts/run-ownership-stage.js
+      - name: Run ownership staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 20 https://github.com/Nikichh1/autohaus34.git work
+          cd work
+          git fetch origin "${{ github.event.pull_request.head.sha }}" --depth=1
+          git checkout "${{ github.event.pull_request.head.sha }}"
+          node --version
+          node scripts/run-ownership-stage.js
