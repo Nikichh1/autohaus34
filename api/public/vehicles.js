@@ -24,6 +24,20 @@ const FRESH_MS = 5000;
 const MAX_ENTRIES = 250;
 let requestOrder = 0;
 
+function legacyLocalVariants(url) {
+  const match = String(url || "").match(/^https?:\/\/(?:www\.)?autohaus\.bg\/wp-content\/uploads\/(\d{4})\/(\d{2})\/([^/]+?)(?:-\d+x\d+)?\.(?:jpe?g|png)$/i);
+  if (!match || !/^[a-z0-9_-]+$/i.test(match[3])) return null;
+  const base = "/img/v/" + match[1] + "-" + match[2] + "_" + match[3] + "-";
+  return {
+    jpg400: base + "400.jpg",
+    jpg800: base + "800.jpg",
+    jpg1280: base + "1280.jpg",
+    webp400: base + "400.webp",
+    webp800: base + "800.webp",
+    webp1280: base + "1280.webp"
+  };
+}
+
 async function parse(r) {
   const t = await r.text();
   if (!r.ok) throw new Error("Inventory response unavailable");
@@ -49,35 +63,36 @@ function publicVehicle(row) {
   const v = legacyVehicle(row);
   v.notes_en = Array.isArray(row.notes_en) ? row.notes_en : [];
   const sourceImages = v.managed_images || [];
-  v.local_shots = sourceImages.filter((image) => LOCAL_PHOTOS.has(image.original)).map((image) => image.original);
 
-  /* Older managed uploads pre-date pixel watermarking. The build produces
-     deterministic, weakly watermarked local derivatives for those records.
-     New uploads carry embedded_watermark=true and keep their direct optimized
-     Supabase variants. */
-  v.shots = (v.shots || []).map((shot, index) => {
-    const image = sourceImages[index];
-    if (image && image.legacy !== true && image.embedded_watermark !== true && image.public_id) {
-      return protectedManagedVariants(image.public_id).jpg1280;
-    }
-    return shot;
+  /* Public inventory must never expose canonical WordPress originals.
+     Legacy photos are already bundled into /img/v and build-time protected,
+     so map every legacy source to those local derivatives before serializing. */
+  const publicVariants = sourceImages.map((image) => {
+    if (!image) return {};
+    if (image.legacy === true) return legacyLocalVariants(image.original) || {};
+    if (image.embedded_watermark !== true && image.public_id) return protectedManagedVariants(image.public_id);
+    return image.variants || {};
   });
+
+  v.shots = sourceImages.map((image, index) => {
+    const variants = publicVariants[index] || {};
+    return variants.jpg1280 || variants.jpg800 || variants.jpg400 || "";
+  }).filter(Boolean);
+
+  /* local_shots used to contain the original autohaus.bg URLs as an internal
+     hint for the browser helper. That hint itself was public leakage. The
+     explicit local variants above make it unnecessary. */
+  v.local_shots = [];
 
   /* Never expose upload originals, storage object IDs or acquisition/source
-     URLs to the public inventory endpoint. The website only needs optimized
-     derivatives. */
-  v.managed_images = sourceImages.map((image) => {
-    const variants = image && image.legacy !== true && image.embedded_watermark !== true && image.public_id
-      ? protectedManagedVariants(image.public_id)
-      : (image.variants || {});
-    return {
-      width: image.width || null,
-      height: image.height || null,
-      legacy: image.legacy === true,
-      embedded_watermark: image.embedded_watermark === true,
-      variants
-    };
-  });
+     URLs to the public inventory endpoint. */
+  v.managed_images = sourceImages.map((image, index) => ({
+    width: image.width || null,
+    height: image.height || null,
+    legacy: image.legacy === true,
+    embedded_watermark: image.embedded_watermark === true,
+    variants: publicVariants[index] || {}
+  }));
   delete v.src;
   return v;
 }
