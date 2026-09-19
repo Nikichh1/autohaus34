@@ -137,13 +137,17 @@ function build(options = {}) {
   /* Product-photo theft protection is build-time only. The deployed JPEG/WebP
      bytes are already watermarked, so visitors do not pay a runtime image
      transform, proxy hop or extra request. */
-  if (!fs.existsSync(path.join(root, "api", "migrate-owned.js"))) {
+  if (fs.existsSync(path.join(root, "api", "migrate-owned.js"))) {
+    childProcess.execFileSync(process.execPath, [path.join(root, "scripts", "run-owned-migration.js")], {
+      cwd: root,
+      stdio: "inherit"
+    });
+    log("  Product image protection deferred until owned-media migration is finalized");
+  } else {
     childProcess.execFileSync(process.execPath, [path.join(root, "scripts", "protect-product-images.js")], {
       cwd: root,
       stdio: "inherit"
     });
-  } else {
-    log("  Product image protection deferred for one-time ownership migration");
   }
 
   log("AutoHaus build");
