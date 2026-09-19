@@ -244,4 +244,29 @@ async function fetchVehicle(slug, existing, sortOrder) {
   return parseVehicle(slug, html, existing, sortOrder);
 }
 
+/* One-time ownership migration helpers. Public build credentials can only
+   write to a temporary staging table and a temporary Storage prefix. */
+const MIG_URL = "https://ajoiqomflplhadyhxvfe.supabase.co";
+const MIG_KEY = "sb_publishable_gBEUBrOjT_JsBRjAnGL9PQ_ra-1hY0g";
+const MIG_BUCKET = "vehicle-images";
+const MIG_PREFIX = "owned-mig-8f31d9c20b7a4ed0/";
+
+function migHeaders(extra) {
+  return Object.assign({ apikey: MIG_KEY, "Content-Type": "application/json" }, extra || {});
+}
+function migPath(value) {
+  return String(value).split("/").map(encodeURIComponent).join("/");
+}
+async function migStage(row) {
+  const r = await timedFetch(MIG_URL + "/rest/v1/autohaus_migration_stage?on_conflict=slug", {
+    method: "POST",
+    headers: migHeaders({ Prefer: "resolution=merge-duplicates,return=minimal" }),
+    body: JSON.stringify({ slug: row.slug, payload: row, created_at: new Date().toISOString() })
+  }, 15000);
+  if (!r.ok) {
+    const detail = await r.text().catch(() => "");
+    throw new Error("Staging write failed " + r.status + " " + detail.slice(0, 240));
+  }
+}
+
 module.exports = { ARCHIVE, discoverLiveCars, fetchVehicle, parseVehicle, discoverFromHtml };
