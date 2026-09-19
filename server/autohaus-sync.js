@@ -311,4 +311,12 @@ async function migCopyImage(slug, source, index) {
   };
 }
 
+async function migCopyImages(slug, sourceImages) {
+  const sources = (sourceImages || []).map(image => image && image.original).filter(Boolean);
+  if (!sources.length) throw new Error("No source images for " + slug);
+  const out = new Array(sources.length);
+  for (let i = 0; i < sources.length; i++) out[i] = await migCopyImage(slug, sources[i], i);
+  return out;
+}
+
 module.exports = { ARCHIVE, discoverLiveCars, fetchVehicle, parseVehicle, discoverFromHtml };
