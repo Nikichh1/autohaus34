@@ -319,4 +319,12 @@ async function migCopyImages(slug, sourceImages) {
   return out;
 }
 
+async function migExisting(slug) {
+  const url = MIG_URL + "/rest/v1/vehicles?slug=eq." + encodeURIComponent(slug) + "&select=*";
+  const r = await timedFetch(url, { method: "GET", headers: migHeaders() }, 15000);
+  if (!r.ok) return null;
+  const data = await r.json().catch(() => []);
+  return Array.isArray(data) && data[0] ? data[0] : null;
+}
+
 module.exports = { ARCHIVE, discoverLiveCars, fetchVehicle, parseVehicle, discoverFromHtml };
