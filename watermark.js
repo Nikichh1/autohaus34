@@ -10,6 +10,26 @@
   var enabled = false;
   var lastFetch = 0;
   var bodyObserver = null;
+  var PHOTO_CACHE_KEY = "autohaus-photo-presentation-v1";
+
+  function cacheSettings(settings) {
+    if (!settings || typeof settings !== "object") return;
+    try {
+      localStorage.setItem(PHOTO_CACHE_KEY, JSON.stringify({
+        v: 1,
+        at: Date.now(),
+        settings: {
+          watermark_enabled: settings.watermark_enabled === true,
+          watermark_transparency: settings.watermark_transparency,
+          watermark_size: settings.watermark_size,
+          photo_aspect_ratio: settings.photo_aspect_ratio,
+          photo_filter: settings.photo_filter,
+          photo_filter_strength: settings.photo_filter_strength,
+          desktop_gallery_scale: settings.desktop_gallery_scale
+        }
+      }));
+    } catch (_) {}
+  }
 
   function clamp(value, min, max, fallback) {
     value = Number(value);
@@ -153,6 +173,10 @@
       return response.json();
     }).then(function (data) {
       if (!data || data.ok !== true || !data.settings) throw new Error("invalid watermark settings");
+      /* Save the tiny presentation state for the next navigation. vehicle.html
+         reads it synchronously before CSS paints, so filters never "pop" on
+         after the unfiltered photo has already been shown. */
+      cacheSettings(data.settings);
       applySettings(data.settings);
       return data.settings;
     }).catch(function (error) {
