@@ -57,22 +57,13 @@
   }
 
   function hasEmbeddedAutoHausWatermark(target) {
-    if (!target) return false;
+    if (!target || !target.getAttribute) return false;
 
-    /* Explicit per-image metadata wins. This survives responsive/local URL
-       rewriting, unlike hostname inspection. */
-    var explicit = target.getAttribute && target.getAttribute("data-ah-watermark-embedded");
-    if (explicit === "1") return true;
-    if (explicit === "0") return false;
-
-    var src = imageSource(target);
-    if (!src) return false;
-    try {
-      var url = new URL(src, location.href);
-      return url.hostname === "autohaus.bg" || url.hostname === "www.autohaus.bg";
-    } catch (_) {
-      return false;
-    }
+    /* Never infer embedded watermarks from legacy/source URLs. Some old
+       AutoHaus images have no baked-in mark, and URL rewriting makes hostname
+       heuristics unreliable. Only explicit per-image metadata can suppress the
+       single public overlay. */
+    return target.getAttribute("data-ah-watermark-embedded") === "1";
   }
 
   function markTarget(target) {
