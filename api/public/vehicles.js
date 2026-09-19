@@ -69,6 +69,12 @@ function publicVehicle(row) {
      so map every legacy source to those local derivatives before serializing. */
   const publicVariants = sourceImages.map((image) => {
     if (!image) return {};
+    /* owned-v1 media was migrated into our private masters + six protected
+       public derivatives. Use those CDN URLs directly; never remap them to
+       the temporary/local managed-image compatibility path. */
+    if (image.protected_variants === true && image.variants && Object.keys(image.variants).length) {
+      return image.variants;
+    }
     if (image.legacy === true) return legacyLocalVariants(image.original) || {};
     if (image.embedded_watermark !== true && image.public_id) return protectedManagedVariants(image.public_id);
     return image.variants || {};
