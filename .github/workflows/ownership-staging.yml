@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - ".github/workflows/ownership-staging.yml"
+  pull_request:
+    paths:
+      - ".github/ownership-stage-trigger"
   workflow_dispatch:
 
 permissions:
