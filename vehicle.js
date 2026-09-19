@@ -158,15 +158,15 @@
         shots.slice(0, 3).map(function (s, i) {
           var embedded = AH.watermarkEmbedded && AH.watermarkEmbedded(v, i, s);
           var frameSizes = i === 0 ? '(min-width:1024px) 66vw, 100vw' : '(min-width:1024px) 33vw, 100vw';
-          return '<a class="dgal__f ' + (i === 0 ? "dgal__main" : "dgal__side") + '"' +
-            ' href="' + AH.esc(AH.img(s, 1280)) + '" data-i="' + i + '"' +
+          return '<button type="button" class="dgal__f ' + (i === 0 ? "dgal__main" : "dgal__side") + '"' +
+            ' data-i="' + i + '"' +
             ' data-ah-watermark-embedded="' + (embedded ? '1' : '0') + '"' +
             ' aria-label="Кадър ' + (i + 1) + " от " + N + ' — уголеми">' +
             AH.picture(s, { eager: i === 0, width: i === 0 ? 1280 : 800, height: i === 0 ? 784 : 490,
                             widths: i === 0 ? [800, 1280] : [400, 800, 1280],
                             sizes: frameSizes, src: i === 0 ? 1280 : 800,
                             alt: v.full + " — кадър " + (i + 1) }) +
-            '<span class="dgal__n">' + (i + 1) + " / " + N + "</span></a>";
+            '<span class="dgal__n">' + (i + 1) + " / " + N + "</span></button>";
         }).join("") +
       "</div>" +
       (!N ? '<div class="dgal-empty" data-ah-bg="Очаквайте снимки" data-ah-en="Photos coming soon">Очаквайте снимки</div>' : '') +
@@ -301,7 +301,6 @@
     var picture = frame.querySelector('picture');
     var image = frame.querySelector('img');
     return {
-      href: frame.getAttribute('href') || '',
       dataI: frame.getAttribute('data-i') || '',
       ariaLabel: frame.getAttribute('aria-label') || '',
       embedded: frame.getAttribute('data-ah-watermark-embedded') || '0',
@@ -328,7 +327,6 @@
     sideFrames.forEach(function (frame, index) {
       var snap = sideSnapshots[index];
       if (!snap) return;
-      if (frame.getAttribute('href') !== snap.href) frame.setAttribute('href', snap.href);
       if (frame.getAttribute('data-i') !== snap.dataI) frame.setAttribute('data-i', snap.dataI);
       if (frame.getAttribute('aria-label') !== snap.ariaLabel) frame.setAttribute('aria-label', snap.ariaLabel);
       if (frame.getAttribute('data-ah-watermark-embedded') !== snap.embedded) {
@@ -357,7 +355,7 @@
       sideObserver.observe(frame, {
         attributes: true,
         subtree: true,
-        attributeFilter: ['href', 'src', 'srcset', 'sizes', 'data-i', 'aria-label', 'data-ah-watermark-embedded']
+        attributeFilter: ['src', 'srcset', 'sizes', 'data-i', 'aria-label', 'data-ah-watermark-embedded']
       });
     });
   }
@@ -426,7 +424,6 @@
     selected = i;
 
     mainFrame.dataset.i = String(i);
-    mainFrame.href = AH.img(shots[i], 1280);
     mainFrame.setAttribute('aria-label', v.full + ' / ' + (i + 1) + ' / ' + N);
 
     var embeddedWatermark = AH.watermarkEmbedded && AH.watermarkEmbedded(v, i, shots[i]);
@@ -764,7 +761,7 @@
   }
   fs.forEach(function (f) {
     f.addEventListener("click", function (e) {
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;  /* let a new tab open */
+      if (e.button > 0) return;
       e.preventDefault();
       if (suppressClick) { suppressClick = false; return; }
       open(parseInt(f.getAttribute("data-i"), 10) || 0, f);
