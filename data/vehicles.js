@@ -11,8 +11,8 @@
   var bundledShots = Object.create(null);
   var CACHE_KEY = "autohaus-public-inventory-v2";
   var CHANGE_KEY = "autohaus-inventory-changed";
-  var MAX_AGE = 30000;
-  var STALE_AGE = 120000;
+  var MAX_AGE = 5000;
+  var STALE_AGE = 15000;
   var MAX_ENTRIES = 12;
   var pending = Object.create(null);
   var persistentCache;
