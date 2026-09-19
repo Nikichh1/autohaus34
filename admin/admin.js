@@ -435,16 +435,17 @@
     images.splice(to, 0, images.splice(from, 1)[0]); reindexImages(); setDirty(); renderImages(to);
     toast(t("Редът на снимките е променен", "Photo order updated"));
   }
-  async function preparePhoto(file) {
+  async function preparePhoto(file, aspectRatio) {
     var url = URL.createObjectURL(file), img = new Image();
     try {
       img.src = url; await img.decode();
       if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth * img.naturalHeight > 140000000) throw new Error("Unsafe image dimensions");
 
-      /* Every managed vehicle photo is stored as a real 16:9 crop.
-         Portrait/3:4 phone photos are center-cropped from the top and bottom;
-         extra-wide photos are center-cropped from the sides. */
-      var targetRatio = 16 / 9;
+      /* New uploads are physically cropped to the global product-photo
+         ratio. Existing/legacy photos use the same ratio at presentation
+         time, so changing the setting never requires duplicating old files. */
+      var ratioHeight = aspectRatio === "16:10" ? 10 : 9;
+      var targetRatio = 16 / ratioHeight;
       var sourceRatio = img.naturalWidth / img.naturalHeight;
       var sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
       if (sourceRatio < targetRatio) {
@@ -469,10 +470,10 @@
       }
       function widthSize(target) {
         var width = Math.min(target, sw);
-        return { width: width, height: Math.max(1, Math.round(width * 9 / 16)) };
+        return { width: width, height: Math.max(1, Math.round(width / targetRatio)) };
       }
       var width = Math.max(1, Math.round(Math.min(1600, sw)));
-      var height = Math.max(1, Math.round(width * 9 / 16));
+      var height = Math.max(1, Math.round(width / targetRatio));
       var files = { original: await encode(width, height, "image/jpeg", .92) };
       for (var i = 0; i < 3; i++) {
         var target = [400, 800, 1280][i], size = widthSize(target);
@@ -526,12 +527,17 @@
     retry.hidden = true;
     statusEl.textContent = t("Подготовка…", "Preparing…");
     try {
+      var mediaSettings = { photo_aspect_ratio: "16:9" };
+      if (typeof window.AH_ADMIN_MEDIA_SETTINGS === "function") {
+        try { mediaSettings = await window.AH_ADMIN_MEDIA_SETTINGS(false) || mediaSettings; } catch (_) {}
+      }
+      var uploadAspectRatio = mediaSettings.photo_aspect_ratio === "16:10" ? "16:10" : "16:9";
       async function uploadOne(index) {
         var original = files[index], sign = null;
         try {
           if (!/^image\//.test(original.type) && !/\.(heic|heif|jpe?g|png|webp)$/i.test(original.name)) throw new Error(t("Неподдържан формат", "Unsupported format"));
           if (original.size > 45 * 1024 * 1024) throw new Error(t("Снимката е над 45 MB", "Photo exceeds 45 MB"));
-          var prepared = await preparePhoto(original);
+          var prepared = await preparePhoto(original, uploadAspectRatio);
           sign = await api("/api/admin/images?action=sign", { method: "POST", body: { responsive: true } });
           var responsive = await uploadPreparedPhoto(sign, prepared);
           var result = await api("/api/admin/images?action=complete", { method: "POST", body: { public_id: sign.public_id, responsive: responsive, width: prepared.width, height: prepared.height } });
