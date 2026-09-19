@@ -168,7 +168,7 @@ module.exports = async function handler(req, res) {
           width,
           height,
           legacy: false,
-          embedded_watermark: false,
+          embedded_watermark: body.embedded_watermark === true,
           variants
         }
       });
