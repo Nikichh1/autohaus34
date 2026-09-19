@@ -4,6 +4,7 @@
   var D = document, view = D.getElementById("admin-view"), toastEl = D.getElementById("toast");
   var lang = "bg";
   try { localStorage.removeItem("ah-admin-language"); } catch (_) {}
+  try { sessionStorage.removeItem("autohaus-admin-fast-cache-v1"); } catch (_) {}
   var draftKey = "autohaus-admin-draft:" + (D.body.dataset.adminUser || "admin");
   var state = { vehicles: [], current: null, route: "", dirty: false, saved: false,
     saveBusy: false, uploadBusy: false, aiBusy: false, search: "", filter: "all", removed: [], failedFiles: [], canImport: false, aiNeedsReview: false, reviewNotes: [] };
@@ -44,7 +45,11 @@
   function writeStorage(storage, key, v) { try { if (v == null) window[storage].removeItem(key); else window[storage].setItem(key, v); } catch (_) {} }
   function money(v) { return v == null || v === "" ? "—" : new Intl.NumberFormat(lang === "bg" ? "bg-BG" : "en-GB", { maximumFractionDigits: 0 }).format(Number(v)) + " €"; }
   function mileage(v) { return v == null || v === "" ? "—" : new Intl.NumberFormat(lang === "bg" ? "bg-BG" : "en-GB").format(Number(v)) + t(" км", " km"); }
-  function imageUrl(img) { var v = (img || {}).variants || {}; return v.webp400 || v.jpg400 || (img || {}).original || ""; }
+  function imageUrl(img, size) {
+    var v = (img || {}).variants || {};
+    if (size >= 800) return v.webp800 || v.jpg800 || v.webp1280 || v.jpg1280 || v.webp400 || v.jpg400 || (img || {}).original || "";
+    return v.webp400 || v.jpg400 || v.webp800 || v.jpg800 || (img || {}).original || "";
+  }
   function isResponsiveImage(img) {
     var variants = img && img.variants || {}, keys = ["jpg400", "jpg800", "jpg1280", "webp400", "webp800", "webp1280"];
     var urls = keys.map(function (key) { return variants[key]; });
@@ -181,7 +186,7 @@
   function inventoryCards(list) {
     if (!list.length) return '<div class="empty"><strong>' + t("Няма автомобили", "No cars found") + '</strong>' + t("Променете търсенето или добавете автомобил.", "Change your search or add a car.") + '</div>';
     return '<div class="inventory-list">' + list.map(function (v) {
-      var src = imageUrl((v.images || [])[0]);
+      var src = imageUrl((v.images || [])[0], 400);
       return '<article class="inventory-card"><a class="car-cell" href="#edit=' + encodeURIComponent(v.id) + '" data-edit="' + esc(v.id) + '">' +
         (src ? '<img class="car-thumb" src="' + esc(src) + '" alt="" loading="lazy" decoding="async" width="128" height="80">' : '<span class="car-thumb car-thumb--empty">' + t("Без снимка", "No photo") + '</span>') +
         '<span class="car-name"><strong>' + esc(carName(v)) + '</strong><span>' + esc(v.ref || v.slug || "") + '</span></span></a>' +
@@ -391,7 +396,7 @@
     D.getElementById("image-count").textContent = images.length + " / 80";
     list.innerHTML = images.map(function (img, i) {
       var label = t("Снимка ", "Photo ") + (i + 1);
-      return '<article class="image-card" data-image-index="' + i + '"><img src="' + esc(imageUrl(img)) + '" alt="' + label +
+      return '<article class="image-card" data-image-index="' + i + '"><img src="' + esc(imageUrl(img, 800)) + '" alt="' + label +
         '" loading="lazy" decoding="async" draggable="false"><div class="image-heading"><span>' + (i === 0 ? t("Главна снимка", "Cover photo") : label) +
         '</span>' + (i ? '<button type="button" class="cover-button" data-img-cover="' + i + '" aria-label="' + esc(t("Направи главна снимка ", "Make cover photo ") + (i + 1)) + '">' + t("Главна", "Set cover") + '</button>' : "") +
         '</div><div class="image-actions"><button type="button" class="image-drag-handle" data-img-drag="' + i + '" aria-label="' + esc(t("Подреди снимка ", "Reorder photo ") + (i + 1)) + '"' + (images.length < 2 ? ' disabled' : '') + '><span aria-hidden="true">⠿</span> ' + t("Премести", "Move") + '</button><button type="button" class="image-remove" data-img-remove="' + i + '" aria-label="' + esc(t("Премахни снимка ", "Remove photo ") + (i + 1)) + '">×</button></div></article>';
@@ -651,7 +656,14 @@
     if (window.AH_ADMIN.renderExtra && window.AH_ADMIN.renderExtra(state.route)) return;
     history.replaceState(null, "", "#dashboard"); state.route = "dashboard"; markNav("dashboard"); dashboard();
   }
-  D.querySelectorAll("[data-route]").forEach(function (button) { button.onclick = function () { go(button.dataset.route); }; });
+  var adminNav = D.querySelector(".side__nav");
+  if (adminNav) adminNav.addEventListener("click", function (event) {
+    var button = event.target && event.target.closest ? event.target.closest("[data-route]") : null;
+    if (!button || !adminNav.contains(button)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    go(button.dataset.route);
+  }, true);
   applyRole();
   D.getElementById("logout").onclick = async function () {
     if (!canLeave()) return;
