@@ -16,10 +16,18 @@
 (function(){
   try{
     var raw=localStorage.getItem("autohaus-photo-presentation-v1");
-    if(!raw)return;
-    var cache=JSON.parse(raw),s=cache&&cache.settings;
-    if(!s)return;
+    var cache=raw?JSON.parse(raw):null,s=cache&&cache.settings;
+    /* Protection defaults mirror the current public watermark so a first-ever
+       direct visit is protected even before the asynchronous settings refresh. */
+    if(!s)s={watermark_enabled:true,watermark_transparency:75,watermark_size:13,photo_filter:"none",photo_filter_strength:0,photo_aspect_ratio:"16:9",desktop_gallery_scale:84};
     var root=document.documentElement;
+    var wmTransparency=Math.max(0,Math.min(100,Number(s.watermark_transparency)));
+    if(!Number.isFinite(wmTransparency))wmTransparency=75;
+    var wmSize=Math.max(10,Math.min(60,Number(s.watermark_size)));
+    if(!Number.isFinite(wmSize))wmSize=13;
+    root.style.setProperty("--ah-watermark-opacity",String((100-wmTransparency)/100));
+    root.style.setProperty("--ah-watermark-size",wmSize+"%");
+    root.classList.toggle("ah-watermark-v4-on",s.watermark_enabled===true);
     var ratio=s.photo_aspect_ratio==="16:10"?"16:10":"16:9";
     var name=["none","balanced","showroom"].indexOf(s.photo_filter)>=0?s.photo_filter:"none";
     var strength=Math.max(0,Math.min(100,Number(s.photo_filter_strength)||0));
