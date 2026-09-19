@@ -435,7 +435,32 @@
     images.splice(to, 0, images.splice(from, 1)[0]); reindexImages(); setDirty(); renderImages(to);
     toast(t("Редът на снимките е променен", "Photo order updated"));
   }
-  async function preparePhoto(file, aspectRatio) {
+  var watermarkAssetPromise = null;
+  function watermarkAsset() {
+    if (watermarkAssetPromise) return watermarkAssetPromise;
+    watermarkAssetPromise = new Promise(function (resolve, reject) {
+      var logo = new Image();
+      logo.decoding = "async";
+      logo.onload = function () {
+        (logo.decode ? logo.decode().catch(function () {}) : Promise.resolve()).then(function () { resolve(logo); });
+      };
+      logo.onerror = function () { reject(new Error("Watermark asset unavailable")); };
+      logo.src = "/autohaus.svg";
+    });
+    return watermarkAssetPromise;
+  }
+
+  async function preparePhoto(file, mediaSettings) {
+    mediaSettings = mediaSettings || {};
+    var aspectRatio = mediaSettings.photo_aspect_ratio === "16:10" ? "16:10" : "16:9";
+    var watermark = null;
+    if (mediaSettings.watermark_enabled === true) watermark = await watermarkAsset();
+    var watermarkTransparency = Math.max(0, Math.min(100, Number(mediaSettings.watermark_transparency)));
+    if (!Number.isFinite(watermarkTransparency)) watermarkTransparency = 75;
+    var watermarkSize = Math.max(10, Math.min(60, Number(mediaSettings.watermark_size)));
+    if (!Number.isFinite(watermarkSize)) watermarkSize = 13;
+    var watermarkOpacity = (100 - watermarkTransparency) / 100;
+
     var url = URL.createObjectURL(file), img = new Image();
     try {
       img.src = url; await img.decode();
@@ -464,6 +489,19 @@
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
         ctx.fillStyle = "#f6f5f1"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+        /* Bake the public watermark into the actual bytes. This happens once
+           in the admin before upload; visitors pay zero runtime cost and every
+           responsive derivative/direct download carries the AutoHaus mark. */
+        if (watermark && watermarkOpacity > 0) {
+          var markWidth = Math.max(1, Math.round(canvas.width * watermarkSize / 100));
+          var markHeight = Math.max(1, Math.round(markWidth * 85 / 481.9));
+          ctx.save();
+          ctx.globalAlpha = watermarkOpacity;
+          ctx.drawImage(watermark, Math.round((canvas.width - markWidth) / 2), Math.round((canvas.height - markHeight) / 2), markWidth, markHeight);
+          ctx.restore();
+        }
+
         var blob = await new Promise(function (resolve) { canvas.toBlob(resolve, type, quality); });
         if (!blob || (type === "image/webp" && blob.type !== "image/webp")) throw new Error(type === "image/webp" ? "WebP encoding unavailable" : "Image conversion failed");
         return blob;
@@ -481,7 +519,7 @@
         files["webp" + target] = await encode(size.width, size.height, "image/webp", .88);
       }
       canvas.width = 1; canvas.height = 1;
-      return { width: width, height: height, files: files };
+      return { width: width, height: height, files: files, embeddedWatermark: !!watermark };
     } catch (error) {
       var webp = error && error.message === "WebP encoding unavailable";
       throw new Error(webp ? t("Този браузър не може да подготви оптимизирани WebP снимки. Обновете браузъра и опитайте отново.", "This browser cannot prepare optimized WebP photos. Update it and try again.") :
@@ -537,10 +575,10 @@
         try {
           if (!/^image\//.test(original.type) && !/\.(heic|heif|jpe?g|png|webp)$/i.test(original.name)) throw new Error(t("Неподдържан формат", "Unsupported format"));
           if (original.size > 45 * 1024 * 1024) throw new Error(t("Снимката е над 45 MB", "Photo exceeds 45 MB"));
-          var prepared = await preparePhoto(original, uploadAspectRatio);
+          var prepared = await preparePhoto(original, mediaSettings);
           sign = await api("/api/admin/images?action=sign", { method: "POST", body: { responsive: true } });
           var responsive = await uploadPreparedPhoto(sign, prepared);
-          var result = await api("/api/admin/images?action=complete", { method: "POST", body: { public_id: sign.public_id, responsive: responsive, width: prepared.width, height: prepared.height } });
+          var result = await api("/api/admin/images?action=complete", { method: "POST", body: { public_id: sign.public_id, responsive: responsive, width: prepared.width, height: prepared.height, embedded_watermark: prepared.embeddedWatermark === true } });
           if (!result.image) throw new Error(t("Снимката не е потвърдена", "Photo could not be verified"));
           results[index] = result.image; completed++;
         } catch (error) {
