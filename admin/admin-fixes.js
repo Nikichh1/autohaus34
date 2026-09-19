@@ -182,10 +182,16 @@
   else scheduleRefresh();
 })();
 
-/* Global watermark settings and the Settings route. */
+/* Global image presentation settings and the Settings route. */
 (function () {
   "use strict";
-  var DEFAULT_SETTINGS = { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34 };
+  var DEFAULT_SETTINGS = {
+    watermark_enabled: false,
+    watermark_transparency: 75,
+    watermark_size: 34,
+    photo_aspect_ratio: "16:9",
+    photo_filter: "none"
+  };
   var cached = null, cachedAt = 0, pending = null;
 
   function tr(bg, en) { return document.documentElement.lang === "en" ? en : bg; }
@@ -199,15 +205,16 @@
     return {
       watermark_enabled: value.watermark_enabled === true,
       watermark_transparency: Math.max(0, Math.min(100, n)),
-      watermark_size: Math.max(10, Math.min(60, s))
+      watermark_size: Math.max(10, Math.min(60, s)),
+      photo_aspect_ratio: value.photo_aspect_ratio === "16:10" ? "16:10" : "16:9",
+      photo_filter: ["none", "bright", "showroom", "contrast"].indexOf(value.photo_filter) >= 0 ? value.photo_filter : "none"
     };
   }
-  function status(text) { var el = document.getElementById("upload-status"); if (el) el.textContent = text; }
 
   function getSettings(force) {
     if (!force && cached && Date.now() - cachedAt < 30000) return Promise.resolve(cached);
     if (!force && pending) return pending;
-    pending = fetch("/api/admin/settings", { credentials: "same-origin", headers: { Accept: "application/json" } })
+    pending = fetch("/api/admin/settings", { credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("settings"); return r.json(); })
       .then(function (data) { cached = normalize(data.settings); cachedAt = Date.now(); return cached; })
       .catch(function () { cached = Object.assign({}, DEFAULT_SETTINGS); cachedAt = Date.now(); return cached; })
@@ -215,7 +222,26 @@
     return pending;
   }
 
+  async function saveSettings(patch) {
+    var response = await fetch("/api/admin/settings", {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify(patch)
+    });
+    var data = await response.json().catch(function () { return {}; });
+    if (!response.ok) throw new Error(data.error || tr("Настройките не бяха записани.", "Settings could not be saved."));
+    cached = normalize(data.settings); cachedAt = Date.now();
+    window.dispatchEvent(new CustomEvent("ah:admin-settings", { detail: cached }));
+    return cached;
+  }
+
+  window.AH_ADMIN_MEDIA_SETTINGS = function (force) { return getSettings(!!force); };
   window.addEventListener("ah:admin-settings", function (event) { cached = normalize(event.detail); cachedAt = Date.now(); });
+
+  function option(value, current, label) {
+    return '<option value="' + esc(value) + '"' + (value === current ? " selected" : "") + '>' + esc(label) + '</option>';
+  }
 
   function installRoute() {
     var app = window.AH_ADMIN, view = document.getElementById("admin-view");
@@ -225,36 +251,79 @@
 
     function renderSettings() {
       var t = app.t;
-      view.innerHTML = '<div class="view-head"><div class="view-title"><p>AutoHaus</p><h1>' + esc(t("Настройки", "Settings")) + '</h1></div></div>' +
-        '<section class="panel"><div class="panel-head"><h2>' + esc(t("Воден знак върху снимките", "Photo watermark")) + '</h2></div><div id="ah-settings-body" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>';
-      var body = document.getElementById("ah-settings-body");
-      getSettings(true).then(function (cfg) {
-        if (!body || !body.isConnected) return;
+      view.innerHTML =
+        '<div class="view-head"><div class="view-title"><p>AutoHaus</p><h1>' + esc(t("Настройки", "Settings")) + '</h1></div></div>' +
+        '<section class="panel"><div class="panel-head"><h2>' + esc(t("Воден знак върху снимките", "Photo watermark")) + '</h2></div><div id="ah-watermark-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
+        '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Формат и обработка на снимките", "Photo format and processing")) + '</h2></div><div id="ah-media-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>';
+
+      Promise.resolve(getSettings(true)).then(function (cfg) {
+        var watermarkBody = document.getElementById("ah-watermark-settings");
+        var mediaBody = document.getElementById("ah-media-settings");
+        if (!watermarkBody || !mediaBody || !watermarkBody.isConnected || !mediaBody.isConnected) return;
         var disabled = app.canWrite ? "" : " disabled";
-        body.innerHTML = '<form id="ah-settings-form" style="display:grid;gap:22px">' +
-          '<label class="check" style="align-items:flex-start"><input id="ah-watermark-enabled" type="checkbox"' + (cfg.watermark_enabled ? " checked" : "") + disabled + '><span><strong>' + esc(t("Добавяй AutoHaus воден знак автоматично", "Add the AutoHaus watermark automatically")) + '</strong><br><small class="muted">' + esc(t("Показва се върху продуктовите снимки в сайта, без да променя оригиналните качени файлове.", "Shown on public product images without modifying the uploaded source files.")) + '</small></span></label>' +
+
+        watermarkBody.innerHTML =
+          '<form id="ah-watermark-form" style="display:grid;gap:22px">' +
+          '<label class="check" style="align-items:flex-start"><input id="ah-watermark-enabled" type="checkbox"' + (cfg.watermark_enabled ? " checked" : "") + disabled + '><span><strong>' + esc(t("Добавяй AutoHaus воден знак автоматично", "Add the AutoHaus watermark automatically")) + '</strong><br><small class="muted">' + esc(t("Показва се върху продуктовите снимки, без повторно компресиране на файловете.", "Shown on product photos without re-compressing the image files.")) + '</small></span></label>' +
           '<label class="field" style="max-width:520px"><span>' + esc(t("Прозрачност", "Transparency")) + ' — <b id="ah-watermark-value">' + cfg.watermark_transparency + '%</b></span><input id="ah-watermark-transparency" type="range" min="0" max="100" step="1" value="' + cfg.watermark_transparency + '"' + disabled + '></label>' +
           '<label class="field" style="max-width:520px"><span>' + esc(t("Размер", "Size")) + ' — <b id="ah-watermark-size-value">' + cfg.watermark_size + '%</b></span><input id="ah-watermark-size" type="range" min="10" max="60" step="1" value="' + cfg.watermark_size + '"' + disabled + '></label>' +
-          '<p class="muted" style="margin:0">' + esc(t("75% прозрачност и 34% размер са стойностите по подразбиране. Настройките са глобални и важат за всички автомобили.", "75% transparency and 34% size are the defaults. These global settings apply to every vehicle.")) + '</p>' +
-          (app.canWrite ? '<div><button class="primary" id="ah-settings-save" type="submit">' + esc(t("Запази настройките", "Save settings")) + '</button></div>' : '') + '<div id="ah-settings-status" class="muted" role="status"></div></form>';
+          (app.canWrite ? '<div><button class="primary" id="ah-watermark-save" type="submit">' + esc(t("Запази водния знак", "Save watermark")) + '</button></div>' : '') +
+          '<div id="ah-watermark-status" class="muted" role="status"></div></form>';
+
+        mediaBody.innerHTML =
+          '<form id="ah-media-form" style="display:grid;gap:22px">' +
+          '<label class="field" style="max-width:520px"><span><strong>' + esc(t("Формат на продуктовите снимки", "Product photo format")) + '</strong></span>' +
+          '<select id="ah-photo-ratio"' + disabled + '>' +
+          option("16:9", cfg.photo_aspect_ratio, "16:9 · Wide") +
+          option("16:10", cfg.photo_aspect_ratio, "16:10 · По-висок кадър") +
+          '</select><small class="field-hint">' + esc(t("Прилага се веднага върху всички стари снимки. Новите качвания се изрязват реално до избрания формат.", "Applied immediately to all existing photos. New uploads are physically cropped to the selected format.")) + '</small></label>' +
+          '<label class="field" style="max-width:520px"><span><strong>' + esc(t("Филтър за светлина", "Photo lighting filter")) + '</strong></span>' +
+          '<select id="ah-photo-filter"' + disabled + '>' +
+          option("none", cfg.photo_filter, t("Без филтър", "No filter")) +
+          option("bright", cfg.photo_filter, t("Светъл · + светлина", "Bright · more light")) +
+          option("showroom", cfg.photo_filter, "Showroom · " + t("светлина + контраст + цвят", "light + contrast + colour")) +
+          option("contrast", cfg.photo_filter, t("Контрастен · по-ясни детайли", "Contrast · clearer details")) +
+          '</select><small class="field-hint">' + esc(t("Филтърът е глобален и недеструктивен — не създава нови файлове и не забавя изтеглянето на снимките.", "The filter is global and non-destructive — it creates no extra files and does not increase image download size.")) + '</small></label>' +
+          '<div style="padding:14px 16px;border:1px solid var(--line);border-radius:8px;background:var(--soft)"><strong style="display:block;margin-bottom:4px">' + esc(t("Бързо зареждане", "Fast loading")) + '</strong><span class="muted">' + esc(t("Старите снимки не се копират или пре-енкодират. Запазваме responsive JPEG/WebP вариантите и прилагаме формата/филтъра при показване.", "Existing photos are not copied or re-encoded. Responsive JPEG/WebP variants stay intact; format and filter are applied when displayed.")) + '</span></div>' +
+          (app.canWrite ? '<div><button class="primary" id="ah-media-save" type="submit">' + esc(t("Запази обработката на снимките", "Save photo processing")) + '</button></div>' : '') +
+          '<div id="ah-media-status" class="muted" role="status"></div></form>';
+
         var range = document.getElementById("ah-watermark-transparency");
         var value = document.getElementById("ah-watermark-value");
         var sizeRange = document.getElementById("ah-watermark-size");
         var sizeValue = document.getElementById("ah-watermark-size-value");
         if (range) range.oninput = function () { value.textContent = range.value + "%"; };
         if (sizeRange) sizeRange.oninput = function () { sizeValue.textContent = sizeRange.value + "%"; };
-        var form = document.getElementById("ah-settings-form");
-        if (form && app.canWrite) form.onsubmit = async function (event) {
+
+        var watermarkForm = document.getElementById("ah-watermark-form");
+        if (watermarkForm && app.canWrite) watermarkForm.onsubmit = async function (event) {
           event.preventDefault();
-          var save = document.getElementById("ah-settings-save"), message = document.getElementById("ah-settings-status");
+          var save = document.getElementById("ah-watermark-save");
+          var message = document.getElementById("ah-watermark-status");
           save.disabled = true; message.textContent = t("Записване…", "Saving…");
           try {
-            var response = await fetch("/api/admin/settings", { method: "PATCH", credentials: "same-origin", headers: { Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ watermark_enabled: document.getElementById("ah-watermark-enabled").checked, watermark_transparency: Number(range.value), watermark_size: Number(sizeRange.value) }) });
-            var data = await response.json().catch(function () { return {}; });
-            if (!response.ok) throw new Error(data.error || t("Настройките не бяха записани.", "Settings could not be saved."));
-            cached = normalize(data.settings); cachedAt = Date.now();
-            window.dispatchEvent(new CustomEvent("ah:admin-settings", { detail: cached }));
-            message.textContent = t("Настройките са записани.", "Settings saved.");
+            await saveSettings({
+              watermark_enabled: document.getElementById("ah-watermark-enabled").checked,
+              watermark_transparency: Number(range.value),
+              watermark_size: Number(sizeRange.value)
+            });
+            message.textContent = t("Настройките за водния знак са записани.", "Watermark settings saved.");
+          } catch (error) { message.textContent = error.message; }
+          finally { save.disabled = false; }
+        };
+
+        var mediaForm = document.getElementById("ah-media-form");
+        if (mediaForm && app.canWrite) mediaForm.onsubmit = async function (event) {
+          event.preventDefault();
+          var save = document.getElementById("ah-media-save");
+          var message = document.getElementById("ah-media-status");
+          save.disabled = true; message.textContent = t("Прилагане върху всички снимки…", "Applying to all photos…");
+          try {
+            await saveSettings({
+              photo_aspect_ratio: document.getElementById("ah-photo-ratio").value,
+              photo_filter: document.getElementById("ah-photo-filter").value
+            });
+            message.textContent = t("Форматът и филтърът са активни за всички продуктови снимки.", "Format and filter are active for all product photos.");
           } catch (error) { message.textContent = error.message; }
           finally { save.disabled = false; }
         };
