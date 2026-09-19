@@ -168,6 +168,7 @@ module.exports = async function handler(req, res) {
           width,
           height,
           legacy: false,
+          embedded_watermark: false,
           variants
         }
       });
