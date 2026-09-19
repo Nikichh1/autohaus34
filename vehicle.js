@@ -157,12 +157,14 @@
       '<div class="dgal dgal--' + Math.min(N, 3) + '" id="dgal">' +
         shots.slice(0, 3).map(function (s, i) {
           var embedded = AH.watermarkEmbedded && AH.watermarkEmbedded(v, i, s);
+          var frameSizes = i === 0 ? '(min-width:1024px) 66vw, 100vw' : '(min-width:1024px) 33vw, 100vw';
           return '<a class="dgal__f ' + (i === 0 ? "dgal__main" : "dgal__side") + '"' +
             ' href="' + AH.esc(s) + '" data-i="' + i + '"' +
-            (embedded ? ' data-ah-watermark-embedded="1"' : '') +
+            ' data-ah-watermark-embedded="' + (embedded ? '1' : '0') + '"' +
             ' aria-label="Кадър ' + (i + 1) + " от " + N + ' — уголеми">' +
-            AH.picture(s, { eager: i === 0, width: 800, height: 490,
-                            sizes: mainSizes, src: 800,
+            AH.picture(s, { eager: i === 0, width: i === 0 ? 1280 : 800, height: i === 0 ? 784 : 490,
+                            widths: i === 0 ? [800, 1280] : [400, 800, 1280],
+                            sizes: frameSizes, src: i === 0 ? 1280 : 800,
                             alt: v.full + " — кадър " + (i + 1) }) +
             '<span class="dgal__n">' + (i + 1) + " / " + N + "</span></a>";
         }).join("") +
@@ -309,17 +311,17 @@
     return !connection || (!connection.saveData && !/^(slow-2g|2g|3g)$/.test(connection.effectiveType || '') &&
       !(connection.downlink > 0 && connection.downlink <= 1.5));
   }
-  function prepare(i, priority, sizes) {
+  function prepare(i, priority) {
     if (!N) return Promise.resolve(null);
     priority = priority || 'low';
     if (priority === 'low' && !canWarmImages()) return Promise.resolve(null);
     i = (i + N) % N;
-    sizes = sizes || mainSizes;
-    var key = i + ':' + sizes;
+    var key = i + ':hq1280';
     if (decoded[key]) {
       if (priority === 'high') decoded[key].image.fetchPriority = 'high';
       return decoded[key].promise;
     }
+
     var image = new Image();
     var entry = { image: image };
     decoded[key] = entry;
@@ -327,27 +329,23 @@
       var fallback = false;
       image.decoding = 'async';
       image.fetchPriority = priority;
-      image.sizes = sizes;
       image.onload = function () {
         (image.decode ? image.decode().catch(function () {}) : Promise.resolve()).then(function () { resolve(image); });
       };
       image.onerror = function () {
-        // An Image srcset has no <picture> type negotiation. Retry JPEG if
-        // WebP is unsupported or that derivative is unavailable.
         if (!fallback) {
           fallback = true;
-          image.srcset = AH.srcset(shots[i]);
           image.src = AH.img(shots[i], 800);
           return;
         }
         delete decoded[key];
         resolve(null);
       };
-      image.srcset = AH.webpset(shots[i]);
-      image.src = AH.img(shots[i], 800);
+      image.src = AH.img(shots[i], 1280);
     });
     return entry.promise;
   }
+
   function stripTo(i) {
     if (!mainFrame || !mainImg || !N) return;
     i = (i + N) % N;
@@ -357,6 +355,10 @@
     mainFrame.dataset.i = String(i);
     mainFrame.href = shots[i];
     mainFrame.setAttribute('aria-label', v.full + ' / ' + (i + 1) + ' / ' + N);
+
+    var embeddedWatermark = AH.watermarkEmbedded && AH.watermarkEmbedded(v, i, shots[i]);
+    mainFrame.setAttribute('data-ah-watermark-embedded', embeddedWatermark ? '1' : '0');
+    if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(mainFrame);
 
     var mainCounter = mainFrame.querySelector('.dgal__n');
     if (mainCounter) mainCounter.textContent = (i + 1) + ' / ' + N;
@@ -381,8 +383,9 @@
         mainImg.removeAttribute('sizes');
         mainImg.src = image.currentSrc || image.src;
         mainImg.alt = v.full + ' / ' + (i + 1);
-        mainImg.width = 800;
-        mainImg.height = 490;
+        mainImg.width = 1280;
+        mainImg.height = 784;
+        if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(mainFrame);
       }
       mainFrame.removeAttribute('aria-busy');
       if (image) prepare((i + 1) % N);
@@ -653,17 +656,8 @@
     else lbStage.setAttribute("data-ah-watermark-embedded", "0");
     if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(lbStage);
 
-    // Start with an already visible frame/thumbnail. Keep it on screen until
-    // the responsive enlargement decodes, then swap only the latest request.
-    var frame = fs.filter(function (item) { return Number(item.dataset.i) === shot; })[0];
-    var preview = frame && frame.querySelector('img');
-    if (!preview || !preview.complete || !preview.naturalWidth) preview = thumbs[shot] && thumbs[shot].querySelector('img');
-    if ((first || previous !== shot) && preview && preview.complete && preview.naturalWidth) {
-      lbImg.style.clipPath = '';
-      lbImg.removeAttribute('srcset');
-      lbImg.src = preview.currentSrc || preview.src;
-      fitLightboxMargins();
-    }
+    /* Never promote a 400/800px thumbnail into the fullscreen viewer.
+       Keep the current frame until the 1280px candidate is decoded. */
     lbImg.alt = v.model + " — кадър " + (shot + 1);
     if (lbCount) lbCount.textContent = (shot + 1) + " / " + N;
     lb.classList.add("open");
@@ -681,6 +675,7 @@
         lbImg.removeAttribute('srcset');
         lbImg.src = image.currentSrc || image.src;
         fitLightboxMargins();
+        if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(lbStage);
       }
       lbStage.removeAttribute('aria-busy');
     });
