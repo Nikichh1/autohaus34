@@ -216,12 +216,12 @@
   }
 
   function photoPreset(name, strength) {
-    var k = Math.max(0, Math.min(100, Number(strength) || 0)) / 100;
+    var k = Math.sqrt(Math.max(0, Math.min(100, Number(strength) || 0)) / 100);
     var presets = {
       none: { brightness: 1, contrast: 1, saturate: 1, vignette: 0 },
-      natural: { brightness: 1 - .015 * k, contrast: 1 + .035 * k, saturate: 1 + .03 * k, vignette: .13 * k },
-      balanced: { brightness: 1 - .025 * k, contrast: 1 + .06 * k, saturate: 1 + .05 * k, vignette: .18 * k },
-      showroom: { brightness: 1 - .035 * k, contrast: 1 + .075 * k, saturate: 1 + .07 * k, vignette: .22 * k }
+      natural: { brightness: 1 - .04 * k, contrast: 1 + .07 * k, saturate: 1 + .10 * k, vignette: .18 * k },
+      balanced: { brightness: 1 - .09 * k, contrast: 1 + .12 * k, saturate: 1 + .18 * k, vignette: .28 * k },
+      showroom: { brightness: 1 - .14 * k, contrast: 1 + .18 * k, saturate: 1 + .26 * k, vignette: .38 * k }
     };
     return presets[name] || presets.none;
   }
