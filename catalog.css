@@ -1394,6 +1394,7 @@
   --ah-photo-contrast:1;
   --ah-photo-saturate:1;
   --ah-photo-vignette-opacity:0;
+  --ah-photo-filter-css:none;
 }
 .lc__pic{aspect-ratio:var(--ah-photo-ratio)!important}
 .dgal__main,.dthumb{aspect-ratio:var(--ah-photo-ratio)!important}
@@ -1402,7 +1403,7 @@
 .dthumb img,
 .mtile__pic img,
 #lb-stage img{
-  filter:brightness(var(--ah-photo-brightness)) contrast(var(--ah-photo-contrast)) saturate(var(--ah-photo-saturate));
+  filter:var(--ah-photo-filter-css,brightness(var(--ah-photo-brightness)) contrast(var(--ah-photo-contrast)) saturate(var(--ah-photo-saturate)));
 }
 .lc__pic picture,
 .dgal__f picture,
