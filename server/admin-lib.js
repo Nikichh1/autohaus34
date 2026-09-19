@@ -268,11 +268,10 @@ function safeUrl(value, imageOnly) {
   try {
     const url = new URL(s);
     if (url.protocol !== "https:" || url.username || url.password) return "";
-    const isAutoHaus = url.hostname === "autohaus.bg" || url.hostname === "www.autohaus.bg";
     const isCloudinary = url.hostname === "res.cloudinary.com";
     const isSupabaseStorage = url.hostname === "ajoiqomflplhadyhxvfe.supabase.co" &&
       url.pathname.startsWith("/storage/v1/object/public/vehicle-images/");
-    if (imageOnly && !isAutoHaus && !isCloudinary && !isSupabaseStorage) return "";
+    if (imageOnly && !isCloudinary && !isSupabaseStorage) return "";
     return url.href;
   } catch (_) { return ""; }
 }
@@ -348,7 +347,9 @@ function normalizeVehicle(body) {
     equipment_bg: stringArray(body.equipment_bg, 600),
     equipment_en: stringArray(body.equipment_en, 600),
     images: sanitizeImages(body.images),
-    source_url: safeUrl(body.source_url, false),
+    /* The production catalogue is self-owned. Never persist a legacy source
+       dependency back into an edited vehicle. */
+    source_url: "",
     published: body.published === true,
     updated_at: new Date().toISOString()
   };
