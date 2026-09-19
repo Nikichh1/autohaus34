@@ -650,7 +650,8 @@
        source was autohaus.bg, so URL inspection alone is not sufficient. */
     var embeddedWatermark = AH.watermarkEmbedded && AH.watermarkEmbedded(v, shot, shots[shot]);
     if (embeddedWatermark) lbStage.setAttribute("data-ah-watermark-embedded", "1");
-    else lbStage.removeAttribute("data-ah-watermark-embedded");
+    else lbStage.setAttribute("data-ah-watermark-embedded", "0");
+    if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(lbStage);
 
     // Start with an already visible frame/thumbnail. Keep it on screen until
     // the responsive enlargement decodes, then swap only the latest request.
