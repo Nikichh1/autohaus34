@@ -211,12 +211,26 @@
     };
   }
 
+  function photoFilterCss(name) {
+    return ({
+      none: "none",
+      bright: "brightness(1.06) contrast(1.025) saturate(1.02)",
+      showroom: "brightness(1.045) contrast(1.07) saturate(1.06)",
+      contrast: "brightness(1.01) contrast(1.12) saturate(1.03)"
+    })[name] || "none";
+  }
+  function applyAdminPhotoPresentation(cfg) {
+    cfg = normalize(cfg);
+    document.documentElement.style.setProperty("--ah-admin-photo-ratio", cfg.photo_aspect_ratio === "16:10" ? "16 / 10" : "16 / 9");
+    document.documentElement.style.setProperty("--ah-admin-photo-filter", photoFilterCss(cfg.photo_filter));
+  }
+
   function getSettings(force) {
     if (!force && cached && Date.now() - cachedAt < 30000) return Promise.resolve(cached);
     if (!force && pending) return pending;
     pending = fetch("/api/admin/settings", { credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("settings"); return r.json(); })
-      .then(function (data) { cached = normalize(data.settings); cachedAt = Date.now(); return cached; })
+      .then(function (data) { cached = normalize(data.settings); cachedAt = Date.now(); applyAdminPhotoPresentation(cached); return cached; })
       .catch(function () { cached = Object.assign({}, DEFAULT_SETTINGS); cachedAt = Date.now(); return cached; })
       .finally(function () { pending = null; });
     return pending;
@@ -231,13 +245,13 @@
     });
     var data = await response.json().catch(function () { return {}; });
     if (!response.ok) throw new Error(data.error || tr("Настройките не бяха записани.", "Settings could not be saved."));
-    cached = normalize(data.settings); cachedAt = Date.now();
+    cached = normalize(data.settings); cachedAt = Date.now(); applyAdminPhotoPresentation(cached);
     window.dispatchEvent(new CustomEvent("ah:admin-settings", { detail: cached }));
     return cached;
   }
 
   window.AH_ADMIN_MEDIA_SETTINGS = function (force) { return getSettings(!!force); };
-  window.addEventListener("ah:admin-settings", function (event) { cached = normalize(event.detail); cachedAt = Date.now(); });
+  window.addEventListener("ah:admin-settings", function (event) { cached = normalize(event.detail); cachedAt = Date.now(); applyAdminPhotoPresentation(cached); });
 
   function option(value, current, label) {
     return '<option value="' + esc(value) + '"' + (value === current ? " selected" : "") + '>' + esc(label) + '</option>';
