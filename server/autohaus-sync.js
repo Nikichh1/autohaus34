@@ -345,4 +345,21 @@ async function migStageVehicle(slug, sortOrder) {
   return { slug, images: row.images.length };
 }
 
-module.exports = { ARCHIVE, discoverLiveCars, fetchVehicle, parseVehicle, discoverFromHtml };
+async function runOwnershipStaging() {
+  const live = await discoverLiveCars();
+  if (live.length < 20) throw new Error("Refusing suspicious live inventory count: " + live.length);
+  console.log("AutoHaus ownership staging: " + live.length + " live vehicles");
+  let cursor = 0;
+  async function worker() {
+    while (cursor < live.length) {
+      const index = cursor++;
+      const result = await migStageVehicle(live[index], index + 1);
+      console.log("  staged " + (index + 1) + "/" + live.length + " " + result.slug + " (" + result.images + " images)");
+    }
+  }
+  await Promise.all([worker(), worker()]);
+  console.log("AutoHaus ownership staging complete");
+  return live.length;
+}
+
+module.exports = { ARCHIVE, discoverLiveCars, fetchVehicle, parseVehicle, discoverFromHtml, runOwnershipStaging };
