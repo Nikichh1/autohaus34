@@ -56,6 +56,14 @@
   }
 
   function hasEmbeddedAutoHausWatermark(target) {
+    if (!target) return false;
+
+    /* Explicit per-image metadata wins. This survives responsive/local URL
+       rewriting, unlike hostname inspection. */
+    var explicit = target.getAttribute && target.getAttribute("data-ah-watermark-embedded");
+    if (explicit === "1") return true;
+    if (explicit === "0") return false;
+
     var src = imageSource(target);
     if (!src) return false;
     try {
@@ -186,6 +194,9 @@
   }
 
   window.AH_WATERMARK_REFRESH = function () { return fetchSettings(0); };
+  window.AH_WATERMARK_SYNC = function (target) {
+    if (target && target.nodeType === 1) markTarget(target);
+  };
 
   window.addEventListener("focus", function () {
     if (Date.now() - lastFetch > 15000) fetchSettings(0);
