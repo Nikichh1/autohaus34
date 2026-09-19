@@ -9,6 +9,41 @@
 <title>Автомобил — AutoHaus</title>
 <meta name="description" content="Пълно досие на автомобила: спецификация, галерия, произход, лизинг и запитване към AutoHaus.">
 <script>window.AH_INVENTORY_READY = new Promise(function (resolve) { window.AH_INVENTORY_RESOLVE = resolve; });</script>
+<script>
+/* First-paint photo bootstrap.
+   Reads only a tiny local settings object; no fetch, timer or render blocking.
+   The same values are verified asynchronously later by watermark.js. */
+(function(){
+  try{
+    var raw=localStorage.getItem("autohaus-photo-presentation-v1");
+    if(!raw)return;
+    var cache=JSON.parse(raw),s=cache&&cache.settings;
+    if(!s)return;
+    var root=document.documentElement;
+    var ratio=s.photo_aspect_ratio==="16:10"?"16:10":"16:9";
+    var name=["none","balanced","showroom"].indexOf(s.photo_filter)>=0?s.photo_filter:"none";
+    var strength=Math.max(0,Math.min(100,Number(s.photo_filter_strength)||0));
+    var scale=Math.max(70,Math.min(100,Number(s.desktop_gallery_scale)||84));
+    var k=Math.sqrt(strength/100);
+    var p=name==="showroom"
+      ?{b:1-.14*k,c:1+.18*k,s:1+.26*k,v:.38*k}
+      :name==="balanced"
+        ?{b:1-.09*k,c:1+.12*k,s:1+.18*k,v:.28*k}
+        :{b:1,c:1,s:1,v:0};
+    root.style.setProperty("--ah-photo-ratio",ratio==="16:10"?"16 / 10":"16 / 9");
+    root.style.setProperty("--ah-gallery-ratio",ratio==="16:10"?"12 / 5":"8 / 3");
+    root.style.setProperty("--ah-gallery-desktop-scale",scale+"%");
+    root.style.setProperty("--ah-photo-brightness",String(p.b));
+    root.style.setProperty("--ah-photo-contrast",String(p.c));
+    root.style.setProperty("--ah-photo-saturate",String(p.s));
+    root.style.setProperty("--ah-photo-vignette-opacity",String(p.v));
+    root.style.setProperty("--ah-photo-filter-css","brightness("+p.b+") contrast("+p.c+") saturate("+p.s+")");
+    root.style.setProperty("--cat-ratio",ratio==="16:10"?"1.6":"1.7777778");
+    root.dataset.ahPhotoRatio=ratio;
+    root.dataset.ahPhotoFilter=name;
+  }catch(_){}
+})();
+</script>
 <script async src="data/vehicles.js?v=cc4cd34d" onerror="window.AH_INVENTORY_RESOLVE()"></script>
 <!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
 <link rel="stylesheet" href="style.min.css?v=cc4cd34d" id="ah-css">
