@@ -27,3 +27,37 @@ async function fetchJson(url, options) {
   if (!r.ok) throw new Error("HTTP " + r.status + " " + JSON.stringify(data).slice(0, 300));
   return data;
 }
+
+function logoSvg() {
+  return fs.readFileSync(LOGO_FILE, "utf8").replace(/<svg\b/i, '<svg opacity="' + SECURITY_OPACITY + '"');
+}
+const overlayCache = new Map();
+async function overlayFor(width) {
+  const markWidth = Math.max(1, Math.round(width * SECURITY_SIZE));
+  if (!overlayCache.has(markWidth)) {
+    overlayCache.set(markWidth, sharp(Buffer.from(logoSvg())).resize({ width: markWidth }).png().toBuffer());
+  }
+  return overlayCache.get(markWidth);
+}
+async function protectedVariant(input, width, format) {
+  const overlay = await overlayFor(width);
+  let pipe = sharp(input, { failOn: "none" }).rotate().resize({ width, withoutEnlargement: true })
+    .composite([{ input: overlay, gravity: "centre" }]);
+  return format === "webp"
+    ? pipe.webp({ quality: 88, effort: 4 }).toBuffer()
+    : pipe.jpeg({ quality: 90, progressive: true, chromaSubsampling: "4:2:0" }).toBuffer();
+}
+async function put(bucket, key, bytes, contentType) {
+  const r = await fetch(SUPABASE_URL + "/storage/v1/object/" + bucket + "/" + objectPath(key), {
+    method: "POST",
+    headers: headers({ "Content-Type": contentType, "x-upsert": "true", "cache-control": "31536000" }),
+    body: bytes
+  });
+  if (!r.ok) throw new Error("Upload " + bucket + "/" + key + " failed " + r.status + " " + (await r.text()).slice(0, 200));
+}
+async function removeTemp(key) {
+  const r = await fetch(SUPABASE_URL + "/storage/v1/object/" + PUBLIC_BUCKET + "/" + objectPath(key), {
+    method: "DELETE", headers: headers()
+  });
+  if (!r.ok && r.status !== 404) throw new Error("Temp delete failed " + r.status + " " + (await r.text()).slice(0, 160));
+}
