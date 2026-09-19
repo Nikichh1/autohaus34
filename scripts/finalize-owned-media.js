@@ -140,12 +140,34 @@ async function processRow(row) {
   console.log("  finalized " + slug + " (" + nextImages.length + " images)");
 }
 
+function rowFinalized(row) {
+  const images = row && row.payload && row.payload.images;
+  return Array.isArray(images) && images.length && images.every(function (image) {
+    return image && image.protected_variants === true &&
+      image.master_path && image.variants &&
+      image.variants.jpg1280 && image.variants.webp1280;
+  });
+}
+
 async function run() {
   if (!fs.existsSync(LOGO_FILE)) throw new Error("AutoHaus watermark asset missing");
   const rows = await fetchJson(SUPABASE_URL + "/rest/v1/autohaus_migration_stage?select=slug,payload&order=slug.asc");
   if (!Array.isArray(rows) || rows.length < 20) throw new Error("Unexpected staging inventory size");
-  console.log("AutoHaus owned media finalization: " + rows.length + " vehicles");
-  for (const row of rows) await processRow(row);
+  const pending = rows.filter(function (row) { return !rowFinalized(row); });
+  console.log("AutoHaus owned media finalization: " + rows.length + " vehicles; " + pending.length + " remaining");
+  if (!pending.length) {
+    console.log("AutoHaus owned media finalization already complete");
+    return;
+  }
+
+  let cursor = 0;
+  async function worker() {
+    while (cursor < pending.length) {
+      const row = pending[cursor++];
+      await processRow(row);
+    }
+  }
+  await Promise.all([worker(), worker()]);
   console.log("AutoHaus owned media finalization complete");
 }
 
