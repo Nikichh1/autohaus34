@@ -282,6 +282,11 @@ function stringArray(v, maxItems) {
   return a.slice(0, maxItems || 200).map((x) => clean(x, 2000)).filter(Boolean);
 }
 
+function ownedMasterPath(value) {
+  const s = clean(value, 800);
+  return /^owned-v1\/[a-z0-9-]{1,180}\/\d{2}\.(?:jpe?g|png|webp)$/i.test(s) ? s : "";
+}
+
 function sanitizeImages(v) {
   const a = Array.isArray(v) ? v : [];
   return a.slice(0, 80).map((img, i) => ({
@@ -292,6 +297,8 @@ function sanitizeImages(v) {
     height: numberOrNull(img && img.height, true),
     legacy: !!(img && img.legacy),
     embedded_watermark: !!(img && img.embedded_watermark),
+    protected_variants: !!(img && img.protected_variants),
+    master_path: ownedMasterPath(img && img.master_path),
     position: i,
     variants: img && typeof img.variants === "object" && img.variants ? {
       jpg400: safeUrl(img.variants.jpg400, true),
