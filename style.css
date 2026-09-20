@@ -5785,3 +5785,35 @@ html[data-ah-original-language="header"] .mob-lang{display:none!important}
 .mob-lang .lang__o.is-on{opacity:1}
 .mob-lang .lang__ind{height:1px!important;background:rgba(255,255,255,.9)!important}
 
+
+
+/* FULL-SCREEN CATALOGUE — reuse the exact selected site header.
+   The catalogue is a room inside the landing page, not a third page with a
+   third masthead. While it is open the real #plate is forced visible above
+   the layer, so Compact/Original, size, opacity and language stay identical
+   to the Settings selection. */
+html.shw-open #plate{
+  z-index:1305!important;
+  visibility:visible!important;
+  pointer-events:none
+}
+html.shw-open #plate .plate__in{
+  visibility:visible!important;
+  pointer-events:auto
+}
+html.shw-open:not([data-ah-scroll-header="autohaus_original"]) #plate .plate__in{
+  clip-path:polygon(0 0,100% 0,calc(100% - var(--plate-cut)) 100%,0 100%)!important
+}
+html.shw-open #plate .plate__menu,
+html.shw-open #plate .plate__mark,
+html.shw-open #plate .plate .lang{
+  transform:none!important
+}
+html.shw-open[data-ah-scroll-header="autohaus_original"] #plate{
+  opacity:1!important;
+  transform:none!important;
+  pointer-events:auto
+}
+/* Opening the site menu from the catalogue must still put the menu above the
+   catalogue modal. The normal menu-open rule deliberately hides the plate. */
+html.shw-open.mob-open .mob{z-index:1400!important}
