@@ -1016,7 +1016,8 @@ body:not(.ah) .btn--secondary:active:not(:disabled){--btn-fill:rgba(20,19,18,.16
 .mob.is-open nav a,.mob.is-open .mob-foot{animation:none}
 html.mob-open{overflow:hidden}html.mob-open body{position:fixed;left:0;right:0;width:100%}
 html.mob-open .hd,html.mob-open .plate,html.mob-open .nav{visibility:hidden;pointer-events:none}
-@media(max-width:599px){.mob__reveal{width:min(360px,100%)}.mob__sheet{padding:76px 24px max(20px,env(safe-area-inset-bottom))}.mob-mark{left:24px;top:26px}.mob-mark .logo{width:126px}.mob nav a{font-size:18px;min-height:50px;padding:11px 0 10px}.mob-close{right:16px;top:14px}}
+@media(max-width:767px){.mob__reveal{width:min(88vw,340px);touch-action:pan-y;box-shadow:18px 0 36px rgba(0,0,0,.24)}}
+@media(max-width:599px){.mob__sheet{padding:76px 24px max(20px,env(safe-area-inset-bottom))}.mob-mark{left:24px;top:26px}.mob-mark .logo{width:126px}.mob nav a{font-size:18px;min-height:50px;padding:11px 0 10px}.mob-close{right:16px;top:14px}}
 @media(prefers-reduced-motion:reduce){.mob,.mob__reveal,.mob__scrim{transition:none}}
 
 /* ============================================================
