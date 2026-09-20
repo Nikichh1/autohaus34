@@ -5821,19 +5821,21 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
 
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
     right:calc(40px * var(--ah-phone-original-scale));
-    top:calc(6px * var(--ah-phone-original-scale));
-    min-width:60px;
-    height:30px;
-    min-height:30px;
+    top:0;
+    width:92px;
+    min-width:92px;
+    height:44px;
+    min-height:44px;
     gap:5px;
     padding:0;
     flex-direction:row;
     align-items:center;
-    justify-content:flex-start;
-    transform:none!important
+    justify-content:flex-end;
+    transform:none!important;
+    -webkit-tap-highlight-color:transparent
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu::after{
-    inset:-6px -6px
+    inset:0
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu-l{
     font-size:8.5px;
@@ -5851,6 +5853,15 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:first-child{width:100%}
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:last-child{width:66%}
+
+  /* Touch gets a large real hit target but no desktop-style gold focus ring.
+     Keyboard focus on desktop is unchanged. */
+  @media (hover:none) and (pointer:coarse){
+    html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus,
+    html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible{
+      outline:none!important
+    }
+  }
 
   html[data-ah-scroll-header="autohaus_original"] .plate__mark{
     left:calc(8px * var(--ah-phone-original-scale));
