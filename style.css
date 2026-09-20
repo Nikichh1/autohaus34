@@ -5520,25 +5520,56 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
   .hd-links li:last-child{display:list-item}
 }
 @media(max-width:767px){
+  /* Hero header: one optical row. Menu and language switch sit on the same
+     horizontal axis; the wordmark is allowed to sit 2px lower so its painted
+     baseline feels centred rather than floating above the controls. */
+  .hd-nav{
+    grid-template-columns:minmax(72px,1fr) auto minmax(72px,1fr);
+    align-items:center;
+    column-gap:10px;
+    padding-top:max(26px,env(safe-area-inset-top));
+    padding-bottom:16px
+  }
+  .hd-zone--start,
+  .hd-zone--end{
+    height:44px;
+    align-self:center;
+    align-items:center
+  }
+  .hd-zone--start{justify-content:flex-start}
+  .hd-zone--end{justify-content:flex-end}
+
+  .hd-menu{
+    min-width:44px;
+    height:44px;
+    align-items:center;
+    transform:none
+  }
+
+  .hd-logo{
+    align-self:center;
+    transform:translateY(2px)
+  }
+
   .hd-zone--end .lang{
     height:44px;
     padding-bottom:0;
     align-items:center;
-    align-self:center
+    align-self:center;
+    transform:none
   }
   .hd-zone--end .lang::before,
   .hd-zone--end .lang__ind{
-    bottom:3px
+    bottom:7px
   }
   .hd-zone--end .lang__o{
     min-width:34px;
-    height:44px;
-    min-height:44px;
+    height:40px;
+    min-height:40px;
     display:grid;
-    place-items:center
+    place-items:center;
+    padding-bottom:2px
   }
-  .hd-nav{padding-top:max(24px,env(safe-area-inset-top));padding-bottom:16px}
-  .hd-menu{min-width:44px}
 }
 .mob__sheet{padding-bottom:max(28px,env(safe-area-inset-bottom))}
 .mob nav a{display:flex;align-items:center}
