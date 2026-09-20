@@ -49,5 +49,11 @@
     shell(t("Сигурност","Security"),'<div class="ah-advanced__security">'+[[t("Достъп","Access"),t("Само активни членове на екипа с валидна сесия.","Only active team members with a valid session.")],[t("Права","Permissions"),t("Owner управлява екипа. Editor редактира. Viewer само преглежда.","Owner manages access. Editor edits cars. Viewer has read access.")],[t("Лични данни","Private data"),t("Оригиналният AI текст и бележките не се публикуват.","AI source text and review notes are not published.")],[t("Статистика","Analytics"),t("Само след съгласие. Не се записват пароли или съобщения.","Consent required. Passwords and messages are never recorded.")]].map(function(x){return '<article><b>'+x[0]+'</b><span>'+x[1]+'</span></article>';}).join('')+'</div>');
   }
   [['analytics','Анализи','Analytics'],['team','Екип','Team'],['security','Сигурност','Security']].forEach(function(x){var b=D.createElement('button');b.type='button';b.dataset.route=x[0];b.dataset.bg=x[1];b.dataset.en=x[2];b.textContent=t(x[1],x[2]);b.hidden=x[0]==='analytics'&&!app.canManage;b.onclick=function(){app.go(x[0]);};D.querySelector('.side__nav').appendChild(b);});
-  app.renderExtra=function(route){if(route==='analytics'){analytics();return true;}if(route==='team'){team();return true;}if(route==='security'){security();return true;}return false;};
+  var previousRenderExtra = app.renderExtra;
+  app.renderExtra=function(route){
+    if(route==='analytics'){analytics();return true;}
+    if(route==='team'){team();return true;}
+    if(route==='security'){security();return true;}
+    return previousRenderExtra ? previousRenderExtra(route) : false;
+  };
 })();
