@@ -1779,16 +1779,34 @@
     triggers: [$("hd-menu"), $("plate-menu")]
   });
 
-  /* The Original plate sits inside a clipped fixed surface. On some browsers
-     a quick touch can finish as the clip/scroll state is settling and the
-     synthesized click is lost. Open on the primary pointer release as well;
-     the normal click listener remains for keyboard activation and older input. */
+  /* PHONE INPUT FOR THE ORIGINAL PLATE.
+     A touch target can move a few pixels between down/up even when the user
+     intended a tap. Capture the pointer on down so the release cannot fall
+     outside the clipped wedge, and only treat it as a tap when movement stays
+     small. The ordinary click listener above remains the keyboard/desktop path. */
   var plateMenuTrigger = $("plate-menu");
   if (menuPanel && plateMenuTrigger) {
+    var platePress = null;
+
+    plateMenuTrigger.addEventListener("pointerdown", function (event) {
+      if (event.pointerType === "mouse") return;
+      platePress = { id:event.pointerId, x:event.clientX, y:event.clientY };
+      try { plateMenuTrigger.setPointerCapture(event.pointerId); } catch (_) {}
+    });
+
     plateMenuTrigger.addEventListener("pointerup", function (event) {
-      if (event.pointerType === "mouse" && event.button !== 0) return;
-      event.preventDefault();
+      if (!platePress || event.pointerId !== platePress.id) return;
+      var dx = event.clientX - platePress.x;
+      var dy = event.clientY - platePress.y;
+      var tap = dx * dx + dy * dy <= 196; /* <= 14px drift */
+      platePress = null;
+      try { plateMenuTrigger.releasePointerCapture(event.pointerId); } catch (_) {}
+      if (!tap) return;
       menuPanel.set(true, plateMenuTrigger);
+    });
+
+    plateMenuTrigger.addEventListener("pointercancel", function () {
+      platePress = null;
     });
   }
 
