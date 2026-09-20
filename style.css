@@ -5887,12 +5887,12 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   }
 
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:9.85%;
+    right:13.5%;
     top:10.1%;
     width:30px;
     min-width:30px;
-    height:28px;
-    min-height:28px;
+    height:30px;
+    min-height:30px;
     gap:0;
     padding:0;
     flex-direction:row;
@@ -5914,30 +5914,32 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     display:none!important
   }
 
-  /* Three horizontal strokes whose LEFT ends follow the same down-left rake
-     as the plate's right diagonal: short -> medium -> long. The strokes stay
-     horizontal for clarity; their stepped lengths create the matching angle. */
+  /* Phone icon geometry is derived from the plate diagonal itself.
+     The right cut runs from (100%,0) to (82%,72%); with the plate aspect
+     ratio that is ~0.695px of horizontal travel per 1px vertical. Three
+     strokes spaced ~7.3px apart therefore need ~5px extra length per row.
+     10 / 15 / 20px follows that same rake without rotating the strokes. */
   html[data-ah-scroll-header="autohaus_original"] .plate__bars{
-    width:18px;
-    min-width:18px;
-    height:11px;
+    width:20px;
+    min-width:20px;
+    height:16px;
     position:relative
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i{
     display:block;
     right:0;
     left:auto;
-    height:1.3px;
+    height:1.25px;
     transform:none
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:nth-child(1){
     top:0;
-    width:40%
+    width:50%
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:nth-child(2){
     display:block;
     top:50%;
-    width:70%;
+    width:75%;
     transform:translateY(-50%)
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:nth-child(3){
@@ -5946,9 +5948,9 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     width:100%
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover .plate__bars i:nth-child(1),
-  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(1){width:40%}
+  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(1){width:50%}
   html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover .plate__bars i:nth-child(2),
-  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(2){width:70%}
+  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(2){width:75%}
   html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover .plate__bars i:nth-child(3),
   html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(3){width:100%}
 
