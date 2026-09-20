@@ -5887,12 +5887,12 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   }
 
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:13.5%;
-    top:10.1%;
+    right:10.5%;
+    top:10.5%;
     width:30px;
     min-width:30px;
-    height:30px;
-    min-height:30px;
+    height:26px;
+    min-height:26px;
     gap:0;
     padding:0;
     flex-direction:row;
@@ -5914,37 +5914,39 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     display:none!important
   }
 
-  /* Phone icon geometry is derived from the plate diagonal itself.
-     The right cut runs from (100%,0) to (82%,72%); with the plate aspect
-     ratio that is ~0.695px of horizontal travel per 1px vertical. Three
-     strokes spaced ~7.3px apart therefore need ~5px extra length per row.
-     10 / 15 / 20px follows that same rake without rotating the strokes. */
+  /* The RIGHT tips of the three strokes follow the actual plate cut.
+     This diagonal travels ~0.695px left for every 1px down. With 4px between
+     rows, each next right tip therefore moves ~2.8px left: 0 / 3 / 6px.
+     The strokes stay compact and horizontal while their right edge visually
+     runs parallel to the header diagonal. */
   html[data-ah-scroll-header="autohaus_original"] .plate__bars{
     width:20px;
     min-width:20px;
-    height:16px;
+    height:9px;
     position:relative
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i{
     display:block;
-    right:0;
     left:auto;
     height:1.25px;
     transform:none
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:nth-child(1){
     top:0;
+    right:0;
     width:50%
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:nth-child(2){
     display:block;
-    top:50%;
+    top:4px;
+    right:3px;
     width:75%;
-    transform:translateY(-50%)
+    transform:none
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:nth-child(3){
-    top:auto;
-    bottom:0;
+    top:8px;
+    bottom:auto;
+    right:6px;
     width:100%
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover .plate__bars i:nth-child(1),
