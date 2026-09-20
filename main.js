@@ -77,6 +77,9 @@
     var language = settings.original_header_language === "header" ? "header" :
                    settings.original_header_language === "menu" ? "menu" :
                    (ROOT.dataset.ahOriginalLanguage || "menu");
+    var desktopMenuLabel = settings.original_header_desktop_menu_label == null
+      ? ROOT.dataset.ahOriginalDesktopMenuLabel !== "0"
+      : settings.original_header_desktop_menu_label !== false;
 
     ROOT.dataset.ahScrollHeader = style;
     ROOT.dataset.ahLandingStandardMode = landingStandardMode;
@@ -84,6 +87,7 @@
     ROOT.dataset.ahProductStandardMode = productStandardMode;
     ROOT.dataset.ahProductOriginalMode = productOriginalMode;
     ROOT.dataset.ahOriginalLanguage = language;
+    ROOT.dataset.ahOriginalDesktopMenuLabel = desktopMenuLabel ? "1" : "0";
     ROOT.style.setProperty("--ah-original-size", String(originalSize / 100));
     ROOT.style.setProperty("--ah-original-opacity", String(originalOpacity / 100));
 
