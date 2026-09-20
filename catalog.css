@@ -706,25 +706,23 @@
 .cat__make .fbar2-wrap{position:relative;width:168px;max-width:100%;min-width:0}
 .cat__make .fbar2{padding-block:0;overflow:visible}
 .cat__make .fsel{
-  width:100%;height:38px;padding-inline:14px 12px;justify-content:space-between;
-  background:var(--white);border-color:var(--line-2);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.78);
-}
-.cat__make .fsel:hover:not(:disabled),
-.cat__make .fsel:focus-visible{background:var(--white);border-color:var(--ink-3)}
-.cat__make .fsel.is-set{
-  border-color:#101110;
-  color:#101110
-}
-.cat__make .fsel.is-set::before{background:#101110}
-.cat__make .fsel.is-open{
-  border-color:#101110;
-  background:#101110;
-  color:#fff;
+  width:100%;height:38px;padding-inline:12px;
+  display:inline-flex;flex-direction:row-reverse;justify-content:center;gap:7px;
+  background:#fff;border-color:#101110;color:#101110;
   box-shadow:none
 }
-.cat__make .fsel.is-open::before{transform:scaleY(0)}
-.cat__make .fsel.is-open::after{opacity:0}
+.cat__make .fsel::before,.cat__make .fsel::after{display:none!important}
+.cat__make .fsel:hover:not(:disabled),
+.cat__make .fsel:focus-visible{
+  background:#fff;border-color:#101110;color:#101110
+}
+.cat__make .fsel.is-set{
+  background:#fff!important;border-color:#101110!important;color:#101110!important
+}
+.cat__make .fsel.is-open{
+  background:#101110!important;border-color:#101110!important;color:#fff!important;
+  box-shadow:none!important
+}
 .cat__make .fsel.is-open .fsel__c{stroke:#fff;opacity:1}
 .cat__make .fsel__t{max-width:min(20vw,184px)}
 .cat__make .fsel--clear{padding-inline:7px;color:var(--ink-3)}
@@ -1566,40 +1564,33 @@ html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
      underneath/right of it. The 24px body top-padding below this bar absorbs
      the small overlap from the taller fixed plate, so cards still begin clear. */
   html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__bar{
-    grid-template-columns:min(var(--ah-original-w),64vw) minmax(76px,1fr) 40px;
+    grid-template-columns:min(var(--ah-original-w),64vw) minmax(0,1fr);
     min-height:calc(48px + env(safe-area-inset-top,0px))
   }
   html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__make{
     align-self:stretch;
-    justify-content:flex-start;
+    justify-content:center;
     align-items:center;
     min-height:0;
-    padding:env(safe-area-inset-top,0px) 2px 0 3px
+    padding:env(safe-area-inset-top,0px) 8px 0
   }
   html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
-    grid-template-columns:min(58vw,224px) minmax(76px,1fr) 40px;
+    grid-template-columns:min(58vw,224px) minmax(0,1fr);
     min-height:calc(48px + env(safe-area-inset-top,0px))
   }
   html.shw-open .cat__x{
-    width:40px;
-    min-width:40px;
-    padding:0 4px 0 12px;
-    clip-path:polygon(11px 0,100% 0,100% 100%,0 100%)
-  }
-  html.shw-open .cat__x svg{
-    width:10px;
-    height:10px
+    display:none!important
   }
 
   html.shw-open .cat__make .fbar2-wrap{
-    width:66px;
+    width:92px;
     max-width:100%
   }
   html.shw-open .cat__make .fsel{
-    height:28px;
-    padding-inline:6px 5px;
-    gap:3px;
-    font-size:9.5px;
+    height:30px;
+    padding-inline:8px;
+    gap:5px;
+    font-size:10px;
     line-height:14px;
     letter-spacing:.02em
   }
