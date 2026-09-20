@@ -69,17 +69,19 @@
   function primeVehicleCover(v) {
     if (!v || !Array.isArray(v.managed_images) || !v.managed_images[0]) return;
     var variants = v.managed_images[0].variants || {};
-    var webp = variants.webp1280 || "";
-    var jpg = variants.jpg1280 || variants.jpg800 || "";
-    var url = /\.webp(?:$|\?)/i.test(webp) ? webp : jpg;
-    if (!url || document.querySelector('link[data-ah-vehicle-cover="' + v.id + '"]')) return;
+    var useWebp = /\.webp(?:$|\?)/i.test(variants.webp1280 || "") &&
+      /\.webp(?:$|\?)/i.test(variants.webp800 || "");
+    var hi = useWebp ? variants.webp1280 : variants.jpg1280;
+    var mid = useWebp ? variants.webp800 : variants.jpg800;
+    if (!hi || !mid || document.querySelector('link[data-ah-vehicle-cover="' + v.id + '"]')) return;
     var link = document.createElement("link");
     link.rel = "preload";
     link.as = "image";
-    link.href = url;
+    link.href = hi;
     link.fetchPriority = "high";
-    if (/\.webp(?:$|\?)/i.test(url)) link.type = "image/webp";
-    else link.type = "image/jpeg";
+    link.type = useWebp ? "image/webp" : "image/jpeg";
+    link.setAttribute("imagesrcset", mid + " 800w, " + hi + " 1280w");
+    link.setAttribute("imagesizes", "(min-width:1024px) 66vw, 100vw");
     link.setAttribute("data-ah-vehicle-cover", v.id);
     document.head.appendChild(link);
   }
