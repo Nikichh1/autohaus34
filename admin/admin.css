@@ -116,3 +116,93 @@
 @media(max-width:820px){
   .ah-header-behavior-grid{grid-template-columns:1fr}
 }
+
+
+/* Header control center — optimized for live client presentation */
+.ah-header-help{
+  display:grid;gap:5px;padding:14px 16px;border-left:3px solid #25282a;
+  background:#f4f5f3
+}
+.ah-header-help strong{font-size:13px}
+.ah-header-help span{font-size:12px;line-height:1.5;color:var(--muted,#686d70)}
+.ah-header-presets{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ah-header-presets>span{
+  margin-right:3px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#606568
+}
+.ah-header-preset{
+  min-height:36px;padding:0 13px;border:1px solid #d6d9da;background:#fff;
+  font-size:11px;font-weight:700;letter-spacing:.02em
+}
+.ah-header-preset:hover{border-color:#25282a;background:#f7f7f5}
+
+.ah-header-behavior-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px
+}
+.ah-header-page-card,.ah-original-tuning{
+  border:1px solid #d8dadb;background:#fff;padding:18px;display:grid;gap:20px
+}
+.ah-header-page-head{display:flex;align-items:center;gap:12px}
+.ah-header-page-head>b{
+  display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;
+  background:#25282a;color:#fff;font-size:10px;letter-spacing:.08em;font-weight:700
+}
+.ah-header-page-head>div{display:grid;gap:2px}
+.ah-header-page-head strong{font-size:14px}
+.ah-header-page-head small{font-size:11px;color:var(--muted,#686d70)}
+.ah-mode-block{display:grid;gap:8px}
+.ah-mode-block>span{font-size:12px;font-weight:700}
+.ah-mode-block>small{min-height:32px;font-size:11px;line-height:1.45;color:var(--muted,#686d70)}
+.ah-segmented{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  border:1px solid #cfd2d3;background:#f2f3f2
+}
+.ah-segmented label{position:relative;cursor:pointer;min-width:0}
+.ah-segmented input{position:absolute;opacity:0;pointer-events:none}
+.ah-segmented span{
+  min-height:40px;padding:0 8px;display:grid;place-items:center;
+  border-right:1px solid #d9dcdd;background:#fff;
+  text-align:center;font-size:11px;font-weight:700;color:#666b6e;
+  transition:background .15s ease,color .15s ease,box-shadow .15s ease
+}
+.ah-segmented label:last-child span{border-right:0}
+.ah-segmented label:hover span{background:#f7f7f5}
+.ah-segmented label.is-selected span{
+  position:relative;z-index:1;background:#25282a;color:#fff;
+  box-shadow:0 0 0 1px #25282a
+}
+.ah-original-tuning{background:#fafaf8}
+.ah-tuning-grid{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(180px,.72fr);gap:16px;align-items:end
+}
+.ah-tuning-grid .field{margin:0}
+.ah-header-save-row{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-top:2px
+}
+.ah-header-save-row>span{font-size:11px;color:var(--muted,#686d70)}
+.ah-header-save-row .primary{min-height:48px;padding-inline:20px}
+
+/* Stronger previews: the Original card mirrors the actual sharper supplied wedge. */
+.ah-header-style-preview--original .ah-mini-original{
+  position:absolute;left:0;top:0;width:min(88%,402px);height:112px;
+  background:rgba(36,39,42,.985);
+  clip-path:polygon(0 0,100% 0,79.5% 75.7%,0 100%);
+  box-shadow:0 10px 22px rgba(0,0,0,.15)
+}
+.ah-header-style-preview--original .ah-mini-original::before{
+  left:10px;top:34px;width:212px;height:38px
+}
+.ah-header-style-preview--original .ah-mini-original::after{
+  content:"";position:absolute;right:22px;top:17px;width:16px;height:10px;
+  background:linear-gradient(#fff 0 0) 0 1px/16px 1px no-repeat,
+             linear-gradient(#fff 0 0) 0 8px/10px 1px no-repeat;opacity:.7
+}
+
+@media(max-width:900px){
+  .ah-header-behavior-grid{grid-template-columns:1fr}
+  .ah-tuning-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .ah-segmented span{min-height:44px;font-size:10px;padding:0 5px}
+  .ah-header-page-card,.ah-original-tuning{padding:14px}
+  .ah-header-style-grid{grid-template-columns:1fr}
+}
