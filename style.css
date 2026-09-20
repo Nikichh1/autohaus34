@@ -5705,7 +5705,6 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
 
 /* Compact mode keeps the existing plate behavior. Vehicle page carries an
    extra plate element solely for the optional Original modes. */
-html.ah-vehicle-page:not([data-ah-scroll-header="autohaus_original"]) #plate{display:none}
 .plate-sentinel{
   position:absolute;left:0;top:0;width:1px;height:var(--nav-h,72px);
   pointer-events:none;visibility:hidden
