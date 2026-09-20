@@ -192,7 +192,8 @@
     photo_aspect_ratio: "16:9",
     photo_filter: "none",
     photo_filter_strength: 35,
-    desktop_gallery_scale: 84
+    desktop_gallery_scale: 84,
+    scroll_header_style: "compact"
   };
   var cached = null, cachedAt = 0, pending = null;
 
@@ -215,7 +216,8 @@
       photo_aspect_ratio: value.photo_aspect_ratio === "16:10" ? "16:10" : "16:9",
       photo_filter: ["none", "balanced", "showroom"].indexOf(value.photo_filter) >= 0 ? value.photo_filter : "none",
       photo_filter_strength: Math.max(0, Math.min(100, strength)),
-      desktop_gallery_scale: Math.max(70, Math.min(100, galleryScale))
+      desktop_gallery_scale: Math.max(70, Math.min(100, galleryScale)),
+      scroll_header_style: value.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact"
     };
   }
 
@@ -290,12 +292,14 @@
       view.innerHTML =
         '<div class="view-head"><div class="view-title"><p>AutoHaus</p><h1>' + esc(t("Настройки", "Settings")) + '</h1></div></div>' +
         '<section class="panel"><div class="panel-head"><h2>' + esc(t("Воден знак върху снимките", "Photo watermark")) + '</h2></div><div id="ah-watermark-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
-        '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Формат и обработка на снимките", "Photo format and processing")) + '</h2></div><div id="ah-media-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>';
+        '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Формат и обработка на снимките", "Photo format and processing")) + '</h2></div><div id="ah-media-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
+        '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Хедър след скрол", "Scroll header")) + '</h2></div><div id="ah-header-settings" style="padding:20px;max-width:920px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>';
 
       Promise.resolve(getSettings(true)).then(function (cfg) {
         var watermarkBody = document.getElementById("ah-watermark-settings");
         var mediaBody = document.getElementById("ah-media-settings");
-        if (!watermarkBody || !mediaBody || !watermarkBody.isConnected || !mediaBody.isConnected) return;
+        var headerBody = document.getElementById("ah-header-settings");
+        if (!watermarkBody || !mediaBody || !headerBody || !watermarkBody.isConnected || !mediaBody.isConnected || !headerBody.isConnected) return;
         var disabled = app.canWrite ? "" : " disabled";
 
         watermarkBody.innerHTML =
@@ -326,6 +330,24 @@
           (app.canWrite ? '<div><button class="primary" id="ah-media-save" type="submit">' + esc(t("Запази обработката на снимките", "Save photo processing")) + '</button></div>' : '') +
           '<div id="ah-media-status" class="muted" role="status"></div></form>';
 
+        headerBody.innerHTML =
+          '<form id="ah-header-form" class="ah-header-settings-form">' +
+          '<p class="muted ah-header-settings-intro">' + esc(t("Изберете как изглежда плаващият AutoHaus хедър, който се появява след скрол. Настройката е глобална за началната, автомобилите, запитването и правните страници.", "Choose the floating AutoHaus header shown after scrolling. The setting is global across the site.")) + '</p>' +
+          '<div class="ah-header-style-grid" role="radiogroup" aria-label="' + esc(t("Стил на хедъра", "Header style")) + '">' +
+            '<label class="ah-header-style-card' + (cfg.scroll_header_style === "compact" ? " is-selected" : "") + '">' +
+              '<input type="radio" name="scroll_header_style" value="compact"' + (cfg.scroll_header_style === "compact" ? " checked" : "") + disabled + '>' +
+              '<span class="ah-header-style-preview ah-header-style-preview--compact"><i class="ah-mini-compact"><b></b><em></em></i></span>' +
+              '<span class="ah-header-style-copy"><strong>' + esc(t("Компактен", "Compact")) + '</strong><small>' + esc(t("Сегашният минимален геометричен хедър.", "The current minimal geometric header.")) + '</small></span>' +
+            '</label>' +
+            '<label class="ah-header-style-card' + (cfg.scroll_header_style === "autohaus_original" ? " is-selected" : "") + '">' +
+              '<input type="radio" name="scroll_header_style" value="autohaus_original"' + (cfg.scroll_header_style === "autohaus_original" ? " checked" : "") + disabled + '>' +
+              '<span class="ah-header-style-preview ah-header-style-preview--original"><i class="ah-mini-original"><img src="/autohaus.svg" alt=""></i></span>' +
+              '<span class="ah-header-style-copy"><strong>' + esc(t("AutoHaus Original", "AutoHaus Original")) + '</strong><small>' + esc(t("Големият тъмен клин с логото, по оригиналния autohaus.bg.", "The large dark logo wedge based on the original autohaus.bg.")) + '</small></span>' +
+            '</label>' +
+          '</div>' +
+          (app.canWrite ? '<div><button class="primary" id="ah-header-save" type="submit">' + esc(t("Запази хедъра", "Save header")) + '</button></div>' : '') +
+          '<div id="ah-header-status" class="muted" role="status"></div></form>';
+
         var range = document.getElementById("ah-watermark-transparency");
         var value = document.getElementById("ah-watermark-value");
         var sizeRange = document.getElementById("ah-watermark-size");
@@ -338,6 +360,15 @@
         var desktopGalleryScale = document.getElementById("ah-desktop-gallery-scale");
         var desktopGalleryScaleValue = document.getElementById("ah-desktop-gallery-scale-value");
         if (desktopGalleryScale) desktopGalleryScale.oninput = function () { desktopGalleryScaleValue.textContent = desktopGalleryScale.value + "%"; };
+
+        document.querySelectorAll('.ah-header-style-card input[name="scroll_header_style"]').forEach(function (radio) {
+          radio.onchange = function () {
+            document.querySelectorAll(".ah-header-style-card").forEach(function (card) {
+              var input = card.querySelector('input[name="scroll_header_style"]');
+              card.classList.toggle("is-selected", !!input && input.checked);
+            });
+          };
+        });
 
         var watermarkForm = document.getElementById("ah-watermark-form");
         if (watermarkForm && app.canWrite) watermarkForm.onsubmit = async function (event) {
@@ -370,6 +401,20 @@
               desktop_gallery_scale: Number(document.getElementById("ah-desktop-gallery-scale").value)
             });
             message.textContent = t("Форматът и филтърът са активни за всички продуктови снимки.", "Format and filter are active for all product photos.");
+          } catch (error) { message.textContent = error.message; }
+          finally { save.disabled = false; }
+        };
+
+        var headerForm = document.getElementById("ah-header-form");
+        if (headerForm && app.canWrite) headerForm.onsubmit = async function (event) {
+          event.preventDefault();
+          var save = document.getElementById("ah-header-save");
+          var message = document.getElementById("ah-header-status");
+          var selected = headerForm.querySelector('input[name="scroll_header_style"]:checked');
+          save.disabled = true; message.textContent = t("Записване…", "Saving…");
+          try {
+            await saveSettings({ scroll_header_style: selected ? selected.value : "compact" });
+            message.textContent = t("Хедърът е записан и е активен за целия сайт.", "The header is saved and active site-wide.");
           } catch (error) { message.textContent = error.message; }
           finally { save.disabled = false; }
         };
