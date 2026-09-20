@@ -712,6 +712,11 @@
 }
 .cat__make .fsel:hover:not(:disabled),
 .cat__make .fsel:focus-visible{background:var(--white);border-color:var(--ink-3)}
+.cat__make .fsel.is-set{
+  border-color:#101110;
+  color:#101110
+}
+.cat__make .fsel.is-set::before{background:#101110}
 .cat__make .fsel.is-open{
   border-color:#101110;
   background:#101110;
