@@ -213,7 +213,14 @@
       photo_filter: filterName,
       photo_filter_strength: strength,
       desktop_gallery_scale: galleryScale,
-      scroll_header_style: scrollHeaderStyle
+      scroll_header_style: scrollHeaderStyle,
+      landing_standard_header_mode: landingStandardMode,
+      landing_original_header_mode: landingOriginalMode,
+      product_standard_header_mode: productStandardMode,
+      product_original_header_mode: productOriginalMode,
+      original_header_size: originalHeaderSize,
+      original_header_opacity: originalHeaderOpacity,
+      original_header_language: originalHeaderLanguage
     }}));
   }
 
