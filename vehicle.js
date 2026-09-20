@@ -305,6 +305,7 @@
   var fs = Array.prototype.slice.call(gal.querySelectorAll(".dgal__f"));
   var nEl = D.getElementById("dgal-n");
   var mainFrame = gal.querySelector('.dgal__main');
+  var mainCounter = mainFrame && mainFrame.querySelector('.dgal__n');
   var sideFrames = Array.prototype.slice.call(gal.querySelectorAll('.dgal__side'));
   var thumbs = Array.prototype.slice.call(D.querySelectorAll('.dthumb'));
   var selected = 0, selectionVersion = 0, suppressClick = false;
@@ -513,7 +514,8 @@
   function stripTo(i) {
     if (!mainFrame || !mainImg || !N) return;
     i = (i + N) % N;
-    var changed = selected !== i;
+    var previousSelected = selected;
+    var changed = previousSelected !== i;
     selected = i;
 
     mainFrame.dataset.i = String(i);
@@ -523,14 +525,21 @@
     mainFrame.setAttribute('data-ah-watermark-embedded', embeddedWatermark ? '1' : '0');
     if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(mainFrame);
 
-    var mainCounter = mainFrame.querySelector('.dgal__n');
     if (mainCounter) mainCounter.textContent = (i + 1) + ' / ' + N;
     if (nEl) nEl.textContent = (i + 1) + ' / ' + N;
 
-    thumbs.forEach(function (thumb, index) {
-      thumb.classList.toggle('is-active', index === i);
-      thumb.setAttribute('aria-pressed', String(index === i));
-    });
+    if (changed) {
+      var oldThumb = thumbs[previousSelected], nextThumb = thumbs[i];
+      if (oldThumb) {
+        oldThumb.classList.remove('is-active');
+        oldThumb.setAttribute('aria-pressed', 'false');
+      }
+      if (nextThumb) {
+        nextThumb.classList.add('is-active');
+        nextThumb.setAttribute('aria-pressed', 'true');
+        hydrateThumb(nextThumb);
+      }
+    }
 
     if (!changed) return;
 
@@ -843,8 +852,8 @@
         // whereas the verified matte boundaries require original pixel sizes.
         lbImg.removeAttribute('srcset');
         lbImg.src = image.currentSrc || image.src;
-        fitLightboxMargins();
-        if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(lbStage);
+        /* load + ResizeObserver update clipping after the decoded resource is
+           attached; forcing getBoundingClientRect() here only stalls the tap. */
       }
       lbStage.removeAttribute('aria-busy');
       warmNeighbors(shot, direction);
