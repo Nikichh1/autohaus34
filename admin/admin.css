@@ -74,11 +74,23 @@
 .ah-mini-compact b,.ah-mini-compact em{position:absolute;left:18px;height:1.5px;background:#fff;display:block}
 .ah-mini-compact b{top:17px;width:18px}.ah-mini-compact em{top:27px;width:11px}
 .ah-mini-original{
-  position:absolute;inset:0 auto auto 0;width:min(76%,390px);height:116px;
-  background:rgba(36,39,42,.97);clip-path:polygon(0 0,100% 0,79.1% 75.8%,0 100%)
+  position:absolute;left:12px;top:22px;width:min(78%,356px);height:76px;
+  background:linear-gradient(180deg,rgba(45,48,50,.97),rgba(20,22,23,.98));
+  clip-path:polygon(0 0,100% 0,91% 64%,86% 100%,0 100%);
+  box-shadow:0 10px 22px rgba(0,0,0,.16)
 }
-.ah-mini-original::before{left:12px;top:38px;width:172px;height:31px}
+.ah-mini-original::before{left:18px;top:25px;width:150px;height:27px}
+.ah-mini-original::after{
+  content:"";position:absolute;right:27px;top:27px;width:18px;height:12px;
+  background:linear-gradient(#fff 0 0) 0 1px/18px 1px no-repeat,
+             linear-gradient(#fff 0 0) 0 9px/11px 1px no-repeat;
+  opacity:.85
+}
 .ah-mini-original img{display:none}
+.ah-header-style-preview--original::before{
+  content:"BG   EN";position:absolute;z-index:2;left:min(57%,250px);top:51px;
+  color:rgba(255,255,255,.78);font-size:8px;font-weight:600;letter-spacing:.08em
+}
 .ah-header-style-copy{display:grid;gap:4px;padding:14px 16px 16px}
 .ah-header-style-copy strong{font-size:14px;letter-spacing:.01em}
 .ah-header-style-copy small{font-size:12px;line-height:1.45;color:var(--muted,#62676b)}
