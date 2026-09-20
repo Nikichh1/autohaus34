@@ -121,6 +121,16 @@ function normalizedSettings(row) {
   const strength = Number(row.photo_filter_strength);
   const galleryScale = Number(row.desktop_gallery_scale);
   const scrollHeaderStyle = row.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
+  const landingStandardMode = ["hidden","top","sticky"].includes(row.landing_standard_header_mode) ? row.landing_standard_header_mode :
+    (row.landing_standard_header === false ? "hidden" : row.landing_standard_header_sticky === true ? "sticky" : "top");
+  const landingOriginalMode = ["hidden","always","after_scroll"].includes(row.landing_original_header_mode) ? row.landing_original_header_mode :
+    (row.landing_original_after_scroll === false ? "hidden" : "after_scroll");
+  const productStandardMode = ["hidden","top","sticky"].includes(row.product_standard_header_mode) ? row.product_standard_header_mode :
+    (row.product_standard_header === false ? "hidden" : row.product_standard_header_sticky === false ? "top" : "sticky");
+  const productOriginalMode = ["hidden","always","after_scroll"].includes(row.product_original_header_mode) ? row.product_original_header_mode :
+    (row.product_original_header === true ? "always" : "hidden");
+  const originalHeaderSize = Number(row.original_header_size);
+  const originalHeaderOpacity = Number(row.original_header_opacity);
   return {
     watermark_enabled: row.watermark_enabled === true,
     watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75,
@@ -135,13 +145,20 @@ function normalizedSettings(row) {
     landing_original_after_scroll: row.landing_original_after_scroll !== false,
     product_standard_header: row.product_standard_header !== false,
     product_standard_header_sticky: row.product_standard_header_sticky !== false,
-    product_original_header: row.product_original_header === true
+    product_original_header: row.product_original_header === true,
+    landing_standard_header_mode: landingStandardMode,
+    landing_original_header_mode: landingOriginalMode,
+    product_standard_header_mode: productStandardMode,
+    product_original_header_mode: productOriginalMode,
+    original_header_size: Number.isFinite(originalHeaderSize) ? Math.max(65, Math.min(100, Math.round(originalHeaderSize))) : 81,
+    original_header_opacity: Number.isFinite(originalHeaderOpacity) ? Math.max(85, Math.min(100, Math.round(originalHeaderOpacity))) : 98,
+    original_header_language: row.original_header_language === "header" ? "header" : "menu"
   };
 }
 
 async function settingsAction(req, res, db) {
   if (req.method === "GET") {
-    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style,landing_standard_header,landing_standard_header_sticky,landing_original_after_scroll,product_standard_header,product_standard_header_sticky,product_original_header&limit=1", { method: "GET" });
+    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style,landing_standard_header,landing_standard_header_sticky,landing_original_after_scroll,product_standard_header,product_standard_header_sticky,product_original_header,landing_standard_header_mode,landing_original_header_mode,product_standard_header_mode,product_original_header_mode,original_header_size,original_header_opacity,original_header_language&limit=1", { method: "GET" });
     const data = await readJson(response);
     if (!response.ok) return apiError(res, response.status, "Could not load settings", data);
     return json(res, 200, { ok: true, settings: normalizedSettings(Array.isArray(data) && data[0]) });
@@ -200,6 +217,35 @@ async function settingsAction(req, res, db) {
     if (!Object.prototype.hasOwnProperty.call(body, key)) continue;
     if (typeof body[key] !== "boolean") return apiError(res, 400, "Invalid header setting: " + key);
     update[key] = body[key];
+    changed = true;
+  }
+  const modeFields = {
+    landing_standard_header_mode: ["hidden","top","sticky"],
+    landing_original_header_mode: ["hidden","always","after_scroll"],
+    product_standard_header_mode: ["hidden","top","sticky"],
+    product_original_header_mode: ["hidden","always","after_scroll"]
+  };
+  for (const [key, allowed] of Object.entries(modeFields)) {
+    if (!Object.prototype.hasOwnProperty.call(body, key)) continue;
+    if (!allowed.includes(body[key])) return apiError(res, 400, "Invalid header mode: " + key);
+    update[key] = body[key];
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "original_header_size")) {
+    const size = Number(body.original_header_size);
+    if (!Number.isInteger(size) || size < 65 || size > 100) return apiError(res, 400, "Original header size must be 65–100.");
+    update.original_header_size = size;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "original_header_opacity")) {
+    const opacity = Number(body.original_header_opacity);
+    if (!Number.isInteger(opacity) || opacity < 85 || opacity > 100) return apiError(res, 400, "Original header opacity must be 85–100.");
+    update.original_header_opacity = opacity;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "original_header_language")) {
+    if (!["menu","header"].includes(body.original_header_language)) return apiError(res, 400, "Invalid language position.");
+    update.original_header_language = body.original_header_language;
     changed = true;
   }
   if (!changed) return apiError(res, 400, "No settings to update");
