@@ -95,3 +95,24 @@
   .ah-header-style-grid{grid-template-columns:1fr}
   .ah-header-style-card{grid-template-rows:118px auto}
 }
+
+
+.ah-header-behavior-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px
+}
+.ah-header-behavior{
+  min-width:0;margin:0;padding:16px;border:1px solid rgba(37,40,42,.16);
+  display:grid;gap:14px;background:#fafaf8
+}
+.ah-header-behavior legend{
+  padding:0 8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#25282a
+}
+.ah-header-behavior .check{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;margin:0
+}
+.ah-header-behavior .check span{display:grid;gap:4px}
+.ah-header-behavior .check strong{font-size:13px;line-height:1.35}
+.ah-header-behavior .check small{font-size:11px;line-height:1.4}
+@media(max-width:820px){
+  .ah-header-behavior-grid{grid-template-columns:1fr}
+}
