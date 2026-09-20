@@ -368,7 +368,7 @@
             '<button type="button" class="ghost ah-header-preset" data-preset="modern">' + esc(t("Модерен sticky", "Modern sticky")) + '</button>' +
             '<button type="button" class="ghost ah-header-preset" data-preset="wedge">' + esc(t("Само клин", "Wedge only")) + '</button>' +
           '</div>' +
-          '<div class="ah-header-style-grid" role="radiogroup" aria-label="' + esc(t("Визуален стил", "Visual style")) + '">' +
+          '<div class="ah-section-kicker">' + esc(t("A. Как изглежда страничният хедър", "A. Side-header appearance")) + '</div><div class="ah-header-style-grid" role="radiogroup" aria-label="' + esc(t("Визуален стил", "Visual style")) + '">' +
             '<label class="ah-header-style-card' + (cfg.scroll_header_style === "compact" ? " is-selected" : "") + '">' +
               '<input type="radio" name="scroll_header_style" value="compact"' + (cfg.scroll_header_style === "compact" ? " checked" : "") + disabled + '>' +
               '<span class="ah-header-style-preview ah-header-style-preview--compact"><i class="ah-mini-compact"><b></b><em></em></i></span>' +
@@ -380,7 +380,7 @@
               '<span class="ah-header-style-copy"><strong>AutoHaus Original</strong><small>' + esc(t("Оригиналният клин от autohaus.bg.", "The original autohaus.bg wedge.")) + '</small></span>' +
             '</label>' +
           '</div>' +
-          '<div class="ah-header-behavior-grid">' +
+          '<div class="ah-section-kicker">' + esc(t("B. Кога се вижда всеки хедър", "B. When each header is visible")) + '</div><div class="ah-header-behavior-grid">' +
             '<section class="ah-header-page-card"><div class="ah-header-page-head"><b>01</b><div><strong>' + esc(t("Начална страница", "Landing page")) + '</strong><small>' + esc(t("Hero / каталог", "Hero / catalogue")) + '</small></div></div>' +
               '<div class="ah-mode-block"><span>' + esc(t("Стандартният хедър", "Standard header")) + '</span><small>' + esc(t("Как се държи хедърът, който вече е най-горе върху hero.", "How the existing header over the hero behaves.")) + '</small>' +
                 '<div class="ah-segmented" data-group="landing_standard_header_mode">' +
@@ -388,7 +388,7 @@
                   '<label><input type="radio" name="landing_standard_header_mode" value="top"' + (cfg.landing_standard_header_mode==="top"?" checked":"") + disabled + '><span>' + esc(t("Само горе", "Top only")) + '</span></label>' +
                   '<label><input type="radio" name="landing_standard_header_mode" value="sticky"' + (cfg.landing_standard_header_mode==="sticky"?" checked":"") + disabled + '><span>Sticky</span></label>' +
                 '</div></div>' +
-              '<div class="ah-mode-block"><span>AutoHaus Original</span><small>' + esc(t("Независимо от стандартния хедър — може да е скрит, постоянен или да се появи след hero.", "Independent from the standard header — hidden, always visible, or shown after the hero.")) + '</small>' +
+              '<div class="ah-mode-block"><span>' + esc(t("Страничният хедър", "Side header")) + '</span><small>' + esc(t("Използва избрания по-горе стил: Компактен или AutoHaus Original.", "Uses the style selected above: Compact or AutoHaus Original.")) + '</small>' +
                 '<div class="ah-segmented" data-group="landing_original_header_mode">' +
                   '<label><input type="radio" name="landing_original_header_mode" value="hidden"' + (cfg.landing_original_header_mode==="hidden"?" checked":"") + disabled + '><span>' + esc(t("Скрит", "Hidden")) + '</span></label>' +
                   '<label><input type="radio" name="landing_original_header_mode" value="always"' + (cfg.landing_original_header_mode==="always"?" checked":"") + disabled + '><span>' + esc(t("Винаги", "Always")) + '</span></label>' +
@@ -402,7 +402,7 @@
                   '<label><input type="radio" name="product_standard_header_mode" value="top"' + (cfg.product_standard_header_mode==="top"?" checked":"") + disabled + '><span>' + esc(t("Само горе", "Top only")) + '</span></label>' +
                   '<label><input type="radio" name="product_standard_header_mode" value="sticky"' + (cfg.product_standard_header_mode==="sticky"?" checked":"") + disabled + '><span>Sticky</span></label>' +
                 '</div></div>' +
-              '<div class="ah-mode-block"><span>AutoHaus Original</span><small>' + esc(t("Същият клин може да е отделно настроен за продуктовите страници.", "The same wedge can be configured independently for vehicle pages.")) + '</small>' +
+              '<div class="ah-mode-block"><span>' + esc(t("Страничният хедър", "Side header")) + '</span><small>' + esc(t("Може да има различно поведение от началната страница.", "It can behave differently from the landing page.")) + '</small>' +
                 '<div class="ah-segmented" data-group="product_original_header_mode">' +
                   '<label><input type="radio" name="product_original_header_mode" value="hidden"' + (cfg.product_original_header_mode==="hidden"?" checked":"") + disabled + '><span>' + esc(t("Скрит", "Hidden")) + '</span></label>' +
                   '<label><input type="radio" name="product_original_header_mode" value="always"' + (cfg.product_original_header_mode==="always"?" checked":"") + disabled + '><span>' + esc(t("Винаги", "Always")) + '</span></label>' +
