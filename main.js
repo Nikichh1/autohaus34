@@ -1794,6 +1794,58 @@
     }, { passive:false });
   }
 
+  /* PHONE MENU SWIPE-TO-CLOSE.
+     The menu is now a partial-width panel, so a left swipe should dismiss it
+     the same way the eye already reads the panel as sliding back off-canvas.
+     Vertical movement still belongs to the menu's own scroll; only a clearly
+     horizontal left gesture is claimed. */
+  var menuReveal = document.querySelector("#mob .mob__reveal");
+  if (menuPanel && menuReveal) {
+    var menuSwipe = null;
+
+    menuReveal.addEventListener("touchstart", function (event) {
+      if (window.innerWidth > 767 || event.touches.length !== 1) {
+        menuSwipe = null;
+        return;
+      }
+      var t = event.touches[0];
+      menuSwipe = { x:t.clientX, y:t.clientY, at:Date.now() };
+    }, { passive:true });
+
+    menuReveal.addEventListener("touchmove", function (event) {
+      if (!menuSwipe || event.touches.length !== 1) return;
+      var t = event.touches[0];
+      var dx = t.clientX - menuSwipe.x;
+      var dy = t.clientY - menuSwipe.y;
+      if (dx < -12 && Math.abs(dx) > Math.abs(dy) * 1.1 && event.cancelable) {
+        event.preventDefault();
+      }
+    }, { passive:false });
+
+    menuReveal.addEventListener("touchend", function (event) {
+      if (!menuSwipe || !event.changedTouches.length) {
+        menuSwipe = null;
+        return;
+      }
+      var t = event.changedTouches[0];
+      var dx = t.clientX - menuSwipe.x;
+      var dy = t.clientY - menuSwipe.y;
+      var elapsed = Math.max(1, Date.now() - menuSwipe.at);
+      var horizontal = Math.abs(dx) > Math.abs(dy) * 1.15;
+      var deliberate = dx <= -52 || (dx <= -38 && elapsed < 280);
+      menuSwipe = null;
+
+      if (horizontal && deliberate) {
+        if (event.cancelable) event.preventDefault();
+        menuPanel.set(false);
+      }
+    }, { passive:false });
+
+    menuReveal.addEventListener("touchcancel", function () {
+      menuSwipe = null;
+    }, { passive:true });
+  }
+
   /* ---- THE CONTACT PANEL ----
      Its triggers are not two known buttons but every "Контакт" on the site:
      the header, the menu, the footer column, the cafe card's "Как да
