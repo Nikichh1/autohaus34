@@ -5647,6 +5647,7 @@ html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"][data-ah-product-
 html[data-ah-scroll-header="autohaus_original"] .plate__mark{
   position:absolute;
   z-index:2;
+  pointer-events:auto!important;
   left:calc(11px * var(--ah-original-size,.81));
   top:calc(53px * var(--ah-original-size,.81));
   height:auto;
@@ -5663,6 +5664,8 @@ html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
 html[data-ah-scroll-header="autohaus_original"] .plate__menu{
   position:absolute;
   z-index:3;
+  pointer-events:auto!important;
+  touch-action:manipulation;
   right:calc(46px * var(--ah-original-size,.81));
   top:calc(17px * var(--ah-original-size,.81));
   width:auto;
@@ -5684,6 +5687,13 @@ html[data-ah-scroll-header="autohaus_original"] .plate__menu{
   transition:opacity .18s ease!important
 }
 html[data-ah-scroll-header="autohaus_original"] .plate__menu::before{display:none!important}
+html[data-ah-scroll-header="autohaus_original"] .plate__menu::after{
+  content:"";
+  position:absolute;
+  inset:-7px -9px;
+  background:transparent;
+  pointer-events:auto
+}
 html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover,
 html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible{opacity:1}
 html[data-ah-scroll-header="autohaus_original"] .plate__menu-l{
@@ -5790,55 +5800,50 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
 
 @media(max-width:767px){
   /* PHONE ORIGINAL HEADER
-     A dedicated one-row composition, not a scaled-down desktop wedge.
-     The diagonal uses the same house angle: cut ~= height * tan(24.7deg).
-     Keeping logo + menu on one optical baseline removes the tall empty lower
-     triangle that made the old phone header cover too much of the page. */
+     Same visual grammar as desktop: menu in the upper-right, logo lower-left,
+     one steep diagonal and a shallow lower return. The return is deliberately
+     modest so the signature reads like the desktop plate without occupying
+     a large part of the phone viewport. */
   html[data-ah-scroll-header="autohaus_original"]{
-    --ah-phone-original-scale:clamp(.78,var(--ah-original-size,.81),1);
-    --ah-phone-cut:min(6.5vw,28px);
-    --ah-original-w:min(calc(250px * var(--ah-phone-original-scale)),57vw);
-    --ah-original-h:min(calc(66px * var(--ah-phone-original-scale)),13.5vw)
+    --ah-phone-original-scale:clamp(.78,var(--ah-original-size,.81),.92);
+    --ah-original-w:min(calc(300px * var(--ah-phone-original-scale)),70vw);
+    --ah-original-h:min(calc(100px * var(--ah-phone-original-scale)),22vw)
   }
   html[data-ah-scroll-header="autohaus_original"] .plate{
     height:var(--ah-original-h);
     pointer-events:none!important;
-    filter:drop-shadow(0 4px 10px rgba(0,0,0,.15))
+    filter:drop-shadow(0 5px 11px rgba(0,0,0,.15))
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__in,
   html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__in{
-    clip-path:polygon(0 0,100% 0,calc(100% - var(--ah-phone-cut)) 100%,0 100%)
+    clip-path:polygon(0 0,100% 0,83% 74%,0 100%)
   }
-  html[data-ah-scroll-header="autohaus_original"] .plate__mark{
-    left:calc(6px * var(--ah-phone-original-scale));
-    top:50%;
-    bottom:auto;
-    transform:translateY(-50%)!important
-  }
-  html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
-    width:min(calc(114px * var(--ah-phone-original-scale)),25vw)
-  }
+
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:calc(var(--ah-phone-cut) + 8px);
-    top:50%;
+    right:calc(34px * var(--ah-phone-original-scale));
+    top:calc(7px * var(--ah-phone-original-scale));
+    min-width:76px;
     height:38px;
     min-height:38px;
     gap:6px;
-    padding:0;
+    padding:0 2px;
     flex-direction:row;
     align-items:center;
     justify-content:flex-start;
-    transform:translateY(-50%)!important
+    transform:none!important
+  }
+  html[data-ah-scroll-header="autohaus_original"] .plate__menu::after{
+    inset:-5px -7px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu-l{
-    font-size:9px;
+    font-size:9.5px;
     line-height:1;
     font-weight:600;
-    letter-spacing:1px
+    letter-spacing:1.05px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars{
-    width:20px;
-    min-width:20px;
+    width:22px;
+    min-width:22px;
     height:8px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i{
@@ -5847,20 +5852,31 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:first-child{width:100%}
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:last-child{width:68%}
 
-  /* If language is explicitly requested in the header, widen only that mobile
-     variant and shrink the mark slightly so all three controls keep real air. */
+  html[data-ah-scroll-header="autohaus_original"] .plate__mark{
+    left:calc(9px * var(--ah-phone-original-scale));
+    top:auto;
+    bottom:calc(14px * var(--ah-phone-original-scale));
+    transform:none!important
+  }
+  html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
+    width:min(calc(145px * var(--ah-phone-original-scale)),36vw)
+  }
+
+  /* Optional language placement gets a little more width, while preserving
+     the same two-level composition and keeping the menu clear of the cut. */
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"]{
-    --ah-original-w:min(calc(300px * var(--ah-phone-original-scale)),72vw)
+    --ah-original-w:min(calc(330px * var(--ah-phone-original-scale)),78vw)
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate__mark .logo{
-    width:min(calc(100px * var(--ah-phone-original-scale)),23vw)
+    width:min(calc(132px * var(--ah-phone-original-scale)),33vw)
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang{
-    right:calc(var(--ah-phone-cut) + 76px);
-    top:50%;
+    left:calc(10px * var(--ah-phone-original-scale));
+    right:auto;
+    top:calc(6px * var(--ah-phone-original-scale));
     margin:0!important;
     padding:0!important;
-    transform:translateY(-50%)!important
+    transform:none!important
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang__o{
     width:22px;
