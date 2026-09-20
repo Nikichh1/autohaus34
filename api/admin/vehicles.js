@@ -129,13 +129,19 @@ function normalizedSettings(row) {
     photo_filter: filter,
     photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35,
     desktop_gallery_scale: Number.isFinite(galleryScale) ? Math.max(70, Math.min(100, Math.round(galleryScale))) : 84,
-    scroll_header_style: scrollHeaderStyle
+    scroll_header_style: scrollHeaderStyle,
+    landing_standard_header: row.landing_standard_header !== false,
+    landing_standard_header_sticky: row.landing_standard_header_sticky === true,
+    landing_original_after_scroll: row.landing_original_after_scroll !== false,
+    product_standard_header: row.product_standard_header !== false,
+    product_standard_header_sticky: row.product_standard_header_sticky !== false,
+    product_original_header: row.product_original_header === true
   };
 }
 
 async function settingsAction(req, res, db) {
   if (req.method === "GET") {
-    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style&limit=1", { method: "GET" });
+    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style,landing_standard_header,landing_standard_header_sticky,landing_original_after_scroll,product_standard_header,product_standard_header_sticky,product_original_header&limit=1", { method: "GET" });
     const data = await readJson(response);
     if (!response.ok) return apiError(res, response.status, "Could not load settings", data);
     return json(res, 200, { ok: true, settings: normalizedSettings(Array.isArray(data) && data[0]) });
@@ -187,6 +193,13 @@ async function settingsAction(req, res, db) {
   if (Object.prototype.hasOwnProperty.call(body, "scroll_header_style")) {
     if (!["compact", "autohaus_original"].includes(body.scroll_header_style)) return apiError(res, 400, "Invalid scroll header style");
     update.scroll_header_style = body.scroll_header_style;
+    changed = true;
+  }
+  const headerBooleans = ["landing_standard_header","landing_standard_header_sticky","landing_original_after_scroll","product_standard_header","product_standard_header_sticky","product_original_header"];
+  for (const key of headerBooleans) {
+    if (!Object.prototype.hasOwnProperty.call(body, key)) continue;
+    if (typeof body[key] !== "boolean") return apiError(res, 400, "Invalid header setting: " + key);
+    update[key] = body[key];
     changed = true;
   }
   if (!changed) return apiError(res, 400, "No settings to update");
