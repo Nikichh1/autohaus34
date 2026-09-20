@@ -180,7 +180,7 @@
             ' data-ah-watermark-embedded="' + (embedded ? '1' : '0') + '"' +
             ' aria-label="Кадър ' + (i + 1) + " от " + N + ' — уголеми">' +
             AH.picture(s, { eager: i === 0, width: i === 0 ? 1280 : 800, height: i === 0 ? 784 : 490,
-                            widths: i === 0 ? [800, 1280] : [400, 800, 1280],
+                            widths: i === 0 ? [800, 1280, 1920] : [400, 800, 1280],
                             sizes: frameSizes, src: i === 0 ? 1280 : 800,
                             alt: v.full + " — кадър " + (i + 1) }) +
             '<span class="dgal__n">' + (i + 1) + " / " + N + "</span></button>";
@@ -436,8 +436,20 @@
     } catch (_) { return false; }
   })();
 
-  function hqSource(i) {
+  function desiredHqWidth() {
+    var cssWidth = (lb && lb.classList.contains('open') && lbStage && lbStage.clientWidth)
+      ? lbStage.clientWidth
+      : Math.max(mainFrame && mainFrame.clientWidth || 0, innerWidth * 0.66);
+    var physical = cssWidth * Math.min(3, window.devicePixelRatio || 1);
+    return physical > 1380 ? 1920 : 1280;
+  }
+
+  function hqSource(i, width) {
     var variants = (window.AH_IMAGE_VARIANTS || {})[shots[i]] || null;
+    if (width >= 1920 && variants) {
+      if (webpOkay && variants.webp1920) return variants.webp1920;
+      if (variants.jpg1920) return variants.jpg1920;
+    }
     if (webpOkay && variants && variants.webp1280) return variants.webp1280;
     return AH.img(shots[i], 1280);
   }
@@ -447,7 +459,8 @@
     priority = priority || 'low';
     if (priority === 'low' && !canWarmImages()) return Promise.resolve(null);
     i = (i + N) % N;
-    var key = i + ':hq1280';
+    var targetWidth = desiredHqWidth();
+    var key = i + ':hq' + targetWidth;
     if (decoded[key]) {
       if (priority === 'high') decoded[key].image.fetchPriority = 'high';
       return decoded[key].promise;
@@ -465,25 +478,26 @@
       };
       image.onerror = function () {
         fallback++;
-        if (fallback === 1) {
+        if (fallback === 1 && targetWidth >= 1920) {
           image.src = AH.img(shots[i], 1280);
           return;
         }
-        if (fallback === 2) {
+        if (fallback <= 2) {
           image.src = AH.img(shots[i], 800);
           return;
         }
         delete decoded[key];
         resolve(null);
       };
-      image.src = hqSource(i);
+      image.src = hqSource(i, targetWidth);
     });
     return entry.promise;
   }
 
   function seedDecodedMain(index) {
     if (!mainImg || !mainImg.complete || mainImg.naturalWidth < 1100) return;
-    var key = ((index + N) % N) + ':hq1280';
+    var targetWidth = mainImg.naturalWidth >= 1750 ? 1920 : 1280;
+    var key = ((index + N) % N) + ':hq' + targetWidth;
     if (decoded[key]) return;
     var src = mainImg.currentSrc || mainImg.src;
     if (!src) return;
