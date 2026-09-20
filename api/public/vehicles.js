@@ -139,7 +139,7 @@ function remember(key, body, started, order, status = 200) {
 }
 
 async function publicSettings() {
-  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style,landing_standard_header,landing_standard_header_sticky,landing_original_after_scroll,product_standard_header,product_standard_header_sticky,product_original_header&limit=1", { method: "GET" });
+  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style,landing_standard_header,landing_standard_header_sticky,landing_original_after_scroll,product_standard_header,product_standard_header_sticky,product_original_header,landing_standard_header_mode,landing_original_header_mode,product_standard_header_mode,product_original_header_mode,original_header_size,original_header_opacity,original_header_language&limit=1", { method: "GET" });
   const rows = await parse(response);
   const row = rows[0] || {};
   const transparency = Number(row.watermark_transparency);
@@ -147,6 +147,16 @@ async function publicSettings() {
   const strength = Number(row.photo_filter_strength);
   const galleryScale = Number(row.desktop_gallery_scale);
   const scrollHeaderStyle = row.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
+  const landingStandardMode = ["hidden","top","sticky"].includes(row.landing_standard_header_mode) ? row.landing_standard_header_mode :
+    (row.landing_standard_header === false ? "hidden" : row.landing_standard_header_sticky === true ? "sticky" : "top");
+  const landingOriginalMode = ["hidden","always","after_scroll"].includes(row.landing_original_header_mode) ? row.landing_original_header_mode :
+    (row.landing_original_after_scroll === false ? "hidden" : "after_scroll");
+  const productStandardMode = ["hidden","top","sticky"].includes(row.product_standard_header_mode) ? row.product_standard_header_mode :
+    (row.product_standard_header === false ? "hidden" : row.product_standard_header_sticky === false ? "top" : "sticky");
+  const productOriginalMode = ["hidden","always","after_scroll"].includes(row.product_original_header_mode) ? row.product_original_header_mode :
+    (row.product_original_header === true ? "always" : "hidden");
+  const originalHeaderSize = Number(row.original_header_size);
+  const originalHeaderOpacity = Number(row.original_header_opacity);
   return {
     watermark_enabled: row.watermark_enabled === true,
     watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75,
@@ -161,7 +171,14 @@ async function publicSettings() {
     landing_original_after_scroll: row.landing_original_after_scroll !== false,
     product_standard_header: row.product_standard_header !== false,
     product_standard_header_sticky: row.product_standard_header_sticky !== false,
-    product_original_header: row.product_original_header === true
+    product_original_header: row.product_original_header === true,
+    landing_standard_header_mode: landingStandardMode,
+    landing_original_header_mode: landingOriginalMode,
+    product_standard_header_mode: productStandardMode,
+    product_original_header_mode: productOriginalMode,
+    original_header_size: Number.isFinite(originalHeaderSize) ? Math.max(65, Math.min(100, Math.round(originalHeaderSize))) : 81,
+    original_header_opacity: Number.isFinite(originalHeaderOpacity) ? Math.max(85, Math.min(100, Math.round(originalHeaderOpacity))) : 98,
+    original_header_language: row.original_header_language === "header" ? "header" : "menu"
   };
 }
 
@@ -204,7 +221,7 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { ok: true, settings: await publicSettings() });
     } catch (err) {
       console.error("Public settings API failed", err);
-      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84, scroll_header_style: "compact", landing_standard_header: true, landing_standard_header_sticky: false, landing_original_after_scroll: true, product_standard_header: true, product_standard_header_sticky: true, product_original_header: false } });
+      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84, scroll_header_style: "compact", landing_standard_header: true, landing_standard_header_sticky: false, landing_original_after_scroll: true, product_standard_header: true, product_standard_header_sticky: true, product_original_header: false, landing_standard_header_mode: "top", landing_original_header_mode: "after_scroll", product_standard_header_mode: "sticky", product_original_header_mode: "hidden", original_header_size: 81, original_header_opacity: 98, original_header_language: "menu" } });
     }
   }
 
