@@ -5590,6 +5590,11 @@ html[data-ah-scroll-header="autohaus_original"] .plate__in{
   transition:none!important;
   overflow:hidden
 }
+html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__in{
+  clip-path:polygon(0 0,100% 0,91% 64%,86% 100%,0 100%)!important;
+  visibility:visible!important;
+  transition:none!important
+}
 /* Fine metallic edge, not a glow. It makes the dark surface read as a piece
    of trim while keeping the original AutoHaus monochrome identity. */
 html[data-ah-scroll-header="autohaus_original"] .plate__in::before{
