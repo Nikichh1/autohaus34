@@ -45,3 +45,44 @@
 #description .section-title{align-items:center;gap:12px;flex-wrap:wrap}
 #description .section-title .admin-lang-tabs{margin-left:auto}
 .more-details .admin-lang-tabs{width:max-content}
+
+
+/* Scroll-header style selector */
+.ah-header-settings-form{display:grid;gap:22px}
+.ah-header-settings-intro{max-width:760px;margin:0}
+.ah-header-style-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.ah-header-style-card{
+  position:relative;display:grid;grid-template-rows:132px auto;overflow:hidden;
+  border:1px solid var(--line,#d9dcde);background:#fff;cursor:pointer;
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease
+}
+.ah-header-style-card:hover{border-color:#a9afb3;box-shadow:0 10px 28px rgba(15,19,22,.08)}
+.ah-header-style-card.is-selected{border-color:#202427;box-shadow:0 0 0 1px #202427}
+.ah-header-style-card input{
+  position:absolute;top:12px;right:12px;z-index:3;width:18px;height:18px;margin:0;accent-color:#202427
+}
+.ah-header-style-preview{position:relative;display:block;overflow:hidden;background:linear-gradient(135deg,#dce4e8,#eef1f2 55%,#c8d5dc)}
+.ah-header-style-preview::after{content:"";position:absolute;left:0;right:0;bottom:0;height:36%;background:linear-gradient(180deg,transparent,rgba(55,66,73,.12))}
+.ah-mini-compact{
+  position:absolute;left:0;top:18px;width:58%;height:46px;background:#202326;
+  clip-path:polygon(0 0,100% 0,86% 100%,0 100%);box-shadow:0 10px 22px rgba(0,0,0,.16)
+}
+.ah-mini-compact::before,.ah-mini-original::before{
+  content:"";position:absolute;background:url("/autohaus.svg") center/contain no-repeat
+}
+.ah-mini-compact::before{left:58px;top:15px;width:86px;height:16px}
+.ah-mini-compact b,.ah-mini-compact em{position:absolute;left:18px;height:1.5px;background:#fff;display:block}
+.ah-mini-compact b{top:17px;width:18px}.ah-mini-compact em{top:27px;width:11px}
+.ah-mini-original{
+  position:absolute;inset:0 auto auto 0;width:min(76%,390px);height:116px;
+  background:rgba(36,39,42,.97);clip-path:polygon(0 0,100% 0,79.1% 75.8%,0 100%)
+}
+.ah-mini-original::before{left:12px;top:38px;width:172px;height:31px}
+.ah-mini-original img{display:none}
+.ah-header-style-copy{display:grid;gap:4px;padding:14px 16px 16px}
+.ah-header-style-copy strong{font-size:14px;letter-spacing:.01em}
+.ah-header-style-copy small{font-size:12px;line-height:1.45;color:var(--muted,#62676b)}
+@media(max-width:720px){
+  .ah-header-style-grid{grid-template-columns:1fr}
+  .ah-header-style-card{grid-template-rows:118px auto}
+}
