@@ -160,7 +160,8 @@
       photo_aspect_ratio: ratio,
       photo_filter: filterName,
       photo_filter_strength: strength,
-      desktop_gallery_scale: galleryScale
+      desktop_gallery_scale: galleryScale,
+      scroll_header_style: scrollHeaderStyle
     }}));
   }
 
