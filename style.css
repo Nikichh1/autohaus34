@@ -5548,37 +5548,45 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
 
 
 /* ============================================================
-   HEADER BEHAVIOR + AUTOHAUS ORIGINAL
-   The original wedge keeps the supplied geometry but is slightly smaller.
-   Visibility/stickiness are independent per landing/product page.
+   HEADER CONTROL CENTER
+   Standard header: hidden / top / sticky
+   AutoHaus Original: hidden / always / after_scroll
    ============================================================ */
-:root{--plate-stack-offset:var(--plate-h)}
-
-html[data-ah-scroll-header="autohaus_original"]{
-  --plate-stack-offset:0px;
-  --ah-original-w:380px;
-  --ah-original-h:157px;
+:root{
+  --plate-stack-offset:var(--plate-h);
+  --ah-original-size:.81;
+  --ah-original-opacity:.98
 }
 
-/* ---------- normal landing header ---------- */
-html.ah-landing-page[data-ah-landing-standard-header="0"] .hd{display:none!important}
-html.ah-landing-page[data-ah-landing-standard-header="1"][data-ah-landing-header-sticky="1"] .hd{
-  position:fixed!important;
-  z-index:54;
-  background:linear-gradient(180deg,rgba(14,15,16,.84),rgba(14,15,16,.48) 58%,transparent);
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)
-}
-
-/* ---------- normal product header ---------- */
-html.ah-vehicle-page[data-ah-product-standard-header="0"] .nav{display:none!important}
-html.ah-vehicle-page[data-ah-product-original-header="1"] .nav{display:none!important}
-html.ah-vehicle-page[data-ah-product-standard-header="1"][data-ah-product-original-header="0"][data-ah-product-header-sticky="0"] .nav{
+/* ---------- LANDING: standard header ---------- */
+html.ah-landing-page[data-ah-landing-standard-mode="hidden"] .hd{display:none!important}
+html.ah-landing-page[data-ah-landing-standard-mode="top"] .hd{
   position:absolute!important
 }
-html.ah-vehicle-page[data-ah-product-standard-header="0"][data-ah-product-original-header="0"] body:not(.ah),
-html.ah-vehicle-page[data-ah-product-original-header="1"] body:not(.ah){--nav-h:0px}
+html.ah-landing-page[data-ah-landing-standard-mode="sticky"] .hd{
+  position:fixed!important;
+  z-index:54;
+  background:linear-gradient(180deg,rgba(14,15,16,.82),rgba(14,15,16,.42) 62%,transparent);
+  -webkit-backdrop-filter:blur(9px);
+  backdrop-filter:blur(9px)
+}
 
-/* ---------- original wedge visibility ---------- */
+/* ---------- PRODUCT: standard header ---------- */
+html.ah-vehicle-page[data-ah-product-standard-mode="hidden"] .nav{display:none!important}
+html.ah-vehicle-page[data-ah-product-standard-mode="top"] .nav{
+  position:absolute!important
+}
+html.ah-vehicle-page[data-ah-product-standard-mode="sticky"] .nav{
+  position:fixed!important
+}
+html.ah-vehicle-page[data-ah-product-standard-mode="hidden"] body:not(.ah){--nav-h:0px}
+
+/* ---------- AutoHaus Original geometry ---------- */
+html[data-ah-scroll-header="autohaus_original"]{
+  --plate-stack-offset:0px;
+  --ah-original-w:min(calc(467px * var(--ah-original-size,.81)),92vw);
+  --ah-original-h:min(calc(193px * var(--ah-original-size,.81)),37.9vw)
+}
 html[data-ah-scroll-header="autohaus_original"] .plate{
   z-index:55;
   height:var(--ah-original-h);
@@ -5589,7 +5597,9 @@ html[data-ah-scroll-header="autohaus_original"] .plate{
   filter:drop-shadow(0 10px 22px rgba(0,0,0,.22));
   transition:opacity .18s ease,transform .24s var(--e-enter),visibility 0s linear .24s
 }
-html[data-ah-scroll-header="autohaus_original"].ah-plate-on .plate{
+html[data-ah-scroll-header="autohaus_original"].ah-plate-on .plate,
+html.ah-landing-page[data-ah-scroll-header="autohaus_original"][data-ah-landing-original-mode="always"] .plate,
+html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"][data-ah-product-original-mode="always"] .plate{
   opacity:1;
   visibility:visible;
   transform:none;
@@ -5598,8 +5608,6 @@ html[data-ah-scroll-header="autohaus_original"].ah-plate-on .plate{
 }
 html[data-ah-scroll-header="autohaus_original"] .plate::after{display:none!important}
 
-/* Exact supplied AutoHaus geometry:
-   top-right -> elbow at ~79.5% / 75.7% -> bottom-left. */
 html[data-ah-scroll-header="autohaus_original"] .plate__in,
 html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__in{
   position:relative;
@@ -5612,7 +5620,7 @@ html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__in{
   overflow:hidden;
   pointer-events:auto;
   color:#fff;
-  background:rgba(36,39,42,.982);
+  background:rgba(36,39,42,var(--ah-original-opacity,.98));
   clip-path:polygon(0 0,100% 0,79.5% 75.7%,0 100%);
   visibility:visible!important;
   transition:none!important
@@ -5627,12 +5635,12 @@ html[data-ah-scroll-header="autohaus_original"] .plate__in::before{
 }
 html[data-ah-scroll-header="autohaus_original"] .plate__in::after{display:none}
 
-/* Reference logo placement, scaled with the slightly smaller wedge. */
+/* Logo/menu positions scale with the user-controlled wedge size. */
 html[data-ah-scroll-header="autohaus_original"] .plate__mark{
   position:absolute;
   z-index:2;
-  left:9px;
-  top:43px;
+  left:calc(11px * var(--ah-original-size,.81));
+  top:calc(53px * var(--ah-original-size,.81));
   height:auto;
   display:block;
   transform:none!important;
@@ -5640,53 +5648,63 @@ html[data-ah-scroll-header="autohaus_original"] .plate__mark{
 }
 html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
   display:block;
-  width:226px;
+  width:calc(279px * var(--ah-original-size,.81));
   max-width:none;
   height:auto
 }
-
-/* Language lives in the opened menu, leaving the original face clean. */
-html[data-ah-scroll-header="autohaus_original"] .plate .lang{display:none!important}
 html[data-ah-scroll-header="autohaus_original"] .plate__menu{
   position:absolute;
   z-index:3;
-  right:23px;
-  top:15px;
-  width:32px;
-  height:32px;
-  padding:0;
-  border:0;
-  display:grid;
-  place-items:center;
-  color:#fff;
-  background:transparent;
-  opacity:.68;
-  transform:none!important;
+  right:calc(28px * var(--ah-original-size,.81));
+  top:calc(18px * var(--ah-original-size,.81));
+  width:calc(39px * var(--ah-original-size,.81));
+  height:calc(39px * var(--ah-original-size,.81));
+  min-width:28px;min-height:28px;
+  padding:0;border:0;
+  display:grid;place-items:center;
+  color:#fff;background:transparent;
+  opacity:.68;transform:none!important;
   transition:opacity .18s ease!important
 }
 html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover,
 html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible{opacity:1}
 html[data-ah-scroll-header="autohaus_original"] .plate__menu-l{display:none!important}
-html[data-ah-scroll-header="autohaus_original"] .plate__bars{width:17px;height:9px}
+html[data-ah-scroll-header="autohaus_original"] .plate__bars{
+  width:calc(21px * var(--ah-original-size,.81));
+  min-width:15px;height:9px
+}
 html[data-ah-scroll-header="autohaus_original"] .plate__bars i{height:1px;background:#fff}
 html[data-ah-scroll-header="autohaus_original"] .plate__bars i:first-child{width:100%}
 html[data-ah-scroll-header="autohaus_original"] .plate__bars i:last-child{width:60%}
 
-/* Product Original is an always-on replacement. Landing Original is armed
-   only after the hero by main.js and is suppressed when normal header is sticky. */
-html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"][data-ah-product-original-header="1"] .plate{
-  opacity:1;
-  visibility:visible;
-  transform:none;
-  pointer-events:auto
+/* Optional language placement — on the wedge or inside the opened menu. */
+html[data-ah-scroll-header="autohaus_original"] .plate .lang{display:none!important}
+html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang{
+  position:absolute!important;
+  z-index:3;
+  right:calc(76px * var(--ah-original-size,.81));
+  top:calc(18px * var(--ah-original-size,.81));
+  display:inline-flex!important;
+  margin:0!important;padding:0 0 5px!important;
+  transform:none!important
 }
-html.ah-landing-page[data-ah-scroll-header="autohaus_original"][data-ah-landing-original-after-scroll="0"] .plate{
-  opacity:0!important;visibility:hidden!important;pointer-events:none!important
+html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang__o{
+  width:25px;min-width:25px;height:20px;padding:0;
+  color:#fff;font-size:9px;font-weight:600;letter-spacing:.8px;opacity:.45
 }
-html.ah-landing-page[data-ah-scroll-header="autohaus_original"][data-ah-landing-header-sticky="1"] .plate{
+html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang__o.is-on{opacity:1}
+html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang__ind{
+  height:1px;background:rgba(255,255,255,.82)
+}
+
+/* Explicit hidden modes always win. */
+html.ah-landing-page[data-ah-landing-original-mode="hidden"] .plate,
+html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   opacity:0!important;visibility:hidden!important;pointer-events:none!important
 }
 
+/* Compact mode keeps the existing plate behavior. Vehicle page carries an
+   extra plate element solely for the optional Original modes. */
 html.ah-vehicle-page:not([data-ah-scroll-header="autohaus_original"]) #plate{display:none}
 .plate-sentinel{
   position:absolute;left:0;top:0;width:1px;height:var(--nav-h,72px);
@@ -5701,36 +5719,32 @@ html.ah-vehicle-page:not([data-ah-scroll-header="autohaus_original"]) #plate{dis
 
 @media(max-width:767px){
   html[data-ah-scroll-header="autohaus_original"]{
-    --ah-original-w:min(84vw,304px);
-    --ah-original-h:min(34.7vw,126px)
+    --ah-original-w:min(calc(375px * var(--ah-original-size,.81)),88vw);
+    --ah-original-h:min(calc(155px * var(--ah-original-size,.81)),36.4vw)
   }
   html[data-ah-scroll-header="autohaus_original"] .plate{height:var(--ah-original-h)}
   html[data-ah-scroll-header="autohaus_original"] .plate__mark{
-    left:7px;top:calc(var(--ah-original-h) * .275)
+    left:calc(9px * var(--ah-original-size,.81));
+    top:calc(43px * var(--ah-original-size,.81))
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
-    width:min(54vw,174px)
+    width:min(calc(245px * var(--ah-original-size,.81)),58vw)
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:15px;top:10px;width:30px;height:30px
+    right:calc(20px * var(--ah-original-size,.81));
+    top:calc(13px * var(--ah-original-size,.81))
   }
-  html[data-ah-scroll-header="autohaus_original"] .plate__bars{width:16px}
-}
-
-@media(max-width:370px){
-  html[data-ah-scroll-header="autohaus_original"]{
-    --ah-original-w:86vw;
-    --ah-original-h:35.6vw
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang{
+    right:calc(61px * var(--ah-original-size,.81));
+    top:calc(12px * var(--ah-original-size,.81))
   }
-  html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{width:53vw}
 }
 
 @media(prefers-reduced-motion:reduce){
   html[data-ah-scroll-header="autohaus_original"] .plate{transition:none!important}
 }
 
-/* Language belongs to the opened menu in AutoHaus Original mode, keeping the
-   reference wedge face clean. */
+/* Language selector inside the opened menu when requested. */
 .mob-lang{
   position:relative!important;
   margin:18px 0 8px!important;
@@ -5740,6 +5754,7 @@ html.ah-vehicle-page:not([data-ah-scroll-header="autohaus_original"]) #plate{dis
   width:max-content!important;
   transform:none!important
 }
+html[data-ah-original-language="header"] .mob-lang{display:none!important}
 .mob-lang::before{background:rgba(255,255,255,.16)!important}
 .mob-lang .lang__o{
   color:#fff!important;opacity:.48;
@@ -5748,26 +5763,4 @@ html.ah-vehicle-page:not([data-ah-scroll-header="autohaus_original"]) #plate{dis
 }
 .mob-lang .lang__o.is-on{opacity:1}
 .mob-lang .lang__ind{height:1px!important;background:rgba(255,255,255,.9)!important}
-/* Language belongs to the opened menu in AutoHaus Original mode, keeping the
-   reference wedge face clean. */
-.mob-lang{
-  position:relative!important;
-  margin:18px 0 8px!important;
-  padding:0 0 7px!important;
-  display:inline-flex!important;
-  align-items:flex-end!important;
-  width:max-content!important;
-  transform:none!important
-}
-.mob-lang::before{background:rgba(255,255,255,.16)!important}
-.mob-lang .lang__o{
-  color:#fff!important;
-  opacity:.48;
-  min-width:34px!important;
-  width:34px!important;
-  height:26px!important;
-  font-size:11px!important;
-  letter-spacing:1px!important
-}
-.mob-lang .lang__o.is-on{opacity:1}
-.mob-lang .lang__ind{height:1px!important;background:rgba(255,255,255,.9)!important}
+
