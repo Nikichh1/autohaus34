@@ -47,22 +47,32 @@
      never sees one header style snap into the other after scrolling. */
   var ROOT = document.documentElement;
   var PRESENTATION_CACHE_KEY = "autohaus-photo-presentation-v1";
-  function applyScrollHeaderStyle(value) {
-    var style = value === "autohaus_original" ? "autohaus_original" : "compact";
+  function applyHeaderSettings(settings) {
+    settings = settings || {};
+    var style = settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
     ROOT.dataset.ahScrollHeader = style;
+    ROOT.dataset.ahLandingStandardHeader = settings.landing_standard_header !== false ? "1" : "0";
+    ROOT.dataset.ahLandingHeaderSticky = settings.landing_standard_header_sticky === true ? "1" : "0";
+    ROOT.dataset.ahLandingOriginalAfterScroll = settings.landing_original_after_scroll !== false ? "1" : "0";
+    ROOT.dataset.ahProductStandardHeader = settings.product_standard_header !== false ? "1" : "0";
+    ROOT.dataset.ahProductHeaderSticky = settings.product_standard_header_sticky !== false ? "1" : "0";
+    ROOT.dataset.ahProductOriginalHeader = settings.product_original_header === true ? "1" : "0";
     return style;
   }
-  (function primeScrollHeaderStyle() {
+  (function primeHeaderSettings() {
     try {
       var raw = localStorage.getItem(PRESENTATION_CACHE_KEY);
       var cached = raw ? JSON.parse(raw) : null;
-      applyScrollHeaderStyle(cached && cached.settings && cached.settings.scroll_header_style);
-    } catch (_) { applyScrollHeaderStyle("compact"); }
+      applyHeaderSettings(cached && cached.settings);
+    } catch (_) { applyHeaderSettings({ scroll_header_style:"compact" }); }
   })();
   window.addEventListener("ah:photosettingschange", function (event) {
-    if (event && event.detail) applyScrollHeaderStyle(event.detail.scroll_header_style);
+    if (event && event.detail) applyHeaderSettings(event.detail);
   });
-  window.AH_APPLY_SCROLL_HEADER_STYLE = applyScrollHeaderStyle;
+  window.AH_APPLY_HEADER_SETTINGS = applyHeaderSettings;
+  window.AH_APPLY_SCROLL_HEADER_STYLE = function (value) {
+    return applyHeaderSettings({ scroll_header_style:value });
+  };
 
   /* watermark.js already refreshes public settings on the catalogue and
      vehicle page. The remaining public pages do not load it, so only those
@@ -74,7 +84,7 @@
       return response.ok ? response.json() : null;
     }).then(function (data) {
       if (!data || !data.settings) return;
-      applyScrollHeaderStyle(data.settings.scroll_header_style);
+      applyHeaderSettings(data.settings);
       try {
         var raw = localStorage.getItem(PRESENTATION_CACHE_KEY);
         var cache = raw ? JSON.parse(raw) : { v:1, settings:{} };
@@ -84,6 +94,9 @@
       } catch (_) {}
     }).catch(function () {});
   }
+
+  ROOT.classList.toggle("ah-landing-page", !!document.querySelector(".hd"));
+  ROOT.classList.toggle("ah-vehicle-page", !!document.querySelector(".nav"));
 
   var $ = function (id) { return document.getElementById(id); };
   var all = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -1764,8 +1777,8 @@
        of the header instead (.cgr__sentinel, sized off --cg-top, which is
        what clears that header anyway), so the moment is identical to the
        other three pages without depending on anything that scrolls. */
-    var vehiclePage = !!document.querySelector(".nav");
-    ROOT.classList.toggle("ah-vehicle-page", vehiclePage);
+    var vehiclePage = ROOT.classList.contains("ah-vehicle-page");
+    var landingPage = ROOT.classList.contains("ah-landing-page");
     var plateAfter = document.querySelector("[data-plate-sentinel]") ||
                      document.querySelector(".stage") ||
                      document.querySelector(".cgr__sentinel") ||
@@ -1776,10 +1789,19 @@
        class per component: the filter bar reads --plate-top and nothing else
        has to be taught about the plate. */
     var armPlate = function (on) {
-      plate.classList.toggle("is-on", on);
-      ROOT.classList.toggle("ah-plate-on", on);
+      var effective = !!on;
+      if (ROOT.dataset.ahScrollHeader === "autohaus_original") {
+        if (vehiclePage) {
+          effective = ROOT.dataset.ahProductOriginalHeader === "1";
+        } else if (landingPage) {
+          effective = ROOT.dataset.ahLandingOriginalAfterScroll === "1" &&
+            ROOT.dataset.ahLandingHeaderSticky !== "1" && !!on;
+        }
+      }
+      plate.classList.toggle("is-on", effective);
+      ROOT.classList.toggle("ah-plate-on", effective);
       ROOT.style.setProperty(
-        "--plate-top", on ? "var(--plate-stack-offset,var(--plate-h))" : "0px");
+        "--plate-top", effective ? "var(--plate-stack-offset,var(--plate-h))" : "0px");
     };
     AH.armPlate = armPlate;
 
