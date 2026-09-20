@@ -454,12 +454,12 @@
     return AH.img(shots[i], 1280);
   }
 
-  function prepare(i, priority) {
+  function prepareAt(i, targetWidth, priority) {
     if (!N) return Promise.resolve(null);
     priority = priority || 'low';
+    targetWidth = targetWidth >= 1920 ? 1920 : 1280;
     if (priority === 'low' && !canWarmImages()) return Promise.resolve(null);
     i = (i + N) % N;
-    var targetWidth = desiredHqWidth();
     var key = i + ':hq' + targetWidth;
     if (decoded[key]) {
       if (priority === 'high') decoded[key].image.fetchPriority = 'high';
@@ -479,7 +479,7 @@
       image.onerror = function () {
         fallback++;
         if (fallback === 1 && targetWidth >= 1920) {
-          image.src = AH.img(shots[i], 1280);
+          image.src = hqSource(i, 1280);
           return;
         }
         if (fallback <= 2) {
@@ -492,6 +492,14 @@
       image.src = hqSource(i, targetWidth);
     });
     return entry.promise;
+  }
+
+  function prepare(i, priority) {
+    return prepareAt(i, desiredHqWidth(), priority);
+  }
+
+  function prepareNavigation(i, priority) {
+    return prepareAt(i, 1280, priority || 'high');
   }
 
   function seedDecodedMain(index) {
@@ -521,8 +529,8 @@
   function warmNeighbors(center, direction) {
     if (N < 2 || !canWarmImages()) return;
     direction = direction || 1;
-    prepare(center + direction, 'high');
-    if (N > 2) prepare(center - direction, 'low');
+    prepareNavigation(center + direction, 'high');
+    if (N > 2) prepareNavigation(center - direction, 'high');
   }
 
   function stripTo(i) {
@@ -562,7 +570,7 @@
 
     /* Keep the current full-size frame visible until the requested image has
        decoded. Only this one permanent <img> node is updated. */
-    prepare(i, 'high').then(function (image) {
+    prepareNavigation(i, 'high').then(function (image) {
       if (version !== selectionVersion) return;
       if (image) {
         mainImg.removeAttribute('srcset');
@@ -576,16 +584,16 @@
       mainFrame.removeAttribute('aria-busy');
       if (image) {
         seedDecodedMain(i);
-        prepare((i + 1) % N);
-        if (N > 2) prepare((i - 1 + N) % N);
+        prepareNavigation((i + 1) % N, 'high');
+        if (N > 2) prepareNavigation((i - 1 + N) % N, 'high');
       }
     });
   }
 
   thumbs.forEach(function (thumb, index) {
     thumb.addEventListener('click', function () { hydrateThumb(thumb); stripTo(index); });
-    thumb.addEventListener('pointerenter', function () { hydrateThumb(thumb); prepare(index); }, { passive: true });
-    thumb.addEventListener('focus', function () { hydrateThumb(thumb); prepare(index); });
+    thumb.addEventListener('pointerenter', function () { hydrateThumb(thumb); prepareNavigation(index, 'low'); }, { passive: true });
+    thumb.addEventListener('focus', function () { hydrateThumb(thumb); prepareNavigation(index, 'low'); });
     thumb.addEventListener('keydown', function (event) {
       var next = event.key === 'ArrowRight' ? index + 1 :
         event.key === 'ArrowLeft' ? index - 1 :
@@ -626,12 +634,12 @@
     mainFrame.addEventListener('pointercancel', function () { swipeStart = null; });
 
     var warmNext = function () {
-      prepare(1).then(function () {
+      prepareNavigation(1, 'low').then(function () {
         var connection = navigator.connection;
         var fastEnough = !connection || (!connection.saveData &&
           (!connection.downlink || connection.downlink >= 5) &&
           !/^(slow-2g|2g|3g)$/.test(connection.effectiveType || ''));
-        if (fastEnough && N > 2) prepare(2);
+        if (fastEnough && N > 2) prepareNavigation(2, 'low');
       });
     };
     if ('requestIdleCallback' in window) requestIdleCallback(warmNext, { timeout: 1800 });
@@ -865,20 +873,38 @@
     if (first) lockPage(true);                  /* stepping frames must not re-pin */
     if (first) D.getElementById("lb-close").focus();
     lbStage.setAttribute('aria-busy', 'true');
-    prepare(shot, 'high').then(function (image) {
+
+    /* Navigation must never wait for a 1920px download/decode. 1280 is the
+       instant interaction layer; high-DPI 1920 silently upgrades afterwards. */
+    var navKey = shot + ':hq1280';
+    var cachedNav = decoded[navKey];
+    if (cachedNav && cachedNav.image && cachedNav.image.complete && cachedNav.image.naturalWidth) {
+      lbImg.style.clipPath = '';
+      lbImg.removeAttribute('srcset');
+      lbImg.src = cachedNav.image.currentSrc || cachedNav.image.src;
+      lbStage.removeAttribute('aria-busy');
+    } else {
+      /* Start the browser swap immediately. It can reuse an in-flight/cached
+         1280 response instead of keeping the previous frame while JS waits. */
+      lbImg.style.clipPath = '';
+      lbImg.removeAttribute('srcset');
+      lbImg.src = hqSource(shot, 1280);
+    }
+
+    prepareNavigation(shot, 'high').then(function (image) {
       if (version !== lightboxVersion || !lb.classList.contains('open')) return;
-      if (image) {
-        lbImg.style.clipPath = '';
-        // The preloader chose/decoded the responsive candidate already.
-        // Assign only that URL here: srcset density-corrects naturalWidth,
-        // whereas the verified matte boundaries require original pixel sizes.
-        lbImg.removeAttribute('srcset');
+      if (image && lbImg.src !== (image.currentSrc || image.src)) {
         lbImg.src = image.currentSrc || image.src;
-        /* load + ResizeObserver update clipping after the decoded resource is
-           attached; forcing getBoundingClientRect() here only stalls the tap. */
       }
       lbStage.removeAttribute('aria-busy');
       warmNeighbors(shot, direction);
+
+      if (desiredHqWidth() >= 1920) {
+        prepareAt(shot, 1920, 'low').then(function (ultra) {
+          if (!ultra || version !== lightboxVersion || !lb.classList.contains('open')) return;
+          lbImg.src = ultra.currentSrc || ultra.src;
+        });
+      }
     });
   }
   function close() {
@@ -899,8 +925,8 @@
   });
   D.getElementById("lb-close").addEventListener("click", close);
   var lbPrev = D.getElementById("lb-prev"), lbNext = D.getElementById("lb-next");
-  lbPrev.addEventListener("pointerdown", function () { prepare(shot - 1, 'high'); }, { passive: true });
-  lbNext.addEventListener("pointerdown", function () { prepare(shot + 1, 'high'); }, { passive: true });
+  lbPrev.addEventListener("pointerdown", function () { prepareNavigation(shot - 1, 'high'); }, { passive: true });
+  lbNext.addEventListener("pointerdown", function () { prepareNavigation(shot + 1, 'high'); }, { passive: true });
   lbPrev.addEventListener("click", function () { open(shot - 1); });
   lbNext.addEventListener("click", function () { open(shot + 1); });
   var suppressBackdropUntil = 0;
@@ -926,8 +952,8 @@
     lbStage.addEventListener("pointerdown", function (e) {
       if (e.button > 0) return;
       gOn = true; gx0 = e.clientX; gy0 = e.clientY; gdx = 0; gAxis = 0; gDragged = false;
-      prepare(shot + 1, 'high');
-      if (N > 2) prepare(shot - 1, 'high');
+      prepareNavigation(shot + 1, 'high');
+      if (N > 2) prepareNavigation(shot - 1, 'high');
       lbStage.classList.add("is-grabbing");
       try { lbStage.setPointerCapture(e.pointerId); } catch (_) {}
     });
