@@ -5706,7 +5706,7 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
 /* Compact mode keeps the existing plate behavior. Vehicle page carries an
    extra plate element solely for the optional Original modes. */
 .plate-sentinel{
-  position:absolute;left:0;top:0;width:1px;height:var(--nav-h,72px);
+  position:absolute;left:0;top:0;width:1px;height:max(var(--nav-h,72px),72px);
   pointer-events:none;visibility:hidden
 }
 
