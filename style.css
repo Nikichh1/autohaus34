@@ -5697,6 +5697,28 @@ html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="heade
   height:1px;background:rgba(255,255,255,.82)
 }
 
+
+/* Mode locks: these make the configuration authoritative even if a stale
+   callback briefly leaves an old .is-on class behind. */
+html:not([data-ah-scroll-header="autohaus_original"]).ah-landing-page[data-ah-landing-original-mode="always"] .plate__in,
+html:not([data-ah-scroll-header="autohaus_original"]).ah-vehicle-page[data-ah-product-original-mode="always"] .plate__in{
+  clip-path:polygon(0 0,100% 0,calc(100% - var(--plate-cut)) 100%,0 100%)!important;
+  visibility:visible!important
+}
+html:not([data-ah-scroll-header="autohaus_original"]).ah-landing-page[data-ah-landing-original-mode="always"] .plate__menu,
+html:not([data-ah-scroll-header="autohaus_original"]).ah-landing-page[data-ah-landing-original-mode="always"] .plate__mark,
+html:not([data-ah-scroll-header="autohaus_original"]).ah-landing-page[data-ah-landing-original-mode="always"] .plate .lang,
+html:not([data-ah-scroll-header="autohaus_original"]).ah-vehicle-page[data-ah-product-original-mode="always"] .plate__menu,
+html:not([data-ah-scroll-header="autohaus_original"]).ah-vehicle-page[data-ah-product-original-mode="always"] .plate__mark,
+html:not([data-ah-scroll-header="autohaus_original"]).ah-vehicle-page[data-ah-product-original-mode="always"] .plate .lang{
+  transform:none!important
+}
+html:not([data-ah-scroll-header="autohaus_original"]).ah-landing-page[data-ah-landing-original-mode="hidden"] .plate__in,
+html:not([data-ah-scroll-header="autohaus_original"]).ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate__in{
+  clip-path:polygon(0 0,var(--plate-cut) 0,0 100%,0 100%)!important;
+  visibility:hidden!important
+}
+
 /* Explicit hidden modes always win. */
 html.ah-landing-page[data-ah-landing-original-mode="hidden"] .plate,
 html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
