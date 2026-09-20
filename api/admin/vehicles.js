@@ -120,6 +120,7 @@ function normalizedSettings(row) {
   const filter = ["none", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none";
   const strength = Number(row.photo_filter_strength);
   const galleryScale = Number(row.desktop_gallery_scale);
+  const scrollHeaderStyle = row.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
   return {
     watermark_enabled: row.watermark_enabled === true,
     watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75,
@@ -127,13 +128,14 @@ function normalizedSettings(row) {
     photo_aspect_ratio: ratio,
     photo_filter: filter,
     photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35,
-    desktop_gallery_scale: Number.isFinite(galleryScale) ? Math.max(70, Math.min(100, Math.round(galleryScale))) : 84
+    desktop_gallery_scale: Number.isFinite(galleryScale) ? Math.max(70, Math.min(100, Math.round(galleryScale))) : 84,
+    scroll_header_style: scrollHeaderStyle
   };
 }
 
 async function settingsAction(req, res, db) {
   if (req.method === "GET") {
-    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale&limit=1", { method: "GET" });
+    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style&limit=1", { method: "GET" });
     const data = await readJson(response);
     if (!response.ok) return apiError(res, response.status, "Could not load settings", data);
     return json(res, 200, { ok: true, settings: normalizedSettings(Array.isArray(data) && data[0]) });
@@ -180,6 +182,11 @@ async function settingsAction(req, res, db) {
     const galleryScale = Number(body.desktop_gallery_scale);
     if (!Number.isInteger(galleryScale) || galleryScale < 70 || galleryScale > 100) return apiError(res, 400, "Desktop gallery scale must be between 70 and 100.");
     update.desktop_gallery_scale = galleryScale;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "scroll_header_style")) {
+    if (!["compact", "autohaus_original"].includes(body.scroll_header_style)) return apiError(res, 400, "Invalid scroll header style");
+    update.scroll_header_style = body.scroll_header_style;
     changed = true;
   }
   if (!changed) return apiError(res, 400, "No settings to update");
