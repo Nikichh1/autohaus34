@@ -516,7 +516,20 @@
 
   function placePop() {
     if (!popAnchor || !pop) return;
-    var wr = wrap.getBoundingClientRect(), ar = popAnchor.getBoundingClientRect();
+    var ar = popAnchor.getBoundingClientRect();
+
+    /* On a phone the filter panel is a viewport sheet, not a dropdown inside
+       the tiny centre cell. Position it from the viewport so it can never be
+       pushed off-screen by the Original header geometry. */
+    if (innerWidth <= 767) {
+      pop.style.right = "12px";
+      pop.style.left = "12px";
+      pop.style.top = Math.max(8, Math.round(ar.bottom + 8)) + "px";
+      return;
+    }
+
+    var wr = wrap.getBoundingClientRect();
+    pop.style.right = "";
     pop.style.top = (ar.bottom - wr.top + 8) + "px";
     /* measure, then clamp inside the instrument's own width — a panel that
        hangs off the right edge of a scrolling row is unreachable */
