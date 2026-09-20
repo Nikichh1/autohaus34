@@ -560,7 +560,7 @@ body:not(.ah) .btn--secondary:active:not(:disabled){--btn-fill:rgba(20,19,18,.16
 }
 .hd-zone{display:flex;align-items:center;gap:32px;min-width:0}
 .hd-zone--start{grid-column:1 / -1;grid-row:2}
-.hd-zone--end{grid-column:1 / -1;grid-row:1;justify-content:flex-end;gap:0}
+.hd-zone--end{grid-column:1 / -1;grid-row:1;justify-content:flex-start;gap:0}
 .hd-logo{display:flex;align-items:center;justify-content:center;grid-column:2 / 3;grid-row:2}
 /* mobile shows only the Menu trigger — the source hides the editorial navs
    below 768 and puts .bm-m-header__mobile-nav in their place */
@@ -5807,7 +5807,7 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
      independently so the panel cannot dominate narrow screens. */
   html[data-ah-scroll-header="autohaus_original"]{
     --ah-phone-original-scale:clamp(.78,var(--ah-original-size,.81),.90);
-    --ah-original-w:min(calc(280px * var(--ah-phone-original-scale)),60vw);
+    --ah-original-w:min(calc(280px * var(--ah-phone-original-scale)),62vw);
     --ah-original-h:min(calc(80px * var(--ah-phone-original-scale)),17.5vw)
   }
   html[data-ah-scroll-header="autohaus_original"] .plate{
@@ -5820,13 +5820,13 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   }
 
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:calc(18px * var(--ah-phone-original-scale));
+    right:calc(29px * var(--ah-phone-original-scale));
     top:0;
-    width:70px;
-    min-width:70px;
+    width:64px;
+    min-width:64px;
     height:42px;
     min-height:42px;
-    gap:5px;
+    gap:4px;
     padding:0;
     flex-direction:row;
     align-items:center;
@@ -5844,10 +5844,10 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     box-shadow:none!important
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu-l{
-    font-size:8.25px;
+    font-size:8px;
     line-height:1;
     font-weight:600;
-    letter-spacing:.82px
+    letter-spacing:.78px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars{
     width:17px;
