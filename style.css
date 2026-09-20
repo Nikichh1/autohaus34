@@ -5820,7 +5820,7 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   }
 
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:calc(29px * var(--ah-phone-original-scale));
+    right:calc(35px * var(--ah-phone-original-scale));
     top:0;
     width:64px;
     min-width:64px;
