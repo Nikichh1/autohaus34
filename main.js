@@ -49,22 +49,34 @@
   var PRESENTATION_CACHE_KEY = "autohaus-photo-presentation-v1";
   function applyHeaderSettings(settings) {
     settings = settings || {};
-    var style = settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
+    var style = settings.scroll_header_style === "autohaus_original" ? "autohaus_original" :
+                settings.scroll_header_style === "compact" ? "compact" :
+                (ROOT.dataset.ahScrollHeader || "compact");
     var landingStandardMode = ["hidden","top","sticky"].indexOf(settings.landing_standard_header_mode) >= 0
       ? settings.landing_standard_header_mode
-      : (settings.landing_standard_header === false ? "hidden" : settings.landing_standard_header_sticky === true ? "sticky" : "top");
+      : (ROOT.dataset.ahLandingStandardMode ||
+         (settings.landing_standard_header === false ? "hidden" : settings.landing_standard_header_sticky === true ? "sticky" : "top"));
     var landingOriginalMode = ["hidden","always","after_scroll"].indexOf(settings.landing_original_header_mode) >= 0
       ? settings.landing_original_header_mode
-      : (settings.landing_original_after_scroll === false ? "hidden" : "after_scroll");
+      : (ROOT.dataset.ahLandingOriginalMode ||
+         (settings.landing_original_after_scroll === false ? "hidden" : "after_scroll"));
     var productStandardMode = ["hidden","top","sticky"].indexOf(settings.product_standard_header_mode) >= 0
       ? settings.product_standard_header_mode
-      : (settings.product_standard_header === false ? "hidden" : settings.product_standard_header_sticky === false ? "top" : "sticky");
+      : (ROOT.dataset.ahProductStandardMode ||
+         (settings.product_standard_header === false ? "hidden" : settings.product_standard_header_sticky === false ? "top" : "sticky"));
     var productOriginalMode = ["hidden","always","after_scroll"].indexOf(settings.product_original_header_mode) >= 0
       ? settings.product_original_header_mode
-      : (settings.product_original_header === true ? "always" : "hidden");
-    var originalSize = Math.max(65, Math.min(100, Math.round(Number(settings.original_header_size) || 81)));
-    var originalOpacity = Math.max(85, Math.min(100, Math.round(Number(settings.original_header_opacity) || 98)));
-    var language = settings.original_header_language === "header" ? "header" : "menu";
+      : (ROOT.dataset.ahProductOriginalMode ||
+         (settings.product_original_header === true ? "always" : "hidden"));
+    var currentSize = Math.round((parseFloat(getComputedStyle(ROOT).getPropertyValue("--ah-original-size")) || .81) * 100);
+    var currentOpacity = Math.round((parseFloat(getComputedStyle(ROOT).getPropertyValue("--ah-original-opacity")) || .98) * 100);
+    var originalSize = settings.original_header_size == null
+      ? currentSize : Math.max(65, Math.min(100, Math.round(Number(settings.original_header_size) || 81)));
+    var originalOpacity = settings.original_header_opacity == null
+      ? currentOpacity : Math.max(85, Math.min(100, Math.round(Number(settings.original_header_opacity) || 98)));
+    var language = settings.original_header_language === "header" ? "header" :
+                   settings.original_header_language === "menu" ? "menu" :
+                   (ROOT.dataset.ahOriginalLanguage || "menu");
 
     ROOT.dataset.ahScrollHeader = style;
     ROOT.dataset.ahLandingStandardMode = landingStandardMode;
