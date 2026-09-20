@@ -28,6 +28,7 @@
   var D = document, AH = window.AH;
   if (!AH || !AH.card) return;
   var inventoryReady = false;
+  var coarsePointer = matchMedia("(hover:none), (pointer:coarse)").matches;
 
   /* their "Next" page is one screen of results; 12 keeps a 2-, 3- and
      4-column grid whole, which 10 does not */
@@ -397,7 +398,8 @@
   }
   function paintGrid() {
     var fragment = D.createDocumentFragment();
-    results.slice(0, shown).forEach(function (v, i) { fragment.appendChild(cardNode(v, i < 3)); });
+    var eagerCards = coarsePointer ? 2 : 3;
+    results.slice(0, shown).forEach(function (v, i) { fragment.appendChild(cardNode(v, i < eagerCards)); });
     catGrid.textContent = "";
     catGrid.appendChild(fragment);
     afterGrid();
