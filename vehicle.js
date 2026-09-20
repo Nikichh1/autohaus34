@@ -889,7 +889,16 @@
   lbNext.addEventListener("pointerdown", function () { prepare(shot + 1, 'high'); }, { passive: true });
   lbPrev.addEventListener("click", function () { open(shot - 1); });
   lbNext.addEventListener("click", function () { open(shot + 1); });
-  lb.addEventListener("click", function (e) { if (e.target === lb) close(); });
+  var suppressBackdropUntil = 0;
+  lb.addEventListener("click", function (e) {
+    if (e.target !== lb) return;
+    if (performance.now() < suppressBackdropUntil) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    close();
+  });
 
   /* ---- swipe on a phone, click-drag with a mouse ----
      The same gesture the hero uses, scoped to the lit picture: the image
@@ -899,10 +908,10 @@
      so a two-finger scroll is never stolen. */
   if (N > 1 && lbStage) {
     lbStage.classList.add("is-swipe");
-    var gOn = false, gx0 = 0, gy0 = 0, gdx = 0, gAxis = 0;
+    var gOn = false, gx0 = 0, gy0 = 0, gdx = 0, gAxis = 0, gDragged = false;
     lbStage.addEventListener("pointerdown", function (e) {
       if (e.button > 0) return;
-      gOn = true; gx0 = e.clientX; gy0 = e.clientY; gdx = 0; gAxis = 0;
+      gOn = true; gx0 = e.clientX; gy0 = e.clientY; gdx = 0; gAxis = 0; gDragged = false;
       prepare(shot + 1, 'high');
       if (N > 2) prepare(shot - 1, 'high');
       lbStage.classList.add("is-grabbing");
@@ -917,6 +926,10 @@
         if (gAxis === 2) { gOn = false; lbStage.classList.remove("is-grabbing"); return; }
       }
       gdx = dx;
+      if (Math.abs(dx) > 10) {
+        gDragged = true;
+        suppressBackdropUntil = performance.now() + 700;
+      }
       e.preventDefault();
       lbImg.style.transform = "translateX(" + dx + "px)";
     });
@@ -926,11 +939,21 @@
       lbStage.classList.remove("is-grabbing");
       try { lbStage.releasePointerCapture(e.pointerId); } catch (_) {}
       lbImg.style.transform = "";
-      var threshold = Math.min(120, lbStage.clientWidth * 0.15);
-      if (gAxis === 1 && Math.abs(gdx) > threshold) open(shot + (gdx < 0 ? 1 : -1));
+      var threshold = Math.max(42, Math.min(96, lbStage.clientWidth * 0.11));
+      if (gAxis === 1 && Math.abs(gdx) > threshold) {
+        suppressBackdropUntil = performance.now() + 700;
+        open(shot + (gdx < 0 ? 1 : -1));
+      } else if (gDragged) {
+        suppressBackdropUntil = performance.now() + 500;
+      }
     };
     lbStage.addEventListener("pointerup", endGesture);
     lbStage.addEventListener("pointercancel", endGesture);
+    lbStage.addEventListener("click", function (e) {
+      if (performance.now() >= suppressBackdropUntil) return;
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
   }
 
   D.addEventListener("keydown", function (e) {
