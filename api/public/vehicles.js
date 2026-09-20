@@ -139,7 +139,7 @@ function remember(key, body, started, order, status = 200) {
 }
 
 async function publicSettings() {
-  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style&limit=1", { method: "GET" });
+  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style,landing_standard_header,landing_standard_header_sticky,landing_original_after_scroll,product_standard_header,product_standard_header_sticky,product_original_header&limit=1", { method: "GET" });
   const rows = await parse(response);
   const row = rows[0] || {};
   const transparency = Number(row.watermark_transparency);
@@ -155,7 +155,13 @@ async function publicSettings() {
     photo_filter: ["none", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none",
     photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35,
     desktop_gallery_scale: Number.isFinite(galleryScale) ? Math.max(70, Math.min(100, Math.round(galleryScale))) : 84,
-    scroll_header_style: scrollHeaderStyle
+    scroll_header_style: scrollHeaderStyle,
+    landing_standard_header: row.landing_standard_header !== false,
+    landing_standard_header_sticky: row.landing_standard_header_sticky === true,
+    landing_original_after_scroll: row.landing_original_after_scroll !== false,
+    product_standard_header: row.product_standard_header !== false,
+    product_standard_header_sticky: row.product_standard_header_sticky !== false,
+    product_original_header: row.product_original_header === true
   };
 }
 
@@ -198,7 +204,7 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { ok: true, settings: await publicSettings() });
     } catch (err) {
       console.error("Public settings API failed", err);
-      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84, scroll_header_style: "compact" } });
+      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84, scroll_header_style: "compact", landing_standard_header: true, landing_standard_header_sticky: false, landing_original_after_scroll: true, product_standard_header: true, product_standard_header_sticky: true, product_original_header: false } });
     }
   }
 
