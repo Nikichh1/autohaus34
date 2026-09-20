@@ -484,7 +484,16 @@
     if (!mainImg || !mainImg.complete || mainImg.naturalWidth < 1100) return;
     var key = ((index + N) % N) + ':hq1280';
     if (decoded[key]) return;
-    decoded[key] = { image: mainImg, promise: Promise.resolve(mainImg) };
+    var src = mainImg.currentSrc || mainImg.src;
+    if (!src) return;
+    var seed = new Image();
+    seed.decoding = 'async';
+    seed.fetchPriority = 'low';
+    seed.src = src;
+    decoded[key] = {
+      image: seed,
+      promise: (seed.decode ? seed.decode().catch(function () {}) : Promise.resolve()).then(function () { return seed; })
+    };
   }
   if (mainImg) {
     seedDecodedMain(0);
@@ -825,8 +834,7 @@
     if (first) lockPage(true);                  /* stepping frames must not re-pin */
     if (first) D.getElementById("lb-close").focus();
     lbStage.setAttribute('aria-busy', 'true');
-    var sizes = lbStage.clientWidth ? Math.ceil(lbStage.clientWidth) + 'px' : lightboxSizes;
-    prepare(shot, 'high', sizes).then(function (image) {
+    prepare(shot, 'high').then(function (image) {
       if (version !== lightboxVersion || !lb.classList.contains('open')) return;
       if (image) {
         lbImg.style.clipPath = '';
