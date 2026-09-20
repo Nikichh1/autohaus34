@@ -1839,10 +1839,23 @@
       var topHeader = vehiclePage ? document.querySelector(".nav") :
                       landingPage ? document.querySelector(".hd") : null;
       var height = topHeader ? Number(topHeader.offsetHeight) || 0 : 0;
-      var showAt = standardMode === "hidden"
-        ? 28
-        : Math.max(34, Math.min(52, Math.round((height || 72) * .56)));
-      return { show: showAt, hide: 8 };
+      var phone = window.innerWidth <= 767;
+      var showAt;
+
+      if (phone) {
+        /* Do not replace the real top header on the first touch movement.
+           A ~60px gesture keeps the original controls usable and lets the
+           corner plate arrive as a secondary navigation layer. */
+        var phoneFloor = vehiclePage ? 58 : 62;
+        showAt = standardMode === "hidden"
+          ? phoneFloor
+          : Math.max(phoneFloor, Math.min(72, Math.round((height || 72) * .82)));
+      } else {
+        showAt = standardMode === "hidden"
+          ? 28
+          : Math.max(34, Math.min(52, Math.round((height || 72) * .56)));
+      }
+      return { show: showAt, hide: phone ? 14 : 8 };
     }
 
     function syncPlate() {

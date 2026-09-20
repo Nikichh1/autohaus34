@@ -5618,7 +5618,7 @@ html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__in{
   padding:0;
   margin:0;
   overflow:hidden;
-  pointer-events:auto;
+  pointer-events:none;
   color:#fff;
   background:rgba(36,39,42,var(--ah-original-opacity,.98));
   clip-path:polygon(0 0,100% 0,79.5% 75.7%,0 100%);
@@ -5634,6 +5634,14 @@ html[data-ah-scroll-header="autohaus_original"] .plate__in::before{
   pointer-events:none
 }
 html[data-ah-scroll-header="autohaus_original"] .plate__in::after{display:none}
+
+/* Hidden Original header must be completely click-through. Only the two
+   configured visible states re-arm its clipped surface. */
+html[data-ah-scroll-header="autohaus_original"].ah-plate-on .plate__in,
+html.ah-landing-page[data-ah-scroll-header="autohaus_original"][data-ah-landing-original-mode="always"] .plate__in,
+html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"][data-ah-product-original-mode="always"] .plate__in{
+  pointer-events:auto
+}
 
 /* Logo/menu positions scale with the user-controlled wedge size. */
 html[data-ah-scroll-header="autohaus_original"] .plate__mark{
@@ -5781,49 +5789,49 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
 }
 
 @media(max-width:767px){
-  /* Mobile Original header: same house geometry, deliberately reduced so the
-     branded wedge does not occupy a large part of the first viewport. */
+  /* Phone Original header: same house angle, but sized as a compact corner
+     signature rather than a desktop masthead scaled down. */
   html[data-ah-scroll-header="autohaus_original"]{
-    --ah-original-w:min(calc(305px * var(--ah-original-size,.81)),78vw);
-    --ah-original-h:min(calc(122px * var(--ah-original-size,.81)),29vw)
+    --ah-original-w:min(calc(270px * var(--ah-original-size,.81)),70vw);
+    --ah-original-h:min(calc(104px * var(--ah-original-size,.81)),24vw)
   }
   html[data-ah-scroll-header="autohaus_original"] .plate{
     height:var(--ah-original-h);
-    filter:drop-shadow(0 7px 16px rgba(0,0,0,.18))
+    filter:drop-shadow(0 5px 12px rgba(0,0,0,.16))
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__in,
   html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__in{
     clip-path:polygon(0 0,100% 0,79.5% 75.7%,0 100%)
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__mark{
-    left:calc(8px * var(--ah-original-size,.81));
-    top:calc(35px * var(--ah-original-size,.81))
+    left:calc(7px * var(--ah-original-size,.81));
+    top:calc(30px * var(--ah-original-size,.81))
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
-    width:min(calc(205px * var(--ah-original-size,.81)),51vw)
+    width:min(calc(182px * var(--ah-original-size,.81)),46vw)
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:calc(26px * var(--ah-original-size,.81));
-    top:calc(10px * var(--ah-original-size,.81));
-    height:calc(34px * var(--ah-original-size,.81));
-    min-height:29px;
-    gap:8px
+    right:calc(35px * var(--ah-original-size,.81));
+    top:calc(8px * var(--ah-original-size,.81));
+    height:calc(30px * var(--ah-original-size,.81));
+    min-height:27px;
+    gap:7px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu-l{
-    font-size:9px;
-    letter-spacing:1.12px
+    font-size:8.5px;
+    letter-spacing:1px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars{
-    width:calc(22px * var(--ah-original-size,.81));
-    min-width:18px;
+    width:calc(21px * var(--ah-original-size,.81));
+    min-width:17px;
     height:8px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i{
     height:1.5px
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang{
-    right:calc(112px * var(--ah-original-size,.81));
-    top:calc(10px * var(--ah-original-size,.81))
+    right:calc(106px * var(--ah-original-size,.81));
+    top:calc(8px * var(--ah-original-size,.81))
   }
 }
 

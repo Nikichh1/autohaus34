@@ -940,7 +940,7 @@
 .dgal__n{position:absolute;right:12px;bottom:12px;padding:4px 8px 4px 20px;background:rgba(0,0,0,.65);color:#fff;font-size:12px;line-height:18px;font-weight:600;font-variant-numeric:tabular-nums;clip-path:polygon(0 0,100% 0,100% 100%,12px 100%)}
 .dgal-wrap{position:relative;scroll-margin-top:96px}
 .dgal-empty{display:grid;place-items:center;min-height:240px;background:var(--paper-2);color:var(--ink-2)}
-.dthumbs{display:flex;position:relative;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:10px 2px 6px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.dthumbs{display:flex;position:relative;gap:4px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:8px 0 5px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
 .dthumb{flex:0 0 88px;aspect-ratio:1.5;display:block;border:2px solid transparent;padding:2px;background:transparent;cursor:pointer;scroll-snap-align:start}
 .dthumb picture,.dthumb img{display:block;width:100%;height:100%;object-fit:cover}
 .dthumb.is-active{border-color:var(--primary-ink)}
@@ -962,8 +962,21 @@
 @media(max-width:599px){
   .dgal{margin-inline:calc(var(--margin) * -1);border-radius:0}
   .dgal__main{aspect-ratio:1.3}
+  .dthumbs{gap:3px;padding-top:7px}
   .dthumb{flex-basis:76px}
   .dgal-controls button{width:44px;height:44px}
+}
+
+@media(max-width:767px){
+  html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"] .vd-body{
+    padding-top:54px!important
+  }
+  html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"] .dgal-wrap{
+    scroll-margin-top:calc(var(--ah-original-h) + 18px)
+  }
+  html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"] .dgal__main img{
+    object-position:center 46%
+  }
 }
 
 /* One compact dossier: facts and technical content share a reading column.
