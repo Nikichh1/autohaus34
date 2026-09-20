@@ -1682,6 +1682,28 @@
     return api;
   };
 
+  /* In the original AutoHaus wedge the face is deliberately clean.
+     Keep language choice inside the menu instead of drawing BG/EN over the
+     logo geometry. The delegated i18n click handler works for these buttons. */
+  (function ensureMenuLanguage() {
+    var mob = $("mob");
+    if (!mob || mob.querySelector(".mob-lang")) return;
+    var sheet = mob.querySelector(".mob__sheet");
+    var foot = mob.querySelector(".mob-foot");
+    if (!sheet) return;
+    var current = document.documentElement.lang === "en" ? "en" : "bg";
+    var group = document.createElement("div");
+    group.className = "lang mob-lang";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", "Език / Language");
+    group.innerHTML =
+      '<i class="lang__ind" aria-hidden="true"></i>' +
+      '<button type="button" class="lang__o' + (current === "bg" ? " is-on" : "") + '" data-lang="bg" lang="bg" aria-pressed="' + (current === "bg") + '">BG</button>' +
+      '<button type="button" class="lang__o' + (current === "en" ? " is-on" : "") + '" data-lang="en" lang="en" aria-pressed="' + (current === "en") + '">EN</button>';
+    if (foot) sheet.insertBefore(group, foot);
+    else sheet.appendChild(group);
+  })();
+
   /* ---- THE MENU ----
      The brand plate carries a second Меню trigger, because below the hero
      the header — and with it the burger — has scrolled away. Both drive the
