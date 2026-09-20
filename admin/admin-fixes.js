@@ -293,7 +293,7 @@
         '<div class="view-head"><div class="view-title"><p>AutoHaus</p><h1>' + esc(t("Настройки", "Settings")) + '</h1></div></div>' +
         '<section class="panel"><div class="panel-head"><h2>' + esc(t("Воден знак върху снимките", "Photo watermark")) + '</h2></div><div id="ah-watermark-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
         '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Формат и обработка на снимките", "Photo format and processing")) + '</h2></div><div id="ah-media-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
-        '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Хедър след скрол", "Scroll header")) + '</h2></div><div id="ah-header-settings" style="padding:20px;max-width:920px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>';
+        '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Хедър на сайта", "Site header")) + '</h2></div><div id="ah-header-settings" style="padding:20px;max-width:920px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>';
 
       Promise.resolve(getSettings(true)).then(function (cfg) {
         var watermarkBody = document.getElementById("ah-watermark-settings");
