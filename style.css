@@ -5557,6 +5557,7 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
 
 html[data-ah-scroll-header="autohaus_original"]{
   --plate-stack-offset:84px;
+  --plate-top:var(--plate-stack-offset)!important;
   --ah-blade-w:410px;
   --ah-blade-h:84px;
 }
