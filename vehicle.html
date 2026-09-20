@@ -194,10 +194,9 @@
 
 <main id="vd"><p role="status" class="vd-body" style="padding-top:32px">Зареждане на автомобила…</p></main>
 
-<!-- the phone's two bars: the title strip under the masthead, and the ask.
-     Both live outside <main> because a .rv reveal transform inside it would
-     become their containing block and position:fixed would stop being fixed. -->
-<div class="dmini" id="dmini"></div>
+<!-- the phone enquiry bar lives outside <main> so a .rv reveal transform
+     cannot become its containing block. The scrolling title/price strip was
+     intentionally removed. -->
 <div class="dbar" id="dbar"></div>
 
 <!-- lightbox -->

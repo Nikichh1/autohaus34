@@ -7,7 +7,7 @@
   var root = D.getElementById("vd");
   if (!root) return;
 
-  var mini = D.getElementById("dmini"), bar = D.getElementById("dbar");
+  var bar = D.getElementById("dbar");
   var id = new URLSearchParams(location.search).get("id");
   var v = id ? AH.byId(id) : null;
 
@@ -16,7 +16,6 @@
     if (window.AH_INVENTORY_SOURCE !== "managed") {
       root.innerHTML = '<section class="vd-body dsec" style="padding-top:32px"><h1 class="h4">Връзката с каталога е временно недостъпна.</h1><p class="dprose">Моля, опитайте отново след малко.</p><button class="btn-primary" id="inventory-retry">Опитай отново</button></section>';
       D.getElementById("inventory-retry").addEventListener("click", function () { location.reload(); });
-      if (mini) mini.remove();
       if (bar) bar.remove();
       return;
     }
@@ -280,11 +279,7 @@
 
   "</div>";
 
-  /* ---------- 4. the two phone bars ---------- */
-  if (mini) mini.innerHTML =
-    '<span class="dmini__t">' + AH.esc(v.model) + "</span>" +
-    '<span class="dmini__p">' +
-      (v.price == null ? "При запитване" : AH.price(v.price)) + "</span>";
+  /* ---------- 4. phone enquiry bar ---------- */
   if (bar) bar.innerHTML =
     '<a class="btn-primary" href="#vehicle-inquiry">Запитване</a>' +
     '<a class="dbar__call" href="tel:' + CFG.expertPhone + '" aria-label="Обади се">' + PHONE + "</a>";
@@ -1024,61 +1019,7 @@
     stripTo(selected + (e.key === "ArrowRight" ? 1 : -1));
   });
 
-  /* ============================================================
-     THE PHONE BARS
-     .dmini and .dbar appear together, once the gallery has left the top of
-     the screen, and .dbar retracts when the footer arrives so it never
-     covers the legal text or the last button.
-     ============================================================ */
-  if (mini || bar) {
-    /* BOTH TESTS ARE OBSERVERS NOW.
-       This frame used to do three expensive things per scrolled tick, on
-       the page a phone spends the longest on: a rect for the gallery, a
-       rect for the footer, and — worst of the three — a getComputedStyle()
-       on <body> to re-read a padding that only changes at a breakpoint.
-       A resolved style is not cached across frames; asking for one forces
-       the engine to flush pending style work every time.
 
-       Both questions are "is this element near the viewport", which is an
-       IntersectionObserver's entire job, answered off the main thread. The
-       scroll handler is gone with them: the two observers drive the state
-       directly, so scrolling the dossier now costs nothing at all until
-       one of the two boundaries is actually crossed. */
-    var foot = D.querySelector(".ft");
-    var galPast = false, footerUp = false;
-    var apply = function () {
-      if (mini) mini.classList.toggle("show", galPast && !footerUp);
-      if (bar) bar.classList.toggle("show", galPast && !footerUp);
-    };
-    if ("IntersectionObserver" in window) {
-      /* the masthead's own height is the top inset; it is a token, so it
-         is read once here rather than per frame */
-      var navH = parseFloat(getComputedStyle(D.body).paddingTop) || 64;
-      new IntersectionObserver(function (e) {
-        galPast = !e[0].isIntersecting && e[0].boundingClientRect.top < 0;
-        apply();
-      }, { rootMargin: (-(navH + 8)) + "px 0px 0px 0px", threshold: 0 }).observe(gal);
-      if (foot) new IntersectionObserver(function (e) {
-        footerUp = e[0].isIntersecting;
-        apply();
-      }, { rootMargin: "0px 0px -40px 0px" }).observe(foot);
-    } else {
-      var qs = false;
-      var onScroll = function () {
-        qs = false;
-        var navH2 = parseFloat(getComputedStyle(D.body).paddingTop) || 64;
-        galPast = gal.getBoundingClientRect().bottom < navH2 + 8;
-        footerUp = foot ? foot.getBoundingClientRect().top < innerHeight - 40 : false;
-        apply();
-      };
-      addEventListener("scroll", function () {
-        if (qs) return;
-        qs = true; requestAnimationFrame(onScroll);
-      }, { passive: true });
-      addEventListener("resize", onScroll);
-      onScroll();
-    }
-  }
 
   /* ---- reveal, with the rescue for a document that renders hidden ---- */
   var rvs = Array.prototype.slice.call(D.querySelectorAll(".rv"));

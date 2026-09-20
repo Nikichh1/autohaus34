@@ -1103,31 +1103,7 @@
 @media(min-width:1024px){.dbar{display:none}}
 @media(max-width:1023px){body:not(.ah){padding-bottom:0}}
 
-/* sticky mobile title bar — theirs carries title + price once scrolled */
-.dmini{
-  position:fixed;inset:var(--nav-h) 0 auto 0;z-index:70;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:10px var(--margin);
-  background:rgba(247,246,242,.96);border-bottom:1px solid var(--line);
-  /* HIDDEN MEANS ABOVE THE VIEWPORT, NOT PEEKING OVER THE MASTHEAD.
-     The strip is anchored at top:var(--nav-h) — directly under the nav — and
-     -110% lifted it by only its OWN height (~43px), so at rest it sat at
-     y:21..60 ON TOP of the nav (z:70 over the nav's z:50): the model and the
-     price covered the logo at the top of the page, and the header read as
-     "gone". It has to travel its own height PLUS the nav's to clear the
-     screen, which is exactly what calc(-100% - var(--nav-h)) does. */
-  transform:translateY(calc(-100% - var(--nav-h)));transition:transform var(--t-in) var(--e-exit);
-}
-@supports (backdrop-filter:blur(12px)){
-  .dmini{background:rgba(247,246,242,.82);backdrop-filter:blur(12px)}
-}
-.dmini.show{transform:none;transition:transform var(--t-move) var(--e-mass)}
-.dmini__t{
-  font-size:13px;line-height:18px;font-weight:600;color:var(--ink);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.dmini__p{font-size:13px;line-height:18px;color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
-@media(min-width:1024px){.dmini{display:none}}
+
 
 /* "you might also like" runs at full content width, like theirs */
 .dmore-sec{padding-top:48px}
