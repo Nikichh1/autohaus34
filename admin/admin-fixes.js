@@ -193,7 +193,13 @@
     photo_filter: "none",
     photo_filter_strength: 35,
     desktop_gallery_scale: 84,
-    scroll_header_style: "compact"
+    scroll_header_style: "compact",
+    landing_standard_header: true,
+    landing_standard_header_sticky: false,
+    landing_original_after_scroll: true,
+    product_standard_header: true,
+    product_standard_header_sticky: true,
+    product_original_header: false
   };
   var cached = null, cachedAt = 0, pending = null;
 
@@ -217,7 +223,13 @@
       photo_filter: ["none", "balanced", "showroom"].indexOf(value.photo_filter) >= 0 ? value.photo_filter : "none",
       photo_filter_strength: Math.max(0, Math.min(100, strength)),
       desktop_gallery_scale: Math.max(70, Math.min(100, galleryScale)),
-      scroll_header_style: value.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact"
+      scroll_header_style: value.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact",
+      landing_standard_header: value.landing_standard_header !== false,
+      landing_standard_header_sticky: value.landing_standard_header_sticky === true,
+      landing_original_after_scroll: value.landing_original_after_scroll !== false,
+      product_standard_header: value.product_standard_header !== false,
+      product_standard_header_sticky: value.product_standard_header_sticky !== false,
+      product_original_header: value.product_original_header === true
     };
   }
 
@@ -332,7 +344,7 @@
 
         headerBody.innerHTML =
           '<form id="ah-header-form" class="ah-header-settings-form">' +
-          '<p class="muted ah-header-settings-intro">' + esc(t("Изберете кой AutoHaus хедър да се използва в целия сайт. При AutoHaus Blade стандартният хедър се заменя изцяло още върху hero секцията и на продуктовите страници.", "Choose the AutoHaus header used across the whole site. AutoHaus Blade fully replaces the standard header from the hero onward, including vehicle pages.")) + '</p>' +
+          '<p class="muted ah-header-settings-intro">' + esc(t("Стилът и поведението могат да се настройват отделно за началната и продуктовата страница.", "Header style and behavior can be configured separately for the landing and vehicle pages.")) + '</p>' +
           '<div class="ah-header-style-grid" role="radiogroup" aria-label="' + esc(t("Стил на хедъра", "Header style")) + '">' +
             '<label class="ah-header-style-card' + (cfg.scroll_header_style === "compact" ? " is-selected" : "") + '">' +
               '<input type="radio" name="scroll_header_style" value="compact"' + (cfg.scroll_header_style === "compact" ? " checked" : "") + disabled + '>' +
@@ -342,8 +354,20 @@
             '<label class="ah-header-style-card' + (cfg.scroll_header_style === "autohaus_original" ? " is-selected" : "") + '">' +
               '<input type="radio" name="scroll_header_style" value="autohaus_original"' + (cfg.scroll_header_style === "autohaus_original" ? " checked" : "") + disabled + '>' +
               '<span class="ah-header-style-preview ah-header-style-preview--original"><i class="ah-mini-original"><img src="/autohaus.svg" alt=""></i></span>' +
-              '<span class="ah-header-style-copy"><strong>' + esc(t("AutoHaus Blade", "AutoHaus Original")) + '</strong><small>' + esc(t("Компактен асиметричен blade хедър с логото, езика и менюто в една форма.", "A compact asymmetric blade header with logo, language and menu in one form.")) + '</small></span>' +
+              '<span class="ah-header-style-copy"><strong>' + esc(t("AutoHaus Original", "AutoHaus Original")) + '</strong><small>' + esc(t("Клинът по оригиналния autohaus.bg, леко намален.", "The original autohaus.bg wedge, slightly reduced.")) + '</small></span>' +
             '</label>' +
+          '</div>' +
+          '<div class="ah-header-behavior-grid">' +
+            '<fieldset class="ah-header-behavior"><legend>' + esc(t("Начална страница", "Landing page")) + '</legend>' +
+              '<label class="check"><input id="ah-landing-standard" type="checkbox"' + (cfg.landing_standard_header ? " checked" : "") + disabled + '><span><strong>' + esc(t("Показвай стандартния хедър", "Show standard header")) + '</strong><small class="muted">' + esc(t("Хедърът, който е върху hero секцията.", "The header shown over the hero section.")) + '</small></span></label>' +
+              '<label class="check"><input id="ah-landing-sticky" type="checkbox"' + (cfg.landing_standard_header_sticky ? " checked" : "") + disabled + '><span><strong>' + esc(t("Остави стандартния хедър sticky", "Keep standard header sticky")) + '</strong><small class="muted">' + esc(t("Ако е включено, той остава видим при скрол.", "When enabled, it remains visible while scrolling.")) + '</small></span></label>' +
+              '<label class="check"><input id="ah-landing-original-scroll" type="checkbox"' + (cfg.landing_original_after_scroll ? " checked" : "") + disabled + '><span><strong>' + esc(t("Показвай AutoHaus Original след скрол", "Show AutoHaus Original after scroll")) + '</strong><small class="muted">' + esc(t("Работи при избран стил AutoHaus Original. При sticky стандартен хедър клинът не се наслагва върху него.", "Used with AutoHaus Original. A sticky standard header takes priority so the two never overlap.")) + '</small></span></label>' +
+            '</fieldset>' +
+            '<fieldset class="ah-header-behavior"><legend>' + esc(t("Продуктова страница", "Vehicle page")) + '</legend>' +
+              '<label class="check"><input id="ah-product-standard" type="checkbox"' + (cfg.product_standard_header ? " checked" : "") + disabled + '><span><strong>' + esc(t("Показвай стандартния продуктов хедър", "Show standard vehicle header")) + '</strong></span></label>' +
+              '<label class="check"><input id="ah-product-sticky" type="checkbox"' + (cfg.product_standard_header_sticky ? " checked" : "") + disabled + '><span><strong>' + esc(t("Остави продуктовия хедър sticky", "Keep vehicle header sticky")) + '</strong></span></label>' +
+              '<label class="check"><input id="ah-product-original" type="checkbox"' + (cfg.product_original_header ? " checked" : "") + disabled + '><span><strong>' + esc(t("Използвай AutoHaus Original на продуктовата страница", "Use AutoHaus Original on vehicle pages")) + '</strong><small class="muted">' + esc(t("Когато е включено, клинът замества стандартния продуктов хедър.", "When enabled, the wedge replaces the standard vehicle header.")) + '</small></span></label>' +
+            '</fieldset>' +
           '</div>' +
           (app.canWrite ? '<div><button class="primary" id="ah-header-save" type="submit">' + esc(t("Запази хедъра", "Save header")) + '</button></div>' : '') +
           '<div id="ah-header-status" class="muted" role="status"></div></form>';
@@ -413,8 +437,16 @@
           var selected = headerForm.querySelector('input[name="scroll_header_style"]:checked');
           save.disabled = true; message.textContent = t("Записване…", "Saving…");
           try {
-            await saveSettings({ scroll_header_style: selected ? selected.value : "compact" });
-            message.textContent = t("Хедърът е записан и е активен за целия сайт.", "The header is saved and active site-wide.");
+            await saveSettings({
+              scroll_header_style: selected ? selected.value : "compact",
+              landing_standard_header: document.getElementById("ah-landing-standard").checked,
+              landing_standard_header_sticky: document.getElementById("ah-landing-sticky").checked,
+              landing_original_after_scroll: document.getElementById("ah-landing-original-scroll").checked,
+              product_standard_header: document.getElementById("ah-product-standard").checked,
+              product_standard_header_sticky: document.getElementById("ah-product-sticky").checked,
+              product_original_header: document.getElementById("ah-product-original").checked
+            });
+            message.textContent = t("Настройките за хедъра са записани.", "Header settings saved.");
           } catch (error) { message.textContent = error.message; }
           finally { save.disabled = false; }
         };
