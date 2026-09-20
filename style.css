@@ -5594,7 +5594,7 @@ html.ah-vehicle-page[data-ah-product-standard-mode="hidden"] body:not(.ah){--nav
 html[data-ah-scroll-header="autohaus_original"]{
   --plate-stack-offset:0px;
   --ah-original-w:min(calc(467px * var(--ah-original-size,.81)),92vw);
-  --ah-original-h:min(calc(193px * var(--ah-original-size,.81)),37.9vw)
+  --ah-original-h:min(calc(168px * var(--ah-original-size,.81)),32.5vw)
 }
 html[data-ah-scroll-header="autohaus_original"] .plate{
   z-index:55;
@@ -5632,7 +5632,7 @@ html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__in{
   pointer-events:none;
   color:#fff;
   background:rgba(36,39,42,var(--ah-original-opacity,.98));
-  clip-path:polygon(0 0,100% 0,79.5% 75.7%,0 100%);
+  clip-path:polygon(0 0,100% 0,82% 72%,0 100%);
   visibility:visible!important;
   transition:none!important
 }
