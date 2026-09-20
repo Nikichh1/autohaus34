@@ -152,7 +152,7 @@
     var sizes = o.sizes ? ' sizes="' + o.sizes + '"' : "";
     return '<picture>' +
       '<source type="image/webp" srcset="' + esc(webpset(url, w)) + '"' + sizes + '>' +
-      '<img ' + (o.eager ? 'fetchpriority="high"' : 'loading="lazy"') + ' decoding="async"' +
+      '<img ' + (o.eager ? 'fetchpriority="high"' : 'loading="lazy" fetchpriority="low"') + ' decoding="async"' +
         (o.width ? ' width="' + o.width + '" height="' + o.height + '"' : "") +
         (o.cls ? ' class="' + o.cls + '"' : "") +
         ' src="' + esc(img(url, o.src || 800)) + '"' +
