@@ -634,13 +634,13 @@
     mainFrame.addEventListener('pointercancel', function () { swipeStart = null; });
 
     var warmNext = function () {
-      prepareNavigation(1, 'low').then(function () {
-        var connection = navigator.connection;
-        var fastEnough = !connection || (!connection.saveData &&
-          (!connection.downlink || connection.downlink >= 5) &&
-          !/^(slow-2g|2g|3g)$/.test(connection.effectiveType || ''));
-        if (fastEnough && N > 2) prepareNavigation(2, 'low');
-      });
+      prepareNavigation(1, 'low');
+      if (N > 2) prepareNavigation(N - 1, 'low');
+      var connection = navigator.connection;
+      var fastEnough = !connection || (!connection.saveData &&
+        (!connection.downlink || connection.downlink >= 5) &&
+        !/^(slow-2g|2g|3g)$/.test(connection.effectiveType || ''));
+      if (fastEnough && N > 3) prepareNavigation(2, 'low');
     };
     if ('requestIdleCallback' in window) requestIdleCallback(warmNext, { timeout: 1800 });
     else setTimeout(warmNext, 500);
@@ -874,6 +874,10 @@
     if (first) D.getElementById("lb-close").focus();
     lbStage.setAttribute('aria-busy', 'true');
 
+    /* The adjacent navigation frames start immediately, before the current
+       image finishes any work. This makes repeated arrow taps hit warm cache. */
+    warmNeighbors(shot, direction);
+
     /* Navigation must never wait for a 1920px download/decode. 1280 is the
        instant interaction layer; high-DPI 1920 silently upgrades afterwards. */
     var navKey = shot + ':hq1280';
@@ -897,7 +901,10 @@
         lbImg.src = image.currentSrc || image.src;
       }
       lbStage.removeAttribute('aria-busy');
-      warmNeighbors(shot, direction);
+
+      /* While the user is actively browsing, keep one more frame ahead of
+         their direction ready without stealing the critical 1280 swap. */
+      if (N > 3 && canWarmImages()) prepareNavigation(shot + direction * 2, 'low');
 
       if (desiredHqWidth() >= 1920) {
         prepareAt(shot, 1920, 'low').then(function (ultra) {
