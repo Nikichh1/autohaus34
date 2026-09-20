@@ -1,7 +1,7 @@
 /* AutoHaus build: generate CSS, version delivered assets and prepare public-only dist. */
 "use strict";
 // Production deploy trigger: admin tabs + stable 16:9 vehicle media
-const fs = require("fs"), path = require("path"), crypto = require("crypto"), childProcess = require("child_process");
+const fs = require("fs"), path = require("path"), crypto = require("crypto");
 
 const SHEETS = ["style.css", "catalog.css"];
 const ADMIN_STYLES = ["admin/admin.css", "admin/brand.css", "admin/brand-fallback.css"];
@@ -134,14 +134,8 @@ function build(options = {}) {
     });
   }
 
-  /* One-time targeted repair for the final missing protected 1920px files. */
-  if (fs.existsSync(path.join(root, "scripts", "repair-hires-product-images.js"))) {
-    childProcess.execFileSync(process.execPath, [path.join(root, "scripts", "repair-hires-product-images.js")], {
-      cwd: root,
-      stdio: "inherit"
-    });
-    log("  Final protected 1920px image repair completed");
-  }
+  /* Product images are pre-generated and watermarked in Storage.
+     Production builds perform no image processing or remote media migration. */
 
   log("AutoHaus build");
   built.forEach(item => log("  " + item.file.padEnd(14) + size(item.before) + " -> " + item.dest.padEnd(18) + size(item.after) + "   (-" + Math.round((1 - item.after / item.before) * 100) + "%)"));
