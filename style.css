@@ -5735,3 +5735,28 @@ html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"] .vd-lede .back{
   }
 }
 
+
+
+/* Language belongs to the opened menu in AutoHaus Original mode, keeping the
+   reference wedge face clean. */
+.mob-lang{
+  position:relative!important;
+  margin:18px 0 8px!important;
+  padding:0 0 7px!important;
+  display:inline-flex!important;
+  align-items:flex-end!important;
+  width:max-content!important;
+  transform:none!important
+}
+.mob-lang::before{background:rgba(255,255,255,.16)!important}
+.mob-lang .lang__o{
+  color:#fff!important;
+  opacity:.48;
+  min-width:34px!important;
+  width:34px!important;
+  height:26px!important;
+  font-size:11px!important;
+  letter-spacing:1px!important
+}
+.mob-lang .lang__o.is-on{opacity:1}
+.mob-lang .lang__ind{height:1px!important;background:rgba(255,255,255,.9)!important}
