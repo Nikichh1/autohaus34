@@ -123,8 +123,6 @@
         ' aria-pressed="' + (on ? "true" : "false") + '"' +
         " data-" + kind + '="' + AH.esc(o.key) + '">' +
         '<span class="fopt__n">' + AH.esc(o.name) + "</span>" +
-        (o.n != null ? '<span class="fopt__c">' + o.n + "</span>" : "") +
-        '<svg class="fopt__k" viewBox="0 0 16 16" aria-hidden="true"><path d="M3,8.5 L6.5,12 L13,4.5"/></svg>' +
         "</button>";
     }).join("") + "</div>";
   }
@@ -506,13 +504,13 @@
 
   /* ---- the dropdown ---------------------------------------------------- */
   function popHTML(key) {
-    var C = BY_KEY[key];
-    return '<div class="fpop__h">' + AH.esc(C.label) + "</div>" +
-      '<div class="fpop__b">' + panelBody(key, S) + "</div>" +
-      '<div class="fpop__f">' +
-        '<button type="button" class="fpop__reset" data-reset="' + key + '">Изчисти</button>' +
-        '<span class="fpop__n">' + PLURAL(AH.filterResults(S).length) + "</span>" +
+    var html = '<div class="fpop__b">' + panelBody(key, S) + "</div>";
+    if (S.make) {
+      html += '<div class="fpop__f fpop__f--clear">' +
+        '<button type="button" class="fpop__reset" data-reset="' + key + '">Изчисти филтъра</button>' +
       "</div>";
+    }
+    return html;
   }
 
   function placePop() {
@@ -525,9 +523,13 @@
        genuinely viewport-bound and cannot disappear to the right. */
     if (innerWidth <= 767) {
       if (pop.parentNode !== cat) cat.appendChild(pop);
-      pop.style.right = "10px";
-      pop.style.left = "10px";
+      pop.style.right = "";
+      pop.style.left = "0px";
       pop.style.top = Math.max(8, Math.round(ar.bottom + 7)) + "px";
+      var pw = pop.getBoundingClientRect().width || 220;
+      var px = ar.left + (ar.width / 2) - (pw / 2);
+      px = Math.max(10, Math.min(px, innerWidth - pw - 10));
+      pop.style.left = Math.round(px) + "px";
       return;
     }
 
