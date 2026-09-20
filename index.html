@@ -19,6 +19,7 @@
     root.style.setProperty("--ah-watermark-opacity",String((100-tr)/100));
     root.style.setProperty("--ah-watermark-size",size+"%");
     root.classList.toggle("ah-watermark-v4-on",s.watermark_enabled===true);
+    root.dataset.ahScrollHeader=s.scroll_header_style==="autohaus_original"?"autohaus_original":"compact";
   }catch(_){}
 })();
 </script>
