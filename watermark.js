@@ -26,7 +26,13 @@
           photo_filter: settings.photo_filter,
           photo_filter_strength: settings.photo_filter_strength,
           desktop_gallery_scale: settings.desktop_gallery_scale,
-          scroll_header_style: settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact"
+          scroll_header_style: settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact",
+          landing_standard_header: settings.landing_standard_header !== false,
+          landing_standard_header_sticky: settings.landing_standard_header_sticky === true,
+          landing_original_after_scroll: settings.landing_original_after_scroll !== false,
+          product_standard_header: settings.product_standard_header !== false,
+          product_standard_header_sticky: settings.product_standard_header_sticky !== false,
+          product_original_header: settings.product_original_header === true
         }
       }));
     } catch (_) {}
@@ -112,6 +118,12 @@
     var strength = clamp(settings.photo_filter_strength, 0, 100, 35);
     var galleryScale = clamp(settings.desktop_gallery_scale, 70, 100, 84);
     var scrollHeaderStyle = settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
+    var landingStandardHeader = settings.landing_standard_header !== false;
+    var landingStandardSticky = settings.landing_standard_header_sticky === true;
+    var landingOriginalAfterScroll = settings.landing_original_after_scroll !== false;
+    var productStandardHeader = settings.product_standard_header !== false;
+    var productStandardSticky = settings.product_standard_header_sticky !== false;
+    var productOriginalHeader = settings.product_original_header === true;
     /* Human-facing strength should feel useful through the whole slider.
        sqrt() gives the lower/middle range real authority while preserving
        exact zero and a controlled 100% ceiling. */
@@ -139,6 +151,12 @@
     ROOT.dataset.ahPhotoRatio = ratio;
     ROOT.dataset.ahPhotoFilter = filterName;
     ROOT.dataset.ahScrollHeader = scrollHeaderStyle;
+    ROOT.dataset.ahLandingStandardHeader = landingStandardHeader ? "1" : "0";
+    ROOT.dataset.ahLandingHeaderSticky = landingStandardSticky ? "1" : "0";
+    ROOT.dataset.ahLandingOriginalAfterScroll = landingOriginalAfterScroll ? "1" : "0";
+    ROOT.dataset.ahProductStandardHeader = productStandardHeader ? "1" : "0";
+    ROOT.dataset.ahProductHeaderSticky = productStandardSticky ? "1" : "0";
+    ROOT.dataset.ahProductOriginalHeader = productOriginalHeader ? "1" : "0";
     ROOT.classList.toggle("ah-watermark-v4-on", enabled);
     ROOT.classList.remove("ah-watermark-on", "ah-watermark-v2-on");
 
@@ -154,7 +172,13 @@
       photo_filter: filterName,
       photo_filter_strength: strength,
       desktop_gallery_scale: galleryScale,
-      scroll_header_style: scrollHeaderStyle
+      scroll_header_style: scrollHeaderStyle,
+      landing_standard_header: landingStandardHeader,
+      landing_standard_header_sticky: landingStandardSticky,
+      landing_original_after_scroll: landingOriginalAfterScroll,
+      product_standard_header: productStandardHeader,
+      product_standard_header_sticky: productStandardSticky,
+      product_original_header: productOriginalHeader
     }}));
     window.dispatchEvent(new CustomEvent("ah:photosettingschange", { detail: {
       photo_aspect_ratio: ratio,
