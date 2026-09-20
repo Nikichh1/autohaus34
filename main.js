@@ -93,7 +93,19 @@
     } catch (_) { applyHeaderSettings({ scroll_header_style:"compact" }); }
   })();
   window.addEventListener("ah:photosettingschange", function (event) {
-    if (event && event.detail) applyHeaderSettings(event.detail);
+    if (event && event.detail) {
+      applyHeaderSettings(event.detail);
+      if (window.AH_REFRESH_HEADER_SETTINGS) window.AH_REFRESH_HEADER_SETTINGS();
+    }
+  });
+  window.addEventListener("storage", function (event) {
+    if (event.key !== PRESENTATION_CACHE_KEY || !event.newValue) return;
+    try {
+      var cached = JSON.parse(event.newValue);
+      if (!cached || !cached.settings) return;
+      applyHeaderSettings(cached.settings);
+      if (window.AH_REFRESH_HEADER_SETTINGS) window.AH_REFRESH_HEADER_SETTINGS();
+    } catch (_) {}
   });
   window.AH_APPLY_HEADER_SETTINGS = applyHeaderSettings;
   window.AH_APPLY_SCROLL_HEADER_STYLE = function (value) {
@@ -1814,10 +1826,12 @@
        plate is now above it. One custom property on <html> rather than a
        class per component: the filter bar reads --plate-top and nothing else
        has to be taught about the plate. */
+    var lastPlateTrigger = false;
     var armPlate = function (afterTrigger) {
+      lastPlateTrigger = !!afterTrigger;
       var mode = vehiclePage ? ROOT.dataset.ahProductOriginalMode :
                  landingPage ? ROOT.dataset.ahLandingOriginalMode : "after_scroll";
-      var effective = mode === "always" || (mode === "after_scroll" && !!afterTrigger);
+      var effective = mode === "always" || (mode === "after_scroll" && lastPlateTrigger);
       if (mode === "hidden") effective = false;
       plate.classList.toggle("is-on", effective);
       ROOT.classList.toggle("ah-plate-on", effective);
@@ -1825,6 +1839,7 @@
         "--plate-top", effective ? "var(--plate-stack-offset,var(--plate-h))" : "0px");
     };
     AH.armPlate = armPlate;
+    window.AH_REFRESH_HEADER_SETTINGS = function () { armPlate(lastPlateTrigger); };
 
     /* ---- ONE STACK, ONE TRIGGER ----------------------------------------
        A page with a pinning tools bar has TWO fixed things at the top, and
