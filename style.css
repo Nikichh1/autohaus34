@@ -5887,8 +5887,8 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   }
 
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:10.5%;
-    top:10.5%;
+    right:12.25%;
+    top:11.5%;
     width:30px;
     min-width:30px;
     height:26px;
@@ -5914,47 +5914,50 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     display:none!important
   }
 
-  /* The RIGHT tips of the three strokes follow the actual plate cut.
-     This diagonal travels ~0.695px left for every 1px down. With 4px between
-     rows, each next right tip therefore moves ~2.8px left: 0 / 3 / 6px.
-     The strokes stay compact and horizontal while their right edge visually
-     runs parallel to the header diagonal. */
+  /* Premium phone menu mark.
+     Keep the unmistakable three-line menu language, but make the whole mark
+     obey the house geometry. Both the LEFT and RIGHT tips step by the same
+     amount, so the three strokes read as a compact parallelogram stack whose
+     outer silhouette runs parallel to the plate cut instead of as a generic
+     hamburger with random line lengths. */
   html[data-ah-scroll-header="autohaus_original"] .plate__bars{
-    width:20px;
-    min-width:20px;
-    height:9px;
+    width:22px;
+    min-width:22px;
+    height:10px;
     position:relative
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i{
     display:block;
     left:auto;
-    height:1.25px;
+    height:1.2px;
+    background:rgba(255,255,255,.96);
+    box-shadow:0 .25px 0 rgba(255,255,255,.22);
     transform:none
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:nth-child(1){
     top:0;
     right:0;
-    width:50%
+    width:18px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:nth-child(2){
     display:block;
-    top:4px;
-    right:3px;
-    width:75%;
+    top:4.4px;
+    right:2.5px;
+    width:17.5px;
     transform:none
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:nth-child(3){
-    top:8px;
+    top:8.8px;
     bottom:auto;
-    right:6px;
-    width:100%
+    right:5px;
+    width:17px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover .plate__bars i:nth-child(1),
-  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(1){width:50%}
+  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(1){width:18px}
   html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover .plate__bars i:nth-child(2),
-  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(2){width:75%}
+  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(2){width:17.5px}
   html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover .plate__bars i:nth-child(3),
-  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(3){width:100%}
+  html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(3){width:17px}
 
   html[data-ah-scroll-header="autohaus_original"] .plate__mark{
     left:2.35%;
