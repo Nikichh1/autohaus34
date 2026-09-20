@@ -32,7 +32,14 @@
           landing_original_after_scroll: settings.landing_original_after_scroll !== false,
           product_standard_header: settings.product_standard_header !== false,
           product_standard_header_sticky: settings.product_standard_header_sticky !== false,
-          product_original_header: settings.product_original_header === true
+          product_original_header: settings.product_original_header === true,
+          landing_standard_header_mode: ["hidden","top","sticky"].indexOf(settings.landing_standard_header_mode) >= 0 ? settings.landing_standard_header_mode : "top",
+          landing_original_header_mode: ["hidden","always","after_scroll"].indexOf(settings.landing_original_header_mode) >= 0 ? settings.landing_original_header_mode : "after_scroll",
+          product_standard_header_mode: ["hidden","top","sticky"].indexOf(settings.product_standard_header_mode) >= 0 ? settings.product_standard_header_mode : "sticky",
+          product_original_header_mode: ["hidden","always","after_scroll"].indexOf(settings.product_original_header_mode) >= 0 ? settings.product_original_header_mode : "hidden",
+          original_header_size: clamp(settings.original_header_size,65,100,81),
+          original_header_opacity: clamp(settings.original_header_opacity,85,100,98),
+          original_header_language: settings.original_header_language === "header" ? "header" : "menu"
         }
       }));
     } catch (_) {}
@@ -124,6 +131,13 @@
     var productStandardHeader = settings.product_standard_header !== false;
     var productStandardSticky = settings.product_standard_header_sticky !== false;
     var productOriginalHeader = settings.product_original_header === true;
+    var landingStandardMode = ["hidden","top","sticky"].indexOf(settings.landing_standard_header_mode) >= 0 ? settings.landing_standard_header_mode : (landingStandardHeader ? (landingStandardSticky ? "sticky" : "top") : "hidden");
+    var landingOriginalMode = ["hidden","always","after_scroll"].indexOf(settings.landing_original_header_mode) >= 0 ? settings.landing_original_header_mode : (landingOriginalAfterScroll ? "after_scroll" : "hidden");
+    var productStandardMode = ["hidden","top","sticky"].indexOf(settings.product_standard_header_mode) >= 0 ? settings.product_standard_header_mode : (productStandardHeader ? (productStandardSticky ? "sticky" : "top") : "hidden");
+    var productOriginalMode = ["hidden","always","after_scroll"].indexOf(settings.product_original_header_mode) >= 0 ? settings.product_original_header_mode : (productOriginalHeader ? "always" : "hidden");
+    var originalHeaderSize = clamp(settings.original_header_size,65,100,81);
+    var originalHeaderOpacity = clamp(settings.original_header_opacity,85,100,98);
+    var originalHeaderLanguage = settings.original_header_language === "header" ? "header" : "menu";
     /* Human-facing strength should feel useful through the whole slider.
        sqrt() gives the lower/middle range real authority while preserving
        exact zero and a controlled 100% ceiling. */
@@ -157,6 +171,13 @@
     ROOT.dataset.ahProductStandardHeader = productStandardHeader ? "1" : "0";
     ROOT.dataset.ahProductHeaderSticky = productStandardSticky ? "1" : "0";
     ROOT.dataset.ahProductOriginalHeader = productOriginalHeader ? "1" : "0";
+    ROOT.dataset.ahLandingStandardMode = landingStandardMode;
+    ROOT.dataset.ahLandingOriginalMode = landingOriginalMode;
+    ROOT.dataset.ahProductStandardMode = productStandardMode;
+    ROOT.dataset.ahProductOriginalMode = productOriginalMode;
+    ROOT.dataset.ahOriginalLanguage = originalHeaderLanguage;
+    ROOT.style.setProperty("--ah-original-size", String(originalHeaderSize / 100));
+    ROOT.style.setProperty("--ah-original-opacity", String(originalHeaderOpacity / 100));
     ROOT.classList.toggle("ah-watermark-v4-on", enabled);
     ROOT.classList.remove("ah-watermark-on", "ah-watermark-v2-on");
 
@@ -178,7 +199,14 @@
       landing_original_after_scroll: landingOriginalAfterScroll,
       product_standard_header: productStandardHeader,
       product_standard_header_sticky: productStandardSticky,
-      product_original_header: productOriginalHeader
+      product_original_header: productOriginalHeader,
+      landing_standard_header_mode: landingStandardMode,
+      landing_original_header_mode: landingOriginalMode,
+      product_standard_header_mode: productStandardMode,
+      product_original_header_mode: productOriginalMode,
+      original_header_size: originalHeaderSize,
+      original_header_opacity: originalHeaderOpacity,
+      original_header_language: originalHeaderLanguage
     }}));
     window.dispatchEvent(new CustomEvent("ah:photosettingschange", { detail: {
       photo_aspect_ratio: ratio,
