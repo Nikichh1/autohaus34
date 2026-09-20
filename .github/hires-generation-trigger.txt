@@ -1,0 +1,1 @@
+Trigger high-resolution protected product image generation.
