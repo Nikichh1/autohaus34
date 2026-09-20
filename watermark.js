@@ -39,7 +39,8 @@
           product_original_header_mode: ["hidden","always","after_scroll"].indexOf(settings.product_original_header_mode) >= 0 ? settings.product_original_header_mode : "hidden",
           original_header_size: clamp(settings.original_header_size,65,100,81),
           original_header_opacity: clamp(settings.original_header_opacity,85,100,98),
-          original_header_language: settings.original_header_language === "header" ? "header" : "menu"
+          original_header_language: settings.original_header_language === "header" ? "header" : "menu",
+          original_header_desktop_menu_label: settings.original_header_desktop_menu_label !== false
         }
       }));
     } catch (_) {}
@@ -138,6 +139,7 @@
     var originalHeaderSize = clamp(settings.original_header_size,65,100,81);
     var originalHeaderOpacity = clamp(settings.original_header_opacity,85,100,98);
     var originalHeaderLanguage = settings.original_header_language === "header" ? "header" : "menu";
+    var originalHeaderDesktopMenuLabel = settings.original_header_desktop_menu_label !== false;
     /* Human-facing strength should feel useful through the whole slider.
        sqrt() gives the lower/middle range real authority while preserving
        exact zero and a controlled 100% ceiling. */
@@ -176,6 +178,7 @@
     ROOT.dataset.ahProductStandardMode = productStandardMode;
     ROOT.dataset.ahProductOriginalMode = productOriginalMode;
     ROOT.dataset.ahOriginalLanguage = originalHeaderLanguage;
+    ROOT.dataset.ahOriginalDesktopMenuLabel = originalHeaderDesktopMenuLabel ? "1" : "0";
     ROOT.style.setProperty("--ah-original-size", String(originalHeaderSize / 100));
     ROOT.style.setProperty("--ah-original-opacity", String(originalHeaderOpacity / 100));
     ROOT.classList.toggle("ah-watermark-v4-on", enabled);
@@ -206,7 +209,8 @@
       product_original_header_mode: productOriginalMode,
       original_header_size: originalHeaderSize,
       original_header_opacity: originalHeaderOpacity,
-      original_header_language: originalHeaderLanguage
+      original_header_language: originalHeaderLanguage,
+      original_header_desktop_menu_label: originalHeaderDesktopMenuLabel
     }}));
     window.dispatchEvent(new CustomEvent("ah:photosettingschange", { detail: {
       photo_aspect_ratio: ratio,
@@ -220,7 +224,8 @@
       product_original_header_mode: productOriginalMode,
       original_header_size: originalHeaderSize,
       original_header_opacity: originalHeaderOpacity,
-      original_header_language: originalHeaderLanguage
+      original_header_language: originalHeaderLanguage,
+      original_header_desktop_menu_label: originalHeaderDesktopMenuLabel
     }}));
   }
 
