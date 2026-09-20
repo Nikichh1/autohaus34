@@ -1536,42 +1536,47 @@ html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
 }
 
 @media(max-width:767px){
+  /* Phone catalogue chrome is deliberately compact. The fixed grey Original
+     plate keeps its exact design; this only reduces the white catalogue band
+     underneath/right of it. The 24px body top-padding below this bar absorbs
+     the small overlap from the taller fixed plate, so cards still begin clear. */
   html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__bar{
-    grid-template-columns:min(var(--ah-original-w),68vw) minmax(0,1fr) 46px;
-    min-height:calc(max(58px,var(--ah-original-h)) + env(safe-area-inset-top,0px))
+    grid-template-columns:min(var(--ah-original-w),64vw) minmax(76px,1fr) 40px;
+    min-height:calc(48px + env(safe-area-inset-top,0px))
   }
   html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__make{
+    align-self:stretch;
     justify-content:flex-start;
-    padding-inline:3px 0;
-    padding-top:7px
+    align-items:center;
+    min-height:0;
+    padding:env(safe-area-inset-top,0px) 2px 0 3px
   }
   html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
-    grid-template-columns:min(60vw,238px) minmax(0,1fr) 46px
+    grid-template-columns:min(58vw,224px) minmax(76px,1fr) 40px;
+    min-height:calc(48px + env(safe-area-inset-top,0px))
   }
   html.shw-open .cat__x{
-    width:46px;
-    min-width:46px;
-    padding:0 5px 0 17px
+    width:40px;
+    min-width:40px;
+    padding:0 4px 0 12px;
+    clip-path:polygon(11px 0,100% 0,100% 100%,0 100%)
   }
   html.shw-open .cat__x svg{
-    width:11px;
-    height:11px
+    width:10px;
+    height:10px
   }
 
-  /* The centre column is intentionally narrow because the Original plate and
-     close wedge keep their sizes. Shrink only the filter control so the full
-     "Филтри" label remains readable instead of being ellipsised. */
   html.shw-open .cat__make .fbar2-wrap{
-    width:72px;
+    width:66px;
     max-width:100%
   }
   html.shw-open .cat__make .fsel{
-    height:30px;
-    padding-inline:7px 6px;
-    gap:4px;
-    font-size:10px;
-    line-height:16px;
-    letter-spacing:.03em
+    height:28px;
+    padding-inline:6px 5px;
+    gap:3px;
+    font-size:9.5px;
+    line-height:14px;
+    letter-spacing:.02em
   }
   html.shw-open .cat__make .fsel__t{
     max-width:none;
@@ -1579,35 +1584,33 @@ html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
     text-overflow:clip
   }
   html.shw-open .cat__make .fsel__c{
-    width:9px;
-    height:7px
+    width:8px;
+    height:6px
   }
 
-  /* On a phone the dropdown must belong to the viewport, not to the tiny
-     centre grid cell. Anchoring a 250–340px panel to a ~72px wrapper pushed
-     most of it off the right edge. Keep the same filter content, but present
-     it as a compact floating sheet under the masthead. */
-  html.shw-open .cat__make .fpop{
+  /* The popup is portalled to #catalog on phones (showroom.js), so it is
+     positioned against the viewport rather than the narrow filter cell. */
+  html.shw-open .cat > .fpop{
     position:fixed;
-    left:12px;
-    right:12px;
+    left:10px;
+    right:10px;
     width:auto;
     min-width:0;
     max-width:none;
-    max-height:min(62vh,430px);
+    max-height:min(64vh,430px);
     overflow:hidden;
     border-color:rgba(255,255,255,.20);
     box-shadow:0 18px 44px rgba(0,0,0,.34)
   }
-  html.shw-open .cat__make .fpop__b{
+  html.shw-open .cat > .fpop__b{
     padding:12px 12px 10px
   }
-  html.shw-open .cat__make .fpop__h,
-  html.shw-open .cat__make .fpop__f{
+  html.shw-open .cat > .fpop__h,
+  html.shw-open .cat > .fpop__f{
     padding-inline:12px
   }
-  html.shw-open .cat__make .fopts{
-    max-height:min(48vh,330px)
+  html.shw-open .cat > .fpop .fopts{
+    max-height:min(50vh,340px)
   }
 
   /* Phone catalogue opening should feel immediate. Keep the same expansion,
