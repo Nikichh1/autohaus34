@@ -1774,10 +1774,23 @@
      the header — and with it the burger — has scrolled away. Both drive the
      one panel and both carry its aria-expanded, or a screen reader is told
      the menu is shut by whichever button was not pressed. */
-  makePanel({
+  var menuPanel = makePanel({
     id: "mob", close: "mob-close", scrim: "mob-scrim", lock: "mob-open",
     triggers: [$("hd-menu"), $("plate-menu")]
   });
+
+  /* The Original plate sits inside a clipped fixed surface. On some browsers
+     a quick touch can finish as the clip/scroll state is settling and the
+     synthesized click is lost. Open on the primary pointer release as well;
+     the normal click listener remains for keyboard activation and older input. */
+  var plateMenuTrigger = $("plate-menu");
+  if (menuPanel && plateMenuTrigger) {
+    plateMenuTrigger.addEventListener("pointerup", function (event) {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      event.preventDefault();
+      menuPanel.set(true, plateMenuTrigger);
+    });
+  }
 
   /* ---- THE CONTACT PANEL ----
      Its triggers are not two known buttons but every "Контакт" on the site:
