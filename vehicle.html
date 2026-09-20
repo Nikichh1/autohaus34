@@ -21,7 +21,7 @@
     var cache=raw?JSON.parse(raw):null,s=cache&&cache.settings;
     /* Protection defaults mirror the current public watermark so a first-ever
        direct visit is protected even before the asynchronous settings refresh. */
-    if(!s)s={watermark_enabled:true,watermark_transparency:75,watermark_size:13,photo_filter:"none",photo_filter_strength:0,photo_aspect_ratio:"16:9",desktop_gallery_scale:84,scroll_header_style:"compact",landing_standard_header:true,landing_standard_header_sticky:false,landing_original_after_scroll:true,product_standard_header:true,product_standard_header_sticky:true,product_original_header:false};
+    if(!s)s={watermark_enabled:true,watermark_transparency:75,watermark_size:13,photo_filter:"none",photo_filter_strength:0,photo_aspect_ratio:"16:9",desktop_gallery_scale:84,scroll_header_style:"compact",landing_standard_header_mode:"top",landing_original_header_mode:"after_scroll",product_standard_header_mode:"sticky",product_original_header_mode:"hidden",original_header_size:81,original_header_opacity:98,original_header_language:"menu"};
     var root=document.documentElement;
     var wmTransparency=Math.max(0,Math.min(100,Number(s.watermark_transparency)));
     if(!Number.isFinite(wmTransparency))wmTransparency=75;
@@ -52,12 +52,19 @@
     root.dataset.ahPhotoRatio=ratio;
     root.dataset.ahPhotoFilter=name;
     root.dataset.ahScrollHeader=s.scroll_header_style==="autohaus_original"?"autohaus_original":"compact";
-    root.dataset.ahLandingStandardHeader=s.landing_standard_header!==false?"1":"0";
-    root.dataset.ahLandingHeaderSticky=s.landing_standard_header_sticky===true?"1":"0";
-    root.dataset.ahLandingOriginalAfterScroll=s.landing_original_after_scroll!==false?"1":"0";
-    root.dataset.ahProductStandardHeader=s.product_standard_header!==false?"1":"0";
-    root.dataset.ahProductHeaderSticky=s.product_standard_header_sticky!==false?"1":"0";
-    root.dataset.ahProductOriginalHeader=s.product_original_header===true?"1":"0";
+    var landingStandardMode=["hidden","top","sticky"].indexOf(s.landing_standard_header_mode)>=0?s.landing_standard_header_mode:(s.landing_standard_header===false?"hidden":s.landing_standard_header_sticky===true?"sticky":"top");
+    var landingOriginalMode=["hidden","always","after_scroll"].indexOf(s.landing_original_header_mode)>=0?s.landing_original_header_mode:(s.landing_original_after_scroll===false?"hidden":"after_scroll");
+    var productStandardMode=["hidden","top","sticky"].indexOf(s.product_standard_header_mode)>=0?s.product_standard_header_mode:(s.product_standard_header===false?"hidden":s.product_standard_header_sticky===false?"top":"sticky");
+    var productOriginalMode=["hidden","always","after_scroll"].indexOf(s.product_original_header_mode)>=0?s.product_original_header_mode:(s.product_original_header===true?"always":"hidden");
+    var originalSize=Math.max(65,Math.min(100,Number(s.original_header_size)||81));
+    var originalOpacity=Math.max(85,Math.min(100,Number(s.original_header_opacity)||98));
+    root.dataset.ahLandingStandardMode=landingStandardMode;
+    root.dataset.ahLandingOriginalMode=landingOriginalMode;
+    root.dataset.ahProductStandardMode=productStandardMode;
+    root.dataset.ahProductOriginalMode=productOriginalMode;
+    root.dataset.ahOriginalLanguage=s.original_header_language==="header"?"header":"menu";
+    root.style.setProperty("--ah-original-size",String(originalSize/100));
+    root.style.setProperty("--ah-original-opacity",String(originalOpacity/100));
   }catch(_){}
 })();
 </script>
