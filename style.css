@@ -5801,6 +5801,67 @@ html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plat
 html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover .plate__bars i:last-child,
 html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:last-child{width:100%}
 
+/* DESKTOP ORIGINAL — optional icon-only menu.
+   The normal desktop state above stays exactly as it was. Only when the
+   explicit setting is "icon only" do we hide the word and reuse the premium
+   three-stroke phone geometry, scaled by the existing Original size control. */
+@media(min-width:768px){
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu{
+    width:calc(34px * var(--ah-original-size,.81));
+    min-width:28px;
+    gap:0
+  }
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu-l{
+    display:none!important
+  }
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars{
+    width:calc(28px * var(--ah-original-size,.81));
+    min-width:22px;
+    height:calc(13px * var(--ah-original-size,.81));
+    min-height:10px;
+    position:relative
+  }
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars i{
+    display:block;
+    left:auto;
+    height:calc(1.48px * var(--ah-original-size,.81));
+    min-height:1.2px;
+    background:rgba(255,255,255,.96);
+    box-shadow:0 .25px 0 rgba(255,255,255,.22);
+    transform:none
+  }
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars i:nth-child(1){
+    top:0;
+    right:0;
+    width:calc(22.22px * var(--ah-original-size,.81))
+  }
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars i:nth-child(2){
+    display:block;
+    top:calc(5.43px * var(--ah-original-size,.81));
+    right:calc(3.09px * var(--ah-original-size,.81));
+    width:calc(21.6px * var(--ah-original-size,.81));
+    transform:none
+  }
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars i:nth-child(3){
+    top:calc(10.86px * var(--ah-original-size,.81));
+    bottom:auto;
+    right:calc(6.17px * var(--ah-original-size,.81));
+    width:calc(20.99px * var(--ah-original-size,.81))
+  }
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:hover .plate__bars i:nth-child(1),
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:focus-visible .plate__bars i:nth-child(1){
+    width:calc(22.22px * var(--ah-original-size,.81))
+  }
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:hover .plate__bars i:nth-child(2),
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:focus-visible .plate__bars i:nth-child(2){
+    width:calc(21.6px * var(--ah-original-size,.81))
+  }
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:hover .plate__bars i:nth-child(3),
+  html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:focus-visible .plate__bars i:nth-child(3){
+    width:calc(20.99px * var(--ah-original-size,.81))
+  }
+}
+
 /* Optional language placement — on the wedge or inside the opened menu. */
 html[data-ah-scroll-header="autohaus_original"] .plate .lang{display:none!important}
 html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang{
@@ -5967,7 +6028,7 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     transform:none!important
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
-    width:calc(var(--ah-original-w) * .5825);
+    width:calc(var(--ah-original-w) * .61);
     max-width:none
   }
 
@@ -5978,7 +6039,7 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     --ah-original-w:min(calc(467px * var(--ah-original-size,.81)),50vw)
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate__mark .logo{
-    width:calc(var(--ah-original-w) * .54)
+    width:calc(var(--ah-original-w) * .565)
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang{
     left:auto;
