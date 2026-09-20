@@ -41,6 +41,50 @@
     return false;
   })();
   if (lowPower) document.documentElement.classList.add("lo-fx");
+
+  /* The scroll header is a global presentation setting. Prime it from the
+     same tiny local cache as the photo presentation so a returning visitor
+     never sees one header style snap into the other after scrolling. */
+  var ROOT = document.documentElement;
+  var PRESENTATION_CACHE_KEY = "autohaus-photo-presentation-v1";
+  function applyScrollHeaderStyle(value) {
+    var style = value === "autohaus_original" ? "autohaus_original" : "compact";
+    ROOT.dataset.ahScrollHeader = style;
+    return style;
+  }
+  (function primeScrollHeaderStyle() {
+    try {
+      var raw = localStorage.getItem(PRESENTATION_CACHE_KEY);
+      var cached = raw ? JSON.parse(raw) : null;
+      applyScrollHeaderStyle(cached && cached.settings && cached.settings.scroll_header_style);
+    } catch (_) { applyScrollHeaderStyle("compact"); }
+  })();
+  window.addEventListener("ah:photosettingschange", function (event) {
+    if (event && event.detail) applyScrollHeaderStyle(event.detail.scroll_header_style);
+  });
+  window.AH_APPLY_SCROLL_HEADER_STYLE = applyScrollHeaderStyle;
+
+  /* watermark.js already refreshes public settings on the catalogue and
+     vehicle page. The remaining public pages do not load it, so only those
+     pages make this one small settings request. */
+  if (!document.querySelector('script[src*="watermark.js"]')) {
+    fetch("/api/public/vehicles?settings=1", {
+      headers: { Accept: "application/json" }, credentials: "omit", cache: "no-store"
+    }).then(function (response) {
+      return response.ok ? response.json() : null;
+    }).then(function (data) {
+      if (!data || !data.settings) return;
+      applyScrollHeaderStyle(data.settings.scroll_header_style);
+      try {
+        var raw = localStorage.getItem(PRESENTATION_CACHE_KEY);
+        var cache = raw ? JSON.parse(raw) : { v:1, settings:{} };
+        cache.v = 1; cache.at = Date.now();
+        cache.settings = Object.assign({}, cache.settings || {}, data.settings);
+        localStorage.setItem(PRESENTATION_CACHE_KEY, JSON.stringify(cache));
+      } catch (_) {}
+    }).catch(function () {});
+  }
+
   var $ = function (id) { return document.getElementById(id); };
   var all = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
   var fmt = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " "); };
@@ -1698,7 +1742,10 @@
        of the header instead (.cgr__sentinel, sized off --cg-top, which is
        what clears that header anyway), so the moment is identical to the
        other three pages without depending on anything that scrolls. */
-    var plateAfter = document.querySelector(".stage") ||
+    var vehiclePage = !!document.querySelector(".nav");
+    ROOT.classList.toggle("ah-vehicle-page", vehiclePage);
+    var plateAfter = document.querySelector("[data-plate-sentinel]") ||
+                     document.querySelector(".stage") ||
                      document.querySelector(".cgr__sentinel") ||
                      document.querySelector(".phead") ||
                      document.querySelector(".hd");
@@ -1708,8 +1755,9 @@
        has to be taught about the plate. */
     var armPlate = function (on) {
       plate.classList.toggle("is-on", on);
-      document.documentElement.style.setProperty(
-        "--plate-top", on ? "var(--plate-h)" : "0px");
+      ROOT.classList.toggle("ah-plate-on", on);
+      ROOT.style.setProperty(
+        "--plate-top", on ? "var(--plate-stack-offset,var(--plate-h))" : "0px");
     };
     AH.armPlate = armPlate;
 
