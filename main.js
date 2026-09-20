@@ -109,7 +109,9 @@
   });
   window.AH_APPLY_HEADER_SETTINGS = applyHeaderSettings;
   window.AH_APPLY_SCROLL_HEADER_STYLE = function (value) {
-    return applyHeaderSettings({ scroll_header_style:value });
+    var style = value === "autohaus_original" ? "autohaus_original" : "compact";
+    ROOT.dataset.ahScrollHeader = style;
+    return style;
   };
 
   /* watermark.js already refreshes public settings on the catalogue and
