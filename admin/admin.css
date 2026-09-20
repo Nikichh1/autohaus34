@@ -206,3 +206,18 @@
   .ah-header-page-card,.ah-original-tuning{padding:14px}
   .ah-header-style-grid{grid-template-columns:1fr}
 }
+
+
+.ah-section-kicker{
+  margin:2px 0 -8px;
+  font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:#767b7e
+}
+.ah-header-style-preview--original .ah-mini-original{
+  transform-origin:left top;
+  transition:transform .16s ease,opacity .16s ease
+}
+.ah-header-style-preview--original.is-language-on::after{
+  content:"BG  EN";position:absolute;z-index:3;right:66px;top:24px;
+  color:rgba(255,255,255,.72);font-size:7px;font-weight:700;letter-spacing:.08em
+}
