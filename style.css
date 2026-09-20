@@ -2762,7 +2762,7 @@ html:not(.js) .rv{opacity:1;transform:none}
 /* the picture's own area grows to fill what the controls leave; the swipe /
    drag gesture lives on it, so it opts out of the browser's horizontal pan */
 .lb__stage{
-  position:relative;isolation:isolate;overflow:hidden;
+  position:relative;isolation:isolate;overflow:hidden;contain:paint;
   flex:1 1 auto;min-height:0;width:100%;
   display:flex;align-items:center;justify-content:center;
   touch-action:pan-y;
@@ -2773,7 +2773,9 @@ html:not(.js) .rv{opacity:1;transform:none}
 }
 #lb-img{
   filter:var(--ah-photo-filter-css,brightness(var(--ah-photo-brightness,1)) contrast(var(--ah-photo-contrast,1)) saturate(var(--ah-photo-saturate,1)))!important;
+  backface-visibility:hidden;
 }
+.lb.open #lb-img{will-change:transform,filter}
 .lb .x{
   position:absolute;top:var(--margin);right:var(--margin);color:#fff;
   font-size:13px;line-height:16px;font-weight:600;letter-spacing:1.3px;text-transform:uppercase;
