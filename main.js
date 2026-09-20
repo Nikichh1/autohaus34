@@ -50,13 +50,39 @@
   function applyHeaderSettings(settings) {
     settings = settings || {};
     var style = settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
+    var landingStandardMode = ["hidden","top","sticky"].indexOf(settings.landing_standard_header_mode) >= 0
+      ? settings.landing_standard_header_mode
+      : (settings.landing_standard_header === false ? "hidden" : settings.landing_standard_header_sticky === true ? "sticky" : "top");
+    var landingOriginalMode = ["hidden","always","after_scroll"].indexOf(settings.landing_original_header_mode) >= 0
+      ? settings.landing_original_header_mode
+      : (settings.landing_original_after_scroll === false ? "hidden" : "after_scroll");
+    var productStandardMode = ["hidden","top","sticky"].indexOf(settings.product_standard_header_mode) >= 0
+      ? settings.product_standard_header_mode
+      : (settings.product_standard_header === false ? "hidden" : settings.product_standard_header_sticky === false ? "top" : "sticky");
+    var productOriginalMode = ["hidden","always","after_scroll"].indexOf(settings.product_original_header_mode) >= 0
+      ? settings.product_original_header_mode
+      : (settings.product_original_header === true ? "always" : "hidden");
+    var originalSize = Math.max(65, Math.min(100, Math.round(Number(settings.original_header_size) || 81)));
+    var originalOpacity = Math.max(85, Math.min(100, Math.round(Number(settings.original_header_opacity) || 98)));
+    var language = settings.original_header_language === "header" ? "header" : "menu";
+
     ROOT.dataset.ahScrollHeader = style;
-    ROOT.dataset.ahLandingStandardHeader = settings.landing_standard_header !== false ? "1" : "0";
-    ROOT.dataset.ahLandingHeaderSticky = settings.landing_standard_header_sticky === true ? "1" : "0";
-    ROOT.dataset.ahLandingOriginalAfterScroll = settings.landing_original_after_scroll !== false ? "1" : "0";
-    ROOT.dataset.ahProductStandardHeader = settings.product_standard_header !== false ? "1" : "0";
-    ROOT.dataset.ahProductHeaderSticky = settings.product_standard_header_sticky !== false ? "1" : "0";
-    ROOT.dataset.ahProductOriginalHeader = settings.product_original_header === true ? "1" : "0";
+    ROOT.dataset.ahLandingStandardMode = landingStandardMode;
+    ROOT.dataset.ahLandingOriginalMode = landingOriginalMode;
+    ROOT.dataset.ahProductStandardMode = productStandardMode;
+    ROOT.dataset.ahProductOriginalMode = productOriginalMode;
+    ROOT.dataset.ahOriginalLanguage = language;
+    ROOT.style.setProperty("--ah-original-size", String(originalSize / 100));
+    ROOT.style.setProperty("--ah-original-opacity", String(originalOpacity / 100));
+
+    /* Legacy dataset keys stay in sync for old cached CSS/components. */
+    ROOT.dataset.ahLandingStandardHeader = landingStandardMode === "hidden" ? "0" : "1";
+    ROOT.dataset.ahLandingHeaderSticky = landingStandardMode === "sticky" ? "1" : "0";
+    ROOT.dataset.ahLandingOriginalAfterScroll = landingOriginalMode === "after_scroll" ? "1" : "0";
+    ROOT.dataset.ahProductStandardHeader = productStandardMode === "hidden" ? "0" : "1";
+    ROOT.dataset.ahProductHeaderSticky = productStandardMode === "sticky" ? "1" : "0";
+    ROOT.dataset.ahProductOriginalHeader = productOriginalMode === "hidden" ? "0" : "1";
+
     return style;
   }
   (function primeHeaderSettings() {
@@ -1788,15 +1814,13 @@
        plate is now above it. One custom property on <html> rather than a
        class per component: the filter bar reads --plate-top and nothing else
        has to be taught about the plate. */
-    var armPlate = function (on) {
-      var effective = !!on;
+    var armPlate = function (afterTrigger) {
+      var effective = !!afterTrigger;
       if (ROOT.dataset.ahScrollHeader === "autohaus_original") {
-        if (vehiclePage) {
-          effective = ROOT.dataset.ahProductOriginalHeader === "1";
-        } else if (landingPage) {
-          effective = ROOT.dataset.ahLandingOriginalAfterScroll === "1" &&
-            ROOT.dataset.ahLandingHeaderSticky !== "1" && !!on;
-        }
+        var mode = vehiclePage ? ROOT.dataset.ahProductOriginalMode :
+                   landingPage ? ROOT.dataset.ahLandingOriginalMode : "after_scroll";
+        effective = mode === "always" || (mode === "after_scroll" && !!afterTrigger);
+        if (mode === "hidden") effective = false;
       }
       plate.classList.toggle("is-on", effective);
       ROOT.classList.toggle("ah-plate-on", effective);
