@@ -932,7 +932,7 @@
    photograph available in a permanent, compact thumbnail rail. */
 .dgallery{min-width:0}
 .dgal{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;overflow:hidden;border-radius:8px}
-.dgal__f{position:relative;overflow:hidden;background:var(--ink);border:0;padding:0;cursor:zoom-in;display:block;width:100%;min-width:0}
+.dgal__f{position:relative;overflow:hidden;contain:paint;background:var(--ink);border:0;padding:0;cursor:zoom-in;display:block;width:100%;min-width:0}
 .dgal__main{aspect-ratio:1.5;touch-action:pan-y}
 .dgal__side{display:none}
 .dgal__f picture,.dgal__f img{display:block;width:100%;height:100%}
