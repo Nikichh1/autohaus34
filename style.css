@@ -5863,15 +5863,18 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
 
 @media(max-width:767px){
   /* PHONE ORIGINAL HEADER
-     Use the desktop Original composition itself, simply scaled down and capped
-     at half the viewport. Same silhouette, same logo/menu relationship and
-     same sharp lower-right geometry instead of a separate mobile design. */
+     Keep the desktop silhouette, but treat its contents as one measured
+     composition. The previous phone rule used a percentage width on the logo
+     inside an auto-width absolute anchor; mobile browsers could resolve that
+     against the logo itself, which is why the mark grew into MENU. Everything
+     below now scales from the plate width directly. */
   html[data-ah-scroll-header="autohaus_original"]{
-    --ah-original-w:min(calc(467px * var(--ah-original-size,.81)),50vw);
+    --ah-original-w:min(calc(467px * var(--ah-original-size,.81)),50vw,230px);
     --ah-original-h:calc(var(--ah-original-w) * .35974)
   }
   html[data-ah-scroll-header="autohaus_original"] .plate{
     width:var(--ah-original-w);
+    max-width:50vw;
     height:var(--ah-original-h);
     filter:drop-shadow(0 5px 11px rgba(0,0,0,.16))
   }
@@ -5883,13 +5886,13 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   }
 
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:9.85%;
-    top:10.1%;
+    right:7.5%;
+    top:7%;
     width:auto;
     min-width:0;
-    height:28px;
-    min-height:28px;
-    gap:5px;
+    height:26px;
+    min-height:26px;
+    gap:4px;
     padding:0;
     flex-direction:row;
     align-items:center;
@@ -5907,30 +5910,31 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     box-shadow:none!important
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu-l{
-    font-size:clamp(7px,2.05vw,8.5px);
+    font-size:clamp(7.5px,1.95vw,8.25px);
     line-height:1;
     font-weight:600;
-    letter-spacing:.8px
+    letter-spacing:.72px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars{
-    width:17px;
-    min-width:17px;
-    height:7px
+    width:15px;
+    min-width:15px;
+    height:6px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i{
-    height:1.35px
+    height:1.25px
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:first-child{width:68%}
   html[data-ah-scroll-header="autohaus_original"] .plate__bars i:last-child{width:100%}
 
   html[data-ah-scroll-header="autohaus_original"] .plate__mark{
-    left:2.35%;
-    top:29.2%;
+    left:2.8%;
+    top:34%;
     bottom:auto;
+    width:auto;
     transform:none!important
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
-    width:58.25%;
+    width:calc(var(--ah-original-w) * .50);
     max-width:none
   }
 
@@ -5941,7 +5945,7 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     --ah-original-w:min(calc(467px * var(--ah-original-size,.81)),50vw)
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate__mark .logo{
-    width:54%
+    width:calc(var(--ah-original-w) * .46)
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-language="header"] .plate .lang{
     left:auto;
