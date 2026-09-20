@@ -73,6 +73,7 @@
       /\.webp(?:$|\?)/i.test(variants.webp800 || "");
     var hi = useWebp ? variants.webp1280 : variants.jpg1280;
     var mid = useWebp ? variants.webp800 : variants.jpg800;
+    var ultra = useWebp ? variants.webp1920 : variants.jpg1920;
     if (!hi || !mid || document.querySelector('link[data-ah-vehicle-cover="' + v.id + '"]')) return;
     var link = document.createElement("link");
     link.rel = "preload";
@@ -80,7 +81,7 @@
     link.href = hi;
     link.fetchPriority = "high";
     link.type = useWebp ? "image/webp" : "image/jpeg";
-    link.setAttribute("imagesrcset", mid + " 800w, " + hi + " 1280w");
+    link.setAttribute("imagesrcset", mid + " 800w, " + hi + " 1280w" + (ultra ? ", " + ultra + " 1920w" : ""));
     link.setAttribute("imagesizes", "(min-width:1024px) 66vw, 100vw");
     link.setAttribute("data-ah-vehicle-cover", v.id);
     document.head.appendChild(link);
@@ -93,7 +94,7 @@
     (v.managed_images || []).forEach(function (image) {
       if (!image || !image.variants || !Object.keys(image.variants).length) return;
       var variants = image.variants;
-      [image.original, variants.jpg1280, variants.jpg800, variants.jpg400].forEach(function (url) {
+      [image.original, variants.jpg1920, variants.jpg1280, variants.jpg800, variants.jpg400].forEach(function (url) {
         if (url) window.AH_IMAGE_VARIANTS[url] = variants;
       });
     });
