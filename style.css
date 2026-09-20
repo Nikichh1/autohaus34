@@ -2773,9 +2773,8 @@ html:not(.js) .rv{opacity:1;transform:none}
 }
 #lb-img{
   filter:var(--ah-photo-filter-css,brightness(var(--ah-photo-brightness,1)) contrast(var(--ah-photo-contrast,1)) saturate(var(--ah-photo-saturate,1)))!important;
-  backface-visibility:hidden;
 }
-.lb.open #lb-img{will-change:transform,filter}
+.lb__stage.is-grabbing #lb-img{will-change:transform}
 .lb .x{
   position:absolute;top:var(--margin);right:var(--margin);color:#fff;
   font-size:13px;line-height:16px;font-weight:600;letter-spacing:1.3px;text-transform:uppercase;
