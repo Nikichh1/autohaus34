@@ -1780,34 +1780,18 @@
   });
 
   /* PHONE INPUT FOR THE ORIGINAL PLATE.
-     A touch target can move a few pixels between down/up even when the user
-     intended a tap. Capture the pointer on down so the release cannot fall
-     outside the clipped wedge, and only treat it as a tap when movement stays
-     small. The ordinary click listener above remains the keyboard/desktop path. */
+     Open directly on touchstart. Waiting for click/pointerup made the trigger
+     fragile because the fixed plate can move or become hidden as the menu
+     locks the page, which lets the browser cancel the synthesized click.
+     touchstart is the earliest stable point in the gesture and preventDefault
+     suppresses the later synthetic click/focus flash. Desktop and keyboard
+     continue to use the ordinary click handler installed by makePanel(). */
   var plateMenuTrigger = $("plate-menu");
   if (menuPanel && plateMenuTrigger) {
-    var platePress = null;
-
-    plateMenuTrigger.addEventListener("pointerdown", function (event) {
-      if (event.pointerType === "mouse") return;
-      platePress = { id:event.pointerId, x:event.clientX, y:event.clientY };
-      try { plateMenuTrigger.setPointerCapture(event.pointerId); } catch (_) {}
-    });
-
-    plateMenuTrigger.addEventListener("pointerup", function (event) {
-      if (!platePress || event.pointerId !== platePress.id) return;
-      var dx = event.clientX - platePress.x;
-      var dy = event.clientY - platePress.y;
-      var tap = dx * dx + dy * dy <= 196; /* <= 14px drift */
-      platePress = null;
-      try { plateMenuTrigger.releasePointerCapture(event.pointerId); } catch (_) {}
-      if (!tap) return;
+    plateMenuTrigger.addEventListener("touchstart", function (event) {
+      if (event.cancelable) event.preventDefault();
       menuPanel.set(true, plateMenuTrigger);
-    });
-
-    plateMenuTrigger.addEventListener("pointercancel", function () {
-      platePress = null;
-    });
+    }, { passive:false });
   }
 
   /* ---- THE CONTACT PANEL ----
