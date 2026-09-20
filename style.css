@@ -5887,13 +5887,13 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   }
 
   html[data-ah-scroll-header="autohaus_original"] .plate__menu{
-    right:7.8%;
-    top:7.5%;
-    width:auto;
-    min-width:0;
+    right:9.85%;
+    top:10.1%;
+    width:30px;
+    min-width:30px;
     height:28px;
     min-height:28px;
-    gap:5px;
+    gap:0;
     padding:0;
     flex-direction:row;
     align-items:center;
@@ -5911,10 +5911,7 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
     box-shadow:none!important
   }
   html[data-ah-scroll-header="autohaus_original"] .plate__menu-l{
-    font-size:clamp(7.75px,2vw,8.5px);
-    line-height:1;
-    font-weight:600;
-    letter-spacing:.76px
+    display:none!important
   }
 
   /* Three horizontal strokes whose LEFT ends follow the same down-left rake
@@ -5956,8 +5953,8 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
   html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plate__bars i:nth-child(3){width:100%}
 
   html[data-ah-scroll-header="autohaus_original"] .plate__mark{
-    left:2.8%;
-    top:39%;
+    left:2.35%;
+    top:29.2%;
     bottom:auto;
     width:auto;
     transform:none!important
