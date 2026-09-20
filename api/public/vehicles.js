@@ -139,7 +139,7 @@ function remember(key, body, started, order, status = 200) {
 }
 
 async function publicSettings() {
-  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style,landing_standard_header,landing_standard_header_sticky,landing_original_after_scroll,product_standard_header,product_standard_header_sticky,product_original_header,landing_standard_header_mode,landing_original_header_mode,product_standard_header_mode,product_original_header_mode,original_header_size,original_header_opacity,original_header_language&limit=1", { method: "GET" });
+  const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style,landing_standard_header,landing_standard_header_sticky,landing_original_after_scroll,product_standard_header,product_standard_header_sticky,product_original_header,landing_standard_header_mode,landing_original_header_mode,product_standard_header_mode,product_original_header_mode,original_header_size,original_header_opacity,original_header_language,original_header_desktop_menu_label&limit=1", { method: "GET" });
   const rows = await parse(response);
   const row = rows[0] || {};
   const transparency = Number(row.watermark_transparency);
@@ -178,7 +178,8 @@ async function publicSettings() {
     product_original_header_mode: productOriginalMode,
     original_header_size: Number.isFinite(originalHeaderSize) ? Math.max(65, Math.min(100, Math.round(originalHeaderSize))) : 81,
     original_header_opacity: Number.isFinite(originalHeaderOpacity) ? Math.max(85, Math.min(100, Math.round(originalHeaderOpacity))) : 98,
-    original_header_language: row.original_header_language === "header" ? "header" : "menu"
+    original_header_language: row.original_header_language === "header" ? "header" : "menu",
+    original_header_desktop_menu_label: row.original_header_desktop_menu_label !== false
   };
 }
 
@@ -221,7 +222,7 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { ok: true, settings: await publicSettings() });
     } catch (err) {
       console.error("Public settings API failed", err);
-      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84, scroll_header_style: "compact", landing_standard_header: true, landing_standard_header_sticky: false, landing_original_after_scroll: true, product_standard_header: true, product_standard_header_sticky: true, product_original_header: false, landing_standard_header_mode: "top", landing_original_header_mode: "after_scroll", product_standard_header_mode: "sticky", product_original_header_mode: "hidden", original_header_size: 81, original_header_opacity: 98, original_header_language: "menu" } });
+      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84, scroll_header_style: "compact", landing_standard_header: true, landing_standard_header_sticky: false, landing_original_after_scroll: true, product_standard_header: true, product_standard_header_sticky: true, product_original_header: false, landing_standard_header_mode: "top", landing_original_header_mode: "after_scroll", product_standard_header_mode: "sticky", product_original_header_mode: "hidden", original_header_size: 81, original_header_opacity: 98, original_header_language: "menu", original_header_desktop_menu_label: true } });
     }
   }
 
