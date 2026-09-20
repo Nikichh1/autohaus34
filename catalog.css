@@ -1496,3 +1496,37 @@ html.lb-open #lb-stage[data-ah-watermark-embedded="0"]::before{display:block!imp
   transform:none!important;
   filter:var(--ah-photo-filter-css,brightness(var(--ah-photo-brightness)) contrast(var(--ah-photo-contrast)) saturate(var(--ah-photo-saturate)))!important;
 }
+
+
+/* The fullscreen catalogue no longer owns a separate brand wedge.
+   The actual site #plate is rendered above it (style.css), and this bar only
+   reserves the matching footprint for filters + close. */
+html.shw-open .cat__id{
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important
+}
+html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__bar{
+  grid-template-columns:min(var(--ah-original-w),48vw) minmax(0,1fr) clamp(68px,5vw,92px);
+  min-height:calc(var(--ah-original-h) + env(safe-area-inset-top,0px))
+}
+html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__make{
+  align-self:start;
+  min-height:min(var(--ah-original-h),96px);
+  padding-top:18px
+}
+html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
+  grid-template-columns:clamp(250px,21vw,330px) minmax(0,1fr) clamp(68px,5vw,92px)
+}
+@media(max-width:767px){
+  html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__bar{
+    grid-template-columns:min(var(--ah-original-w),72vw) minmax(0,1fr) 56px
+  }
+  html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__make{
+    padding-inline:6px;
+    padding-top:10px
+  }
+  html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
+    grid-template-columns:min(62vw,250px) minmax(0,1fr) 56px
+  }
+}
