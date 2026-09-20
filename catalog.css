@@ -341,7 +341,7 @@
 /* ---- the panel a control opens ---- */
 .fpop{
   position:absolute;z-index:60;
-  width:220px;min-width:0;
+  width:238px;min-width:0;
   max-width:calc(100vw - var(--margin) * 2);
   background:#0b0b0b;border:1px solid rgba(255,255,255,.16);
   box-shadow:0 14px 32px rgba(0,0,0,.28);
@@ -377,13 +377,16 @@
    that simply stops mid-row reads as a clipping fault rather than as "there
    is more". The last 26px fade out, which is the whole affordance. */
 .fopts{
-  display:grid;gap:0;max-height:min(40vh,260px);overflow-y:auto;
+  display:grid;gap:0;max-height:min(48vh,320px);overflow-y:auto;
   margin:0;padding:0;
-  scrollbar-width:none;-ms-overflow-style:none;
-  -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 22px),transparent);
-  mask-image:linear-gradient(180deg,#000 calc(100% - 22px),transparent);
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.42) rgba(255,255,255,.07);
+  -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 24px),transparent);
+  mask-image:linear-gradient(180deg,#000 calc(100% - 24px),transparent);
 }
-.fopts::-webkit-scrollbar{display:none}
+.fopts::-webkit-scrollbar{width:7px}
+.fopts::-webkit-scrollbar-track{background:rgba(255,255,255,.06)}
+.fopts::-webkit-scrollbar-thumb{background:rgba(255,255,255,.38);border-radius:999px}
 .fopts.is-end{-webkit-mask-image:none;mask-image:none}
 .fopt{
   display:flex;align-items:center;
@@ -397,7 +400,26 @@
 .fopt:disabled{opacity:.3;pointer-events:none}
 .fopt__n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fopt:last-child{border-bottom:0}
-.fopt.is-on{color:var(--primary);background-color:rgba(201,162,90,.07)}
+.fopt.is-on{color:#fff;background-color:rgba(255,255,255,.08)}
+
+.fpop__more{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  min-height:28px;padding:5px 8px;
+  border-top:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(11,11,11,.90),#0b0b0b);
+  color:rgba(255,255,255,.66);
+  font-size:9px;line-height:14px;font-weight:600;letter-spacing:.9px;
+  text-transform:uppercase;pointer-events:none
+}
+.fpop__more[hidden]{display:none!important}
+.fpop__more b{
+  font-size:13px;line-height:1;color:#fff;font-weight:400;
+  animation:fpop-more-bob 1.2s ease-in-out infinite
+}
+@keyframes fpop-more-bob{
+  0%,100%{transform:translateY(-1px);opacity:.65}
+  50%{transform:translateY(2px);opacity:1}
+}
 
 /* ---- a range: readout, dual slider, two fields ---- */
 .frng__read{
@@ -690,7 +712,15 @@
 }
 .cat__make .fsel:hover:not(:disabled),
 .cat__make .fsel:focus-visible{background:var(--white);border-color:var(--ink-3)}
-.cat__make .fsel.is-open{border-color:#8a6a24;background:rgba(201,162,90,.16)}
+.cat__make .fsel.is-open{
+  border-color:#101110;
+  background:#101110;
+  color:#fff;
+  box-shadow:none
+}
+.cat__make .fsel.is-open::before{transform:scaleY(0)}
+.cat__make .fsel.is-open::after{opacity:0}
+.cat__make .fsel.is-open .fsel__c{stroke:#fff;opacity:1}
 .cat__make .fsel__t{max-width:min(20vw,184px)}
 .cat__make .fsel--clear{padding-inline:7px;color:var(--ink-3)}
 .cat__make .fsel--clear:hover:not(:disabled){color:var(--ink)}
@@ -1582,10 +1612,10 @@ html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
      positioned against the viewport rather than the narrow filter cell. */
   html.shw-open .cat > .fpop{
     position:fixed;
-    width:min(220px,calc(100vw - 20px));
+    width:min(238px,calc(100vw - 20px));
     min-width:0;
     max-width:none;
-    max-height:min(52vh,320px);
+    max-height:min(58vh,360px);
     overflow:hidden;
     border-color:rgba(255,255,255,.20);
     box-shadow:0 16px 36px rgba(0,0,0,.32)
@@ -1597,7 +1627,7 @@ html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
     padding:8px 9px
   }
   html.shw-open .cat > .fpop .fopts{
-    max-height:min(42vh,250px)
+    max-height:min(48vh,300px)
   }
 
   /* Phone catalogue opening should feel immediate. Keep the same expansion,
