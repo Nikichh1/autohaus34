@@ -501,6 +501,7 @@
      ============================================================ */
   var wrap = catBar.parentNode;                 /* .fbar2-wrap — not the scroller */
   var pop = $("cat-pop");
+  var popHome = pop ? pop.parentNode : null;
   var popKey = null, popAnchor = null;
 
   /* ---- the dropdown ---------------------------------------------------- */
@@ -518,21 +519,22 @@
     if (!popAnchor || !pop) return;
     var ar = popAnchor.getBoundingClientRect();
 
-    /* On a phone the filter panel is a viewport sheet, not a dropdown inside
-       the tiny centre cell. Position it from the viewport so it can never be
-       pushed off-screen by the Original header geometry. */
+    /* Portal the phone panel out of the 66px filter cell. A fixed descendant
+       inside that narrow/animated grid can still inherit its containing block
+       and clipping on mobile browsers; as a direct child of #catalog it is
+       genuinely viewport-bound and cannot disappear to the right. */
     if (innerWidth <= 767) {
-      pop.style.right = "12px";
-      pop.style.left = "12px";
-      pop.style.top = Math.max(8, Math.round(ar.bottom + 8)) + "px";
+      if (pop.parentNode !== cat) cat.appendChild(pop);
+      pop.style.right = "10px";
+      pop.style.left = "10px";
+      pop.style.top = Math.max(8, Math.round(ar.bottom + 7)) + "px";
       return;
     }
 
+    if (popHome && pop.parentNode !== popHome) popHome.appendChild(pop);
     var wr = wrap.getBoundingClientRect();
     pop.style.right = "";
     pop.style.top = (ar.bottom - wr.top + 8) + "px";
-    /* measure, then clamp inside the instrument's own width — a panel that
-       hangs off the right edge of a scrolling row is unreachable */
     pop.style.left = "0px";
     var w = pop.offsetWidth;
     var x = Math.max(0, Math.min(ar.left - wr.left, wr.width - w));
@@ -579,6 +581,10 @@
     popKey = null;
     pop.hidden = true;
     pop.innerHTML = "";
+    pop.style.left = "";
+    pop.style.right = "";
+    pop.style.top = "";
+    if (popHome && pop.parentNode !== popHome) popHome.appendChild(pop);
     all("[data-pop]", catBar).forEach(function (b) {
       b.setAttribute("aria-expanded", "false");
       b.classList.remove("is-open");
