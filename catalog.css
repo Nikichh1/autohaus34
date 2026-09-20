@@ -414,11 +414,7 @@
 .fpop__more[hidden]{display:none!important}
 .fpop__more b{
   font-size:13px;line-height:1;color:#fff;font-weight:400;
-  animation:fpop-more-bob 1.2s ease-in-out infinite
-}
-@keyframes fpop-more-bob{
-  0%,100%{transform:translateY(-1px);opacity:.65}
-  50%{transform:translateY(2px);opacity:1}
+  opacity:.9
 }
 
 /* ---- a range: readout, dual slider, two fields ---- */
