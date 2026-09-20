@@ -5660,7 +5660,7 @@ html[data-ah-scroll-header="autohaus_original"] .plate__mark{
   z-index:2;
   pointer-events:auto!important;
   left:calc(11px * var(--ah-original-size,.81));
-  top:calc(53px * var(--ah-original-size,.81));
+  top:calc(49px * var(--ah-original-size,.81));
   height:auto;
   display:block;
   transform:none!important;
@@ -5668,7 +5668,7 @@ html[data-ah-scroll-header="autohaus_original"] .plate__mark{
 }
 html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
   display:block;
-  width:calc(279px * var(--ah-original-size,.81));
+  width:calc(272px * var(--ah-original-size,.81));
   max-width:none;
   height:auto
 }
