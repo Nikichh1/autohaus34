@@ -7,9 +7,11 @@
 (function(){
   try{
     var raw=localStorage.getItem("autohaus-photo-presentation-v1");
-    var cache=raw?JSON.parse(raw):null;
+    var cache=raw?JSON.parse(raw):null,settings=cache&&cache.settings;
     document.documentElement.dataset.ahScrollHeader=
-      cache&&cache.settings&&cache.settings.scroll_header_style==="autohaus_original"?"autohaus_original":"compact";
+      settings&&settings.scroll_header_style==="autohaus_original"?"autohaus_original":"compact";
+    document.documentElement.dataset.ahOriginalDesktopMenuLabel=
+      settings&&settings.original_header_desktop_menu_label===false?"0":"1";
   }catch(_){document.documentElement.dataset.ahScrollHeader="compact";}
 })();
 </script>
