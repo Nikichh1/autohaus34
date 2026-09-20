@@ -447,6 +447,17 @@
               label.classList.toggle("is-selected", !!input && input.checked);
             });
           });
+          var mini = document.querySelector(".ah-header-style-preview--original .ah-mini-original");
+          var preview = document.querySelector(".ah-header-style-preview--original");
+          var sizeInput = document.getElementById("ah-original-size");
+          var opacityInput = document.getElementById("ah-original-opacity");
+          var languageInput = document.getElementById("ah-original-language");
+          if (mini && sizeInput) {
+            var factor = Math.max(.72, Math.min(1.18, Number(sizeInput.value || 81) / 81));
+            mini.style.transform = "scale(" + factor + ")";
+          }
+          if (mini && opacityInput) mini.style.opacity = String(Math.max(.85, Math.min(1, Number(opacityInput.value || 98) / 100)));
+          if (preview && languageInput) preview.classList.toggle("is-language-on", languageInput.value === "header");
         }
         document.querySelectorAll('#ah-header-form input[type="radio"]').forEach(function (radio) {
           radio.onchange = updateHeaderVisualState;
@@ -455,8 +466,10 @@
         var originalSizeValue = document.getElementById("ah-original-size-value");
         var originalOpacity = document.getElementById("ah-original-opacity");
         var originalOpacityValue = document.getElementById("ah-original-opacity-value");
-        if (originalSize) originalSize.oninput = function () { originalSizeValue.textContent = originalSize.value + "%"; };
-        if (originalOpacity) originalOpacity.oninput = function () { originalOpacityValue.textContent = originalOpacity.value + "%"; };
+        if (originalSize) originalSize.oninput = function () { originalSizeValue.textContent = originalSize.value + "%"; updateHeaderVisualState(); };
+        if (originalOpacity) originalOpacity.oninput = function () { originalOpacityValue.textContent = originalOpacity.value + "%"; updateHeaderVisualState(); };
+        var originalLanguage = document.getElementById("ah-original-language");
+        if (originalLanguage) originalLanguage.onchange = updateHeaderVisualState;
 
         var presets = {
           original: { style:"autohaus_original", landingStandard:"top", landingOriginal:"after_scroll", productStandard:"hidden", productOriginal:"always", size:81, opacity:98, language:"menu" },
