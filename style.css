@@ -5543,7 +5543,7 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
     min-width:44px;
     height:44px;
     align-items:center;
-    transform:none
+    transform:translateY(6px)
   }
 
   .hd-logo{
@@ -5551,16 +5551,20 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
     transform:translateY(2px)
   }
 
+  /* The language underline is the visual baseline of the phone header.
+     Move the whole switch slightly lower, then let MENU sit a touch lower
+     still so its painted baseline resolves against that rule instead of the
+     mathematical centre of the 44px touch target. */
   .hd-zone--end .lang{
     height:44px;
     padding-bottom:0;
     align-items:center;
     align-self:center;
-    transform:none
+    transform:translateY(4px)
   }
   .hd-zone--end .lang::before,
   .hd-zone--end .lang__ind{
-    bottom:7px
+    bottom:5px
   }
   .hd-zone--end .lang__o{
     min-width:34px;
@@ -5568,7 +5572,7 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
     min-height:40px;
     display:grid;
     place-items:center;
-    padding-bottom:2px
+    padding-bottom:1px
   }
 }
 .mob__sheet{padding-bottom:max(28px,env(safe-area-inset-bottom))}
