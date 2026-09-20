@@ -5545,3 +5545,120 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
  .ctc__reveal,.shw__sheet{transition-duration:.24s!important}
  .reveal,.appear{transition-delay:0s!important;transition-duration:.3s!important}
 }
+
+
+/* ============================================================
+   SCROLL HEADER STYLES
+   Compact preserves the existing plate exactly.
+   AutoHaus Original reproduces the original AutoHaus corner header.
+   Reference geometry: approx 470x194 with a 24.7deg inward house cut.
+   ============================================================ */
+:root{--plate-stack-offset:var(--plate-h)}
+
+html[data-ah-scroll-header="autohaus_original"]{
+  --plate-stack-offset:0px;
+  --ah-original-plate-w:min(75.6vw,470px);
+  --ah-original-plate-h:min(31.2vw,194px);
+}
+html[data-ah-scroll-header="autohaus_original"] .plate{
+  height:var(--ah-original-plate-h);
+  filter:drop-shadow(0 18px 34px rgba(0,0,0,.26));
+}
+html[data-ah-scroll-header="autohaus_original"] .plate::after{
+  inset:0 0 auto 0;height:38px;
+  background:rgba(247,249,250,.82);
+  opacity:0;
+  box-shadow:0 1px 0 rgba(255,255,255,.42);
+  transition:opacity .2s var(--e-exit);
+}
+html[data-ah-scroll-header="autohaus_original"] .plate.is-on::after{
+  opacity:1;transition:opacity .28s var(--e-enter)
+}
+html[data-ah-scroll-header="autohaus_original"] .plate__in{
+  position:relative;width:var(--ah-original-plate-w);height:var(--ah-original-plate-h);
+  flex:none;display:block;padding:0;gap:0;
+  background:rgba(36,39,42,.965);
+  color:#fff;
+  clip-path:polygon(0 0,0 0,0 100%,0 100%);
+  visibility:hidden;
+  transition:clip-path .36s var(--e-exit),visibility 0s linear .36s;
+}
+html[data-ah-scroll-header="autohaus_original"] .plate__in::before{
+  background:linear-gradient(90deg,rgba(255,255,255,.18),rgba(255,255,255,.035) 64%,transparent 92%)
+}
+html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__in{
+  clip-path:polygon(0 0,100% 0,79.1% 75.8%,0 100%);
+  visibility:visible;
+  transition:clip-path .62s var(--e-mass),visibility 0s;
+}
+html[data-ah-scroll-header="autohaus_original"] .plate__mark{
+  position:absolute;left:12px;top:50px;
+  display:flex;align-items:center;
+  transform:translate3d(-12px,0,0);
+}
+html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{
+  width:280px;max-width:59.6vw;height:auto
+}
+html[data-ah-scroll-header="autohaus_original"] .plate__menu{
+  position:absolute;top:55px;right:72px;
+  width:44px;height:44px;padding:0;
+  display:grid;place-items:center;
+  opacity:.74;transform:translate3d(-10px,0,0);
+  transition:opacity var(--t-ui) var(--e-ui),transform .24s var(--e-exit)
+}
+html[data-ah-scroll-header="autohaus_original"] .plate__menu:hover,
+html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible{opacity:1}
+html[data-ah-scroll-header="autohaus_original"] .plate__menu-l{display:none}
+html[data-ah-scroll-header="autohaus_original"] .plate__bars{width:24px;height:11px}
+html[data-ah-scroll-header="autohaus_original"] .plate__bars i{height:1.5px}
+html[data-ah-scroll-header="autohaus_original"] .plate .lang{display:none}
+html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__menu,
+html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__mark{
+  transform:none;transition:transform .4s var(--e-mass) .05s,opacity var(--t-ui) var(--e-ui)
+}
+
+/* vehicle.html keeps its existing dossier header in Compact mode.
+   Original mode replaces it only after the scroll sentinel has left view. */
+html.ah-vehicle-page:not([data-ah-scroll-header="autohaus_original"]) #plate{display:none}
+html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"] .nav{
+  transition:transform .34s var(--e-move),opacity .22s ease;
+  will-change:transform
+}
+html.ah-vehicle-page[data-ah-scroll-header="autohaus_original"].ah-plate-on .nav{
+  transform:translateY(-102%);opacity:0;pointer-events:none
+}
+.plate-sentinel{
+  position:absolute;left:0;top:0;width:1px;height:var(--nav-h,72px);
+  pointer-events:none;visibility:hidden
+}
+
+@media(max-width:767px){
+  html[data-ah-scroll-header="autohaus_original"]{
+    --ah-original-plate-w:min(88vw,360px);
+    --ah-original-plate-h:min(36.4vw,149px);
+  }
+  html[data-ah-scroll-header="autohaus_original"] .plate::after{height:28px}
+  html[data-ah-scroll-header="autohaus_original"] .plate__mark{left:12px;top:37px}
+  html[data-ah-scroll-header="autohaus_original"] .plate__mark .logo{width:min(55vw,214px);max-width:none}
+  html[data-ah-scroll-header="autohaus_original"] .plate__menu{
+    top:34px;right:56px;width:42px;height:42px
+  }
+}
+@media(max-width:420px){
+  html[data-ah-scroll-header="autohaus_original"]{
+    --ah-original-plate-w:90vw;
+    --ah-original-plate-h:37.2vw;
+  }
+  html[data-ah-scroll-header="autohaus_original"] .plate__mark{top:34px}
+  html[data-ah-scroll-header="autohaus_original"] .plate__menu{top:31px;right:48px}
+}
+@media(hover:hover) and (min-width:768px){
+  html[data-ah-scroll-header="autohaus_original"]:not(.lo-fx) .plate__in{
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html[data-ah-scroll-header="autohaus_original"] .plate__in{transition:visibility 0s}
+  html[data-ah-scroll-header="autohaus_original"] .plate__menu,
+  html[data-ah-scroll-header="autohaus_original"] .plate__mark{transition:none}
+}
