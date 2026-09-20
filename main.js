@@ -1806,67 +1806,75 @@
      back into its own trigger the way a sticky bar's can. */
   var plate = $("plate");
   if (plate) {
-    /* index arms off the hero; collection and legal arm off their own
-       masthead — in both cases the trigger is "the thing at the top of this
-       page has gone", which is the only moment the plate is needed.
-
-       The concierge room cannot use either: its masthead is a STICKY rail
-       that never leaves the screen, so observing it would mean the plate
-       never arrives and everything below the absolute header would be left
-       with no mark and no menu. It supplies a zero-width strip the height
-       of the header instead (.cgr__sentinel, sized off --cg-top, which is
-       what clears that header anyway), so the moment is identical to the
-       other three pages without depending on anything that scrolls. */
     var vehiclePage = ROOT.classList.contains("ah-vehicle-page");
     var landingPage = ROOT.classList.contains("ah-landing-page");
-    var plateAfter = document.querySelector("[data-plate-sentinel]") ||
-                     document.querySelector(".stage") ||
-                     document.querySelector(".cgr__sentinel") ||
-                     document.querySelector(".phead") ||
-                     document.querySelector(".hd");
-    /* Anything else fixed to the top of the page needs to know, because the
-       plate is now above it. One custom property on <html> rather than a
-       class per component: the filter bar reads --plate-top and nothing else
-       has to be taught about the plate. */
-    var lastPlateTrigger = false;
-    var armPlate = function (afterTrigger) {
-      lastPlateTrigger = !!afterTrigger;
-      var mode = vehiclePage ? ROOT.dataset.ahProductOriginalMode :
-                 landingPage ? ROOT.dataset.ahLandingOriginalMode : "after_scroll";
-      var effective = mode === "always" || (mode === "after_scroll" && lastPlateTrigger);
-      if (mode === "hidden") effective = false;
+    var plateShownByScroll = false;
+    var plateScrollQueued = false;
+
+    function plateMode() {
+      return vehiclePage ? (ROOT.dataset.ahProductOriginalMode || "hidden") :
+             landingPage ? (ROOT.dataset.ahLandingOriginalMode || "hidden") :
+             "after_scroll";
+    }
+
+    /* after_scroll intentionally reacts early. It no longer waits for an
+       entire hero/section/filter rail to leave the viewport. The threshold
+       follows roughly half of the normal top header, capped low enough that
+       the side header arrives on the first/second wheel or touch gesture. */
+    function plateThresholds() {
+      var standardMode = vehiclePage ? ROOT.dataset.ahProductStandardMode :
+                         landingPage ? ROOT.dataset.ahLandingStandardMode : "top";
+      var topHeader = vehiclePage ? document.querySelector(".nav") :
+                      landingPage ? document.querySelector(".hd") : null;
+      var height = topHeader ? Number(topHeader.offsetHeight) || 0 : 0;
+      var showAt = standardMode === "hidden"
+        ? 28
+        : Math.max(34, Math.min(52, Math.round((height || 72) * .56)));
+      return { show: showAt, hide: 8 };
+    }
+
+    function syncPlate() {
+      plateScrollQueued = false;
+      var mode = plateMode();
+      var y = Math.max(0, window.scrollY || window.pageYOffset || 0);
+      var thresholds = plateThresholds();
+
+      if (mode === "always") {
+        plateShownByScroll = true;
+      } else if (mode === "hidden") {
+        plateShownByScroll = false;
+      } else {
+        /* Hysteresis prevents a small touchpad bounce around the trigger from
+           repeatedly opening/closing the shape. It hides only near true top. */
+        if (!plateShownByScroll && y >= thresholds.show) plateShownByScroll = true;
+        else if (plateShownByScroll && y <= thresholds.hide) plateShownByScroll = false;
+      }
+
+      var effective = mode === "always" ||
+                      (mode === "after_scroll" && plateShownByScroll);
       plate.classList.toggle("is-on", effective);
       ROOT.classList.toggle("ah-plate-on", effective);
       ROOT.style.setProperty(
         "--plate-top", effective ? "var(--plate-stack-offset,var(--plate-h))" : "0px");
-    };
-    AH.armPlate = armPlate;
-    window.AH_REFRESH_HEADER_SETTINGS = function () { armPlate(lastPlateTrigger); };
-
-    /* ---- ONE STACK, ONE TRIGGER ----------------------------------------
-       A page with a pinning tools bar has TWO fixed things at the top, and
-       the bar's offset is the plate's height. Given two separate triggers
-       they fire at two different scroll positions, and on index.html#avtomobili
-       they did: measured at 1440, the bar pinned at y=325 with --plate-top
-       still 0, and the plate did not arrive until y=387 — at which point it
-       shoved the already-pinned bar down its own 62px, in one frame, under
-       the reader's eyes. Retiming cannot fix that; the two states have to be
-       the same state.
-
-       So where a tools bar exists, IT owns the moment: collection.js calls
-       AH.armPlate() inside the same synchronous mutation that pins the bar,
-       and the plate is never armed by anything else. The top of the page is
-       then only ever "nothing fixed" or "plate and bar together". */
-    var ownedByTools = !!document.getElementById("f-sentinel");
-    if (!ownedByTools) {
-      if (!plateAfter || !("IntersectionObserver" in window)) {
-        armPlate(true);
-      } else {
-        new IntersectionObserver(function (en) {
-          armPlate(!en[0].isIntersecting);
-        }, { threshold: 0 }).observe(plateAfter);
-      }
     }
+
+    function queuePlateSync() {
+      if (plateScrollQueued) return;
+      plateScrollQueued = true;
+      requestAnimationFrame(syncPlate);
+    }
+
+    /* Kept as a compatibility hook for any older module, but external callers
+       can no longer decide visible/hidden state. The configured mode always wins. */
+    AH.armPlate = function () { queuePlateSync(); };
+    window.AH_REFRESH_HEADER_SETTINGS = function () {
+      plateShownByScroll = false;
+      syncPlate();
+    };
+
+    addEventListener("scroll", queuePlateSync, { passive: true });
+    addEventListener("resize", queuePlateSync, { passive: true });
+    syncPlate();
   }
 
   /* ============================================================
