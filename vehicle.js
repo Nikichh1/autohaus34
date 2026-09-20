@@ -58,6 +58,23 @@
     return count === 1 ? '100vw' : '(min-width:1024px) 46vw, 100vw';
   }
   var mainSizes = gallerySizes(N);
+
+  /* Horizontal thumbnail rails are vertically in the viewport, so native
+     loading="lazy" alone still lets browsers fetch every thumbnail at once.
+     Keep the first few immediate and defer the rest until they approach the
+     rail viewport. This removes a large burst of 400px requests on mobile. */
+  function thumbPicture(src, index) {
+    if (index < 4) {
+      return AH.picture(src, { width: 160, height: 90, widths: [400], src: 400, sizes: "96px",
+        alt: v.full + ' / ' + (index + 1) });
+    }
+    return '<picture data-ah-thumb-lazy="1">' +
+      '<source type="image/webp" data-srcset="' + AH.esc(AH.webpset(src, [400])) + '">' +
+      '<img width="160" height="90" decoding="async" fetchpriority="low"' +
+      ' data-src="' + AH.esc(AH.img(src, 400)) + '" alt="' + AH.esc(v.full + ' / ' + (index + 1)) + '">' +
+      '</picture>';
+  }
+
   var chapterName = AH.chapterName[v.chapter] || "";
   var backHref = "index.html#avtomobili";
   var backName = "автомобилите";
@@ -176,7 +193,7 @@
         return '<button type="button" class="dthumb' + (!i ? ' is-active' : '') + '" data-i="' + i + '"' +
           ' data-ah-watermark-embedded="' + (embedded ? '1' : '0') + '"' +
           ' aria-pressed="' + (!i) + '" aria-label="' + (i + 1) + ' / ' + N + '">' +
-          AH.picture(s, { width: 160, height: 90, widths: [400, 800], src: 400, sizes: "96px", alt: v.full + ' / ' + (i + 1) }) + '</button>';
+          thumbPicture(s, i) + '</button>';
       }).join('') + '</div>' : '') +
       '<div class="dgal-bar">' +
         (N ? '<span class="dgal-bar__n" id="dgal-n" aria-live="polite" data-nt>1 / ' + N + '</span>' : '') +
@@ -293,6 +310,36 @@
   var selected = 0, selectionVersion = 0, suppressClick = false;
   var decoded = Object.create(null);
 
+  var thumbRail = D.getElementById('dthumbs');
+  function hydrateThumb(thumb) {
+    if (!thumb) return;
+    var picture = thumb.querySelector('picture[data-ah-thumb-lazy="1"]');
+    if (!picture) return;
+    var source = picture.querySelector('source[data-srcset]');
+    var image = picture.querySelector('img[data-src]');
+    if (source) {
+      source.srcset = source.getAttribute('data-srcset') || '';
+      source.removeAttribute('data-srcset');
+    }
+    if (image) {
+      image.src = image.getAttribute('data-src') || '';
+      image.removeAttribute('data-src');
+    }
+    picture.removeAttribute('data-ah-thumb-lazy');
+  }
+  if (thumbRail && 'IntersectionObserver' in window) {
+    var thumbIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        hydrateThumb(entry.target);
+        thumbIO.unobserve(entry.target);
+      });
+    }, { root: thumbRail, rootMargin: '0px 220px', threshold: 0.01 });
+    thumbs.slice(4).forEach(function (thumb) { thumbIO.observe(thumb); });
+  } else {
+    thumbs.forEach(hydrateThumb);
+  }
+
   /* The two desktop side frames are fixed reference images. They are outside
      selection state: arrows, swipe, thumbnails, keyboard and lightbox closing
      may update only the large left frame. Snapshot only source-related state so
@@ -381,6 +428,19 @@
     return !connection || (!connection.saveData && !/^(slow-2g|2g|3g)$/.test(connection.effectiveType || '') &&
       !(connection.downlink > 0 && connection.downlink <= 1.5));
   }
+  var webpOkay = (function () {
+    try {
+      var canvas = D.createElement('canvas');
+      return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    } catch (_) { return false; }
+  })();
+
+  function hqSource(i) {
+    var variants = (window.AH_IMAGE_VARIANTS || {})[shots[i]] || null;
+    if (webpOkay && variants && variants.webp1280) return variants.webp1280;
+    return AH.img(shots[i], 1280);
+  }
+
   function prepare(i, priority) {
     if (!N) return Promise.resolve(null);
     priority = priority || 'low';
@@ -396,29 +456,53 @@
     var entry = { image: image };
     decoded[key] = entry;
     entry.promise = new Promise(function (resolve) {
-      var fallback = false;
+      var fallback = 0;
       image.decoding = 'async';
       image.fetchPriority = priority;
       image.onload = function () {
         (image.decode ? image.decode().catch(function () {}) : Promise.resolve()).then(function () { resolve(image); });
       };
       image.onerror = function () {
-        if (!fallback) {
-          fallback = true;
+        fallback++;
+        if (fallback === 1) {
+          image.src = AH.img(shots[i], 1280);
+          return;
+        }
+        if (fallback === 2) {
           image.src = AH.img(shots[i], 800);
           return;
         }
         delete decoded[key];
         resolve(null);
       };
-      image.src = AH.img(shots[i], 1280);
+      image.src = hqSource(i);
     });
     return entry.promise;
   }
 
+  function seedDecodedMain(index) {
+    if (!mainImg || !mainImg.complete || mainImg.naturalWidth < 1100) return;
+    var key = ((index + N) % N) + ':hq1280';
+    if (decoded[key]) return;
+    decoded[key] = { image: mainImg, promise: Promise.resolve(mainImg) };
+  }
+  if (mainImg) {
+    seedDecodedMain(0);
+    mainImg.addEventListener('load', function () {
+      var current = parseInt(mainFrame && mainFrame.dataset.i || '0', 10) || 0;
+      seedDecodedMain(current);
+    }, { passive: true });
+  }
+
+  function warmNeighbors(center, direction) {
+    if (N < 2 || !canWarmImages()) return;
+    direction = direction || 1;
+    prepare(center + direction, 'high');
+    if (N > 2) prepare(center - direction, 'low');
+  }
+
   function stripTo(i) {
     if (!mainFrame || !mainImg || !N) return;
-    restoreSideFrames();
     i = (i + N) % N;
     var changed = selected !== i;
     selected = i;
@@ -458,15 +542,18 @@
         if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(mainFrame);
       }
       mainFrame.removeAttribute('aria-busy');
-      restoreSideFrames();
-      if (image) prepare((i + 1) % N);
+      if (image) {
+        seedDecodedMain(i);
+        prepare((i + 1) % N);
+        if (N > 2) prepare((i - 1 + N) % N);
+      }
     });
   }
 
   thumbs.forEach(function (thumb, index) {
-    thumb.addEventListener('click', function () { stripTo(index); });
-    thumb.addEventListener('pointerenter', function () { prepare(index); }, { passive: true });
-    thumb.addEventListener('focus', function () { prepare(index); });
+    thumb.addEventListener('click', function () { hydrateThumb(thumb); stripTo(index); });
+    thumb.addEventListener('pointerenter', function () { hydrateThumb(thumb); prepare(index); }, { passive: true });
+    thumb.addEventListener('focus', function () { hydrateThumb(thumb); prepare(index); });
     thumb.addEventListener('keydown', function (event) {
       var next = event.key === 'ArrowRight' ? index + 1 :
         event.key === 'ArrowLeft' ? index - 1 :
@@ -716,6 +803,9 @@
     if (!N) return;
     var previous = shot;
     shot = (n + N) % N;
+    var forward = (shot - previous + N) % N;
+    var backward = (previous - shot + N) % N;
+    var direction = first || forward === 0 ? 1 : (forward <= backward ? 1 : -1);
     if (from) opener = from;
     var version = ++lightboxVersion;
 
@@ -749,6 +839,7 @@
         if (window.AH_WATERMARK_SYNC) window.AH_WATERMARK_SYNC(lbStage);
       }
       lbStage.removeAttribute('aria-busy');
+      warmNeighbors(shot, direction);
     });
   }
   function close() {
@@ -768,8 +859,11 @@
     });
   });
   D.getElementById("lb-close").addEventListener("click", close);
-  D.getElementById("lb-prev").addEventListener("click", function () { open(shot - 1); });
-  D.getElementById("lb-next").addEventListener("click", function () { open(shot + 1); });
+  var lbPrev = D.getElementById("lb-prev"), lbNext = D.getElementById("lb-next");
+  lbPrev.addEventListener("pointerdown", function () { prepare(shot - 1, 'high'); }, { passive: true });
+  lbNext.addEventListener("pointerdown", function () { prepare(shot + 1, 'high'); }, { passive: true });
+  lbPrev.addEventListener("click", function () { open(shot - 1); });
+  lbNext.addEventListener("click", function () { open(shot + 1); });
   lb.addEventListener("click", function (e) { if (e.target === lb) close(); });
 
   /* ---- swipe on a phone, click-drag with a mouse ----
@@ -784,6 +878,8 @@
     lbStage.addEventListener("pointerdown", function (e) {
       if (e.button > 0) return;
       gOn = true; gx0 = e.clientX; gy0 = e.clientY; gdx = 0; gAxis = 0;
+      prepare(shot + 1, 'high');
+      if (N > 2) prepare(shot - 1, 'high');
       lbStage.classList.add("is-grabbing");
       try { lbStage.setPointerCapture(e.pointerId); } catch (_) {}
     });
