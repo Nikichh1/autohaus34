@@ -21,7 +21,7 @@
     var cache=raw?JSON.parse(raw):null,s=cache&&cache.settings;
     /* Protection defaults mirror the current public watermark so a first-ever
        direct visit is protected even before the asynchronous settings refresh. */
-    if(!s)s={watermark_enabled:true,watermark_transparency:75,watermark_size:13,photo_filter:"none",photo_filter_strength:0,photo_aspect_ratio:"16:9",desktop_gallery_scale:84};
+    if(!s)s={watermark_enabled:true,watermark_transparency:75,watermark_size:13,photo_filter:"none",photo_filter_strength:0,photo_aspect_ratio:"16:9",desktop_gallery_scale:84,scroll_header_style:"compact"};
     var root=document.documentElement;
     var wmTransparency=Math.max(0,Math.min(100,Number(s.watermark_transparency)));
     if(!Number.isFinite(wmTransparency))wmTransparency=75;
@@ -51,6 +51,7 @@
     root.style.setProperty("--cat-ratio",ratio==="16:10"?"1.6":"1.7777778");
     root.dataset.ahPhotoRatio=ratio;
     root.dataset.ahPhotoFilter=name;
+    root.dataset.ahScrollHeader=s.scroll_header_style==="autohaus_original"?"autohaus_original":"compact";
   }catch(_){}
 })();
 </script>
@@ -120,6 +121,25 @@
 
   </div>
 </header>
+
+<i class="plate-sentinel" data-plate-sentinel aria-hidden="true"></i>
+<div class="plate" id="plate">
+  <div class="plate__in">
+    <button type="button" class="plate__menu" id="plate-menu" aria-expanded="false" aria-controls="mob">
+      <span class="plate__bars" aria-hidden="true"><i></i><i></i></span>
+      <span class="plate__menu-l">Меню</span>
+    </button>
+    <a class="plate__mark" href="index.html" aria-label="AutoHaus — начало">
+      <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+    </a>
+    <div class="lang" role="group" aria-label="Език / Language">
+      <i class="lang__ind" aria-hidden="true"></i>
+      <button type="button" class="lang__o is-on" data-lang="bg" lang="bg" aria-pressed="true">BG</button>
+      <button type="button" class="lang__o" data-lang="en" lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</div>
+
 <div class="mob" id="mob" aria-hidden="true">
   <div class="mob__scrim" id="mob-scrim"></div>
   <div class="mob__reveal">
