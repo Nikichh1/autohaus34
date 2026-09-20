@@ -5520,7 +5520,23 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
   .hd-links li:last-child{display:list-item}
 }
 @media(max-width:767px){
-  .hd-zone--end .lang__o{min-width:34px;min-height:44px}
+  .hd-zone--end .lang{
+    height:44px;
+    padding-bottom:0;
+    align-items:center;
+    align-self:center
+  }
+  .hd-zone--end .lang::before,
+  .hd-zone--end .lang__ind{
+    bottom:3px
+  }
+  .hd-zone--end .lang__o{
+    min-width:34px;
+    height:44px;
+    min-height:44px;
+    display:grid;
+    place-items:center
+  }
   .hd-nav{padding-top:max(24px,env(safe-area-inset-top));padding-bottom:16px}
   .hd-menu{min-width:44px}
 }
