@@ -206,7 +206,8 @@
     product_original_header_mode: "hidden",
     original_header_size: 81,
     original_header_opacity: 98,
-    original_header_language: "menu"
+    original_header_language: "menu",
+    original_header_desktop_menu_label: true
   };
   var cached = null, cachedAt = 0, pending = null;
 
@@ -247,7 +248,8 @@
       product_original_header_mode: ["hidden","always","after_scroll"].indexOf(value.product_original_header_mode) >= 0 ? value.product_original_header_mode : (value.product_original_header === true ? "always" : "hidden"),
       original_header_size: Math.max(65, Math.min(100, originalSize)),
       original_header_opacity: Math.max(85, Math.min(100, originalOpacity)),
-      original_header_language: value.original_header_language === "header" ? "header" : "menu"
+      original_header_language: value.original_header_language === "header" ? "header" : "menu",
+      original_header_desktop_menu_label: value.original_header_desktop_menu_label !== false
     };
   }
 
@@ -418,6 +420,10 @@
                 option("menu", cfg.original_header_language, t("Вътре в менюто", "Inside the menu")) +
                 option("header", cfg.original_header_language, t("Върху клина", "On the wedge")) +
               '</select></label>' +
+              '<label class="field"><span>' + esc(t("Меню на компютър", "Desktop menu")) + '</span><select id="ah-original-desktop-menu-label"' + disabled + '>' +
+                option("label", cfg.original_header_desktop_menu_label ? "label" : "icon", t("С думата „МЕНЮ“", "With “MENU” label")) +
+                option("icon", cfg.original_header_desktop_menu_label ? "label" : "icon", t("Само иконка", "Icon only")) +
+              '</select><small class="muted">' + esc(t("Важи само за компютър. На телефон винаги остава само премиум иконката.", "Desktop only. Phones always keep the premium icon-only menu.")) + '</small></label>' +
             '</div>' +
           '</section>' +
           (app.canWrite ? '<div class="ah-header-save-row"><button class="primary" id="ah-header-save" type="submit">' + esc(t("ПРИЛОЖИ ХЕДЪРА", "APPLY HEADER")) + '</button><span>' + esc(t("Промяната влиза веднага в сайта.", "The change applies immediately to the site.")) + '</span></div>' : '') +
@@ -472,9 +478,9 @@
         if (originalLanguage) originalLanguage.onchange = updateHeaderVisualState;
 
         var presets = {
-          original: { style:"autohaus_original", landingStandard:"top", landingOriginal:"after_scroll", productStandard:"hidden", productOriginal:"always", size:81, opacity:98, language:"menu" },
-          modern: { style:"compact", landingStandard:"sticky", landingOriginal:"hidden", productStandard:"sticky", productOriginal:"hidden", size:78, opacity:96, language:"menu" },
-          wedge: { style:"autohaus_original", landingStandard:"hidden", landingOriginal:"always", productStandard:"hidden", productOriginal:"always", size:76, opacity:98, language:"menu" }
+          original: { style:"autohaus_original", landingStandard:"top", landingOriginal:"after_scroll", productStandard:"hidden", productOriginal:"always", size:81, opacity:98, language:"menu", desktopMenu:"label" },
+          modern: { style:"compact", landingStandard:"sticky", landingOriginal:"hidden", productStandard:"sticky", productOriginal:"hidden", size:78, opacity:96, language:"menu", desktopMenu:"label" },
+          wedge: { style:"autohaus_original", landingStandard:"hidden", landingOriginal:"always", productStandard:"hidden", productOriginal:"always", size:76, opacity:98, language:"menu", desktopMenu:"icon" }
         };
         document.querySelectorAll(".ah-header-preset").forEach(function (button) {
           button.onclick = function () {
@@ -491,6 +497,7 @@
             if (originalSize) { originalSize.value = p.size; originalSizeValue.textContent = p.size + "%"; }
             if (originalOpacity) { originalOpacity.value = p.opacity; originalOpacityValue.textContent = p.opacity + "%"; }
             var language = document.getElementById("ah-original-language"); if (language) language.value = p.language;
+            var desktopMenu = document.getElementById("ah-original-desktop-menu-label"); if (desktopMenu) desktopMenu.value = p.desktopMenu;
             updateHeaderVisualState();
           };
         });
@@ -551,7 +558,8 @@
               product_original_header_mode: valueOf("product_original_header_mode", "hidden"),
               original_header_size: Number(document.getElementById("ah-original-size").value),
               original_header_opacity: Number(document.getElementById("ah-original-opacity").value),
-              original_header_language: document.getElementById("ah-original-language").value
+              original_header_language: document.getElementById("ah-original-language").value,
+              original_header_desktop_menu_label: document.getElementById("ah-original-desktop-menu-label").value !== "icon"
             });
             message.textContent = t("Настройките за хедъра са записани.", "Header settings saved.");
           } catch (error) { message.textContent = error.message; }
