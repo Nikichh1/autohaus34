@@ -332,7 +332,7 @@
 
         headerBody.innerHTML =
           '<form id="ah-header-form" class="ah-header-settings-form">' +
-          '<p class="muted ah-header-settings-intro">' + esc(t("Изберете как изглежда плаващият AutoHaus хедър, който се появява след скрол. Настройката е глобална за началната, автомобилите, запитването и правните страници.", "Choose the floating AutoHaus header shown after scrolling. The setting is global across the site.")) + '</p>' +
+          '<p class="muted ah-header-settings-intro">' + esc(t("Изберете кой AutoHaus хедър да се използва в целия сайт. При AutoHaus Blade стандартният хедър се заменя изцяло още върху hero секцията и на продуктовите страници.", "Choose the AutoHaus header used across the whole site. AutoHaus Blade fully replaces the standard header from the hero onward, including vehicle pages.")) + '</p>' +
           '<div class="ah-header-style-grid" role="radiogroup" aria-label="' + esc(t("Стил на хедъра", "Header style")) + '">' +
             '<label class="ah-header-style-card' + (cfg.scroll_header_style === "compact" ? " is-selected" : "") + '">' +
               '<input type="radio" name="scroll_header_style" value="compact"' + (cfg.scroll_header_style === "compact" ? " checked" : "") + disabled + '>' +
@@ -342,7 +342,7 @@
             '<label class="ah-header-style-card' + (cfg.scroll_header_style === "autohaus_original" ? " is-selected" : "") + '">' +
               '<input type="radio" name="scroll_header_style" value="autohaus_original"' + (cfg.scroll_header_style === "autohaus_original" ? " checked" : "") + disabled + '>' +
               '<span class="ah-header-style-preview ah-header-style-preview--original"><i class="ah-mini-original"><img src="/autohaus.svg" alt=""></i></span>' +
-              '<span class="ah-header-style-copy"><strong>' + esc(t("AutoHaus Original", "AutoHaus Original")) + '</strong><small>' + esc(t("Големият тъмен клин с логото, по оригиналния autohaus.bg.", "The large dark logo wedge based on the original autohaus.bg.")) + '</small></span>' +
+              '<span class="ah-header-style-copy"><strong>' + esc(t("AutoHaus Blade", "AutoHaus Original")) + '</strong><small>' + esc(t("Компактен асиметричен blade хедър с логото, езика и менюто в една форма.", "A compact asymmetric blade header with logo, language and menu in one form.")) + '</small></span>' +
             '</label>' +
           '</div>' +
           (app.canWrite ? '<div><button class="primary" id="ah-header-save" type="submit">' + esc(t("Запази хедъра", "Save header")) + '</button></div>' : '') +
