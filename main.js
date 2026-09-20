@@ -1815,13 +1815,10 @@
        class per component: the filter bar reads --plate-top and nothing else
        has to be taught about the plate. */
     var armPlate = function (afterTrigger) {
-      var effective = !!afterTrigger;
-      if (ROOT.dataset.ahScrollHeader === "autohaus_original") {
-        var mode = vehiclePage ? ROOT.dataset.ahProductOriginalMode :
-                   landingPage ? ROOT.dataset.ahLandingOriginalMode : "after_scroll";
-        effective = mode === "always" || (mode === "after_scroll" && !!afterTrigger);
-        if (mode === "hidden") effective = false;
-      }
+      var mode = vehiclePage ? ROOT.dataset.ahProductOriginalMode :
+                 landingPage ? ROOT.dataset.ahLandingOriginalMode : "after_scroll";
+      var effective = mode === "always" || (mode === "after_scroll" && !!afterTrigger);
+      if (mode === "hidden") effective = false;
       plate.classList.toggle("is-on", effective);
       ROOT.classList.toggle("ah-plate-on", effective);
       ROOT.style.setProperty(
