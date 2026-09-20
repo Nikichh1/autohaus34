@@ -3,6 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+(function(){
+  try{
+    var raw=localStorage.getItem("autohaus-photo-presentation-v1");
+    var cache=raw?JSON.parse(raw):null;
+    document.documentElement.dataset.ahScrollHeader=
+      cache&&cache.settings&&cache.settings.scroll_header_style==="autohaus_original"?"autohaus_original":"compact";
+  }catch(_){document.documentElement.dataset.ahScrollHeader="compact";}
+})();
+</script>
 <script>window.AH_INVENTORY_READY = new Promise(function (resolve) { window.AH_INVENTORY_RESOLVE = resolve; });</script>
 <script async src="data/vehicles.js?v=cc4cd34d" onerror="window.AH_INVENTORY_RESOLVE()"></script>
 <link rel="icon" href="favicon.jpg" type="image/jpeg">
