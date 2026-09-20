@@ -5807,18 +5807,18 @@ html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plat
    three-stroke phone geometry, scaled by the existing Original size control. */
 @media(min-width:768px){
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu{
-    width:calc(34px * var(--ah-original-size,.81));
-    min-width:28px;
+    width:calc(54px * var(--ah-original-size,.81));
+    min-width:40px;
     gap:0
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu-l{
     display:none!important
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars{
-    width:calc(28px * var(--ah-original-size,.81));
-    min-width:22px;
-    height:calc(13px * var(--ah-original-size,.81));
-    min-height:10px;
+    width:calc(44px * var(--ah-original-size,.81));
+    min-width:34px;
+    height:calc(18px * var(--ah-original-size,.81));
+    min-height:14px;
     position:relative
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars i{
@@ -5833,24 +5833,24 @@ html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plat
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars i:nth-child(1){
     top:0;
     right:0;
-    width:calc(22.22px * var(--ah-original-size,.81))
+    width:calc(40px * var(--ah-original-size,.81))
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars i:nth-child(2){
     display:block;
-    top:calc(5.43px * var(--ah-original-size,.81));
-    right:calc(3.09px * var(--ah-original-size,.81));
-    width:calc(21.6px * var(--ah-original-size,.81));
+    top:calc(7.4px * var(--ah-original-size,.81));
+    right:calc(4.2px * var(--ah-original-size,.81));
+    width:calc(39px * var(--ah-original-size,.81));
     transform:none
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__bars i:nth-child(3){
-    top:calc(10.86px * var(--ah-original-size,.81));
+    top:calc(14.8px * var(--ah-original-size,.81));
     bottom:auto;
-    right:calc(6.17px * var(--ah-original-size,.81));
-    width:calc(20.99px * var(--ah-original-size,.81))
+    right:calc(8.4px * var(--ah-original-size,.81));
+    width:calc(38px * var(--ah-original-size,.81))
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:hover .plate__bars i:nth-child(1),
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:focus-visible .plate__bars i:nth-child(1){
-    width:calc(22.22px * var(--ah-original-size,.81))
+    width:calc(40px * var(--ah-original-size,.81))
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:hover .plate__bars i:nth-child(2),
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:focus-visible .plate__bars i:nth-child(2){
@@ -5858,7 +5858,7 @@ html[data-ah-scroll-header="autohaus_original"] .plate__menu:focus-visible .plat
   }
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:hover .plate__bars i:nth-child(3),
   html[data-ah-scroll-header="autohaus_original"][data-ah-original-desktop-menu-label="0"] .plate__menu:focus-visible .plate__bars i:nth-child(3){
-    width:calc(20.99px * var(--ah-original-size,.81))
+    width:calc(38px * var(--ah-original-size,.81))
   }
 }
 
