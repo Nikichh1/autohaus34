@@ -611,7 +611,15 @@
     });
     mainFrame.addEventListener('pointercancel', function () { swipeStart = null; });
 
-    var warmNext = function () { prepare(1); };
+    var warmNext = function () {
+      prepare(1).then(function () {
+        var connection = navigator.connection;
+        var fastEnough = !connection || (!connection.saveData &&
+          (!connection.downlink || connection.downlink >= 5) &&
+          !/^(slow-2g|2g|3g)$/.test(connection.effectiveType || ''));
+        if (fastEnough && N > 2) prepare(2);
+      });
+    };
     if ('requestIdleCallback' in window) requestIdleCallback(warmNext, { timeout: 1800 });
     else setTimeout(warmNext, 500);
   }
