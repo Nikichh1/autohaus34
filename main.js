@@ -121,8 +121,11 @@
      the universally decodable one */
   function img(url, w) {
     var variants = (window.AH_IMAGE_VARIANTS || {})[url];
-    var chosen = w && w <= 400 ? 400 : w && w >= 1280 ? 1280 : 800;
-    if (variants && variants["jpg" + chosen]) return variants["jpg" + chosen];
+    if (variants) {
+      if (w && w >= 1600 && variants.jpg1920) return variants.jpg1920;
+      var chosen = w && w <= 400 ? 400 : w && w >= 1280 ? 1280 : 800;
+      if (variants["jpg" + chosen]) return variants["jpg" + chosen];
+    }
     var k = localKey(url);
     if (!k) return url;
     var pick = LOCAL_W.indexOf(w) > -1 ? w : (w && w <= 400 ? 400 : w && w >= 1280 ? 1280 : 800);
