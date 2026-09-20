@@ -1843,19 +1843,19 @@
       var showAt;
 
       if (phone) {
-        /* Do not replace the real top header on the first touch movement.
-           A ~60px gesture keeps the original controls usable and lets the
-           corner plate arrive as a secondary navigation layer. */
-        var phoneFloor = vehiclePage ? 58 : 62;
+        /* The corner is secondary navigation on a phone, not a replacement
+           for the real header on the first touch. Vehicle pages wait slightly
+           longer so the main photograph gets a clean first read. */
+        var phoneFloor = vehiclePage ? 112 : 88;
         showAt = standardMode === "hidden"
           ? phoneFloor
-          : Math.max(phoneFloor, Math.min(72, Math.round((height || 72) * .82)));
+          : Math.max(phoneFloor, Math.min(vehiclePage ? 128 : 104, Math.round((height || 72) * 1.18)));
       } else {
         showAt = standardMode === "hidden"
           ? 28
           : Math.max(34, Math.min(52, Math.round((height || 72) * .56)));
       }
-      return { show: showAt, hide: phone ? 14 : 8 };
+      return { show: showAt, hide: phone ? 20 : 8 };
     }
 
     function syncPlate() {
