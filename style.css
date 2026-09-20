@@ -560,7 +560,7 @@ body:not(.ah) .btn--secondary:active:not(:disabled){--btn-fill:rgba(20,19,18,.16
 }
 .hd-zone{display:flex;align-items:center;gap:32px;min-width:0}
 .hd-zone--start{grid-column:1 / -1;grid-row:2}
-.hd-zone--end{grid-column:1 / -1;grid-row:1;justify-content:flex-start;gap:0}
+.hd-zone--end{grid-column:1 / -1;grid-row:1;justify-content:flex-end;gap:0}
 .hd-logo{display:flex;align-items:center;justify-content:center;grid-column:2 / 3;grid-row:2}
 /* mobile shows only the Menu trigger — the source hides the editorial navs
    below 768 and puts .bm-m-header__mobile-nav in their place */
