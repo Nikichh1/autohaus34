@@ -1507,15 +1507,74 @@ html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__make{
 html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
   grid-template-columns:clamp(250px,21vw,330px) minmax(0,1fr) clamp(68px,5vw,92px)
 }
+
+/* Desktop catalogue: the real grey Original plate is already floating above
+   this layer, so the white catalogue masthead does not need to duplicate its
+   full height. Keep the plate untouched and collapse only the empty paper
+   beneath/alongside it. */
+@media(min-width:768px){
+  html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__bar{
+    min-height:calc(88px + env(safe-area-inset-top,0px))
+  }
+  html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__make{
+    align-self:stretch;
+    min-height:0;
+    padding-top:0;
+    align-items:center
+  }
+}
+
 @media(max-width:767px){
   html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__bar{
     grid-template-columns:min(var(--ah-original-w),72vw) minmax(0,1fr) 56px
   }
   html.shw-open[data-ah-scroll-header="autohaus_original"] .cat__make{
-    padding-inline:6px;
-    padding-top:10px
+    padding-inline:4px 2px;
+    padding-top:8px
   }
   html.shw-open:not([data-ah-scroll-header="autohaus_original"]) .cat__bar{
     grid-template-columns:min(62vw,250px) minmax(0,1fr) 56px
+  }
+
+  /* The centre column is intentionally narrow because the Original plate and
+     close wedge keep their sizes. Shrink only the filter control so the full
+     "Филтри" label remains readable instead of being ellipsised. */
+  html.shw-open .cat__make .fbar2-wrap{
+    width:72px;
+    max-width:100%
+  }
+  html.shw-open .cat__make .fsel{
+    height:30px;
+    padding-inline:7px 6px;
+    gap:4px;
+    font-size:10px;
+    line-height:16px;
+    letter-spacing:.03em
+  }
+  html.shw-open .cat__make .fsel__t{
+    max-width:none;
+    overflow:visible;
+    text-overflow:clip
+  }
+  html.shw-open .cat__make .fsel__c{
+    width:9px;
+    height:7px
+  }
+
+  /* Phone catalogue opening should feel immediate. Keep the same expansion,
+     but remove the extra scale pass and shorten the compositor-only reveal. */
+  .cat__panel{
+    transform:none;
+    transition:clip-path .20s var(--e-mass),opacity .14s var(--e-exit)
+  }
+  .cat.is-open .cat__panel{
+    transition:clip-path .24s var(--e-mass),opacity .14s var(--e-mass)
+  }
+  .cat.is-open .cat__bar,.cat.is-open .cat__tools{
+    transition:opacity .16s var(--e-mass) .035s,
+               transform .16s var(--e-mass) .035s
+  }
+  .cat.is-open .cat__body{
+    transition:opacity .16s var(--e-mass) .065s
   }
 }
