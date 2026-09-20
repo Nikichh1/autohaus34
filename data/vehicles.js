@@ -66,6 +66,24 @@
     return { jpg400: url, jpg800: url, jpg1280: url, webp400: url, webp800: url, webp1280: url };
   }
 
+  function primeVehicleCover(v) {
+    if (!v || !Array.isArray(v.managed_images) || !v.managed_images[0]) return;
+    var variants = v.managed_images[0].variants || {};
+    var webp = variants.webp1280 || "";
+    var jpg = variants.jpg1280 || variants.jpg800 || "";
+    var url = /\.webp(?:$|\?)/i.test(webp) ? webp : jpg;
+    if (!url || document.querySelector('link[data-ah-vehicle-cover="' + v.id + '"]')) return;
+    var link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.href = url;
+    link.fetchPriority = "high";
+    if (/\.webp(?:$|\?)/i.test(url)) link.type = "image/webp";
+    else link.type = "image/jpeg";
+    link.setAttribute("data-ah-vehicle-cover", v.id);
+    document.head.appendChild(link);
+  }
+
   function indexVehicle(v) {
     if (!v || !v.id) return;
     window.AH_MANAGED_VEHICLES[v.id] = v;
@@ -158,6 +176,7 @@
 
     window.AH_VEHICLES = vehicles;
     window.AH_INVENTORY_SOURCE = "managed";
+    if (requestedId && vehicles[0]) primeVehicleCover(vehicles[0]);
     vehicles.forEach(indexVehicle);
   });
   if (typeof window.AH_INVENTORY_RESOLVE === "function") {
