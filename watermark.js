@@ -25,7 +25,8 @@
           photo_aspect_ratio: settings.photo_aspect_ratio,
           photo_filter: settings.photo_filter,
           photo_filter_strength: settings.photo_filter_strength,
-          desktop_gallery_scale: settings.desktop_gallery_scale
+          desktop_gallery_scale: settings.desktop_gallery_scale,
+          scroll_header_style: settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact"
         }
       }));
     } catch (_) {}
@@ -110,6 +111,7 @@
     var filterName = ["none", "balanced", "showroom"].indexOf(settings.photo_filter) >= 0 ? settings.photo_filter : "none";
     var strength = clamp(settings.photo_filter_strength, 0, 100, 35);
     var galleryScale = clamp(settings.desktop_gallery_scale, 70, 100, 84);
+    var scrollHeaderStyle = settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
     /* Human-facing strength should feel useful through the whole slider.
        sqrt() gives the lower/middle range real authority while preserving
        exact zero and a controlled 100% ceiling. */
@@ -136,6 +138,7 @@
     ROOT.style.setProperty("--cat-ratio", ratio === "16:10" ? "1.6" : "1.7777778");
     ROOT.dataset.ahPhotoRatio = ratio;
     ROOT.dataset.ahPhotoFilter = filterName;
+    ROOT.dataset.ahScrollHeader = scrollHeaderStyle;
     ROOT.classList.toggle("ah-watermark-v4-on", enabled);
     ROOT.classList.remove("ah-watermark-on", "ah-watermark-v2-on");
 
@@ -150,7 +153,8 @@
       photo_aspect_ratio: ratio,
       photo_filter: filterName,
       photo_filter_strength: strength,
-      desktop_gallery_scale: galleryScale
+      desktop_gallery_scale: galleryScale,
+      scroll_header_style: scrollHeaderStyle
     }}));
     window.dispatchEvent(new CustomEvent("ah:photosettingschange", { detail: {
       photo_aspect_ratio: ratio,
