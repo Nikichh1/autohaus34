@@ -31,6 +31,7 @@
     root.dataset.ahProductStandardMode=productStandardMode;
     root.dataset.ahProductOriginalMode=productOriginalMode;
     root.dataset.ahOriginalLanguage=s.original_header_language==="header"?"header":"menu";
+    root.dataset.ahOriginalDesktopMenuLabel=s.original_header_desktop_menu_label===false?"0":"1";
     root.style.setProperty("--ah-original-size",String(originalSize/100));
     root.style.setProperty("--ah-original-opacity",String(originalOpacity/100));
   }catch(_){}
