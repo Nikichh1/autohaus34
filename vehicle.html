@@ -21,7 +21,7 @@
     var cache=raw?JSON.parse(raw):null,s=cache&&cache.settings;
     /* Protection defaults mirror the current public watermark so a first-ever
        direct visit is protected even before the asynchronous settings refresh. */
-    if(!s)s={watermark_enabled:true,watermark_transparency:75,watermark_size:13,photo_filter:"none",photo_filter_strength:0,photo_aspect_ratio:"16:9",desktop_gallery_scale:84,scroll_header_style:"compact",landing_standard_header_mode:"top",landing_original_header_mode:"after_scroll",product_standard_header_mode:"sticky",product_original_header_mode:"hidden",original_header_size:81,original_header_opacity:98,original_header_language:"menu"};
+    if(!s)s={watermark_enabled:true,watermark_transparency:75,watermark_size:13,photo_filter:"none",photo_filter_strength:0,photo_aspect_ratio:"16:9",desktop_gallery_scale:84,scroll_header_style:"compact",landing_standard_header_mode:"top",landing_original_header_mode:"after_scroll",product_standard_header_mode:"sticky",product_original_header_mode:"hidden",original_header_size:81,original_header_opacity:98,original_header_language:"menu",original_header_desktop_menu_label:true};
     var root=document.documentElement;
     var wmTransparency=Math.max(0,Math.min(100,Number(s.watermark_transparency)));
     if(!Number.isFinite(wmTransparency))wmTransparency=75;
@@ -63,6 +63,7 @@
     root.dataset.ahProductStandardMode=productStandardMode;
     root.dataset.ahProductOriginalMode=productOriginalMode;
     root.dataset.ahOriginalLanguage=s.original_header_language==="header"?"header":"menu";
+    root.dataset.ahOriginalDesktopMenuLabel=s.original_header_desktop_menu_label===false?"0":"1";
     root.style.setProperty("--ah-original-size",String(originalSize/100));
     root.style.setProperty("--ah-original-opacity",String(originalOpacity/100));
   }catch(_){}
