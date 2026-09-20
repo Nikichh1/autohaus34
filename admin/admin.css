@@ -74,9 +74,9 @@
 .ah-mini-compact b,.ah-mini-compact em{position:absolute;left:18px;height:1.5px;background:#fff;display:block}
 .ah-mini-compact b{top:17px;width:18px}.ah-mini-compact em{top:27px;width:11px}
 .ah-mini-original{
-  position:absolute;left:0;top:0;width:min(88%,402px);height:112px;
+  position:absolute;left:0;top:0;width:min(88%,402px);height:104px;
   background:rgba(36,39,42,.985);
-  clip-path:polygon(0 0,100% 0,79.5% 75.7%,0 100%);
+  clip-path:polygon(0 0,100% 0,82% 72%,0 100%);
   box-shadow:0 10px 22px rgba(0,0,0,.15)
 }
 .ah-mini-original::before{left:10px;top:34px;width:212px;height:38px}
@@ -183,9 +183,9 @@
 
 /* Stronger previews: the Original card mirrors the actual sharper supplied wedge. */
 .ah-header-style-preview--original .ah-mini-original{
-  position:absolute;left:0;top:0;width:min(88%,402px);height:112px;
+  position:absolute;left:0;top:0;width:min(88%,402px);height:104px;
   background:rgba(36,39,42,.985);
-  clip-path:polygon(0 0,100% 0,79.5% 75.7%,0 100%);
+  clip-path:polygon(0 0,100% 0,82% 72%,0 100%);
   box-shadow:0 10px 22px rgba(0,0,0,.15)
 }
 .ah-header-style-preview--original .ah-mini-original::before{
