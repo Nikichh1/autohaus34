@@ -504,7 +504,11 @@
 
   /* ---- the dropdown ---------------------------------------------------- */
   function popHTML(key) {
-    var html = '<div class="fpop__b">' + panelBody(key, S) + "</div>";
+    var html = '<div class="fpop__b">' + panelBody(key, S) + "</div>" +
+      '<div class="fpop__more" aria-hidden="true">' +
+        '<span data-ah-bg="Още марки" data-ah-en="More brands">Още марки</span>' +
+        '<b aria-hidden="true">↓</b>' +
+      "</div>";
     if (S.make) {
       html += '<div class="fpop__f fpop__f--clear">' +
         '<button type="button" class="fpop__reset" data-reset="' + key + '">Изчисти филтъра</button>' +
@@ -562,7 +566,11 @@
     var l = pop.querySelector(".fopts");
     if (!l) return;
     var over = l.scrollHeight - l.clientHeight;
-    l.classList.toggle("is-end", over <= 1 || l.scrollTop >= over - 1);
+    var atEnd = over <= 1 || l.scrollTop >= over - 1;
+    var more = pop.querySelector(".fpop__more");
+    l.classList.toggle("is-end", atEnd);
+    pop.classList.toggle("has-more", over > 1 && !atEnd);
+    if (more) more.hidden = !(over > 1 && !atEnd);
   }
   pop.addEventListener("scroll", function (e) {
     if (e.target.classList && e.target.classList.contains("fopts")) listEdge();
