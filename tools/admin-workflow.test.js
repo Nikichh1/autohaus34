@@ -48,7 +48,8 @@ function element(id = "") {
   };
 }
 
-function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}) {
+function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en", Image: ImageImpl, readyState = "complete" } = {}) {
+  const documentEvents = {};
   const nodes = new Map(), calls = [], edits = [], screens = [], storage = new Map(), encodes = [];
   const node = id => {
     if (!nodes.has(id)) nodes.set(id, element(id));
@@ -82,10 +83,11 @@ function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}
   view.querySelectorAll = selector => selector === "[data-review-language]" ? tabs : [];
   const body = element("body");
   body.dataset = { adminUser: "test-user", adminRole: "owner" };
-  const document = { body, documentElement: {}, visibilityState: "visible", getElementById: node, querySelectorAll: () => [], addEventListener() {},
+  const document = { readyState, body, documentElement: {}, visibilityState: "visible", getElementById: node, querySelectorAll: () => [], querySelector: () => null,
+    addEventListener(name, fn) { documentEvents[name] = fn; },
     createElement(tag) {
       if (tag !== "canvas") return element(tag);
-      return { width: 0, height: 0, getContext() { return { imageSmoothingEnabled: false, imageSmoothingQuality: "", fillStyle: "", fillRect() {}, drawImage() {} }; },
+      return { width: 0, height: 0, getContext() { return { imageSmoothingEnabled: false, imageSmoothingQuality: "", fillStyle: "", fillRect() {}, drawImage() {}, save() {}, restore() {} }; },
         toBlob(callback, type, quality) { encodes.push({ width: this.width, height: this.height, type, quality }); callback(new Blob([type], { type })); } };
     } };
   const location = { hash, replace() {} };
@@ -100,10 +102,10 @@ function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}
   const testSource = source.replace(startup, `
     translateShell();
     window.__test = { state: state, loadDetail: loadDetail, loadVehicles: loadVehicles,
-      renderRoute: renderRoute, selectReviewLanguage: selectReviewLanguage,
-      validateCar: validateCar, processDescription: processDescription, saveCar: saveCar,
+      renderRoute: renderRoute,
+      validateCar: validateCar, saveCar: saveCar,
       bindEditor: bindEditor, collectForm: collectForm, rememberDetail: rememberDetail, invalidateDetail: invalidateDetail,
-      preparePhoto: preparePhoto, uploadPreparedPhoto: uploadPreparedPhoto, isResponsiveImage: isResponsiveImage,
+      preparePhoto: preparePhoto, watermarkAsset: watermarkAsset, uploadPreparedPhoto: uploadPreparedPhoto, isResponsiveImage: isResponsiveImage,
       hooks: function (hooks) {
         if (hooks.editor) editor = hooks.editor;
         if (hooks.dashboard) dashboard = hooks.dashboard;
@@ -114,7 +116,7 @@ function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}
     document, window, location, history, console, Intl, Map, Promise,
     Date: { now: () => now }, Blob, AbortController,
     URL: { createObjectURL: () => "blob:test", revokeObjectURL() {} },
-    Image: class { constructor() { this.naturalWidth = 2400; this.naturalHeight = 1600; } decode() { return Promise.resolve(); } },
+    Image: ImageImpl || class { constructor() { this.naturalWidth = 2400; this.naturalHeight = 1600; } set src(value) { if(this.onload) this.onload(); } decode() { return Promise.resolve(); } },
     FormData: class { constructor() { this.entries = []; } append(...values) { this.entries.push(values); } },
     navigator: { hardwareConcurrency: 8, deviceMemory: 8 },
     confirm: () => true,
@@ -124,13 +126,15 @@ function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en" } = {}
       return fetchImpl ? fetchImpl(url, options) : response({});
     }
   }, { filename: "admin/admin.js" });
+  const deferredStartup = !window.__test;
+  if (deferredStartup) documentEvents.DOMContentLoaded();
   const admin = window.__test;
   admin.hooks({
     editor(vehicle, isNew) { edits.push({ vehicle, isNew }); admin.state.current = vehicle; },
     dashboard() { screens.push("dashboard"); },
     cars() { screens.push("cars"); }
   });
-  return { admin, node, tabs, form, calls, edits, screens, view, heading, storage, location, encodes, advance: milliseconds => { now += milliseconds; } };
+  return { admin, node, tabs, form, calls, edits, screens, view, heading, storage, location, encodes, deferredStartup, advance: milliseconds => { now += milliseconds; } };
 }
 
 function car(id = "car-1", overrides = {}) {
@@ -139,17 +143,23 @@ function car(id = "car-1", overrides = {}) {
     updated_at: "2026-09-15T10:00:00Z", ...overrides };
 }
 
+test("deferred scripts wait for route registration before initial navigation", () => {
+  assert.equal(harness({ readyState: 'interactive', hash: '#settings' }).deferredStartup, true);
+  assert.equal(harness({ readyState: 'loading', hash: '#team' }).deferredStartup, true);
+  assert.equal(harness({ readyState: 'complete' }).deferredStartup, false);
+});
+
 test("photo preparation creates a bounded original and distinct JPEG/WebP widths", async () => {
   const h = harness();
   const prepared = await h.admin.preparePhoto({ name: "car.jpg", type: "image/jpeg", size: 1000 });
   assert.equal(prepared.width, 1600);
-  assert.equal(prepared.height, 1067);
+  assert.equal(prepared.height, 900);
   assert.deepEqual(Object.keys(prepared.files), ["original", "jpg400", "webp400", "jpg800", "webp800", "jpg1280", "webp1280"]);
   assert.equal(prepared.files.jpg400.type, "image/jpeg");
   assert.equal(prepared.files.webp400.type, "image/webp");
   assert.deepEqual(h.encodes.map(item => [item.width, item.height, item.type]), [
-    [1600, 1067, "image/jpeg"], [400, 267, "image/jpeg"], [400, 267, "image/webp"],
-    [800, 533, "image/jpeg"], [800, 533, "image/webp"], [1280, 853, "image/jpeg"], [1280, 853, "image/webp"]
+    [1600, 900, "image/jpeg"], [400, 225, "image/jpeg"], [400, 225, "image/webp"],
+    [800, 450, "image/jpeg"], [800, 450, "image/webp"], [1280, 720, "image/jpeg"], [1280, 720, "image/webp"]
   ]);
 });
 
@@ -166,6 +176,33 @@ test("responsive upload sends every prepared asset and retains legacy fallback",
   assert.equal(await h.admin.uploadPreparedPhoto({ upload_url: "https://upload.example/legacy", headers: {} }, { files }), false);
   assert.equal(h.calls.length, 1);
   assert.equal(h.calls[0].url, "https://upload.example/legacy");
+});
+
+test("watermark failure can be retried without reloading the editor", async () => {
+  let attempts = 0;
+  const h = harness({ Image: class {
+    set src(value) { if (++attempts === 1) this.onerror(); else this.onload(); }
+    decode() { return Promise.resolve(); }
+  } });
+  await assert.rejects(h.admin.watermarkAsset(), /unavailable/);
+  assert.ok(await h.admin.watermarkAsset());
+  assert.equal(attempts, 2);
+});
+
+test("failed responsive upload waits for its other worker before allowing cleanup", async () => {
+  const pending = deferred();
+  const h = harness({ fetch: url => url.endsWith('/original') ? Promise.reject(new Error('failed')) :
+    url.endsWith('/jpg400') ? pending.promise : response({}) });
+  const keys = ["original", "jpg400", "jpg800", "jpg1280", "webp400", "webp800", "webp1280"];
+  const files = Object.fromEntries(keys.map(key => [key, new Blob([key])]));
+  const uploads = Object.fromEntries(keys.map(key => [key, { upload_url: 'https://upload.example/' + key }]));
+  let settled = false;
+  const outcome = h.admin.uploadPreparedPhoto({ responsive: true, uploads }, { files }).catch(error => { settled = true; return error; });
+  await new Promise(setImmediate);
+  assert.equal(settled, false);
+  pending.resolve(response({}));
+  assert.match((await outcome).message, /failed/);
+  assert.equal(h.calls.length, 7);
 });
 
 test("only a complete six-URL Supabase derivative set is marked responsive", () => {
@@ -273,88 +310,31 @@ test("late detail responses and errors cannot overwrite a newer route", async ()
   }
 });
 
-test("AI processing sends only vehicle facts and retains independent source and reviewed outputs", async () => {
-  const result = { description_bg: "Сервизна история.", description_en: "Service history.", equipment_bg: ["Камера", "Пакет"], equipment_en: ["Camera", "Package"], review_notes: ["Check history"] };
-  const h = harness({ fetch: () => response({ result }) });
-  h.admin.state.current = car("car-1", { images: Array.from({ length: 80 }, () => ({ original: "/large-original.jpg", variants: { webp1280: "/large.webp" } })) });
-  h.node("source-text").value = "  Original listing. Camera and package.  ";
-  h.node("desc-bg").value = "Old private output";
-  h.node("desc-en").value = "Old English output";
-  await h.admin.processDescription();
-  assert.equal(h.calls.length, 1, "Processing must not save or publish");
-  assert.equal(h.calls[0].url, "/api/admin/description");
-  const payload = JSON.parse(h.calls[0].options.body);
-  assert.equal(payload.source, "Original listing. Camera and package.");
-  assert.deepEqual(Object.keys(payload.vehicle).sort(), ["body_type", "colour", "first_registration_month", "first_registration_year", "fuel", "horsepower", "make", "mileage", "model", "price", "ref", "transmission", "unregistered"].sort());
-  assert.ok(h.calls[0].options.body.length < 1000, "Photo metadata and previous output should not inflate the AI request");
-  assert.equal(h.node("source-text").value, "  Original listing. Camera and package.  ");
-  assert.equal(h.node("desc-bg").value, result.description_bg);
-  assert.equal(h.node("equipment-en").value, "Camera\nPackage");
-  assert.equal(h.admin.state.aiNeedsReview, true);
-  assert.equal(h.admin.state.dirty, true);
-  for (const id of ["source-text", "desc-bg", "desc-en", "equipment-bg", "equipment-en"]) assert.equal(h.node(id).readOnly, false);
-  assert.equal(h.node("review-en").hidden, false);
-  assert.equal(h.node("review-bg").hidden, true);
-});
-
-test("failed AI processing preserves source/output and unlocks manual editing", async () => {
-  const h = harness({ fetch: () => response({ error: "Quota", code: "AI_FREE_QUOTA" }, 429) });
-  h.admin.state.current = car();
-  h.node("source-text").value = "A complete original listing";
-  h.node("desc-bg").value = "Запазено описание";
-  h.node("desc-en").value = "Saved description";
-  await h.admin.processDescription();
-  assert.equal(h.node("source-text").value, "A complete original listing");
-  assert.equal(h.node("desc-bg").value, "Запазено описание");
-  assert.equal(h.node("desc-en").value, "Saved description");
-  assert.equal(h.admin.state.aiBusy, false);
-  assert.equal(h.admin.state.aiNeedsReview, false);
-  assert.equal(h.node("desc-en").readOnly, false);
-  assert.match(h.node("processor-note").textContent, /quota/i);
-});
-
-test("review tabs support keyboard navigation without altering either language", () => {
+test("hidden legacy descriptions and review notes survive ordinary edits", () => {
   const h = harness();
-  h.node("desc-bg").value = "Български";
-  h.node("desc-en").value = "English";
-  h.admin.bindEditor();
-  let prevented = false;
-  h.node("review-tab-bg").onkeydown({ key: "ArrowRight", preventDefault() { prevented = true; } });
-  assert.equal(prevented, true);
-  assert.equal(h.node("review-en").hidden, false);
-  assert.equal(h.node("review-bg").hidden, true);
-  assert.equal(h.node("review-tab-en").getAttribute("aria-selected"), "true");
-  assert.equal(h.node("review-tab-en").tabIndex, 0);
-  assert.equal(h.node("review-tab-bg").tabIndex, -1);
-  assert.equal(h.node("review-tab-en").focused, true);
-  h.node("review-tab-en").onkeydown({ key: "Home", preventDefault() {} });
-  assert.equal(h.node("review-bg").hidden, false);
-  assert.equal(h.node("desc-bg").value, "Български");
-  assert.equal(h.node("desc-en").value, "English");
+  h.admin.state.current = car("car-1", {description_bg:"Запазено", description_en:"Preserved", description_source:"Source", description_review_notes:["Review note"]});
+  const data = h.admin.collectForm();
+  assert.equal(data.description_bg,"Запазено");
+  assert.equal(data.description_en,"Preserved");
+  assert.equal(data.description_source,"Source");
+  assert.deepEqual(Array.from(data.description_review_notes),["Review note"]);
 });
 
-test("validation exposes a hidden language before focusing an invalid field", () => {
+test("VAT selection survives form collection for draft recovery without removing other VAT notes", () => {
   const h = harness();
   h.admin.state.current = car();
-  h.admin.selectReviewLanguage("bg");
-  h.node("desc-en").validity.valid = false;
-  assert.equal(h.admin.validateCar(h.admin.collectForm()), false);
-  assert.equal(h.node("review-en").hidden, false);
-  assert.equal(h.node("desc-en").focused, true);
-  assert.equal(h.node("desc-en").getAttribute("aria-invalid"), "true");
-  h.node("desc-en").validity.valid = true;
-  h.node("equipment-bg").value = "One\nTwo";
-  h.node("equipment-en").value = "One";
-  h.admin.selectReviewLanguage("bg");
-  assert.equal(h.admin.validateCar(h.admin.collectForm()), false);
-  assert.equal(h.node("review-en").hidden, false);
-  assert.equal(h.node("equipment-en").focused, true);
+  h.form.elements.notes.value = "ДДС включен в други услуги";
+  h.form.elements.show_price_without_vat = {checked:true};
+  const data = h.admin.collectForm();
+  assert.deepEqual(Array.from(data.notes),["ДДС включен в други услуги","Цена без начислен 20% ДДС"]);
+  h.form.elements.show_price_without_vat.checked=false;
+  assert.deepEqual(Array.from(h.admin.collectForm().notes),["ДДС включен в други услуги"]);
 });
 
 test("ordinary save preserves the editor DOM, source, and optimistic concurrency version", async () => {
   const saved = car("car-1", { full_name: "Updated display name", updated_at: "2026-09-15T10:01:00Z" });
   const h = harness({ fetch: () => response({ vehicle: saved }) });
-  h.admin.state.current = car();
+  h.admin.state.current = car("car-1", {description_source:"Original private source"});
   h.admin.state.dirty = true;
   h.node("source-text").value = "Original private source";
   const form = h.form;

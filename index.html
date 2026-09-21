@@ -37,7 +37,7 @@
   }catch(_){}
 })();
 </script>
-<script async src="data/vehicles.js?v=cc4cd34d" onerror="window.AH_INVENTORY_RESOLVE()"></script>
+<script async src="data/vehicles.js?v=eda25efda701" onerror="window.AH_INVENTORY_RESOLVE()"></script>
 <link rel="icon" href="favicon.jpg" type="image/jpeg">
 <link rel="preconnect" href="https://ajoiqomflplhadyhxvfe.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="//ajoiqomflplhadyhxvfe.supabase.co">
@@ -48,19 +48,22 @@
 <!-- the hero frame, which gates the whole entrance choreography (see main.js) -->
 <!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=cc4cd34d" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=d0439a4b3f20" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
-<link rel="stylesheet" href="catalog.min.css?v=cc4cd34d" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="catalog.min.css?v=cc4cd34d"></noscript>
+<link rel="stylesheet" href="catalog.min.css?v=45d9fbbe044e" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="catalog.min.css?v=45d9fbbe044e"></noscript>
 <!-- Ordered deferred modules: inventory resolves before rendering. -->
-<script defer src="main.js?v=cc4cd34d"></script>
-<script defer src="catalog.js?v=cc4cd34d"></script>
-<script defer src="showroom.js?v=cc4cd34d"></script>
-<script defer src="i18n.js?v=cc4cd34d"></script>
+<script defer src="main.js?v=61353936be9a"></script>
+<script defer src="catalog.js?v=6f4a42cb4190"></script>
+<script defer src="catalog-prefetch.js?v=4b0cf3287ba8"></script>
+<script defer src="showroom.js?v=d4b7add5d1b4"></script>
+<script defer src="i18n.js?v=222d4b3c79da"></script>
 
-<script defer src="analytics.js?v=cc4cd34d"></script>
+<script defer src="analytics.js?v=0bbdd49798ca"></script>
+<script defer src="watermark.js?v=523b64517158"></script>
+<script defer src="image-guard.js?v=fdc6606ccf15"></script>
 </head>
 <body class="ah">
 
@@ -93,7 +96,7 @@
     </div>
 
     <a class="hd-logo" href="#top" aria-label="AutoHaus — начало">
-      <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+      <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
     </a>
 
     <ul class="hd-zone hd-zone--end">
@@ -141,12 +144,12 @@
 
 <div class="plate" id="plate">
   <div class="plate__in">
-    <button type="button" class="plate__menu" id="plate-menu" aria-expanded="false" aria-controls="mob">
+    <button type="button" class="plate__menu" id="plate-menu" aria-label="Меню" aria-expanded="false" aria-controls="mob">
       <span class="plate__bars" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="plate__menu-l">Меню</span>
     </button>
     <a class="plate__mark" href="#top" aria-label="AutoHaus — към началото">
-      <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+      <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
     </a>
     <div class="lang" role="group" aria-label="Език / Language">
       <i class="lang__ind" aria-hidden="true"></i>
@@ -174,7 +177,7 @@
   <div class="mob__reveal">
     <div class="mob__sheet">
       <a class="mob-mark" href="index.html" aria-label="AutoHaus">
-        <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+        <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
       </a>
       <button class="mob-close" id="mob-close" aria-label="Затвори">
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
@@ -620,7 +623,7 @@
     <div class="row">
       <div class="col span-12 ft-end">
         <a class="ft-logo" href="#top" aria-label="AutoHaus — начало">
-          <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+          <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
         </a>
         <ul class="ft-social" aria-label="AutoHaus в социалните мрежи">
           <li><a href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg>Facebook</a></li>
@@ -664,7 +667,7 @@
            identity exactly where the reader last saw it. -->
       <div class="cat__id">
         <a class="cat__mark" href="index.html" aria-label="AutoHaus">
-          <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+          <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
         </a>
       </div>
       <div class="cat__make" id="cat-tools">

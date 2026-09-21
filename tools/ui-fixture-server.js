@@ -4,12 +4,12 @@
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),crypto=require('node:crypto');
 const {createServer}=require('./dev-server');
 const lib=require('../server/admin-lib');
-const photoSource=fs.readFileSync(path.join(__dirname,'../data/photos.js'),'utf8');
-const localPhotos=new Set(JSON.parse(photoSource.slice(photoSource.indexOf('['),photoSource.lastIndexOf(']')+1)));
 let rows=require('../api/admin/vehicles').initialInventory().map((r,i)=>({...r,id:'00000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),created_at:'2026-09-09T10:00:00Z',updated_at:'2026-09-09T10:00:00Z'}));
+const localPhotos=new Set(rows.flatMap(row=>row.images.map(image=>image.original)));
+let settings={watermark_enabled:false,watermark_transparency:75,watermark_size:34,photo_aspect_ratio:'16:9',photo_filter:'none',photo_filter_strength:35,desktop_gallery_scale:84,scroll_header_style:'autohaus_original',landing_standard_header_mode:'top',landing_original_header_mode:'after_scroll',product_standard_header_mode:'sticky',product_original_header_mode:'hidden',original_header_size:81,original_header_opacity:98,original_header_language:'menu',original_header_desktop_menu_label:false};
 const edgeSource=JSON.parse(JSON.stringify(rows.find(row=>row.images.length>=2)));
 const pageModule={exports:{}};
-vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../api/admin/page.js'),'utf8'),{module:pageModule,require:()=>({...lib,requireAdmin:async()=>({id:'ui-fixture',email:'preview@example.com',adminRole:'owner'})})});
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../api/admin/page.js'),'utf8'),{process:{env:{}},module:pageModule,require:()=>({...lib,requireAdmin:async()=>({id:'ui-fixture',email:'preview@example.com',adminRole:'owner'})})});
 const server=createServer(),base=server.listeners('request')[0]; server.removeAllListeners('request');
 function send(res,status,data){res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
 function publicVehicle(row,compact){
@@ -36,6 +36,7 @@ server.on('request',async(req,res)=>{
  if(url.pathname==='/admin'||url.pathname==='/api/admin/page')return pageModule.exports(req,res);
  if(url.pathname==='/api/public/vehicles'){
   if(req.method!=='GET')return send(res,405,{ok:false,error:'Method not allowed'});
+  if(url.searchParams.get('settings')==='1')return send(res,200,{ok:true,settings});
   const id=url.searchParams.get('id');
   if(id&&!/^[a-z0-9-]+$/.test(id))return send(res,400,{ok:false,error:'Invalid vehicle ID'});
   const published=rows.filter(r=>r.published);
@@ -58,9 +59,14 @@ server.on('request',async(req,res)=>{
  if(url.pathname==='/api/admin/auth')return send(res,200,{ok:true,authenticated:true,user:{email:'preview@example.com'}});
  if(url.pathname.startsWith('/api/admin/')){
   const body=await readBody(req);
+  if(url.pathname==='/api/admin/settings'){
+   if(req.method==='PATCH')settings={...settings,...body};
+   return send(res,200,{ok:true,settings});
+  }
   if(url.pathname==='/api/admin/team')return send(res,200,{ok:true,actor_role:'owner',members:[{user_id:'fixture',email:'long.staff.address@example.com',display_name:'Example staff member',role:'editor',active:true}]});
   if(url.pathname==='/api/admin/analytics')return send(res,200,{ok:true,summary:{pageviews:123,vehicle_views:45,sessions:67,visitors:56,top_vehicles:[],top_paths:[],daily:[]}});
   if(url.pathname==='/api/admin/description'){
+   if(url.searchParams.get('action')==='translate')return send(res,200,{ok:true,pending:false,lines:(body.lines||[]).map(line=>({'Пълна сервизна история':'Full service history','Камера за паркиране':'Parking camera','Отопляеми седалки':'Heated seats','Тестова бележка':'Test note'}[line]||'Fixture translation: '+line))});
    if(/quota/i.test(body.source))return send(res,429,{ok:false,code:'AI_FREE_QUOTA',error:'Free quota unavailable'});
    return send(res,200,{ok:true,result:{description_bg:'Пълна сервизна история.',description_en:'Full service history.',equipment_bg:['Камера 360°','Отопление на седалките'],equipment_en:['360° camera','Heated seats'],review_notes:[]}});
   }
@@ -75,7 +81,8 @@ server.on('request',async(req,res)=>{
    if(req.method==='DELETE'){rows=rows.filter(r=>r.id!==id);return send(res,200,{ok:true,deleted:1});}
    const old=rows.find(r=>r.id===id),normalized=lib.normalizeVehicle({...old,...body});
    if(normalized.error)return send(res,400,{ok:false,error:normalized.error});
-   const vehicle={...old,...normalized.row,id:id||crypto.randomUUID(),updated_at:new Date().toISOString()};
+   if(old&&body.if_unmodified_since&&body.if_unmodified_since!==old.updated_at)return send(res,409,{ok:false,code:'STALE_VEHICLE',error:'Vehicle changed. Reload before saving.'});
+   const vehicle={...old,...normalized.row,notes_en:body.notes_en||old&&old.notes_en||[],id:id||crypto.randomUUID(),updated_at:new Date().toISOString()};
    rows=rows.filter(r=>r.id!==vehicle.id);rows.unshift(vehicle);return send(res,200,{ok:true,vehicle});
   }
   return send(res,404,{ok:false});

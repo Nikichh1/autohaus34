@@ -19,6 +19,8 @@ function fixture(t) {
   });
   for (const file of ["main.js", "catalog.js", "showroom.js", "vehicle.js", "concierge.js", "i18n.js", "analytics.js", "data/vehicles.base.js", "data/vehicles.js", "data/photo-insets.js", "admin/admin.js", "admin/login.js", "admin/advanced.js", "admin/image-sorter.js"]) write(file, "/* " + file + " */\nwindow.loaded = true;");
   for (const file of ["style.css", "catalog.css", "admin/admin.css", "admin/brand.css", "admin/brand-fallback.css", "admin/image-sorter.css"]) write(file, "/* " + file + " */\nbody { color: #111; }");
+  for (const file of ["watermark.js", "image-guard.js", "catalog-prefetch.js", "vehicle-i18n-runtime.js"]) write(file, "/* fixture */");
+  write("vehicle-fixes.css", "/* fixture */");
   write("autohaus.svg", "<svg></svg>"); write("favicon.jpg", "image"); write("_headers", "/*\n  X-Content-Type-Options: nosniff");
   write("img/test.webp", "picture"); write("fonts/test.woff2", "font"); write("data/eq/test.js", "window.AH_EQ={id:'test',e:[]};");
   write(".env", "PRIVATE=true"); write("server/private.js", "PRIVATE"); write("data/inventory.snapshot.json", "PRIVATE");

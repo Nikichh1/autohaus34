@@ -74,7 +74,10 @@
     }
     var response;
     try { response = await fetch(url, options); }
-    catch (_) { throw new Error(t("Няма връзка. Промените са запазени на този екран. Опитайте отново.", "Connection unavailable. Your changes remain on this screen. Try again.")); }
+    catch (error) {
+      if (error && error.code === "TRANSLATION_UNAVAILABLE") throw error;
+      throw new Error(t("Няма връзка. Промените са запазени на този екран. Опитайте отново.", "Connection unavailable. Your changes remain on this screen. Try again."));
+    }
     var data = await response.json().catch(function () { return {}; });
     if (!response.ok) {
       var error = new Error(data.error || t("Заявката не успя. Опитайте отново.", "The request failed. Try again."));
@@ -276,7 +279,7 @@
       '</a><h1>' + esc(isNew ? t("Нов автомобил", "New car") : carName(car)) + '</h1><div class="heading-status">' + pill(car.published) +
       '</div></div></div>' +
       (recovered && !recovered.silent ? '<div class="recovery-note" role="status">' + t("Незаписаните промени са възстановени.", "Your unsaved changes have been restored.") + '</div>' : "") +
-      '<form id="car-form" class="editor" novalidate><fieldset class="editor-main" id="editor-fields"><legend class="sr-only">' + t("Данни за автомобила", "Vehicle details") + '</legend>' +
+      '<form id="car-form" class="editor" data-recovered="' + (recovered ? '1' : '0') + '" novalidate><fieldset class="editor-main" id="editor-fields"><legend class="sr-only">' + t("Данни за автомобила", "Vehicle details") + '</legend>' +
       '<section class="card" id="basics"><h2>' + t("Автомобил", "Car") + '</h2><div class="field-grid">' +
       field(t("Марка *", "Make *"), "make", car.make, "text", "required maxlength=120 autocomplete=off") +
       field(t("Модел *", "Model *"), "model", car.model, "text", "required maxlength=220 autocomplete=off") +
@@ -331,13 +334,18 @@
     function value(name) { return form.elements[name].value.trim(); }
     function number(name) { return value(name) === "" ? null : Number(value(name)); }
     var unregistered = form.elements.unregistered.checked, make = value("make"), model = value("model");
+    var notes = splitLines(value("notes")), vat = form.elements.show_price_without_vat;
+    if (vat && vat.checked) {
+      var vatNote = form.dataset.ahOriginalVatNote || "Цена без начислен 20% ДДС";
+      if (notes.indexOf(vatNote) < 0) notes.push(vatNote);
+    }
     return { make: make, model: model, full_name: value("full_name") || [make, model].filter(Boolean).join(" "),
       slug: value("slug") || slugify(make + " " + model), ref: value("ref"), body_type: value("body_type"), colour: value("colour"),
       transmission: value("transmission"), fuel: value("fuel"), mileage: number("mileage"), horsepower: number("horsepower"), price: value("price") === "" ? null : parseInt(value("price"), 10),
       first_registration_year: unregistered ? null : number("first_registration_year"), first_registration_month: unregistered ? null : number("first_registration_month"),
       // Legacy catalog metadata is no longer edited here; keep it intact on save.
-      unregistered: unregistered, chapter: state.current.chapter || "saloon", tags: clone(state.current.tags || []), notes: splitLines(value("notes")),
-      description_source: state.current.description_source || "", description_review_notes: [],
+      unregistered: unregistered, chapter: state.current.chapter || "saloon", tags: clone(state.current.tags || []), notes: notes,
+      description_source: state.current.description_source || "", description_review_notes: clone(state.current.description_review_notes || []),
       description_bg: state.current.description_bg || "", description_en: state.current.description_en || "",
       equipment_bg: splitLines(D.getElementById("equipment-bg").value), equipment_en: splitLines(D.getElementById("equipment-en").value),
       images: clone(state.current.images || []), source_url: state.current.source_url || "", published: !!state.current.published };
@@ -440,12 +448,17 @@
     if (watermarkAssetPromise) return watermarkAssetPromise;
     watermarkAssetPromise = new Promise(function (resolve, reject) {
       var logo = new Image();
+      var timer = setTimeout(function () { reject(new Error("Watermark asset timed out")); }, 12000);
       logo.decoding = "async";
       logo.onload = function () {
+        clearTimeout(timer);
         (logo.decode ? logo.decode().catch(function () {}) : Promise.resolve()).then(function () { resolve(logo); });
       };
-      logo.onerror = function () { reject(new Error("Watermark asset unavailable")); };
+      logo.onerror = function () { clearTimeout(timer); reject(new Error("Watermark asset unavailable")); };
       logo.src = "/autohaus.svg";
+    }).catch(function (error) {
+      watermarkAssetPromise = null;
+      throw error;
     });
     return watermarkAssetPromise;
   }
@@ -555,7 +568,11 @@
         await uploadPhotoBlob(sign.uploads[key], prepared.files[key], sign.headers, key + extension);
       }
     }
-    await Promise.all([worker(), worker()]);
+    // Let every upload finish before cleanup starts, so an in-flight worker
+    // cannot recreate files after a failed photo has been cleaned up.
+    var results = await Promise.allSettled([worker(), worker()]);
+    var failed = results.find(function (result) { return result.status === "rejected"; });
+    if (failed) throw failed.reason;
     return true;
   }
   async function uploadFiles(files) {
@@ -623,12 +640,25 @@
         buttons.forEach(function (button) {
           var selected = button.dataset.adminLangTarget === targetId;
           button.setAttribute("aria-selected", String(selected));
+          button.setAttribute("role", "tab");
+          button.setAttribute("aria-controls", button.dataset.adminLangTarget);
+          button.tabIndex = selected ? 0 : -1;
         });
         view.querySelectorAll('[data-admin-lang-panel="' + group + '"]').forEach(function (panel) {
           panel.hidden = panel.id !== targetId;
         });
       }
-      buttons.forEach(function (button) { button.onclick = function () { show(button.dataset.adminLangTarget); }; });
+      buttons.forEach(function (button, index) {
+        button.onclick = function () { show(button.dataset.adminLangTarget); };
+        button.onkeydown = function (event) {
+          var next = event.key === "ArrowRight" ? (index + 1) % buttons.length :
+            event.key === "ArrowLeft" ? (index + buttons.length - 1) % buttons.length :
+            event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : -1;
+          if (next < 0) return;
+          event.preventDefault(); show(buttons[next].dataset.adminLangTarget); buttons[next].focus();
+        };
+      });
+      if (buttons.length) show(buttons[0].dataset.adminLangTarget);
     });
   }
   function bindEditor() {
@@ -731,5 +761,9 @@
   window.addEventListener("hashchange", function () { if (requestedRoute() !== state.route) go(requestedRoute(), true); });
   window.addEventListener("beforeunload", function (event) { if (state.dirty || isBusy()) { persistDraft(); event.preventDefault(); event.returnValue = ""; } });
   D.addEventListener("visibilitychange", function () { if (D.visibilityState === "hidden") persistDraft(); });
-  translateShell(); loadVehicles(true);
+  // Defer startup until all deferred route extensions have registered. A fast
+  // inventory response could otherwise replace a direct #settings/#team URL.
+  function start() { translateShell(); loadVehicles(true); }
+  if (D.readyState !== "complete") D.addEventListener("DOMContentLoaded", start, { once: true });
+  else start();
 })();

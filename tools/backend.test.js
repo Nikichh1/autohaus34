@@ -42,7 +42,7 @@ test("a valid user also needs a live server session",async()=>{
 });
 test("all admin data APIs and page deny unauthenticated access",async()=>{
  global.fetch=()=>{throw new Error("No token should be sent");};
- for(const name of ["vehicles","images","description","sync","team","analytics","page"]){const request=req();request.headers.cookie="";const result=await call("admin/"+name,request);assert.equal(result.statusCode,name==="page"?302:401);}
+ for(const name of ["vehicles","images","description","team","analytics","page"]){const request=req();request.headers.cookie="";const result=await call("admin/"+name,request);assert.equal(result.statusCode,name==="page"?302:401);}
 });
 test("vehicle validation preserves unknown values and rejects invalid facts/photos",()=>{
  const base={make:"BMW",model:"Test",equipment_bg:[],equipment_en:[]};
@@ -123,17 +123,31 @@ test("responsive deletion removes only the fixed object family and tolerates ret
  assert.deepEqual(new Set(deleted),new Set([root,root+"-400.jpg",root+"-800.jpg",root+"-1280.jpg",root+"-400.webp",root+"-800.webp",root+"-1280.webp"]));
 });
 
-test("Gemini handles free quota, incomplete and unpaired output without a paid fallback",async()=>{
- for(const [payload,status,expected] of [[{},429,"AI_FREE_QUOTA"],[{candidates:[{finishReason:"MAX_TOKENS"}]},200,"AI_INCOMPLETE"],[{candidates:[{finishReason:"STOP",content:{parts:[{text:JSON.stringify({description_bg:"",description_en:"",equipment_bg:["one"],equipment_en:[],review_notes:[]})}]}}]},200,"AI_BAD_OUTPUT"]]){
-  mockFetch((url,options)=>{assert.match(url,/generativelanguage.googleapis.com/);assert.ok(!url.includes(keys.GEMINI_API_KEY));assert.equal(options.headers["x-goog-api-key"],keys.GEMINI_API_KEY);return response(payload,status);});
-  const output=await call("admin/description",req("POST",{source:"Full service history."}));assert.equal(output.body.code,expected);
- }
+test("translation endpoint returns aligned lines and caches successful provider results",async()=>{
+ let calls=0;
+ mockFetch(url=>{
+   calls++;
+   assert.match(url,/translate.googleapis.com/);
+   return response([[["Parking camera\nHeated seats"]]]);
+ });
+ const request=req("POST",{target:"en",lines:["Камера за паркиране","Отопляеми седалки"]},{action:"translate"});
+ const output=await call("admin/description",request);
+ assert.equal(output.statusCode,200);
+ assert.deepEqual(output.body.lines,["Parking camera","Heated seats"]);
+ assert.equal(output.body.pending,false);
+ await call("admin/description",request);
+ assert.equal(calls,1);
 });
-test("Gemini returns complete paired BG/EN output and uses the current Flash-Lite model",async()=>{
- const result={description_bg:"Сервизна история.",description_en:"Service history.",equipment_bg:["Камера 360°"],equipment_en:["360° camera"],review_notes:[]};
- mockFetch((url,options)=>{assert.match(url,/gemini-3.1-flash-lite/);const request=JSON.parse(options.body);assert.match(request.systemInstruction.parts[0].text,/preserve EVERY/);return response({candidates:[{finishReason:"STOP",content:{parts:[{text:JSON.stringify(result)}]}}]});});
- const output=await call("admin/description",req("POST",{source:"Service history. 360° camera."}));assert.deepEqual(output.body.result,result);assert.ok(!output.text.includes(keys.GEMINI_API_KEY));
+
+test("translation failures report pending, while invalid and oversized requests are rejected",async()=>{
+ mockFetch(()=>response({},503));
+ const failed=await call("admin/description",req("POST",{target:"en",lines:["Уникална непозната фраза"]},{action:"translate"}));
+ assert.equal(failed.body.pending,true);
+ assert.deepEqual(failed.body.lines,["Уникална непозната фраза"]);
+ assert.equal((await call("admin/description",req("POST",{lines:["x".repeat(2001)]},{action:"translate"}))).statusCode,400);
+ assert.equal((await call("admin/description",req("POST",{source:"x".repeat(30001)}))).body.code,"SOURCE_TOO_LONG");
 });
+
 test("browser inventory loader preserves fallback on failure and respects authoritative emptiness",async()=>{
  const source=fs.readFileSync(path.join(__dirname,"../data/vehicles.js"),"utf8");
  for(const [data,expected] of [[{ok:true,authoritative:true,vehicles:[]},0],[{ok:true,authoritative:false,vehicles:[]},1],[null,1]]){
@@ -151,14 +165,5 @@ test("admin database credentials survive await and never leak into public reques
 });
 test("viewers cannot mutate vehicles, images, AI or sync",async()=>{
  global.fetch=async url=>String(url).endsWith('/user')?response(user):response('viewer');
- for(const name of ['vehicles','images','description','sync'])assert.equal((await call('admin/'+name,req('POST',{},name==='sync'?{action:'vehicle'}:{}))).statusCode,403);
-});
-
-test("official scraper keeps multiple description blocks, grouped mileage and translated equipment",()=>{
- const {parseVehicle}=require('../server/autohaus-sync');
- const html='<div class="table-resp"><table><tr><td>Марка и модел:</td><td>Mercedes-AMG SL 63</td></tr><tr><td>Цена:</td><td>68 000 евро</td></tr><tr><td>Пробег</td><td>76 000 км.</td></tr></table></div><div class="right-part content-part"><p>Пълна сервизна история!<br>Камера 360°</p><p>ABS<br>Отопление на седалките</p></div><p>UNRELATED CONTENT</p><ul id="lightSlider"><li data-src="https://autohaus.bg/wp-content/uploads/2026/09/1.jpg"></li></ul>';
- const existing={published:true,equipment_bg:['Камера 360°','ABS','Отопление на седалките'],equipment_en:['360° camera','ABS','Heated seats'],description_bg:'Reviewed description',description_en:'Reviewed description'};
- const row=parseVehicle('sl-63',html,existing,1);
- assert.equal(row.price,68000);assert.equal(row.mileage,76000);assert.deepEqual(row.equipment_en,existing.equipment_en);assert.equal(row.published,true);assert.equal(row.description_bg,existing.description_bg);assert.ok(!row.description_source.includes('UNRELATED'));
- assert.equal(parseVehicle('sl-63',html,null,1).published,false);
+ for(const name of ['vehicles','images','description'])assert.equal((await call('admin/'+name,req('POST',{},name==='sync'?{action:'vehicle'}:{}))).statusCode,403);
 });

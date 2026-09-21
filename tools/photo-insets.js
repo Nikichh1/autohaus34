@@ -33,8 +33,8 @@ function matteInsets(data, info) {
 async function audit() {
   const sharp = require('sharp');
   const root = path.resolve(__dirname, '..');
-  const source = fs.readFileSync(path.join(root, 'data/photos.js'), 'utf8');
-  const photos = JSON.parse(source.slice(source.indexOf('['), source.lastIndexOf(']') + 1));
+  const inventory = JSON.parse(fs.readFileSync(path.join(root, 'data/inventory.snapshot.json'), 'utf8'));
+  const photos = [...new Set(inventory.flatMap(vehicle => vehicle.shots || []))];
   const result = {};
   for (const url of photos) {
     const match = url.match(/\/(\d{4})\/(\d{2})\/([^/]+?)\.(?:jpe?g|png)$/i);

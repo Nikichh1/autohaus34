@@ -55,23 +55,8 @@
       return originalFetch(input, next);
     }
 
-    if ((method === "POST" || method === "PATCH" || method === "PUT") && typeof init.body === "string") {
-      var form = currentForm();
-      var vat = form && form.elements && form.elements.show_price_without_vat;
-      if (vat) {
-        try {
-          var body = JSON.parse(init.body);
-          if (Array.isArray(body.notes)) {
-            body.notes = body.notes.filter(function (note) { return !/ДДС/i.test(String(note || "")); });
-            if (vat.checked) {
-              var originalVat = form.dataset.ahOriginalVatNote || "";
-              body.notes.push(vat.dataset.initialChecked === "true" && originalVat ? originalVat : VAT_NOTE);
-            }
-          }
-          next.body = JSON.stringify(body);
-        } catch (_) {}
-      }
-    }
+    // VAT is collected with the form itself, including recoverable drafts.
+    // Do not rewrite arbitrary VAT-related notes during transport.
     next.headers = headers;
     return originalFetch(input, next);
   };
@@ -113,7 +98,8 @@
     if (!section) return;
     setText("#description > .section-title h2, #description > h2", "Оборудване", "Equipment");
     var shortcut = document.querySelector('.editor-shortcuts a[data-scroll="description"]');
-    if (shortcut) shortcut.textContent = tr("Оборудване", "Equipment");
+    var shortcutText = tr("Оборудване", "Equipment");
+    if (shortcut && shortcut.textContent !== shortcutText) shortcut.textContent = shortcutText;
   }
 
   function enhanceEditor() {
@@ -574,6 +560,6 @@
     };
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", installRoute);
+  if (document.readyState !== "complete") document.addEventListener("DOMContentLoaded", installRoute, { once: true });
   else setTimeout(installRoute, 0);
 })();

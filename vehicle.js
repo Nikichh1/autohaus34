@@ -54,7 +54,7 @@
   var shots = (v.shots || []).filter(Boolean);
   var N = shots.length;
   function gallerySizes(count) {
-    return count === 1 ? '100vw' : '(min-width:1024px) 46vw, 100vw';
+    return count === 1 ? '100vw' : '(min-width:1024px) 66vw, 100vw';
   }
   var mainSizes = gallerySizes(N);
 
@@ -173,7 +173,7 @@
       '<div class="dgal dgal--' + Math.min(N, 3) + '" id="dgal">' +
         shots.slice(0, 3).map(function (s, i) {
           var embedded = AH.watermarkEmbedded && AH.watermarkEmbedded(v, i, s);
-          var frameSizes = i === 0 ? '(min-width:1024px) 66vw, 100vw' : '(min-width:1024px) 33vw, 100vw';
+          var frameSizes = i === 0 ? mainSizes : '(min-width:1024px) 33vw, 100vw';
           return '<button type="button" class="dgal__f ' + (i === 0 ? "dgal__main" : "dgal__side") + '"' +
             ' data-i="' + i + '"' +
             ' data-ah-watermark-embedded="' + (embedded ? '1' : '0') + '"' +
@@ -303,7 +303,7 @@
   var mainCounter = mainFrame && mainFrame.querySelector('.dgal__n');
   var sideFrames = Array.prototype.slice.call(gal.querySelectorAll('.dgal__side'));
   var thumbs = Array.prototype.slice.call(D.querySelectorAll('.dthumb'));
-  var selected = 0, selectionVersion = 0, suppressClick = false;
+  var selected = 0, displayedIndex = 0, selectionVersion = 0, suppressClick = false;
   var decoded = Object.create(null);
 
   var thumbRail = D.getElementById('dthumbs');
@@ -409,13 +409,6 @@
   var mainPicture = mainFrame && mainFrame.querySelector('picture');
   var mainImg = mainPicture && mainPicture.querySelector('img');
   if (mainPicture && mainImg) {
-    Array.prototype.slice.call(mainPicture.querySelectorAll('source')).forEach(function (source) {
-      source.remove();
-    });
-    mainImg.removeAttribute('srcset');
-    mainImg.removeAttribute('sizes');
-    mainImg.width = 800;
-    mainImg.height = 490;
     mainImg.decoding = 'async';
   }
 
@@ -465,6 +458,8 @@
     var entry = { image: image };
     decoded[key] = entry;
     entry.promise = new Promise(function (resolve) {
+      var candidates = [hqSource(i, targetWidth), hqSource(i, 1280), AH.img(shots[i], 1280), AH.img(shots[i], 800)]
+        .filter(function (url, index, urls) { return url && urls.indexOf(url) === index; });
       var fallback = 0;
       image.decoding = 'async';
       image.fetchPriority = priority;
@@ -473,18 +468,14 @@
       };
       image.onerror = function () {
         fallback++;
-        if (fallback === 1 && targetWidth >= 1920) {
-          image.src = hqSource(i, 1280);
-          return;
-        }
-        if (fallback <= 2) {
-          image.src = AH.img(shots[i], 800);
+        if (fallback < candidates.length) {
+          image.src = candidates[fallback];
           return;
         }
         delete decoded[key];
         resolve(null);
       };
-      image.src = hqSource(i, targetWidth);
+      image.src = candidates[0];
     });
     return entry.promise;
   }
@@ -516,16 +507,15 @@
   if (mainImg) {
     seedDecodedMain(0);
     mainImg.addEventListener('load', function () {
-      var current = parseInt(mainFrame && mainFrame.dataset.i || '0', 10) || 0;
-      seedDecodedMain(current);
+      seedDecodedMain(displayedIndex);
     }, { passive: true });
   }
 
   function warmNeighbors(center, direction) {
     if (N < 2 || !canWarmImages()) return;
     direction = direction || 1;
-    prepareNavigation(center + direction, 'high');
-    if (N > 2) prepareNavigation(center - direction, 'high');
+    prepareNavigation(center + direction, 'low');
+    if (N > 2) prepareNavigation(center - direction, 'low');
   }
 
   function stripTo(i) {
@@ -558,7 +548,15 @@
       }
     }
 
-    if (!changed) return;
+    var activeThumb = thumbs[i];
+    if (activeThumb && thumbRail) {
+      var left = activeThumb.offsetLeft - thumbRail.offsetLeft;
+      if (left < thumbRail.scrollLeft) thumbRail.scrollLeft = left;
+      else if (left + activeThumb.offsetWidth > thumbRail.scrollLeft + thumbRail.clientWidth) {
+        thumbRail.scrollLeft = left + activeThumb.offsetWidth - thumbRail.clientWidth;
+      }
+    }
+    if (!changed && (displayedIndex === i || mainFrame.getAttribute('aria-busy') === 'true')) return;
 
     var version = ++selectionVersion;
     mainFrame.setAttribute('aria-busy', 'true');
@@ -568,8 +566,10 @@
     prepareNavigation(i, 'high').then(function (image) {
       if (version !== selectionVersion) return;
       if (image) {
+        Array.prototype.slice.call(mainPicture.querySelectorAll('source')).forEach(function (source) { source.remove(); });
         mainImg.removeAttribute('srcset');
         mainImg.removeAttribute('sizes');
+        displayedIndex = i;
         mainImg.src = image.currentSrc || image.src;
         mainImg.alt = v.full + ' / ' + (i + 1);
         mainImg.width = 1280;
@@ -579,8 +579,7 @@
       mainFrame.removeAttribute('aria-busy');
       if (image) {
         seedDecodedMain(i);
-        prepareNavigation((i + 1) % N, 'high');
-        if (N > 2) prepareNavigation((i - 1 + N) % N, 'high');
+        warmNeighbors(i);
       }
     });
   }
@@ -871,6 +870,7 @@
 
     /* The adjacent navigation frames start immediately, before the current
        image finishes any work. This makes repeated arrow taps hit warm cache. */
+    var navigation = prepareNavigation(shot, 'high');
     warmNeighbors(shot, direction);
 
     /* Navigation must never wait for a 1920px download/decode. 1280 is the
@@ -882,15 +882,13 @@
       lbImg.removeAttribute('srcset');
       lbImg.src = cachedNav.image.currentSrc || cachedNav.image.src;
       lbStage.removeAttribute('aria-busy');
-    } else {
-      /* Start the browser swap immediately. It can reuse an in-flight/cached
-         1280 response instead of keeping the previous frame while JS waits. */
+    } else if (first && mainImg && displayedIndex === shot) {
       lbImg.style.clipPath = '';
       lbImg.removeAttribute('srcset');
-      lbImg.src = hqSource(shot, 1280);
+      lbImg.src = mainImg.currentSrc || mainImg.src;
     }
 
-    prepareNavigation(shot, 'high').then(function (image) {
+    navigation.then(function (image) {
       if (version !== lightboxVersion || !lb.classList.contains('open')) return;
       if (image && lbImg.src !== (image.currentSrc || image.src)) {
         lbImg.src = image.currentSrc || image.src;

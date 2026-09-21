@@ -68,11 +68,17 @@
   function requestBatch(batch) {
     var requestKey = JSON.stringify(batch);
     if (!pending[requestKey]) {
-      pending[requestKey] = baseFetch("/api/admin/description?action=translate", {
+      var controller = new AbortController();
+      var timer;
+      var timeout = new Promise(function (resolve) {
+        timer = setTimeout(function () { controller.abort(); resolve({ pending: true, retryAfter: 3500 }); }, 12000);
+      });
+      var request = baseFetch("/api/admin/description?action=translate", {
         method: "POST",
         credentials: "same-origin",
         headers: { Accept: "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({ target: "en", lines: batch })
+        body: JSON.stringify({ target: "en", lines: batch }),
+        signal: controller.signal
       }).then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (data) {
           if (!response.ok || !data || data.ok !== true || !Array.isArray(data.lines) || data.lines.length !== batch.length) {
@@ -93,7 +99,10 @@
         });
       }).catch(function () {
         return { pending: true, retryAfter: 3500 };
-      }).finally(function () { delete pending[requestKey]; });
+      });
+      pending[requestKey] = Promise.race([request, timeout]).finally(function () {
+        clearTimeout(timer); delete pending[requestKey];
+      });
     }
     return pending[requestKey];
   }
@@ -185,48 +194,9 @@
     var target = document.getElementById(targetId);
     if (!source || !target || source.dataset.ahAutoTranslate === "1") return;
 
-    seedLineCache(source.value, target.value);
-    source.dataset.ahAutoTranslate = "1";
     target.readOnly = true;
     target.tabIndex = -1;
-    var timer = 0;
-    var version = 0;
-
-    function run() {
-      var current = ++version;
-      var raw = source.value;
-      if (!String(raw || "").trim()) {
-        target.value = "";
-        setStatus(key, "");
-        return;
-      }
-      setStatus(key, "Превеждане…");
-      var request = listMode ? translateList(raw) : Promise.resolve({ lines: [raw], pending: false, retryAfter: 0 });
-      request.then(function (result) {
-        if (current !== version || !source.isConnected) return;
-        var translated = listMode ? result.lines.join("\n") : result.lines[0];
-        target.value = translated;
-        if (result.pending) {
-          setStatus(key, "English preview се дообработва автоматично…");
-          clearTimeout(timer);
-          timer = setTimeout(run, result.retryAfter || 3500);
-        } else {
-          setStatus(key, "English preview е обновен.");
-        }
-      }).catch(function () {
-        if (current !== version || !source.isConnected) return;
-        setStatus(key, "English preview ще се обнови автоматично…");
-        clearTimeout(timer);
-        timer = setTimeout(run, 3500);
-      });
-    }
-
-    source.addEventListener("input", function () {
-      clearTimeout(timer);
-      setStatus(key, "Подготовка на превода…");
-      timer = setTimeout(run, 260);
-    });
-    setTimeout(run, 0);
+    bindPairByElements(source, target, key);
   }
 
   function ensureNotesPreview(textarea) {
@@ -267,36 +237,39 @@
 
   function bindPairByElements(source, target, key) {
     if (!source || !target || source.dataset.ahAutoTranslate === "1") return;
-    seedLineCache(source.value, target.value);
+    var form = source.closest && source.closest("form");
+    if (!form || form.dataset.recovered !== "1") seedLineCache(source.value, target.value);
     source.dataset.ahAutoTranslate = "1";
     var timer = 0;
     var version = 0;
+    var retries = 0;
     function run() {
+      if (!source.isConnected) return;
       var current = ++version;
+      var raw = source.value;
       if (!source.value.trim()) {
         target.value = "";
         setStatus(key, "");
         return;
       }
       setStatus(key, "Превеждане…");
-      translateList(source.value).then(function (result) {
-        if (current !== version || !source.isConnected) return;
-        target.value = result.lines.join("\n");
+      translateList(raw).then(function (result) {
+        if (current !== version || !source.isConnected || source.value !== raw) return;
         if (result.pending) {
-          setStatus(key, "English preview се дообработва автоматично…");
+          setStatus(key, retries < 2 ? "English preview се дообработва автоматично…" : "Преводът е временно недостъпен. Опитайте запис отново след малко.", retries >= 2);
           clearTimeout(timer);
-          timer = setTimeout(run, result.retryAfter || 3500);
+          if (retries++ < 2) timer = setTimeout(run, result.retryAfter || 3500);
         } else {
+          target.value = result.lines.join("\n");
           setStatus(key, "English preview е обновен.");
         }
       }).catch(function () {
         if (current !== version || !source.isConnected) return;
-        setStatus(key, "English preview ще се обнови автоматично…");
-        clearTimeout(timer);
-        timer = setTimeout(run, 3500);
+        setStatus(key, "Преводът е временно недостъпен. Опитайте запис отново след малко.", true);
       });
     }
     source.addEventListener("input", function () {
+      version++; retries = 0;
       clearTimeout(timer);
       setStatus(key, "Подготовка на превода…");
       timer = setTimeout(run, 260);
@@ -326,19 +299,16 @@
       translateList(body.notes || []),
       translateList(body.equipment_bg || [])
     ]).then(function (values) {
+      if (values.some(function (value) { return value.pending; })) {
+        var error = new Error("Преводът е временно недостъпен. Текстът е запазен на този екран. Опитайте запис отново след малко.");
+        error.code = "TRANSLATION_UNAVAILABLE";
+        throw error;
+      }
       body.notes_en = values[0].lines;
       body.equipment_en = values[1].lines;
       var next = Object.assign({}, init, { body: JSON.stringify(body) });
-      return baseFetch(input, next);
-    }).catch(function () {
-      /* Saving Bulgarian source data is more important than a transient
-         translation outage. Preserve already-rendered English previews when
-         available and never block the vehicle save. */
-      var notesPreview = document.getElementById("notes-en-preview");
-      var equipmentPreview = document.getElementById("equipment-en");
-      if (notesPreview) body.notes_en = normalizeLines(notesPreview.value);
-      if (equipmentPreview) body.equipment_en = normalizeLines(equipmentPreview.value);
-      var next = Object.assign({}, init, { body: JSON.stringify(body) });
+      // A failed write may already have reached the server. Never retry it
+      // implicitly, and never save Bulgarian fallback text as English.
       return baseFetch(input, next);
     });
   };
