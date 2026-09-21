@@ -33,15 +33,13 @@ function harness() {
   form.elements.transmission.value = "auto";
   const body = node("body");
   body.dataset = { adminUser: "cleanup-test", adminRole: "owner" };
-  const document = { body, documentElement: {}, getElementById: node, querySelectorAll: () => [], addEventListener() {} };
+  const document = { readyState: "complete", body, documentElement: {}, getElementById: node, querySelectorAll: () => [], querySelector: () => null, addEventListener() {} };
   const store = { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) };
   const window = { localStorage: store, sessionStorage: store, addEventListener() {}, scrollTo() {} };
   assert.ok(source.includes(startup), "Update the cleanup harness if admin startup changes");
   vm.runInNewContext(source.replace(startup, `
     updateSaveState = function () {};
     bindEditor = function () {};
-    renderReview = function () {};
-    showReviewConfirmation = function () {};
     renderImages = function (index) { recordRender(index); };
     window.__cleanup = { state: state, editor: editor, collectForm: collectForm,
       saveCar: saveCar, moveImage: moveImage, blankVehicle: blankVehicle };
@@ -93,7 +91,7 @@ test("removed editor fields do not erase saved category, tags or provenance", as
   assert.equal(normalized.error, undefined);
   assert.equal(normalized.row.chapter, existing.chapter);
   assert.deepEqual(normalized.row.tags, existing.tags);
-  assert.equal(normalized.row.source_url, existing.source_url);
+  assert.equal(normalized.row.source_url, "", "Self-owned inventory clears retired provenance without blocking save");
 });
 
 test("new vehicles retain valid metadata defaults without retired form inputs", () => {
@@ -106,16 +104,17 @@ test("new vehicles retain valid metadata defaults without retired form inputs", 
   assert.equal(normalizeVehicle(body).error, undefined);
 });
 
-test("editing exposes only supported fields and keeps raw generation input separate", () => {
+test("editing exposes Bulgarian equipment and read-only English previews", () => {
   const h = harness();
   h.admin.editor(savedVehicle(), false);
   const html = h.node("admin-view").innerHTML;
   assert.doesNotMatch(html, /name="(?:chapter|tags|source_url)"/);
   assert.doesNotMatch(html, /ah-quick|AutoHaus URL|Original text · team only/);
-  for (const id of ["source-text", "desc-bg", "desc-en", "equipment-bg", "equipment-en"]) {
+  for (const id of ["equipment-bg", "equipment-en", "notes-en-preview"]) {
     assert.equal((html.match(new RegExp('id="' + id + '"', "g")) || []).length, 1);
   }
-  assert.match(html, /<details\b[^>]*class="[^"]*processor-source/);
+  assert.match(html, /id="equipment-en"[^>]*readonly/);
+  assert.doesNotMatch(html, /id="source-text"/);
 });
 
 test("photo reordering retains every asset and saves dense positions in visual order", async () => {

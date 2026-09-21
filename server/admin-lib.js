@@ -384,7 +384,8 @@ function normalizeVehicle(body) {
   if (row.first_registration_month != null && row.first_registration_year == null) {
     return { error: "Enter a registration year or leave both registration fields empty." };
   }
-  if (clean(body.source_url, 1200) && !row.source_url) return { error: "The source URL must use HTTPS." };
+  // Legacy provenance is intentionally discarded above, not validated as an
+  // editable URL. Its presence must not prevent saving an existing vehicle.
   if (body.images != null && !Array.isArray(body.images)) return { error: "Photos must be an ordered list." };
   if (Array.isArray(body.images) && body.images.length !== row.images.length) {
     return { error: "One or more photos are invalid. Use the photo upload control." };

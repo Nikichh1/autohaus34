@@ -88,6 +88,8 @@ function legacyToRow(v, index, equipment) {
   });
   if (normalized.error) throw new Error("Invalid canonical vehicle " + v.id + ": " + normalized.error);
   normalized.row.sort_order = Number(index || 0) + 1;
+  // Legacy snapshots predate translated notes; keep the current non-null contract.
+  normalized.row.notes_en = [];
   return normalized.row;
 }
 

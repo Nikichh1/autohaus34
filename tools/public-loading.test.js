@@ -16,7 +16,7 @@ function storage() {
 }
 function browser(options = {}) {
   const time = options.time || { now: 1789450000000 };
-  const window = { AH_VEHICLES: [], sessionStorage: options.session || storage(), localStorage: options.local || storage() };
+  const window = { AH_VEHICLES: [], sessionStorage: options.session || storage(), localStorage: options.local || options.session || storage() };
   if (options.earlyConsumer) {
     window.AH_INVENTORY_READY = new Promise(resolve => { window.AH_INVENTORY_RESOLVE = resolve; });
     window.AH_INVENTORY_READY.then(() => options.earlyConsumer(window));
@@ -139,10 +139,10 @@ test("supplied variants are indexed even for a bundled original and its local 12
 
 function api(db, time) {
   const context = { module: { exports: {} }, __dirname: path.join(__dirname, "../api/public"),
-    console: { error() {} }, Date: { now: () => time.now },
+    console: { error() {} }, Date: { now: () => time.now }, URL,
     require: name => name === "../../server/admin-lib" ? { ...realLib, configured: () => true, db } : require(name) };
   vm.runInNewContext(apiSource, context);
-  return async (query = {}, headers = {}) => {
+  return async (query = {}, headers = {host:'example.com',referer:'https://example.com/admin','sec-fetch-site':'same-origin'}) => {
     const result = { headers: {}, setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, end(text) { if (text) this.body = JSON.parse(text); } };
     await context.module.exports({ method: "GET", query, headers }, result);
     return result;

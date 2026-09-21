@@ -99,7 +99,7 @@ function send(req, res, status, body) {
   res.setHeader("ETag", etag);
   const remaining = Math.max(0, Math.floor((Number(body.fresh_until) - Date.now()) / 1000));
   res.setHeader("Cache-Control", remaining
-    ? "public, max-age=" + remaining + ", s-maxage=" + remaining + ", stale-while-revalidate=60"
+    ? "public, max-age=" + remaining + ", s-maxage=" + remaining + ", must-revalidate"
     : "no-store");
   if (req.headers && req.headers["if-none-match"] === etag) { res.statusCode = 304; return res.end(); }
   res.statusCode = status;

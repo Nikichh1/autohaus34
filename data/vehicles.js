@@ -1,6 +1,5 @@
-/* Public inventory only. Intent-prefetched details survive page navigation;
-   fresh data is used normally, with a very short stale-while-revalidate window
-   so repeat page visits can paint immediately instead of waiting on a network. */
+/* Public inventory only. Reuse fresh, intent-prefetched data across navigation;
+   expired listings must be revalidated before they can be shown again. */
 (function () {
   "use strict";
   window.AH_VEHICLES = window.AH_VEHICLES || [];
@@ -12,7 +11,6 @@
   var CACHE_KEY = "autohaus-public-inventory-v2";
   var CHANGE_KEY = "autohaus-inventory-changed";
   var MAX_AGE = 30000;
-  var STALE_AGE = 90000;
   var MAX_ENTRIES = 12;
   var pending = Object.create(null);
   var persistentCache;
@@ -54,10 +52,10 @@
     if (expires <= now || revision() !== currentRevision) return;
     var entries = readCache();
     Object.keys(entries).forEach(function (k) {
-      if (!entries[k] || Number(entries[k].staleUntil || entries[k].expires) <= now || entries[k].revision !== currentRevision) delete entries[k];
+      if (!entries[k] || Number(entries[k].expires) <= now || entries[k].revision !== currentRevision) delete entries[k];
     });
-    entries[key] = { data: data, expires: expires, staleUntil: now + STALE_AGE, revision: currentRevision };
-    Object.keys(entries).sort(function (a, b) { return Number(entries[b].staleUntil || 0) - Number(entries[a].staleUntil || 0); })
+    entries[key] = { data: data, expires: expires, revision: currentRevision };
+    Object.keys(entries).sort(function (a, b) { return Number(entries[b].expires || 0) - Number(entries[a].expires || 0); })
       .slice(MAX_ENTRIES).forEach(function (k) { delete entries[k]; });
     try { window.localStorage.setItem(CACHE_KEY, JSON.stringify(entries)); } catch (_) {}
   }
@@ -148,12 +146,6 @@
     var fresh = cacheHit(key, id, currentRevision, false);
     if (fresh) return Promise.resolve(fresh);
 
-    var stale = cacheHit(key, id, currentRevision, true);
-    if (stale) {
-      // Paint from the last known-good payload now and refresh it in parallel.
-      networkLoad(id, true, currentRevision, key);
-      return Promise.resolve(stale);
-    }
     return networkLoad(id, prefetch, currentRevision, key);
   }
 
@@ -175,7 +167,7 @@
 
   var ready = request.then(function (data) {
     var vehicles = requestedId && data && data.vehicle ? [data.vehicle] : data && data.vehicles;
-    if (!validPayload(data, requestedId, true)) return;
+    if (!validPayload(data, requestedId, false)) return;
 
     window.AH_VEHICLES = vehicles;
     window.AH_INVENTORY_SOURCE = "managed";

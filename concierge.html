@@ -16,7 +16,7 @@
 })();
 </script>
 <script>window.AH_INVENTORY_READY = new Promise(function (resolve) { window.AH_INVENTORY_RESOLVE = resolve; });</script>
-<script async src="data/vehicles.js?v=cc4cd34d" onerror="window.AH_INVENTORY_RESOLVE()"></script>
+<script async src="data/vehicles.js?v=eda25efda701" onerror="window.AH_INVENTORY_RESOLVE()"></script>
 <link rel="icon" href="favicon.jpg" type="image/jpeg">
 <link rel="preload" href="fonts/exo2-300-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/exo2-300-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -42,7 +42,7 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.min.css?v=cc4cd34d" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=d0439a4b3f20" id="ah-css">
 <meta name="robots" content="noindex">
 <!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
      index/vehicle/legal start their scripts only once the stylesheet is
@@ -54,9 +54,9 @@
      without it.  runs them after parsing and before first paint, so
      the furniture is there from the first frame. The page can afford it:
      18KB of CSS, no hero photograph to compete with. -->
-<script defer src="main.js?v=cc4cd34d"></script>
-<script defer src="concierge.js?v=cc4cd34d"></script>
-<script defer src="i18n.js?v=cc4cd34d"></script>
+<script defer src="main.js?v=61353936be9a"></script>
+<script defer src="concierge.js?v=791d7a33a4a4"></script>
+<script defer src="i18n.js?v=222d4b3c79da"></script>
 <script>
 /* RESERVE WHAT THE SCRIPTS ARE ABOUT TO DRAW.
    `defer` holds a script until after parsing, but it does NOT hold first
@@ -69,7 +69,7 @@
 if(/[?&]v=/.test(q))c.add("cg-has-pick");
 if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");})();
 </script>
-<script defer src="analytics.js?v=cc4cd34d"></script>
+<script defer src="analytics.js?v=0bbdd49798ca"></script>
 </head>
 <!-- .cg-room flips the header from white-on-photograph to ink-on-paper,
      and .pale on the two sections below is the site's own signal that a
@@ -115,7 +115,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
       </ul>
     </div>
     <a class="hd-logo" href="index.html" aria-label="AutoHaus — начало">
-      <img class="logo logo--ink" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+      <img class="logo logo--ink" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
     </a>
     <ul class="hd-zone hd-zone--end">
       <li><a class="btn btn--s btn--secondary" href="concierge.html" aria-current="page"><span class="btn__label">Запитване</span></a></li>
@@ -144,12 +144,12 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
      would never leave the screen to trigger it. -->
 <div class="plate" id="plate">
   <div class="plate__in">
-    <button type="button" class="plate__menu" id="plate-menu" aria-expanded="false" aria-controls="mob">
+    <button type="button" class="plate__menu" id="plate-menu" aria-label="Меню" aria-expanded="false" aria-controls="mob">
       <span class="plate__bars" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="plate__menu-l">Меню</span>
     </button>
     <a class="plate__mark" href="index.html" aria-label="AutoHaus — начало">
-      <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+      <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
     </a>
     <div class="lang" role="group" aria-label="Език / Language">
       <i class="lang__ind" aria-hidden="true"></i>
@@ -165,7 +165,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
   <div class="mob__reveal">
     <div class="mob__sheet">
       <a class="mob-mark" href="index.html" aria-label="AutoHaus">
-        <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+        <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
       </a>
       <button class="mob-close" id="mob-close" aria-label="Затвори">
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
@@ -616,7 +616,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
     <div class="row">
       <div class="col span-12 ft-end">
         <a class="ft-logo" href="index.html#top" aria-label="AutoHaus — начало">
-          <img class="logo" src="autohaus.svg?v=cc4cd34d" width="482" height="85" alt="">
+          <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
         </a>
         <ul class="ft-social" aria-label="AutoHaus в социалните мрежи">
           <li><a href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg>Facebook</a></li>
