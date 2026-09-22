@@ -48,14 +48,14 @@
 <!-- the hero frame, which gates the whole entrance choreography (see main.js) -->
 <!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=d0439a4b3f20" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=13932d0cce98" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
 <link rel="stylesheet" href="catalog.min.css?v=45d9fbbe044e" media="print" onload="this.media='all';this.onload=null">
 <noscript><link rel="stylesheet" href="catalog.min.css?v=45d9fbbe044e"></noscript>
 <!-- Ordered deferred modules: inventory resolves before rendering. -->
-<script defer src="main.js?v=61353936be9a"></script>
+<script defer src="main.js?v=bca7ce87a62a"></script>
 <script defer src="catalog.js?v=6f4a42cb4190"></script>
 <script defer src="catalog-prefetch.js?v=4b0cf3287ba8"></script>
 <script defer src="showroom.js?v=d4b7add5d1b4"></script>
@@ -172,34 +172,44 @@
 
 <!-- mobile nav overlay -->
 <!-- THE MENU — a panel, not a takeover. See "THE MENU" in style.css. -->
-<div class="mob" id="mob" aria-hidden="true">
+<div class="mob" id="mob" role="dialog" aria-modal="true" aria-label="Меню" aria-hidden="true">
   <div class="mob__scrim" id="mob-scrim"></div>
   <div class="mob__reveal">
     <div class="mob__sheet">
+      <div class="mob-head">
       <a class="mob-mark" href="index.html" aria-label="AutoHaus">
         <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
       </a>
-      <button class="mob-close" id="mob-close" aria-label="Затвори">
+      <button type="button" class="mob-close" id="mob-close" aria-label="Затвори">
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
       </button>
+      </div>
       <nav aria-label="Меню">
-        <a href="#avtomobili">Автомобили</a>
+        <a class="mob-primary" href="#avtomobili">Автомобили</a>
+        <div class="mob-services">
         <a href="#zastrahovki">Застраховки</a>
         <a href="#lizing">Лизинг</a>
         <a href="#servis">Сервиз</a>
         <a href="#care">Auto Spa</a>
         <a href="#cafe">Кафе бар</a>
-        <a href="concierge.html">Запитване</a>
+        </div>
+        <a class="mob-inquiry" href="concierge.html">Запитване</a>
+        <div class="mob-utility">
         <a href="legal.html">Политика</a>
         <a href="legal.html#imprint" data-contact>Контакти</a>
+        </div>
       </nav>
+      <div class="mob-bottom">
+      <div class="mob-meta">
       <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
         <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
         <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
       </ul>
+      </div>
       <div class="mob-foot">
         <a href="tel:+359884777147">+359 884 777 147</a>
         <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+      </div>
       </div>
     </div>
   </div>

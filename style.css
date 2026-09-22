@@ -960,66 +960,74 @@ body:not(.ah) .btn--secondary:active:not(:disabled){--btn-fill:rgba(20,19,18,.16
 /* ============================================================
    THE MENU
 
-   It was a full-screen sheet: the page vanished, a list appeared on black,
-   and the visitor was somewhere else until they closed it. That is a modal,
-   and a modal is the one thing a navigation should never be — it breaks the
-   feeling of being inside the site at the exact moment the visitor is trying
-   to decide where in the site to go.
-
-   It is a PANEL now, and it belongs to the same object as the plate. The
-   sheet's shape IS the plate with a body: full width across the top, cutting
-   in by --plate-cut over exactly the plate's own height, then vertical for
-   the rest of the drop. Opened from the trigger in the plate, it reads as
-   that wedge growing downward rather than as a new surface arriving.
-
-   THE REVEAL IS A RAKE THAT SETTLES.
-   Two clips, because one element cannot carry two:
-     · .mob__sheet holds the ARCHITECTURE (static — the corner the plate cut);
-     · .mob__reveal holds the MOTION.
-   The motion clip unrolls from zero height with its leading edge raked at the
-   house angle, and the rake flattens to nothing as the panel lands:
-
-     closed  polygon(0 0, 100% 0, 100% -34%, 0 0)
-     open    polygon(0 0, 100% 0, 100% 100%,  0 100%)
-
-   The two bottom points travel different distances, so their difference —
-   the rake — falls linearly to zero. The panel arrives on the diagonal and
-   settles square, which is the whole identity in one gesture.
-
-   The page behind stays visible and goes quiet: a graded scrim with a real
-   blur, so it is legibly still there and unmistakably not the subject.
+   A partial-width drawer with a primary vehicle link, grouped services,
+   an enquiry action in the house angle, and a compact contact footer.
+   The header stays reachable while short screens scroll the sheet. On
+   taller screens the footer settles at the bottom without fixed offsets.
+   Existing focus trapping, scroll pinning and dismissal live in main.js.
    ============================================================ */
 
-.mob{position:fixed;inset:0;z-index:80;visibility:hidden;pointer-events:none;transition:visibility 0s linear .22s}
+.mob{position:fixed;inset:0;z-index:80;visibility:hidden;pointer-events:none;transition:visibility 0s linear .24s}
 .mob.is-open{visibility:visible;transition:none}
-.mob__scrim{position:absolute;inset:0;background:rgba(0,0,0,.64);opacity:0;transition:opacity .22s ease;pointer-events:auto}
+.mob__scrim{position:absolute;inset:0;background:rgba(0,0,0,.64);opacity:0;transition:opacity .24s ease;pointer-events:auto}
 .mob.is-open .mob__scrim{opacity:1}
-.mob__reveal{position:absolute;inset:0 auto 0 0;width:min(420px,100%);pointer-events:auto;transform:translateX(-100%);transition:transform .24s cubic-bezier(.2,.7,.2,1);clip-path:none}
+.mob__reveal{position:absolute;inset:0 auto 0 0;width:min(460px,100%);pointer-events:auto;transform:translateX(-100%);transition:transform .28s cubic-bezier(.22,1,.36,1);box-shadow:18px 0 48px rgba(0,0,0,.24);clip-path:none}
 .mob.is-open .mob__reveal{transform:translateX(0);clip-path:none}
-.mob__sheet{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-start;padding:88px 32px max(24px,env(safe-area-inset-bottom));background:#101110;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;clip-path:none}
-.mob-mark{position:absolute;top:28px;left:32px;display:block}.mob-mark .logo{width:138px}
-.mob-close{position:absolute;top:16px;right:20px;width:48px;height:48px;display:grid;place-items:center;color:#fff;border:1px solid #ffffff24}
+.mob__sheet{position:absolute;inset:0;display:flex;flex-direction:column;padding:0 36px max(28px,env(safe-area-inset-bottom));background:#101312;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#434845 #101312;clip-path:none}
+.mob-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:100px;flex-shrink:0;background:#101312;border-bottom:1px solid #ffffff1f}
+.mob-mark{position:static;display:flex;align-items:center;min-height:44px}
+.mob-mark .logo{width:164px}
+.mob-close{position:static;width:44px;height:44px;flex-shrink:0;display:grid;place-items:center;color:#d9dcd9;border:1px solid #ffffff29;transition:background .18s ease,color .18s ease,border-color .18s ease}
 .mob-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.5;fill:none}
-.mob nav{display:flex;flex-direction:column;width:100%;margin-top:8px}
-.mob nav a{
-  display:flex;align-items:center;
-  min-height:52px;padding:12px 0 11px;
-  font-size:18px;line-height:1.2;font-weight:400;letter-spacing:.018em;
-  border-bottom:1px solid rgba(255,255,255,.10);
-  color:rgba(244,243,238,.94);
-  transition:color .16s ease,padding-left .18s var(--e-move)
-}
-.mob nav a:nth-last-child(3){margin-top:10px;border-top:1px solid rgba(255,255,255,.10)}
-.mob nav a:hover,.mob nav a:focus-visible{color:#fff;padding-left:5px;transform:none}
+.mob-close:hover{color:#fff;background:#ffffff0c;border-color:#ffffff66}
+.mob nav{display:flex;flex-direction:column;width:100%;margin-top:14px}
+.mob nav a{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:46px;padding:10px 0;color:#d9dcd9;font-size:18px;line-height:1.3;font-weight:400;letter-spacing:0;transition:color .18s ease,background .18s ease}
 .mob nav a::before{display:none}
-.mob-foot{display:grid;gap:4px;padding-top:12px;font-size:12px;line-height:1.5;color:#c5c7c3;letter-spacing:.02em}.mob-foot a{display:flex;align-items:center;min-height:36px;overflow-wrap:anywhere}
-.mob .social--menu{padding-top:16px;margin:0;gap:8px}.mob .social__a{min-width:44px;min-height:44px}
+.mob nav a::after{content:"";flex:0 0 18px;width:18px;height:18px;background:currentColor;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='1.5' d='M4 12h15M12 5l7 7-7 7'/%3E%3C/svg%3E") center/contain no-repeat;opacity:0;transform:translateX(-5px);transition:transform .18s ease,opacity .18s ease}
+.mob nav a:hover,.mob nav a:focus-visible{color:#fff}
+.mob nav a:hover::after,.mob nav a:focus-visible::after{opacity:1;transform:none}
+.mob nav .mob-primary{min-height:84px;padding:16px 0 22px;margin-bottom:12px;border-bottom:1px solid #ffffff1f;font-size:34px;font-weight:300;letter-spacing:-.02em;color:#fff}
+.mob nav .mob-primary::after{width:28px;height:28px;flex-basis:28px;opacity:1;transform:none;color:var(--primary)}
+.mob-services{padding:4px 0 14px}
+.mob nav .mob-inquiry{position:relative;isolation:isolate;min-height:50px;margin-top:8px;padding:12px 20px;color:#101312;font-size:17px;font-weight:600}
+.mob nav .mob-inquiry::before{content:"";display:block;position:absolute;inset:0;z-index:-1;background:#f0f1ee;clip-path:polygon(0 0,100% 0,calc(100% - 23px) 100%,0 100%);transition:background .18s ease}
+.mob nav .mob-inquiry::after{opacity:1;transform:none;margin-right:12px}
+.mob nav .mob-inquiry:hover::before,.mob nav .mob-inquiry:focus-visible::before{background:#fff}
+.mob-utility{display:flex;flex-wrap:wrap;column-gap:24px;padding-top:10px}
+.mob nav .mob-utility a{min-height:44px;font-size:14px;color:#b7beb9}
+.mob nav .mob-utility a::after{display:none}
+.mob nav .mob-utility a:hover,.mob nav .mob-utility a:focus-visible{color:#fff}
+.mob-bottom{margin-top:auto;padding-top:24px;flex-shrink:0}
+.mob-meta{display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid #ffffff1f;padding:14px 0 10px}
+.mob .social--menu{padding:0;margin:0;gap:4px}
+.mob .social__a{width:44px;height:44px;min-width:44px;min-height:44px;color:#c3c9c5;opacity:1}
+.mob .social__a svg{width:17px;height:17px}
+.mob-foot{display:flex;flex-direction:column;align-items:flex-start;gap:0;padding-top:0;font-size:14px;line-height:1.5;color:#b7beb9;letter-spacing:0}
+.mob-foot a{display:flex;align-items:center;min-height:44px;overflow-wrap:anywhere;max-width:100%;transition:color .18s ease}
+.mob-foot a[href^="tel:"]{font-size:21px;letter-spacing:.01em;color:#f0f1ee}
+.mob-foot a:hover{color:#fff}
+.mob a:focus-visible,.mob button:focus-visible{outline:2px solid var(--primary);outline-offset:4px}
 .mob.is-open nav a,.mob.is-open .mob-foot{animation:none}
 html.mob-open{overflow:hidden}html.mob-open body{position:fixed;left:0;right:0;width:100%}
 html.mob-open .hd,html.mob-open .plate,html.mob-open .nav{visibility:hidden;pointer-events:none}
-@media(max-width:767px){.mob__reveal{width:min(88vw,340px);touch-action:pan-y;box-shadow:18px 0 36px rgba(0,0,0,.24)}}
-@media(max-width:599px){.mob__sheet{padding:76px 24px max(20px,env(safe-area-inset-bottom))}.mob-mark{left:24px;top:26px}.mob-mark .logo{width:126px}.mob nav a{font-size:18px;min-height:50px;padding:11px 0 10px}.mob-close{right:16px;top:14px}}
-@media(prefers-reduced-motion:reduce){.mob,.mob__reveal,.mob__scrim{transition:none}}
+@media(max-width:767px){
+  .mob__reveal{width:min(92vw,400px);touch-action:pan-y}
+  .mob__sheet{padding:0 24px max(24px,env(safe-area-inset-bottom))}
+  .mob-head{min-height:84px}
+  .mob-mark .logo{width:148px}
+  .mob nav{margin-top:10px}
+  .mob nav .mob-primary{min-height:76px;font-size:30px;padding:14px 0 18px;margin-bottom:8px}
+  .mob-services{padding-bottom:10px}
+  .mob-bottom{padding-top:18px}
+}
+@media(max-width:359px){
+  .mob__sheet{padding-left:20px;padding-right:20px}
+  .mob nav .mob-primary{font-size:27px}
+  .mob-mark .logo{width:136px}
+}
+@media(prefers-reduced-motion:reduce){
+  .mob,.mob__reveal,.mob__scrim,.mob a,.mob button,.mob nav a::before,.mob nav a::after{transition:none}
+}
 
 /* ============================================================
    THE CONTACT PANEL
@@ -5686,7 +5694,9 @@ html[data-ah-scroll-header="autohaus_original"] .plate.is-on .plate__in{
   color:#fff;
   background:rgba(36,39,42,var(--ah-original-opacity,.98));
   clip-path:polygon(0 0,100% 0,82% 72%,0 100%);
-  visibility:visible!important;
+  /* Inherit the plate's hidden state: its interactive children must not
+     intercept the normal header while the floating plate is transparent. */
+  visibility:inherit!important;
   transition:none!important
 }
 html[data-ah-scroll-header="autohaus_original"] .plate__in::before{
@@ -6064,21 +6074,21 @@ html.ah-vehicle-page[data-ah-product-original-mode="hidden"] .plate{
 /* Language selector inside the opened menu when requested. */
 .mob-lang{
   position:relative!important;
-  margin:18px 0 8px!important;
-  padding:0 0 7px!important;
+  margin:0!important;
+  padding:0!important;
   display:inline-flex!important;
-  align-items:flex-end!important;
+  align-items:center!important;
   width:max-content!important;
   transform:none!important
 }
 html[data-ah-original-language="header"] .mob-lang{display:none!important}
 .mob-lang::before{background:rgba(255,255,255,.16)!important}
 .mob-lang .lang__o{
-  color:#fff!important;opacity:.48;
-  min-width:34px!important;width:34px!important;height:26px!important;
-  font-size:11px!important;letter-spacing:1px!important
+  color:#c3c9c5!important;opacity:1;
+  min-width:44px!important;width:44px!important;height:44px!important;
+  font-size:12px!important;letter-spacing:.06em!important
 }
-.mob-lang .lang__o.is-on{opacity:1}
+.mob-lang .lang__o.is-on{color:#fff!important}
 .mob-lang .lang__ind{height:1px!important;background:rgba(255,255,255,.9)!important}
 
 
