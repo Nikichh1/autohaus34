@@ -58,7 +58,7 @@
     "Гориво:": "Fuel:",
     "Пробег:": "Mileage:",
     "Първа регистрация:": "First registration:",
-    "Автомобили в наличност, лизинг, застраховки, сервиз и Auto Spa. AutoHaus, Пловдив.": "Vehicles in stock, leasing, insurance, servicing and Auto Spa. AutoHaus, Plovdiv.",
+    "Автомобили в наличност, лизинг, застраховки, сервиз и автомивка. AutoHaus, Пловдив.": "Vehicles in stock, leasing, insurance, servicing and Auto Spa. AutoHaus, Plovdiv.",
     "© 2026 Аутохаус България ЕООД · ЕИК 200771286 · ДДС BG200771286": "© 2026 Autohaus Bulgaria Ltd. · UIC 200771286 · VAT BG200771286",
     "ЕИК 200771286 · ДДС BG200771286": "UIC 200771286 · VAT BG200771286",
     "Текстът на запитването е готов. Изберете как да го изпратите.": "Your enquiry is ready. Choose how to send it.",
@@ -146,16 +146,15 @@
     "Достъп, а не обяви": "Access, not listings",
     "Заявка за търсене": "Request a search",
     /* the hero's four rooms. The kicker names the place and the headline
-       names it again in the house's own words, so both have to travel —
-       and "Ателието" is the same word the Auto Spa card uses, deliberately. */
-    "Към Auto Spa": "To Auto Spa",
+       names it again in the house's own words, so both have to travel. */
+    "Към автомивката": "To Auto Spa",
     "Към сервиза": "To the workshop",
     "Пространството": "The space",
     "Място за събития": "A place for events",
     "Модно ревю в шоурума на AutoHaus, Ламборгини на преден план":
       "A fashion show in the AutoHaus showroom, a Lamborghini in the foreground",
-    "Порше 911 Turbo S влиза в Auto Spa през нощта, надпис AUTO SPA на стената":
-      "A Porsche 911 Turbo S entering Auto Spa at night, the AUTO SPA sign on the wall",
+    "Порше 911 Turbo S влиза в автомивката през нощта, надпис AUTO SPA на стената":
+      "A Porsche 911 Turbo S entering the Auto Spa at night, AUTO SPA lettering on the wall",
     "Терасата на кафе бара на AutoHaus с 3D графит на автомобил, пробиващ бетонна стена":
       "The AutoHaus cafe bar terrace with a 3D mural of a car breaking through a concrete wall",
     "Шоурумът": "The showroom",
@@ -180,8 +179,8 @@
       "The AutoHaus showroom in Plovdiv at dusk, its facade lit and the AutoHaus sign above it",
     "Надписът „Welcome to www.AutoHaus.bg“ на стената в приемната":
       "The \"Welcome to www.AutoHaus.bg\" lettering on the reception wall",
-    "Автомобил пред ателието Auto Spa в базата на AutoHaus":
-      "A car outside the Auto Spa studio at the AutoHaus premises",
+    "Автомобил пред автомивката в базата на AutoHaus":
+      "A car outside the car wash at the AutoHaus complex",
     "Шоурумът на AutoHaus в Пловдив по здрач, с осветена фасада":
       "The AutoHaus showroom in Plovdiv at dusk, its facade lit",
     "Витрината на AutoHaus — автомобили в шоурума при залез":
@@ -350,7 +349,7 @@
       "AutoHaus is a complex in Plovdiv, on Asenovgradsko Shose, working with upper-segment cars — in stock on site and sourced to order.",
     "Във витрината стоят автомобилите в наличност. Ако търсеният не е сред тях, той се издирва и внася — марка, оборудване, състояние и бюджет се уточняват предварително. Приемаме автомобил и насрещно, за изкупуване или като част от плащането.":
       "On the showroom floor are the cars in stock. If the one you are after is not among them, it is sourced and imported — make, equipment, condition and budget agreed beforehand. We also take a car the other way, outright or against the purchase.",
-    "Финансирането и застраховането се уреждат на място, с партньорски институции; одобрението остава тяхно решение. В базата са и собственият сервиз — диагностика и обслужване — и Auto Spa за измиване, детайлинг и защита на лака. И двата остават на разположение и след покупката.":
+    "Финансирането и застраховането се уреждат на място, с партньорски институции; одобрението остава тяхно решение. В базата са и собственият сервиз — диагностика и обслужване — и автомивката с услуги по измиване, детайлинг и защита на лака. И двете остават на разположение и след покупката.":
       "Finance and insurance are arranged on site, with partner institutions; approval remains their decision. The site also holds our own workshop — diagnostics and servicing — and Auto Spa for washing, detailing and paint protection. Both stay available after the purchase.",
     "Кафе барът на терасата е отворен и за хора, които просто минават. Разговорът за автомобил върви по-добре на маса.":
       "The cafe bar on the terrace is open to people simply passing by. A conversation about a car goes better at a table.",
@@ -480,8 +479,7 @@
 
     /* ---- the service wall — the four rooms ---- */
     "Собствено ателие": "Our own studio",
-    "Auto Spa": "Auto Spa",
-    "Auto Spa": "Auto Spa",
+    "Автомивка": "Auto Spa",
     "Ръчно измиване, детайлинг, полиране и защита — на място в базата.":
       "Hand washing, detailing, polishing and protection — on site.",
     "Ръчно измиване, детайлинг, полиране, керамично покритие и защитно фолио — в собствено ателие в базата, не при подизпълнител.":
@@ -494,7 +492,7 @@
     "Керамично покритие": "Ceramic coating",
     "Защитно фолио": "Paint protection film",
     "Подготовка преди продажба": "Pre-sale preparation",
-    "Автомобил пред входа на Auto Spa в базата на AutoHaus":
+    "Автомобил пред входа на автомивката в комплекса на AutoHaus":
       "A car at the Auto Spa entrance on the AutoHaus site",
     "Запази час": "Book a slot",
 
@@ -579,10 +577,10 @@
       "Factory-armoured chauffeur transport — B7/VR9 and VR10.",
 
     /* ---- the services teaser and the about band ---- */
-    "Подбор и внос по поръчка, изкупуване и бартер, застраховки и регистрация, Auto Spa. Всичко около автомобила, на едно място.":
+    "Подбор и внос по поръчка, изкупуване и бартер, застраховки и регистрация, автомивка. Всичко около автомобила, на едно място.":
       "Selection and sourcing to order, buying and part-exchange, insurance and registration, Auto Spa. Everything around the car, in one place.",
     "За AutoHaus": "About AutoHaus",
-    "Всяка кола минава един и същ път — проверка, подготовка, Auto Spa, витрина — и всяка тръгва с проверен произход и пълна сервизна история. В салона има кафе бар, отворен за всички: елате за еспресо и разгледайте без никакъв натиск.":
+    "Всяка кола минава един и същ път — проверка, подготовка, автомивка, витрина — и всяка тръгва с проверен произход и пълна сервизна история. В салона има кафе бар, отворен за всички: елате за еспресо и разгледайте без никакъв натиск.":
       "Every car takes the same route — inspection, preparation, Auto Spa, showroom floor — and every one leaves with verified provenance and a full service history. There is a coffee bar in the showroom, open to everyone: come for an espresso and look around with no pressure at all.",
     "Запази оглед": "Book a viewing",
     "Виж услугите": "See the services",
@@ -608,7 +606,7 @@
     "ДДС BG200771286": "VAT BG200771286",
     "Оглед и тест драйв": "Viewing and test drive",
     "Застраховки и регистрация": "Insurance and registration",
-    "Auto Spa и детайлинг": "Auto Spa and detailing",
+    "Автомивка и детайлинг": "Auto Spa and detailing",
     "Лизинг от 6.9%": "Leasing from 6.9%",
     "Лизинг 6.9%": "Leasing 6.9%",
     "Как подготвяме колите": "How we prepare the cars",
@@ -628,7 +626,7 @@
       "Prices shown are final. Leasing figures are indicative: 6.9% annual interest with a 20% deposit and terms up to 60 months; final terms are confirmed after approval by a partner leasing institution. A car is held for 48 hours against a deposit. Part-exchange with your car is possible.",
 
     /* ---- the inventory ---- */
-    "Всяка кола тук е физически в Пловдив и е минала през един и същ път: проверка на произход и история, механична подготовка, Auto Spa, витрина. Продадените се свалят в същия ден.":
+    "Всяка кола тук е физически в Пловдив и е минала през един и същ път: проверка на произход и история, механична подготовка, автомивка, витрина. Продадените се свалят в същия ден.":
       "Every car here is physically in Plovdiv and has taken the same route: provenance and history checks, mechanical preparation, Auto Spa, showroom floor. Sold cars come down the same day.",
     "Автомобили се подрежда в браузъра, а тук той не изпълнява скриптове. Наличността се проверява по телефона за секунди — и е същата, която бихте видели тук.":
       "Vehicles is assembled in the browser, and scripts are not running here. Availability can be checked by phone in seconds — and it is the same availability you would see on this page.",
@@ -700,7 +698,7 @@
       "the armouring are reviewed in person at the viewing, not described in a listing.",
     "Преминал е през същия път като всеки автомобил в автомобилите: проверка на":
       "It has taken the same route as every car in the inventory: checks on",
-    "произход и сервизна история, механична подготовка в собствен сервиз, пълен Auto Spa":
+    "произход и сервизна история, механична подготовка в собствен сервиз, пълно обслужване в автомивката":
       "provenance and service history, mechanical preparation in our own workshop, a full Auto Spa",
     "детайлинг и лично одобрение от": "detail and personal approval by",
     "Документите — справка за произход, сервизни книжки и фактури — са на":
@@ -833,7 +831,7 @@
     "Имам автомобил за изкупуване или бартер.": "I have a car to sell or part-exchange.",
     "Друго": "Something else",
     "Друго запитване": "Another enquiry",
-    "Auto Spa, лизинг, застраховка, регистрация.": "Auto Spa, leasing, insurance, registration.",
+    "Автомивка, лизинг, застраховка, регистрация.": "Auto Spa, leasing, insurance, registration.",
     "Кой автомобил?": "Which car?",
     "Марка и модел": "Make and model",
     "Модел и версия": "Model and version",
@@ -942,7 +940,7 @@
        stray string can ever render them. */
 
     /* ---- meta descriptions ---- */
-    "87 подбрани автомобила в наличност в Пловдив — от брониран клас и Maybach до AMG и Porsche. Лизинг от 6.9%, внос по поръчка, бартер, Auto Spa.":
+    "87 подбрани автомобила в наличност в Пловдив — от брониран клас и Maybach до AMG и Porsche. Лизинг от 6.9%, внос по поръчка, бартер, автомивка.":
       "87 selected vehicles in stock in Plovdiv — from armoured class and Maybach to AMG and Porsche. Leasing from 6.9%, sourcing to order, part-exchange, Auto Spa.",
     "87 подбрани автомобила в наличност в Пловдив. Брониран клас, Maybach, AMG, Porsche, G-класа. Избор по марка.":
       "87 selected vehicles in stock in Plovdiv. Armoured class, Maybach, AMG, Porsche, G-Class. Browse by make.",
@@ -997,7 +995,7 @@
       "At the complex",
     "Грижа за автомобила в комплекса на AutoHaus.":
       "Car care at the AutoHaus complex.",
-    "Auto Spa е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.":
+    "Автомивката е част от комплекса на AutoHaus. За обхвата на услугите и записване се свържете с нас.":
       "Auto Spa is part of the AutoHaus complex. For the range of services and to book, get in touch.",
     "Обслужване и поддръжка в комплекса на AutoHaus.":
       "Servicing and maintenance at the AutoHaus complex.",
@@ -1015,7 +1013,7 @@
       "The café bar is on the terrace at the AutoHaus complex.",
     "Запитване":
       "Enquiry",
-    "Финансирането и застраховането се уреждат с партньорски институции; одобрението остава тяхно решение. В комплекса са и сервиз, и Auto Spa.":
+    "Финансирането и застраховането се уреждат с партньорски институции; одобрението остава тяхно решение. В комплекса са и сервиз, и автомивка.":
       "Financing and insurance are arranged through partner institutions; approval remains their decision. The complex also houses a workshop and an Auto Spa.",
     "На терасата в комплекса има и кафе бар.":
       "There is also a café bar on the terrace at the complex.",
@@ -1289,7 +1287,7 @@
       function (m, ch, blurb) {
         return "Sits in the “" + lc(ch) + "” chapter" + (blurb ? ": " + lc(blurb) : ".");
       }],
-    [/^Преминал е през същия път като всеки автомобил в автомобилите: проверка на произход и сервизна история, механична подготовка в собствен сервиз, пълен Auto Spa детайлинг и лично одобрение от (.+?), преди да бъде показан\.$/,
+    [/^Преминал е през същия път като всеки автомобил в автомобилите: проверка на произход и сервизна история, механична подготовка в собствен сервиз, пълен детайлинг в автомивката и лично одобрение от (.+?), преди да бъде показан\.$/,
       function (m, who) {
         return "It has taken the same route as every car in the inventory: provenance " +
           "and service-history checks, mechanical preparation in our own workshop, a full " +

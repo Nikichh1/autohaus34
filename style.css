@@ -992,6 +992,7 @@ body:not(.ah) .btn--secondary:active:not(:disabled){--btn-fill:rgba(20,19,18,.16
 .mob nav .mob-inquiry{position:relative;isolation:isolate;min-height:50px;margin-top:8px;padding:12px 20px;color:#101312;font-size:17px;font-weight:600}
 .mob nav .mob-inquiry::before{content:"";display:block;position:absolute;inset:0;z-index:-1;background:#f0f1ee;clip-path:polygon(0 0,100% 0,calc(100% - 23px) 100%,0 100%);transition:background .18s ease}
 .mob nav .mob-inquiry::after{opacity:1;transform:none;margin-right:12px}
+.mob nav .mob-inquiry,.mob nav .mob-inquiry:hover,.mob nav .mob-inquiry:focus-visible{color:#101312!important}
 .mob nav .mob-inquiry:hover::before,.mob nav .mob-inquiry:focus-visible::before{background:#fff}
 .mob-utility{display:flex;flex-wrap:wrap;column-gap:24px;padding-top:10px}
 .mob nav .mob-utility a{min-height:44px;font-size:14px;color:#b7beb9}

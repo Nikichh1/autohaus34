@@ -42,7 +42,7 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.min.css?v=13932d0cce98" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=5f330e6848b2" id="ah-css">
 <meta name="robots" content="noindex">
 <!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
      index/vehicle/legal start their scripts only once the stylesheet is
@@ -56,7 +56,7 @@
      18KB of CSS, no hero photograph to compete with. -->
 <script defer src="main.js?v=bca7ce87a62a"></script>
 <script defer src="concierge.js?v=791d7a33a4a4"></script>
-<script defer src="i18n.js?v=222d4b3c79da"></script>
+<script defer src="i18n.js?v=ff4ef8545597"></script>
 <script>
 /* RESERVE WHAT THE SCRIPTS ARE ABOUT TO DRAW.
    `defer` holds a script until after parsing, but it does NOT hold first
@@ -178,7 +178,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
         <a href="index.html#zastrahovki">Застраховки</a>
         <a href="index.html#lizing">Лизинг</a>
         <a href="index.html#servis">Сервиз</a>
-        <a href="index.html#care">Auto Spa</a>
+        <a href="index.html#care" data-ah-bg="Автомивка" data-ah-en="Auto Spa">Автомивка</a>
         <a href="index.html#cafe">Кафе бар</a>
         </div>
         <a class="mob-inquiry" href="concierge.html">Запитване</a>
@@ -225,9 +225,9 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
 
         <div class="ctc__mapbox">
           <iframe class="ctc__mapframe" title="Карта на AutoHaus" loading="lazy" referrerpolicy="no-referrer" data-map-src="https://maps.google.com/maps?q=AutoHaus%2C%20Nestor%20Abadzhiev%2024%2C%20Plovdiv&amp;z=15&amp;output=embed"></iframe>
-          <div class="ctc__mapmeta"><strong>AutoHaus</strong><a class="ctc__maplink" href="https://www.google.com/maps/search/?api=1&amp;query=42.1207165%2C24.7737244" target="_blank" rel="noopener">Отвори в Google Maps</a></div>
+          <div class="ctc__mapmeta"><strong data-ah-bg="Автокомплекс AutoHaus.bg" data-ah-en="Complex AutoHaus.bg">Автокомплекс AutoHaus.bg</strong><a class="ctc__maplink" href="https://www.google.com/maps/search/?api=1&amp;query=42.1207165%2C24.7737244" target="_blank" rel="noopener">Отвори в Google Maps</a></div>
         </div>
-        <h2 class="ctc__h" id="ctc-h">Контакт</h2>
+        <h2 class="ctc__h" id="ctc-h">Контакти</h2>
 
         <div class="ctc__where">
           <address class="ctc__addr">
@@ -282,7 +282,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
             <p class="ctc__hrs">Пон – Пет · 09:00 – 18:00</p>
           </div>
           <div class="ctc__dept">
-            <p class="ctc__k">Auto Spa</p>
+            <p class="ctc__k">Автомивка</p>
             <p class="ctc__lines">
               <a href="tel:+359884777148">+359 884 777 148</a>
               <a href="mailto:autohauscomplex@gmail.com">autohauscomplex@gmail.com</a>
@@ -393,7 +393,7 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
                   <button type="button" class="opt" data-value="stock"><span class="opt-txt"><span class="opt-t">Автомобил в наличност</span><span class="opt-d body-s">Видях конкретна кола и искам да продължа.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
                   <button type="button" class="opt" data-value="source"><span class="opt-txt"><span class="opt-t">Търсене по поръчка</span><span class="opt-d body-s">Знам какво искам, но го няма при вас. Намерете го.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
                   <button type="button" class="opt" data-value="trade"><span class="opt-txt"><span class="opt-t">Продажба или замяна</span><span class="opt-d body-s">Имам автомобил за изкупуване или бартер.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
-                  <button type="button" class="opt" data-value="other"><span class="opt-txt"><span class="opt-t">Друго</span><span class="opt-d body-s">Auto Spa, лизинг, застраховка, регистрация.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
+                  <button type="button" class="opt" data-value="other"><span class="opt-txt"><span class="opt-t">Друго</span><span class="opt-d body-s">Автомивка, лизинг, застраховка, регистрация.</span></span><span class="opt-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><use href="#ic-check"/></svg></span></button>
                 </div>
               </div>
             </section>
