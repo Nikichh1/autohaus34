@@ -1280,6 +1280,57 @@
       settle();
     };
 
+    /* On touch layouts an expanded card behaves like a temporary screen.
+       Give it one same-URL history entry so the browser's Back action dismisses
+       the sheet instead of navigating away. Desktop cards remain unchanged. */
+    var WALL_HISTORY_KEY = "__autohausWallPanel_v1";
+    var wallHistoryToken = null, wallHistorySequence = 0, wallHistoryFocus = false;
+    var wallHistoryMarker = function () {
+      var state = history.state;
+      var marker = state && typeof state === "object" ? state[WALL_HISTORY_KEY] : null;
+      return marker && typeof marker.token === "string" && typeof marker.id === "string" ? marker : null;
+    };
+    var writeWallHistory = function (item, token, method) {
+      var current = history.state;
+      var next = current && typeof current === "object" ? Object.assign({}, current) : {};
+      next[WALL_HISTORY_KEY] = { token: token, id: item.id };
+      history[method](next, "", location.href);
+    };
+    var discardWallHistory = function () {
+      var current = history.state;
+      if (!current || typeof current !== "object" || !current[WALL_HISTORY_KEY]) return;
+      var next = Object.assign({}, current);
+      delete next[WALL_HISTORY_KEY];
+      history.replaceState(Object.keys(next).length ? next : null, "", location.href);
+      wallHistoryToken = null;
+    };
+    var rememberWallOpen = function (item) {
+      if (innerWidth >= 1024) return;
+      var marker = wallHistoryMarker();
+      if (marker && (!wallHistoryToken || marker.token === wallHistoryToken)) {
+        wallHistoryToken = marker.token;
+        writeWallHistory(item, wallHistoryToken, "replaceState");
+        return;
+      }
+      wallHistoryToken = Date.now().toString(36) + "-" + (++wallHistorySequence).toString(36);
+      writeWallHistory(item, wallHistoryToken, "pushState");
+    };
+    var openWallItem = function (item, trackHistory) {
+      if (openItem === item) return;
+      if (openItem) { wall.classList.add("is-swap"); setOpen(openItem, false); }
+      if (trackHistory) rememberWallOpen(item);
+      setOpen(item, true);
+    };
+    var closeWallItem = function (item, focusBack) {
+      var marker = wallHistoryMarker();
+      if (innerWidth < 1024 && wallHistoryToken && marker && marker.token === wallHistoryToken) {
+        wallHistoryFocus = !!focusBack;
+        history.back();
+        return;
+      }
+      setOpen(item, false, focusBack);
+    };
+
     items.forEach(function (item) {
       var panel = item.querySelector(".wcard-panel");
       if (panel) panel.setAttribute("inert", "");
@@ -1288,18 +1339,13 @@
         e.preventDefault();
         if (moved) return;                       /* swallow drag-clicks */
         if (openItem === item) return;           /* already open — do nothing */
-        /* A switch is the only case where the rail must not follow the card:
-           one is shrinking while the other grows, and a rail sized to the
-           taller of the two sags through the crossover. See the switch floor
-           in style.css. Opening from rest deliberately gets no floor. */
-        if (openItem) { wall.classList.add("is-swap"); setOpen(openItem, false); }
-        setOpen(item, true);
+        openWallItem(item, true);
       });
       var close = item.querySelector(".wcard-close");
-      if (close) close.addEventListener("click", function () { setOpen(item, false, true); });
+      if (close) close.addEventListener("click", function () { closeWallItem(item, true); });
     });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && openItem) setOpen(openItem, false, true);
+      if (e.key === "Escape" && openItem) closeWallItem(openItem, true);
     });
 
     /* ---- ARRIVING BY LINK ------------------------------------------------
@@ -1323,12 +1369,11 @@
       });
       return found;
     };
-    var revealItem = function (item) {
+    var revealItem = function (item, trackHistory) {
       item.scrollIntoView({ block: "center", behavior: "instant" });
       requestAnimationFrame(function () {
         if (openItem === item) return;
-        if (openItem) { wall.classList.add("is-swap"); setOpen(openItem, false); }
-        setOpen(item, true);
+        openWallItem(item, !!trackHistory);
       });
     };
     document.addEventListener("click", function (e) {
@@ -1338,8 +1383,22 @@
       var item = wallItemFor(a.getAttribute("href").slice(1));
       if (!item) return;
       e.preventDefault();
-      if (history.replaceState) history.replaceState(null, "", a.getAttribute("href"));
-      revealItem(item);
+      if (history.replaceState) history.replaceState(history.state, "", a.getAttribute("href"));
+      revealItem(item, true);
+    });
+    addEventListener("popstate", function () {
+      var marker = wallHistoryMarker();
+      var item = marker && wallItemFor(marker.id);
+      if (item) {
+        wallHistoryToken = marker.token;
+        wallHistoryFocus = false;
+        openWallItem(item, false);
+        return;
+      }
+      wallHistoryToken = null;
+      var focusBack = wallHistoryFocus || !!openItem;
+      wallHistoryFocus = false;
+      if (openItem) setOpen(openItem, false, focusBack);
     });
     addEventListener("hashchange", function () {
       var item = wallItemFor(location.hash.slice(1));
@@ -1351,6 +1410,12 @@
       var item = wallItemFor(location.hash.slice(1));
       if (item) setTimeout(function () { revealItem(item); }, 150);
     });
+    var restoredWallMarker = wallHistoryMarker();
+    var restoredWallItem = restoredWallMarker && wallItemFor(restoredWallMarker.id);
+    if (restoredWallItem) {
+      wallHistoryToken = restoredWallMarker.token;
+      addEventListener("load", function () { setTimeout(function () { revealItem(restoredWallItem); }, 150); });
+    }
     /* Crossing the 1024 line while a card is open would leave it half in one
        mode and half in the other — inline-expanded geometry with a full-screen
        stylesheet, or centring room the new breakpoint never asked for. Close
@@ -1360,7 +1425,11 @@
     addEventListener("resize", function () {
       var crossed = (lastW < 1024) !== (innerWidth < 1024);
       lastW = innerWidth;
-      if (openItem && crossed) { setOpen(openItem, false); setPad(0, 0); }
+      if (openItem && crossed) {
+        if (innerWidth >= 1024) discardWallHistory();
+        closeWallItem(openItem, false);
+        setPad(0, 0);
+      }
       lockScroll(!!openItem && innerWidth < 1024);
     });
 
