@@ -1758,6 +1758,7 @@
     var mob = $("mob");
     if (!mob || mob.querySelector(".mob-lang")) return;
     var sheet = mob.querySelector(".mob__sheet");
+    var meta = mob.querySelector(".mob-meta");
     var foot = mob.querySelector(".mob-foot");
     if (!sheet) return;
     var current = document.documentElement.lang === "en" ? "en" : "bg";
@@ -1769,7 +1770,8 @@
       '<i class="lang__ind" aria-hidden="true"></i>' +
       '<button type="button" class="lang__o' + (current === "bg" ? " is-on" : "") + '" data-lang="bg" lang="bg" aria-pressed="' + (current === "bg") + '">BG</button>' +
       '<button type="button" class="lang__o' + (current === "en" ? " is-on" : "") + '" data-lang="en" lang="en" aria-pressed="' + (current === "en") + '">EN</button>';
-    if (foot) sheet.insertBefore(group, foot);
+    if (meta) meta.insertBefore(group, meta.firstChild);
+    else if (foot) sheet.insertBefore(group, foot);
     else sheet.appendChild(group);
   })();
 

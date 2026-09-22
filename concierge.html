@@ -42,7 +42,7 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.min.css?v=d0439a4b3f20" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=13932d0cce98" id="ah-css">
 <meta name="robots" content="noindex">
 <!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
      index/vehicle/legal start their scripts only once the stylesheet is
@@ -54,7 +54,7 @@
      without it.  runs them after parsing and before first paint, so
      the furniture is there from the first frame. The page can afford it:
      18KB of CSS, no hero photograph to compete with. -->
-<script defer src="main.js?v=61353936be9a"></script>
+<script defer src="main.js?v=bca7ce87a62a"></script>
 <script defer src="concierge.js?v=791d7a33a4a4"></script>
 <script defer src="i18n.js?v=222d4b3c79da"></script>
 <script>
@@ -160,34 +160,44 @@ if(/[?&](v|intent|make|band|fuel|chapter|visit|q)=/.test(q))c.add("cg-has-rec");
 </div>
 
 <!-- THE MENU — a panel, not a takeover. See "THE MENU" in style.css. -->
-<div class="mob" id="mob" aria-hidden="true">
+<div class="mob" id="mob" role="dialog" aria-modal="true" aria-label="Меню" aria-hidden="true">
   <div class="mob__scrim" id="mob-scrim"></div>
   <div class="mob__reveal">
     <div class="mob__sheet">
+      <div class="mob-head">
       <a class="mob-mark" href="index.html" aria-label="AutoHaus">
         <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
       </a>
-      <button class="mob-close" id="mob-close" aria-label="Затвори">
+      <button type="button" class="mob-close" id="mob-close" aria-label="Затвори">
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
       </button>
+      </div>
       <nav aria-label="Меню">
-        <a href="index.html#avtomobili">Автомобили</a>
+        <a class="mob-primary" href="index.html#avtomobili">Автомобили</a>
+        <div class="mob-services">
         <a href="index.html#zastrahovki">Застраховки</a>
         <a href="index.html#lizing">Лизинг</a>
         <a href="index.html#servis">Сервиз</a>
         <a href="index.html#care">Auto Spa</a>
         <a href="index.html#cafe">Кафе бар</a>
-        <a href="concierge.html">Запитване</a>
+        </div>
+        <a class="mob-inquiry" href="concierge.html">Запитване</a>
+        <div class="mob-utility">
         <a href="legal.html">Политика</a>
         <a href="legal.html#imprint" data-contact>Контакти</a>
+        </div>
       </nav>
+      <div class="mob-bottom">
+      <div class="mob-meta">
       <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
         <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
         <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
       </ul>
+      </div>
       <div class="mob-foot">
         <a href="tel:+359884777147">+359 884 777 147</a>
         <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+      </div>
       </div>
     </div>
   </div>

@@ -21,9 +21,9 @@
 <title>Правна информация — AutoHaus</title>
 <meta name="description" content="Политика за поверителност, политика за бисквитки, общи условия и права по GDPR на Аутохаус България ЕООД.">
 <!-- Deferred scripts preserve document order and wait for inventory. -->
-<link rel="stylesheet" href="style.min.css?v=d0439a4b3f20" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=13932d0cce98" id="ah-css">
 <meta name="robots" content="noindex">
-<script defer src="main.js?v=61353936be9a"></script>
+<script defer src="main.js?v=bca7ce87a62a"></script>
 <script defer src="i18n.js?v=222d4b3c79da"></script>
 <script defer src="analytics.js?v=0bbdd49798ca"></script>
 </head>
@@ -104,34 +104,44 @@
 </div>
 
 <!-- THE MENU — a panel, not a takeover. See "THE MENU" in style.css. -->
-<div class="mob" id="mob" aria-hidden="true">
+<div class="mob" id="mob" role="dialog" aria-modal="true" aria-label="Меню" aria-hidden="true">
   <div class="mob__scrim" id="mob-scrim"></div>
   <div class="mob__reveal">
     <div class="mob__sheet">
+      <div class="mob-head">
       <a class="mob-mark" href="index.html" aria-label="AutoHaus">
         <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">
       </a>
-      <button class="mob-close" id="mob-close" aria-label="Затвори">
+      <button type="button" class="mob-close" id="mob-close" aria-label="Затвори">
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg>
       </button>
+      </div>
       <nav aria-label="Меню">
-        <a href="index.html#avtomobili">Автомобили</a>
+        <a class="mob-primary" href="index.html#avtomobili">Автомобили</a>
+        <div class="mob-services">
         <a href="index.html#zastrahovki">Застраховки</a>
         <a href="index.html#lizing">Лизинг</a>
         <a href="index.html#servis">Сервиз</a>
         <a href="index.html#care">Auto Spa</a>
         <a href="index.html#cafe">Кафе бар</a>
-        <a href="concierge.html">Запитване</a>
+        </div>
+        <a class="mob-inquiry" href="concierge.html">Запитване</a>
+        <div class="mob-utility">
         <a href="legal.html">Политика</a>
         <a href="legal.html#imprint" data-contact>Контакти</a>
+        </div>
       </nav>
+      <div class="mob-bottom">
+      <div class="mob-meta">
       <ul class="social social--menu" aria-label="AutoHaus в социалните мрежи">
         <li><a class="social__a" href="https://www.facebook.com/complexAutoHaus.bg/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-fb"/></svg></a></li>
         <li><a class="social__a" href="https://instagram.com/autohaus.bg" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-ig"/></svg></a></li>
       </ul>
+      </div>
       <div class="mob-foot">
         <a href="tel:+359884777147">+359 884 777 147</a>
         <a href="mailto:autohausbg@gmail.com">autohausbg@gmail.com</a>
+      </div>
       </div>
     </div>
   </div>
