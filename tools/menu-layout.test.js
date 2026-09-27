@@ -47,6 +47,14 @@ for (const page of ["index.html", "vehicle.html", "concierge.html", "legal.html"
   });
 }
 
+for (const page of ["concierge.html", "legal.html"]) {
+  test(page + " keeps navigation in the drawer, not beside its header trigger", () => {
+    const start = region(read(page), '<div class="hd-zone hd-zone--start">');
+    assert.match(start, /id="hd-menu"/);
+    assert.doesNotMatch(start, /<a\b|hd-links/);
+  });
+}
+
 const languageSetup = read("main.js").match(/\(function ensureMenuLanguage\(\) \{[\s\S]*?\}\)\(\);/)[0];
 for (const lang of ["bg", "en"]) {
   test("menu language control joins the footer once and retains " + lang + " state", () => {

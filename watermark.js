@@ -300,10 +300,6 @@
     if (!lb || !stage || !close || lb.dataset.ahCloseFix === "1") return;
     lb.dataset.ahCloseFix = "1";
 
-    stage.addEventListener("click", function (event) {
-      if (event.target === stage) close.click();
-    });
-
     close.addEventListener("pointerdown", function (event) {
       event.stopPropagation();
     });
