@@ -2768,7 +2768,7 @@ html:not(.js) .rv{opacity:1;transform:none}
    when closed, still leaves the tab order. */
 .lb{
   position:fixed;inset:0;z-index:80;
-  background:radial-gradient(110% 80% at 50% 42%,rgba(10,10,10,.97),rgba(3,3,3,.99));
+  background:radial-gradient(110% 80% at 50% 42%,#0a0a0a,#030303);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:clamp(16px,3vh,26px);padding:6vh 6vw;
   /* visibility flips instantly on open and is delayed to the end of the fade
@@ -2796,10 +2796,10 @@ html:not(.js) .rv{opacity:1;transform:none}
 }
 .lb__stage.is-grabbing #lb-img{will-change:transform}
 .lb .x{
-  position:absolute;top:var(--margin);right:var(--margin);color:#fff;
+  position:absolute;z-index:2;top:max(var(--margin),calc(env(safe-area-inset-top) + 12px));right:var(--margin);color:#fff;
   font-size:13px;line-height:16px;font-weight:600;letter-spacing:1.3px;text-transform:uppercase;
   display:inline-flex;gap:12px;align-items:center;justify-content:center;
-  min-height:40px;padding:12px 18px;border:1px solid #fff;
+  min-height:44px;padding:12px 18px;border:1px solid #fff;
 }
 .lb .x:hover,.lb .x:focus-visible{background-color:rgba(255,255,255,.2)}
 .lb .x svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none}
@@ -5609,6 +5609,13 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
   .detail-menu{min-width:44px}
 }
 
+/* Navigation and the first screen remain usable while images finish loading. */
+.hd{animation-duration:.35s;animation-delay:0s}
+.stage{animation-duration:.45s}
+.stage-item[data-i="0"] .stage-bg{animation-duration:.65s}
+.stage-item[data-i="0"] .stage-media{animation-duration:.55s}
+.stage-item[data-i="0"] .stage-content{animation-duration:.45s;animation-delay:0s}
+
 /* Touch devices avoid full-screen blur and long staggered entrance work. */
 @media(hover:none),(max-width:767px){
  .stage__bg,.hero-bg,.ctc__scrim,.shw-scrim,.shw-bar,.nav,.vd-sticky{filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
@@ -5761,6 +5768,7 @@ html[data-ah-scroll-header="autohaus_original"] .plate__menu{
   transform:none!important;
   transition:opacity .18s ease!important
 }
+html[data-ah-original-menu-button="0"] .plate__menu{display:none!important}
 html[data-ah-scroll-header="autohaus_original"] .plate__menu::before{display:none!important}
 html[data-ah-scroll-header="autohaus_original"] .plate__menu::after{
   content:"";

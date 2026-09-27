@@ -60,6 +60,31 @@ test("retired bootstrap cannot replace live inventory",async()=>{
  assert.equal((await call("admin/vehicles",req("POST",{vehicles:[]},{action:"bootstrap"}))).statusCode,410);
 });
 
+test("retired compact header value controls only the original menu button",async()=>{
+ let saved;
+ mockFetch((url,options)=>{
+  assert.match(url,/admin_settings/);
+  if(options.method==="PATCH") {
+   saved=JSON.parse(options.body);
+   return response([saved]);
+  }
+  return response([{scroll_header_style:"compact"}]);
+ });
+ const admin=await call("admin/vehicles",req("GET",{},{action:"settings"}));
+ assert.equal(admin.body.settings.scroll_header_style,"autohaus_original");
+ assert.equal(admin.body.settings.original_header_menu_button_enabled,false);
+ const publicResult=await call("public/vehicles",req("GET",{},{settings:"1"}));
+ assert.equal(publicResult.body.settings.scroll_header_style,"autohaus_original");
+ assert.equal(publicResult.body.settings.original_header_menu_button_enabled,false);
+ const invalid=await call("admin/vehicles",req("PATCH",{original_header_menu_button_enabled:"false"},{action:"settings"}));
+ assert.equal(invalid.statusCode,400);
+ const updated=await call("admin/vehicles",req("PATCH",{original_header_menu_button_enabled:false},{action:"settings"}));
+ assert.equal(updated.statusCode,200);
+ assert.equal(saved.scroll_header_style,"compact");
+ assert.equal(updated.body.settings.original_header_menu_button_enabled,false);
+ assert.equal(updated.body.settings.scroll_header_style,"autohaus_original");
+});
+
 test("empty managed inventory stays empty; outage requests static fallback",async()=>{
  mockFetch(url=>response(url.includes("inventory_state")?[{initialized:true}]:[]));
  let output=await call("public/vehicles",req());assert.equal(output.body.authoritative,true);assert.deepEqual(output.body.vehicles,[]);

@@ -125,7 +125,8 @@
     var filterName = ["none", "balanced", "showroom"].indexOf(settings.photo_filter) >= 0 ? settings.photo_filter : "none";
     var strength = clamp(settings.photo_filter_strength, 0, 100, 35);
     var galleryScale = clamp(settings.desktop_gallery_scale, 70, 100, 84);
-    var scrollHeaderStyle = settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
+    var scrollHeaderStyle = "autohaus_original";
+    var originalHeaderMenuButton = settings.original_header_menu_button_enabled !== false;
     var landingStandardHeader = settings.landing_standard_header !== false;
     var landingStandardSticky = settings.landing_standard_header_sticky === true;
     var landingOriginalAfterScroll = settings.landing_original_after_scroll !== false;
@@ -167,6 +168,7 @@
     ROOT.dataset.ahPhotoRatio = ratio;
     ROOT.dataset.ahPhotoFilter = filterName;
     ROOT.dataset.ahScrollHeader = scrollHeaderStyle;
+    ROOT.dataset.ahOriginalMenuButton = originalHeaderMenuButton ? "1" : "0";
     ROOT.dataset.ahLandingStandardHeader = landingStandardHeader ? "1" : "0";
     ROOT.dataset.ahLandingHeaderSticky = landingStandardSticky ? "1" : "0";
     ROOT.dataset.ahLandingOriginalAfterScroll = landingOriginalAfterScroll ? "1" : "0";
@@ -197,6 +199,7 @@
       photo_filter_strength: strength,
       desktop_gallery_scale: galleryScale,
       scroll_header_style: scrollHeaderStyle,
+      original_header_menu_button_enabled: originalHeaderMenuButton,
       landing_standard_header: landingStandardHeader,
       landing_standard_header_sticky: landingStandardSticky,
       landing_original_after_scroll: landingOriginalAfterScroll,
@@ -218,6 +221,7 @@
       photo_filter_strength: strength,
       desktop_gallery_scale: galleryScale,
       scroll_header_style: scrollHeaderStyle,
+      original_header_menu_button_enabled: originalHeaderMenuButton,
       landing_standard_header_mode: landingStandardMode,
       landing_original_header_mode: landingOriginalMode,
       product_standard_header_mode: productStandardMode,

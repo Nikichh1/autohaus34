@@ -65,6 +65,7 @@ body.ah-admin{min-height:100vh;overflow-x:hidden}
   color:rgba(255,255,255,.55)!important;font-size:10px;font-weight:700;letter-spacing:.08em;
 }
 .admin-language button+button{border-left:1px solid rgba(255,255,255,.2)!important}
+.ah-original-tuning #ah-original-desktop-menu-label + .muted{display:block;margin-top:5px;color:#6c6e70;font-size:12px!important;line-height:1.45;font-weight:400;letter-spacing:0;text-transform:none}
 .admin-language button[aria-pressed=true],.side .admin-language button[aria-pressed=true]{background:#fff!important;color:#111!important}
 
 .workspace{

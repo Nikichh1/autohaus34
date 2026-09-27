@@ -146,7 +146,7 @@ async function publicSettings() {
   const size = Number(row.watermark_size);
   const strength = Number(row.photo_filter_strength);
   const galleryScale = Number(row.desktop_gallery_scale);
-  const scrollHeaderStyle = row.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
+  const plateMenuEnabled = row.scroll_header_style !== "compact";
   const landingStandardMode = ["hidden","top","sticky"].includes(row.landing_standard_header_mode) ? row.landing_standard_header_mode :
     (row.landing_standard_header === false ? "hidden" : row.landing_standard_header_sticky === true ? "sticky" : "top");
   const landingOriginalMode = ["hidden","always","after_scroll"].includes(row.landing_original_header_mode) ? row.landing_original_header_mode :
@@ -165,7 +165,8 @@ async function publicSettings() {
     photo_filter: ["none", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none",
     photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35,
     desktop_gallery_scale: Number.isFinite(galleryScale) ? Math.max(70, Math.min(100, Math.round(galleryScale))) : 84,
-    scroll_header_style: scrollHeaderStyle,
+    scroll_header_style: "autohaus_original",
+    original_header_menu_button_enabled: plateMenuEnabled,
     landing_standard_header: row.landing_standard_header !== false,
     landing_standard_header_sticky: row.landing_standard_header_sticky === true,
     landing_original_after_scroll: row.landing_original_after_scroll !== false,
@@ -222,7 +223,7 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { ok: true, settings: await publicSettings() });
     } catch (err) {
       console.error("Public settings API failed", err);
-      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84, scroll_header_style: "compact", landing_standard_header: true, landing_standard_header_sticky: false, landing_original_after_scroll: true, product_standard_header: true, product_standard_header_sticky: true, product_original_header: false, landing_standard_header_mode: "top", landing_original_header_mode: "after_scroll", product_standard_header_mode: "sticky", product_original_header_mode: "hidden", original_header_size: 81, original_header_opacity: 98, original_header_language: "menu", original_header_desktop_menu_label: true } });
+      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84, scroll_header_style: "autohaus_original", original_header_menu_button_enabled: true, landing_standard_header: true, landing_standard_header_sticky: false, landing_original_after_scroll: true, product_standard_header: true, product_standard_header_sticky: true, product_original_header: false, landing_standard_header_mode: "top", landing_original_header_mode: "after_scroll", product_standard_header_mode: "sticky", product_original_header_mode: "hidden", original_header_size: 81, original_header_opacity: 98, original_header_language: "menu", original_header_desktop_menu_label: true } });
     }
   }
 

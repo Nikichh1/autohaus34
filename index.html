@@ -19,7 +19,8 @@
     root.style.setProperty("--ah-watermark-opacity",String((100-tr)/100));
     root.style.setProperty("--ah-watermark-size",size+"%");
     root.classList.toggle("ah-watermark-v4-on",s.watermark_enabled===true);
-    root.dataset.ahScrollHeader=s.scroll_header_style==="autohaus_original"?"autohaus_original":"compact";
+    root.dataset.ahScrollHeader="autohaus_original";
+    root.dataset.ahOriginalMenuButton=s.original_header_menu_button_enabled===false?"0":"1";
     var landingStandardMode=["hidden","top","sticky"].indexOf(s.landing_standard_header_mode)>=0?s.landing_standard_header_mode:(s.landing_standard_header===false?"hidden":s.landing_standard_header_sticky===true?"sticky":"top");
     var landingOriginalMode=["hidden","always","after_scroll"].indexOf(s.landing_original_header_mode)>=0?s.landing_original_header_mode:(s.landing_original_after_scroll===false?"hidden":"after_scroll");
     var productStandardMode=["hidden","top","sticky"].indexOf(s.product_standard_header_mode)>=0?s.product_standard_header_mode:(s.product_standard_header===false?"hidden":s.product_standard_header_sticky===false?"top":"sticky");
@@ -48,21 +49,21 @@
 <!-- the hero frame, which gates the whole entrance choreography (see main.js) -->
 <!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=5f330e6848b2" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=d8b59d8c0987" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
 <link rel="stylesheet" href="catalog.min.css?v=45d9fbbe044e" media="print" onload="this.media='all';this.onload=null">
 <noscript><link rel="stylesheet" href="catalog.min.css?v=45d9fbbe044e"></noscript>
 <!-- Ordered deferred modules: inventory resolves before rendering. -->
-<script defer src="main.js?v=da75fb131fde"></script>
+<script defer src="main.js?v=7fe18163619a"></script>
 <script defer src="catalog.js?v=6f4a42cb4190"></script>
 <script defer src="catalog-prefetch.js?v=4b0cf3287ba8"></script>
 <script defer src="showroom.js?v=d4b7add5d1b4"></script>
 <script defer src="i18n.js?v=ff4ef8545597"></script>
 
 <script defer src="analytics.js?v=0bbdd49798ca"></script>
-<script defer src="watermark.js?v=523b64517158"></script>
+<script defer src="watermark.js?v=7dbd78cadbb8"></script>
 <script defer src="image-guard.js?v=fdc6606ccf15"></script>
 </head>
 <body class="ah">
