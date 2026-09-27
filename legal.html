@@ -8,11 +8,12 @@
   try{
     var raw=localStorage.getItem("autohaus-photo-presentation-v1");
     var cache=raw?JSON.parse(raw):null,settings=cache&&cache.settings;
-    document.documentElement.dataset.ahScrollHeader=
-      settings&&settings.scroll_header_style==="autohaus_original"?"autohaus_original":"compact";
+    document.documentElement.dataset.ahScrollHeader="autohaus_original";
+    document.documentElement.dataset.ahOriginalMenuButton=
+      settings&&settings.original_header_menu_button_enabled===false?"0":"1";
     document.documentElement.dataset.ahOriginalDesktopMenuLabel=
       settings&&settings.original_header_desktop_menu_label===false?"0":"1";
-  }catch(_){document.documentElement.dataset.ahScrollHeader="compact";}
+  }catch(_){document.documentElement.dataset.ahScrollHeader="autohaus_original";}
 })();
 </script>
 <link rel="icon" href="favicon.jpg" type="image/jpeg">
@@ -21,9 +22,9 @@
 <title>Правна информация — AutoHaus</title>
 <meta name="description" content="Политика за поверителност, политика за бисквитки, общи условия и права по GDPR на Аутохаус България ЕООД.">
 <!-- Deferred scripts preserve document order and wait for inventory. -->
-<link rel="stylesheet" href="style.min.css?v=5f330e6848b2" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=d8b59d8c0987" id="ah-css">
 <meta name="robots" content="noindex">
-<script defer src="main.js?v=da75fb131fde"></script>
+<script defer src="main.js?v=7fe18163619a"></script>
 <script defer src="i18n.js?v=ff4ef8545597"></script>
 <script defer src="analytics.js?v=0bbdd49798ca"></script>
 </head>
@@ -53,12 +54,6 @@
       <button class="hd-menu" id="hd-menu" aria-expanded="false" aria-controls="mob">
         <svg viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-menu"/></svg><span>Меню</span>
       </button>
-      <a class="lnk" href="index.html#avtomobili">Автомобили</a>
-      <ul class="hd-links">
-        <li><a class="lnk" href="index.html#zastrahovki">Застраховки</a></li>
-        <li><a class="lnk" href="index.html#lizing">Лизинг</a></li>
-        <li><a class="lnk" href="index.html#servis">Сервиз</a></li>
-      </ul>
     </div>
     <a class="hd-logo" href="index.html" aria-label="AutoHaus — начало">
       <img class="logo" src="autohaus.svg?v=831c16a80c19" width="482" height="85" alt="">

@@ -8,11 +8,12 @@
   try{
     var raw=localStorage.getItem("autohaus-photo-presentation-v1");
     var cache=raw?JSON.parse(raw):null,settings=cache&&cache.settings;
-    document.documentElement.dataset.ahScrollHeader=
-      settings&&settings.scroll_header_style==="autohaus_original"?"autohaus_original":"compact";
+    document.documentElement.dataset.ahScrollHeader="autohaus_original";
+    document.documentElement.dataset.ahOriginalMenuButton=
+      settings&&settings.original_header_menu_button_enabled===false?"0":"1";
     document.documentElement.dataset.ahOriginalDesktopMenuLabel=
       settings&&settings.original_header_desktop_menu_label===false?"0":"1";
-  }catch(_){document.documentElement.dataset.ahScrollHeader="compact";}
+  }catch(_){document.documentElement.dataset.ahScrollHeader="autohaus_original";}
 })();
 </script>
 <script>window.AH_INVENTORY_READY = new Promise(function (resolve) { window.AH_INVENTORY_RESOLVE = resolve; });</script>
@@ -42,7 +43,7 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.min.css?v=5f330e6848b2" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=d8b59d8c0987" id="ah-css">
 <meta name="robots" content="noindex">
 <!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
      index/vehicle/legal start their scripts only once the stylesheet is
@@ -54,7 +55,7 @@
      without it.  runs them after parsing and before first paint, so
      the furniture is there from the first frame. The page can afford it:
      18KB of CSS, no hero photograph to compete with. -->
-<script defer src="main.js?v=da75fb131fde"></script>
+<script defer src="main.js?v=7fe18163619a"></script>
 <script defer src="concierge.js?v=791d7a33a4a4"></script>
 <script defer src="i18n.js?v=ff4ef8545597"></script>
 <script>

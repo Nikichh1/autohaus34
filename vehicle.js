@@ -730,7 +730,7 @@
       if (!list || !clamp || !btn) return;
       list.innerHTML = built.html;
       list.classList.toggle('deq--simple', built.simple);
-      if (count) count.textContent = built.n ? "· " + built.n : "";
+      if (count) count.textContent = built.n ? "· " + built.n + (useEnglish ? " items" : " позиции") : "";
       sec.hidden = !built.n;
       armClamp(clamp, btn);
     }
@@ -931,11 +931,21 @@
   lbNext.addEventListener("click", function () { open(shot + 1); });
   var suppressBackdropUntil = 0;
   lb.addEventListener("click", function (e) {
-    if (e.target !== lb) return;
+    if (e.target !== lb && e.target !== lbStage && e.target !== lbImg) return;
     if (performance.now() < suppressBackdropUntil) {
       e.preventDefault();
       e.stopPropagation();
       return;
+    }
+    if (e.target === lbImg && lbImg.naturalWidth && lbImg.naturalHeight) {
+      /* object-fit:contain leaves letterboxed backdrop inside the img box. */
+      var box = lbImg.getBoundingClientRect();
+      var scale = Math.min(box.width / lbImg.naturalWidth, box.height / lbImg.naturalHeight);
+      var width = lbImg.naturalWidth * scale, height = lbImg.naturalHeight * scale;
+      if (e.clientX >= box.left + (box.width - width) / 2 &&
+          e.clientX <= box.right - (box.width - width) / 2 &&
+          e.clientY >= box.top + (box.height - height) / 2 &&
+          e.clientY <= box.bottom - (box.height - height) / 2) return;
     }
     close();
   });

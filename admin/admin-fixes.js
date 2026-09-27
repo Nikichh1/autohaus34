@@ -179,7 +179,8 @@
     photo_filter: "none",
     photo_filter_strength: 35,
     desktop_gallery_scale: 84,
-    scroll_header_style: "compact",
+    scroll_header_style: "autohaus_original",
+    original_header_menu_button_enabled: true,
     landing_standard_header: true,
     landing_standard_header_sticky: false,
     landing_original_after_scroll: true,
@@ -221,7 +222,8 @@
       photo_filter: ["none", "balanced", "showroom"].indexOf(value.photo_filter) >= 0 ? value.photo_filter : "none",
       photo_filter_strength: Math.max(0, Math.min(100, strength)),
       desktop_gallery_scale: Math.max(70, Math.min(100, galleryScale)),
-      scroll_header_style: value.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact",
+      scroll_header_style: "autohaus_original",
+      original_header_menu_button_enabled: value.original_header_menu_button_enabled !== false,
       landing_standard_header: value.landing_standard_header !== false,
       landing_standard_header_sticky: value.landing_standard_header_sticky === true,
       landing_original_after_scroll: value.landing_original_after_scroll !== false,
@@ -353,22 +355,9 @@
           '<div class="ah-header-help"><strong>' + esc(t("Направено за настройка пред клиента", "Built for live client adjustments")) + '</strong><span>' + esc(t("Избираш отделно какво се вижда горе и какво остава при скрол. Няма зависими чекбоксове.", "Choose independently what appears at the top and what remains while scrolling. No dependent checkboxes.")) + '</span></div>' +
           '<div class="ah-header-presets"><span>' + esc(t("Бързи сценарии", "Quick scenarios")) + '</span>' +
             '<button type="button" class="ghost ah-header-preset" data-preset="original">' + esc(t("Оригинален AutoHaus", "Original AutoHaus")) + '</button>' +
-            '<button type="button" class="ghost ah-header-preset" data-preset="modern">' + esc(t("Модерен sticky", "Modern sticky")) + '</button>' +
             '<button type="button" class="ghost ah-header-preset" data-preset="wedge">' + esc(t("Само клин", "Wedge only")) + '</button>' +
           '</div>' +
-          '<div class="ah-section-kicker">' + esc(t("A. Как изглежда страничният хедър", "A. Side-header appearance")) + '</div><div class="ah-header-style-grid" role="radiogroup" aria-label="' + esc(t("Визуален стил", "Visual style")) + '">' +
-            '<label class="ah-header-style-card' + (cfg.scroll_header_style === "compact" ? " is-selected" : "") + '">' +
-              '<input type="radio" name="scroll_header_style" value="compact"' + (cfg.scroll_header_style === "compact" ? " checked" : "") + disabled + '>' +
-              '<span class="ah-header-style-preview ah-header-style-preview--compact"><i class="ah-mini-compact"><b></b><em></em></i></span>' +
-              '<span class="ah-header-style-copy"><strong>' + esc(t("Компактен", "Compact")) + '</strong><small>' + esc(t("Сегашният малък геометричен хедър.", "The current small geometric header.")) + '</small></span>' +
-            '</label>' +
-            '<label class="ah-header-style-card' + (cfg.scroll_header_style === "autohaus_original" ? " is-selected" : "") + '">' +
-              '<input type="radio" name="scroll_header_style" value="autohaus_original"' + (cfg.scroll_header_style === "autohaus_original" ? " checked" : "") + disabled + '>' +
-              '<span class="ah-header-style-preview ah-header-style-preview--original"><i class="ah-mini-original"></i></span>' +
-              '<span class="ah-header-style-copy"><strong>AutoHaus Original</strong><small>' + esc(t("Оригиналният клин от autohaus.bg.", "The original autohaus.bg wedge.")) + '</small></span>' +
-            '</label>' +
-          '</div>' +
-          '<div class="ah-section-kicker">' + esc(t("B. Кога се вижда всеки хедър", "B. When each header is visible")) + '</div><div class="ah-header-behavior-grid">' +
+          '<div class="ah-section-kicker">' + esc(t("Кога се вижда всеки хедър", "When each header is visible")) + '</div><div class="ah-header-behavior-grid">' +
             '<section class="ah-header-page-card"><div class="ah-header-page-head"><b>01</b><div><strong>' + esc(t("Начална страница", "Landing page")) + '</strong><small>' + esc(t("Hero / каталог", "Hero / catalogue")) + '</small></div></div>' +
               '<div class="ah-mode-block"><span>' + esc(t("Стандартният хедър", "Standard header")) + '</span><small>' + esc(t("Как се държи хедърът, който вече е най-горе върху hero.", "How the existing header over the hero behaves.")) + '</small>' +
                 '<div class="ah-segmented" data-group="landing_standard_header_mode">' +
@@ -376,7 +365,7 @@
                   '<label><input type="radio" name="landing_standard_header_mode" value="top"' + (cfg.landing_standard_header_mode==="top"?" checked":"") + disabled + '><span>' + esc(t("Само горе", "Top only")) + '</span></label>' +
                   '<label><input type="radio" name="landing_standard_header_mode" value="sticky"' + (cfg.landing_standard_header_mode==="sticky"?" checked":"") + disabled + '><span>Sticky</span></label>' +
                 '</div></div>' +
-              '<div class="ah-mode-block"><span>' + esc(t("Страничният хедър", "Side header")) + '</span><small>' + esc(t("Използва избрания по-горе стил: Компактен или AutoHaus Original.", "Uses the style selected above: Compact or AutoHaus Original.")) + '</small>' +
+              '<div class="ah-mode-block"><span>' + esc(t("Страничният хедър", "Side header")) + '</span><small>' + esc(t("Клинът AutoHaus Original.", "The AutoHaus Original wedge.")) + '</small>' +
                 '<div class="ah-segmented" data-group="landing_original_header_mode">' +
                   '<label><input type="radio" name="landing_original_header_mode" value="hidden"' + (cfg.landing_original_header_mode==="hidden"?" checked":"") + disabled + '><span>' + esc(t("Скрит", "Hidden")) + '</span></label>' +
                   '<label><input type="radio" name="landing_original_header_mode" value="always"' + (cfg.landing_original_header_mode==="always"?" checked":"") + disabled + '><span>' + esc(t("Винаги", "Always")) + '</span></label>' +
@@ -410,6 +399,7 @@
                 option("label", cfg.original_header_desktop_menu_label ? "label" : "icon", t("С думата „МЕНЮ“", "With “MENU” label")) +
                 option("icon", cfg.original_header_desktop_menu_label ? "label" : "icon", t("Само иконка", "Icon only")) +
               '</select><small class="muted">' + esc(t("Важи само за компютър. На телефон винаги остава само премиум иконката.", "Desktop only. Phones always keep the premium icon-only menu.")) + '</small></label>' +
+              '<label class="check" style="align-items:flex-start"><input id="ah-original-menu-button-enabled" type="checkbox"' + (cfg.original_header_menu_button_enabled ? " checked" : "") + disabled + '><span><strong>' + esc(t("Показвай бутона за меню в клина", "Show the menu button in the wedge")) + '</strong><br><small class="muted">' + esc(t("Скрива само бутона в AutoHaus Original. Горният хедър се управлява отделно.", "Only hides the button in AutoHaus Original. The top header is controlled separately.")) + '</small></span></label>' +
             '</div>' +
           '</section>' +
           (app.canWrite ? '<div class="ah-header-save-row"><button class="primary" id="ah-header-save" type="submit">' + esc(t("ПРИЛОЖИ ХЕДЪРА", "APPLY HEADER")) + '</button><span>' + esc(t("Промяната влиза веднага в сайта.", "The change applies immediately to the site.")) + '</span></div>' : '') +
@@ -429,27 +419,12 @@
         if (desktopGalleryScale) desktopGalleryScale.oninput = function () { desktopGalleryScaleValue.textContent = desktopGalleryScale.value + "%"; };
 
         function updateHeaderVisualState() {
-          document.querySelectorAll(".ah-header-style-card").forEach(function (card) {
-            var input = card.querySelector('input[name="scroll_header_style"]');
-            card.classList.toggle("is-selected", !!input && input.checked);
-          });
           document.querySelectorAll(".ah-segmented").forEach(function (group) {
             group.querySelectorAll("label").forEach(function (label) {
               var input = label.querySelector("input");
               label.classList.toggle("is-selected", !!input && input.checked);
             });
           });
-          var mini = document.querySelector(".ah-header-style-preview--original .ah-mini-original");
-          var preview = document.querySelector(".ah-header-style-preview--original");
-          var sizeInput = document.getElementById("ah-original-size");
-          var opacityInput = document.getElementById("ah-original-opacity");
-          var languageInput = document.getElementById("ah-original-language");
-          if (mini && sizeInput) {
-            var factor = Math.max(.72, Math.min(1.18, Number(sizeInput.value || 81) / 81));
-            mini.style.transform = "scale(" + factor + ")";
-          }
-          if (mini && opacityInput) mini.style.opacity = String(Math.max(.85, Math.min(1, Number(opacityInput.value || 98) / 100)));
-          if (preview && languageInput) preview.classList.toggle("is-language-on", languageInput.value === "header");
         }
         document.querySelectorAll('#ah-header-form input[type="radio"]').forEach(function (radio) {
           radio.onchange = updateHeaderVisualState;
@@ -464,9 +439,8 @@
         if (originalLanguage) originalLanguage.onchange = updateHeaderVisualState;
 
         var presets = {
-          original: { style:"autohaus_original", landingStandard:"top", landingOriginal:"after_scroll", productStandard:"hidden", productOriginal:"always", size:81, opacity:98, language:"menu", desktopMenu:"label" },
-          modern: { style:"compact", landingStandard:"sticky", landingOriginal:"hidden", productStandard:"sticky", productOriginal:"hidden", size:78, opacity:96, language:"menu", desktopMenu:"label" },
-          wedge: { style:"autohaus_original", landingStandard:"hidden", landingOriginal:"always", productStandard:"hidden", productOriginal:"always", size:76, opacity:98, language:"menu", desktopMenu:"icon" }
+          original: { landingStandard:"top", landingOriginal:"after_scroll", productStandard:"hidden", productOriginal:"always", size:81, opacity:98, language:"menu", desktopMenu:"label" },
+          wedge: { landingStandard:"hidden", landingOriginal:"always", productStandard:"hidden", productOriginal:"always", size:76, opacity:98, language:"menu", desktopMenu:"icon" }
         };
         document.querySelectorAll(".ah-header-preset").forEach(function (button) {
           button.onclick = function () {
@@ -475,7 +449,6 @@
               var input = headerBody.querySelector('input[name="' + name + '"][value="' + value + '"]');
               if (input) input.checked = true;
             };
-            setRadio("scroll_header_style", p.style);
             setRadio("landing_standard_header_mode", p.landingStandard);
             setRadio("landing_original_header_mode", p.landingOriginal);
             setRadio("product_standard_header_mode", p.productStandard);
@@ -529,7 +502,6 @@
           event.preventDefault();
           var save = document.getElementById("ah-header-save");
           var message = document.getElementById("ah-header-status");
-          var selected = headerForm.querySelector('input[name="scroll_header_style"]:checked');
           save.disabled = true; message.textContent = t("Записване…", "Saving…");
           try {
             var valueOf = function (name, fallback) {
@@ -537,7 +509,7 @@
               return input ? input.value : fallback;
             };
             await saveSettings({
-              scroll_header_style: selected ? selected.value : "compact",
+              original_header_menu_button_enabled: document.getElementById("ah-original-menu-button-enabled").checked,
               landing_standard_header_mode: valueOf("landing_standard_header_mode", "top"),
               landing_original_header_mode: valueOf("landing_original_header_mode", "after_scroll"),
               product_standard_header_mode: valueOf("product_standard_header_mode", "sticky"),

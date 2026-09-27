@@ -49,9 +49,7 @@
   var PRESENTATION_CACHE_KEY = "autohaus-photo-presentation-v1";
   function applyHeaderSettings(settings) {
     settings = settings || {};
-    var style = settings.scroll_header_style === "autohaus_original" ? "autohaus_original" :
-                settings.scroll_header_style === "compact" ? "compact" :
-                (ROOT.dataset.ahScrollHeader || "compact");
+    var style = "autohaus_original";
     var landingStandardMode = ["hidden","top","sticky"].indexOf(settings.landing_standard_header_mode) >= 0
       ? settings.landing_standard_header_mode
       : (ROOT.dataset.ahLandingStandardMode ||
@@ -88,6 +86,7 @@
     ROOT.dataset.ahProductOriginalMode = productOriginalMode;
     ROOT.dataset.ahOriginalLanguage = language;
     ROOT.dataset.ahOriginalDesktopMenuLabel = desktopMenuLabel ? "1" : "0";
+    ROOT.dataset.ahOriginalMenuButton = settings.original_header_menu_button_enabled === false ? "0" : "1";
     ROOT.style.setProperty("--ah-original-size", String(originalSize / 100));
     ROOT.style.setProperty("--ah-original-opacity", String(originalOpacity / 100));
 
@@ -106,7 +105,7 @@
       var raw = localStorage.getItem(PRESENTATION_CACHE_KEY);
       var cached = raw ? JSON.parse(raw) : null;
       applyHeaderSettings(cached && cached.settings);
-    } catch (_) { applyHeaderSettings({ scroll_header_style:"compact" }); }
+    } catch (_) { applyHeaderSettings({ scroll_header_style:"autohaus_original" }); }
   })();
   window.addEventListener("ah:photosettingschange", function (event) {
     if (event && event.detail) {
@@ -125,7 +124,7 @@
   });
   window.AH_APPLY_HEADER_SETTINGS = applyHeaderSettings;
   window.AH_APPLY_SCROLL_HEADER_STYLE = function (value) {
-    var style = value === "autohaus_original" ? "autohaus_original" : "compact";
+    var style = "autohaus_original";
     ROOT.dataset.ahScrollHeader = style;
     return style;
   };
@@ -851,24 +850,14 @@
     paint();
     restart();
 
-    /* ---- entrance gate --------------------------------------------------
-       Source holds the whole choreography paused until the hero frame has
-       decoded (animation-play-state), with a 4s step-end keyframe as the
-       fallback. The CSS carries the fallback; this is the fast path. */
+    /* Arm the brief entrance immediately. The image can decode in parallel;
+       the header and navigation must never be gated on its transfer. */
     if (stage) {
-      var heroImg = stage.querySelector('.stage-item[data-i="0"] .stage-media img');
       var arm = function () {
         stage.classList.add("is-ready");
-        /* the entrance runs 3.6s at most; after that a standing will-change
-           is just a retained layer, so hand the memory back */
-        setTimeout(function () { stage.classList.add("is-settled"); }, 4200);
+        setTimeout(function () { stage.classList.add("is-settled"); }, 900);
       };
-      if (!heroImg || heroImg.complete) arm();
-      else {
-        heroImg.addEventListener("load", arm);
-        heroImg.addEventListener("error", arm);
-        setTimeout(arm, 4000);
-      }
+      arm();
     }
   }
 
@@ -1934,11 +1923,26 @@
     id: "ctc", close: "ctc-close", scrim: "ctc-scrim", lock: "ctc-open",
     onOpen: function () {
       all(".ctc__mapframe[data-map-src]").forEach(function (frame) {
-        if (!frame.getAttribute("src")) frame.src = frame.getAttribute("data-map-src");
+        if (frame.getAttribute("src")) return;
+        /* The map is visible now: skip the iframe's second lazy wait. */
+        frame.loading = "eager";
+        frame.src = frame.getAttribute("data-map-src");
       });
     }
   });
   if (ctc) {
+    var mapConnectionReady = false;
+    function warmMapConnection(event) {
+      if (mapConnectionReady || !event.target.closest || !event.target.closest("[data-contact]")) return;
+      mapConnectionReady = true;
+      var link = document.createElement("link");
+      link.rel = "preconnect";
+      link.href = "https://maps.google.com";
+      document.head.appendChild(link);
+    }
+    document.addEventListener("pointerover", warmMapConnection, { passive: true });
+    document.addEventListener("focusin", warmMapConnection);
+    document.addEventListener("touchstart", warmMapConnection, { passive: true });
     document.addEventListener("click", function (e) {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
       var t = e.target.closest && e.target.closest("[data-contact]");

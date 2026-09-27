@@ -122,7 +122,9 @@ function normalizedSettings(row) {
   const filter = ["none", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none";
   const strength = Number(row.photo_filter_strength);
   const galleryScale = Number(row.desktop_gallery_scale);
-  const scrollHeaderStyle = row.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact";
+  /* The retired compact value is retained only as storage for the plate's
+     menu-button toggle, avoiding a production schema change. */
+  const plateMenuEnabled = row.scroll_header_style !== "compact";
   const landingStandardMode = ["hidden","top","sticky"].includes(row.landing_standard_header_mode) ? row.landing_standard_header_mode :
     (row.landing_standard_header === false ? "hidden" : row.landing_standard_header_sticky === true ? "sticky" : "top");
   const landingOriginalMode = ["hidden","always","after_scroll"].includes(row.landing_original_header_mode) ? row.landing_original_header_mode :
@@ -141,7 +143,8 @@ function normalizedSettings(row) {
     photo_filter: filter,
     photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35,
     desktop_gallery_scale: Number.isFinite(galleryScale) ? Math.max(70, Math.min(100, Math.round(galleryScale))) : 84,
-    scroll_header_style: scrollHeaderStyle,
+    scroll_header_style: "autohaus_original",
+    original_header_menu_button_enabled: plateMenuEnabled,
     landing_standard_header: row.landing_standard_header !== false,
     landing_standard_header_sticky: row.landing_standard_header_sticky === true,
     landing_original_after_scroll: row.landing_original_after_scroll !== false,
@@ -213,6 +216,11 @@ async function settingsAction(req, res, db) {
   if (Object.prototype.hasOwnProperty.call(body, "scroll_header_style")) {
     if (!["compact", "autohaus_original"].includes(body.scroll_header_style)) return apiError(res, 400, "Invalid scroll header style");
     update.scroll_header_style = body.scroll_header_style;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "original_header_menu_button_enabled")) {
+    if (typeof body.original_header_menu_button_enabled !== "boolean") return apiError(res, 400, "Invalid menu button setting.");
+    update.scroll_header_style = body.original_header_menu_button_enabled ? "autohaus_original" : "compact";
     changed = true;
   }
   const headerBooleans = ["landing_standard_header","landing_standard_header_sticky","landing_original_after_scroll","product_standard_header","product_standard_header_sticky","product_original_header"];
