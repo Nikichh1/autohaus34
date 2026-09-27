@@ -242,7 +242,7 @@
          nothing, and if the file is missing (four cars have been sold and
          their listings are gone) the section simply never appears. */
       '<section class="dsec" id="deq-sec" hidden>' +
-        '<h2 class="dsec__h">Оборудване <span class="dsec__n" id="deq-n"></span></h2>' +
+        '<h2 class="dsec__h">Оборудване</h2>' +
         '<div class="dclamp" id="deq-clamp"><div class="deq" id="deq"></div></div>' +
         '<button type="button" class="dmore" id="deq-more" aria-expanded="false" aria-controls="deq-clamp" hidden>' +
           "Прочети още</button>" +
@@ -724,13 +724,11 @@
         activeData.en.length === activeData.e.length ? activeData.en : activeData.e;
       var built = equipHTML(lines);
       var list = D.getElementById("deq");
-      var count = D.getElementById("deq-n");
       var clamp = D.getElementById("deq-clamp");
       var btn = D.getElementById("deq-more");
       if (!list || !clamp || !btn) return;
       list.innerHTML = built.html;
       list.classList.toggle('deq--simple', built.simple);
-      if (count) count.textContent = built.n ? "· " + built.n + (useEnglish ? " items" : " позиции") : "";
       sec.hidden = !built.n;
       armClamp(clamp, btn);
     }

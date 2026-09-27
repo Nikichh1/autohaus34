@@ -21,6 +21,11 @@ function escape(value) {
 }
 const equipment = vm.runInNewContext('(' + rendererFunction('equipHTML').trim() + ')', { AH: { esc: escape } });
 
+test('equipment heading does not claim a source-provided item count', () => {
+  assert.match(source, /<h2 class="dsec__h">Оборудване<\/h2>/);
+  assert.doesNotMatch(source, /deq-n|позиции|" items"/);
+});
+
 test('equipment preserves leading standalone bullets and multiline source order', () => {
   const result = equipment(['- First feature\r\n• Second feature', '', '  Third feature  ', '▪ Fourth feature']);
   assert.equal(result.n, 4);
