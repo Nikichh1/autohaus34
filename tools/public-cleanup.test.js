@@ -98,6 +98,14 @@ test("wide hero CTA is anchored at the right inset, not centred in a spare colum
   assert.doesNotMatch(css, /\.btn-group--stage\{flex-direction:row;justify-content:center;padding-inline-start:32px\}/);
 });
 
+test("first mobile hero backdrop is preloaded and not delayed by entrance motion", () => {
+  const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
+  const css = fs.readFileSync(path.join(__dirname, "../style.css"), "utf8");
+  assert.match(html, /<link rel="preload" as="image" href="img\/outside_autohaus-320\.jpg" fetchpriority="high">/);
+  assert.match(html, /<div class="stage-bg"><img width="320" height="161" decoding="sync"/);
+  assert.match(css, /@media\(max-width:767px\)\{\s*\.stage:not\(\.is-settled\) \.stage-item\[data-i="0"\] \.stage-bg\{\s*animation:none;\s*transition:none;/);
+});
+
 test("view-all control has no detached decorative arrow", () => {
   const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
   const match = html.match(/<a class="cpag__more"[^>]*>([\s\S]*?)<\/a>/);

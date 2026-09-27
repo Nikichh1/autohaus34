@@ -5616,6 +5616,16 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
 .stage-item[data-i="0"] .stage-media{animation-duration:.55s}
 .stage-item[data-i="0"] .stage-content{animation-duration:.45s;animation-delay:0s}
 
+/* The mobile backdrop is a tiny, preloaded image. Show it as soon as it
+   decodes instead of fading it in from near-black while the sharp frame is
+   already visible. Later slide changes retain the normal crossfade. */
+@media(max-width:767px){
+  .stage:not(.is-settled) .stage-item[data-i="0"] .stage-bg{
+    animation:none;
+    transition:none;
+  }
+}
+
 /* Touch devices avoid full-screen blur and long staggered entrance work. */
 @media(hover:none),(max-width:767px){
  .stage__bg,.hero-bg,.ctc__scrim,.shw-scrim,.shw-bar,.nav,.vd-sticky{filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
