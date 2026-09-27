@@ -937,8 +937,9 @@
       e.stopPropagation();
       return;
     }
-    if (e.target === lbImg && lbImg.naturalWidth && lbImg.naturalHeight) {
-      /* object-fit:contain leaves letterboxed backdrop inside the img box. */
+    if (e.target !== lb && lbImg.naturalWidth && lbImg.naturalHeight) {
+      /* Pointer capture may retarget an image tap to the stage. Check the
+         visible object-fit rectangle, not only the event target. */
       var box = lbImg.getBoundingClientRect();
       var scale = Math.min(box.width / lbImg.naturalWidth, box.height / lbImg.naturalHeight);
       var width = lbImg.naturalWidth * scale, height = lbImg.naturalHeight * scale;
