@@ -87,6 +87,9 @@
     ROOT.dataset.ahOriginalLanguage = language;
     ROOT.dataset.ahOriginalDesktopMenuLabel = desktopMenuLabel ? "1" : "0";
     ROOT.dataset.ahOriginalMenuButton = settings.original_header_menu_button_enabled === false ? "0" : "1";
+    var wallCardsMode = settings.wall_cards_interactive === false ? "0" : "1";
+    var previousWallCardsMode = ROOT.dataset.ahWallCardsInteractive;
+    ROOT.dataset.ahWallCardsInteractive = wallCardsMode;
     ROOT.style.setProperty("--ah-original-size", String(originalSize / 100));
     ROOT.style.setProperty("--ah-original-opacity", String(originalOpacity / 100));
 
@@ -97,6 +100,10 @@
     ROOT.dataset.ahProductStandardHeader = productStandardMode === "hidden" ? "0" : "1";
     ROOT.dataset.ahProductHeaderSticky = productStandardMode === "sticky" ? "1" : "0";
     ROOT.dataset.ahProductOriginalHeader = productOriginalMode === "hidden" ? "0" : "1";
+
+    if (previousWallCardsMode !== wallCardsMode) {
+      window.dispatchEvent(new CustomEvent("ah:wallcardschange", { detail: { interactive: wallCardsMode === "1" } }));
+    }
 
     return style;
   }
@@ -1095,6 +1102,7 @@
        panel so :target still opens it with JS disabled. Same here. Only one
        card may be open, and opening a second closes the first. */
     var items = all(".wcard-item", wall);
+    var wallCardsInteractive = ROOT.dataset.ahWallCardsInteractive !== "0";
     var openItem = null, settleT = 0, lockY = 0, locked = false, railLeft0 = 0;
 
     /* Open cards below 1024 have to freeze the page behind them, but
@@ -1218,7 +1226,7 @@
         openItem = item;
         if (p) { setPad(p.lead, p.trail); glide(p.target, WALL_DUR); }
         lockScroll(!wide);
-        if (anchor) anchor.setAttribute("aria-expanded", "true");
+        if (anchor && wallCardsInteractive) anchor.setAttribute("aria-expanded", "true");
         if (panel) {
           panel.removeAttribute("inert");
           if (innerWidth < 768) {
@@ -1234,7 +1242,7 @@
         return;
       }
 
-      if (anchor) anchor.setAttribute("aria-expanded", "false");
+      if (anchor && wallCardsInteractive) anchor.setAttribute("aria-expanded", "false");
       if (panel) {
         panel.setAttribute("inert", "");
         panel.setAttribute("role", "group");
@@ -1334,6 +1342,7 @@
       var anchor = item.querySelector(".wcard-anchor");
       if (anchor) anchor.addEventListener("click", function (e) {
         e.preventDefault();
+        if (!wallCardsInteractive) return;
         if (moved) return;                       /* swallow drag-clicks */
         if (openItem === item) return;           /* already open — do nothing */
         openWallItem(item, true);
@@ -1341,6 +1350,28 @@
       var close = item.querySelector(".wcard-close");
       if (close) close.addEventListener("click", function () { closeWallItem(item, true); });
     });
+    var wallCardLinks = items.map(function (item) {
+      var anchor = item.querySelector(".wcard-anchor");
+      return anchor ? { item: item, anchor: anchor, href: anchor.getAttribute("href"), controls: anchor.getAttribute("aria-controls") } : null;
+    }).filter(Boolean);
+    var applyWallCardMode = function () {
+      var enabled = ROOT.dataset.ahWallCardsInteractive !== "0";
+      if (!enabled && openItem) closeWallItem(openItem, false);
+      wallCardsInteractive = enabled;
+      wallCardLinks.forEach(function (entry) {
+        if (enabled) {
+          entry.anchor.setAttribute("href", entry.href);
+          entry.anchor.setAttribute("aria-controls", entry.controls);
+          entry.anchor.setAttribute("aria-expanded", openItem === entry.item ? "true" : "false");
+        } else {
+          entry.anchor.removeAttribute("href");
+          entry.anchor.removeAttribute("aria-controls");
+          entry.anchor.removeAttribute("aria-expanded");
+        }
+      });
+    };
+    window.addEventListener("ah:wallcardschange", applyWallCardMode);
+    applyWallCardMode();
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && openItem) closeWallItem(openItem, true);
       if (e.key !== "Tab" || !openItem || innerWidth >= 768) return;
@@ -1359,10 +1390,9 @@
 
     /* ---- ARRIVING BY LINK ------------------------------------------------
        #lizing and #care used to be whole bands, and they are still linked from
-       every header and every footer on the site — including a CTA that says
-       "Калкулатор". They are cards on this rail now, so landing on one has to
-       OPEN it; otherwise that CTA delivers a photograph of a terrace and no
-       calculator anywhere on the screen.
+       every header and every footer on the site. They are cards on this rail
+       now: links scroll to them in static mode, and open them when the admin
+       has left card interaction enabled.
 
        The scroll is deliberately instant. Below 1024 opening a card pins the
        body at whatever offset it is on, so it must never run while a smooth
@@ -1380,6 +1410,7 @@
     };
     var revealItem = function (item, trackHistory) {
       item.scrollIntoView({ block: "center", behavior: "instant" });
+      if (!wallCardsInteractive) return;
       requestAnimationFrame(function () {
         if (openItem === item) return;
         openWallItem(item, !!trackHistory);
@@ -1398,7 +1429,7 @@
     addEventListener("popstate", function () {
       var marker = wallHistoryMarker();
       var item = marker && wallItemFor(marker.id);
-      if (item) {
+      if (item && wallCardsInteractive) {
         wallHistoryToken = marker.token;
         wallHistoryFocus = false;
         openWallItem(item, false);

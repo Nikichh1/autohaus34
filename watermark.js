@@ -40,7 +40,8 @@
           original_header_size: clamp(settings.original_header_size,65,100,81),
           original_header_opacity: clamp(settings.original_header_opacity,85,100,98),
           original_header_language: settings.original_header_language === "header" ? "header" : "menu",
-          original_header_desktop_menu_label: settings.original_header_desktop_menu_label !== false
+          original_header_desktop_menu_label: settings.original_header_desktop_menu_label !== false,
+          wall_cards_interactive: settings.wall_cards_interactive !== false
         }
       }));
     } catch (_) {}
@@ -141,6 +142,7 @@
     var originalHeaderOpacity = clamp(settings.original_header_opacity,85,100,98);
     var originalHeaderLanguage = settings.original_header_language === "header" ? "header" : "menu";
     var originalHeaderDesktopMenuLabel = settings.original_header_desktop_menu_label !== false;
+    var wallCardsInteractive = settings.wall_cards_interactive !== false;
     /* Human-facing strength should feel useful through the whole slider.
        sqrt() gives the lower/middle range real authority while preserving
        exact zero and a controlled 100% ceiling. */
@@ -213,7 +215,8 @@
       original_header_size: originalHeaderSize,
       original_header_opacity: originalHeaderOpacity,
       original_header_language: originalHeaderLanguage,
-      original_header_desktop_menu_label: originalHeaderDesktopMenuLabel
+      original_header_desktop_menu_label: originalHeaderDesktopMenuLabel,
+      wall_cards_interactive: wallCardsInteractive
     }}));
     window.dispatchEvent(new CustomEvent("ah:photosettingschange", { detail: {
       photo_aspect_ratio: ratio,
@@ -229,7 +232,8 @@
       original_header_size: originalHeaderSize,
       original_header_opacity: originalHeaderOpacity,
       original_header_language: originalHeaderLanguage,
-      original_header_desktop_menu_label: originalHeaderDesktopMenuLabel
+      original_header_desktop_menu_label: originalHeaderDesktopMenuLabel,
+      wall_cards_interactive: wallCardsInteractive
     }}));
   }
 

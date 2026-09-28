@@ -158,13 +158,14 @@ function normalizedSettings(row) {
     original_header_size: Number.isFinite(originalHeaderSize) ? Math.max(65, Math.min(100, Math.round(originalHeaderSize))) : 81,
     original_header_opacity: Number.isFinite(originalHeaderOpacity) ? Math.max(85, Math.min(100, Math.round(originalHeaderOpacity))) : 98,
     original_header_language: row.original_header_language === "header" ? "header" : "menu",
-    original_header_desktop_menu_label: row.original_header_desktop_menu_label !== false
+    original_header_desktop_menu_label: row.original_header_desktop_menu_label !== false,
+    wall_cards_interactive: row.wall_cards_interactive !== false
   };
 }
 
 async function settingsAction(req, res, db) {
   if (req.method === "GET") {
-    const response = await db("admin_settings?singleton=eq.true&select=watermark_enabled,watermark_transparency,watermark_size,photo_aspect_ratio,photo_filter,photo_filter_strength,desktop_gallery_scale,scroll_header_style,landing_standard_header,landing_standard_header_sticky,landing_original_after_scroll,product_standard_header,product_standard_header_sticky,product_original_header,landing_standard_header_mode,landing_original_header_mode,product_standard_header_mode,product_original_header_mode,original_header_size,original_header_opacity,original_header_language,original_header_desktop_menu_label&limit=1", { method: "GET" });
+    const response = await db("admin_settings?singleton=eq.true&select=*&limit=1", { method: "GET" });
     const data = await readJson(response);
     if (!response.ok) return apiError(res, response.status, "Could not load settings", data);
     return json(res, 200, { ok: true, settings: normalizedSettings(Array.isArray(data) && data[0]) });
@@ -262,6 +263,11 @@ async function settingsAction(req, res, db) {
   if (Object.prototype.hasOwnProperty.call(body, "original_header_desktop_menu_label")) {
     if (typeof body.original_header_desktop_menu_label !== "boolean") return apiError(res, 400, "Invalid desktop menu label setting.");
     update.original_header_desktop_menu_label = body.original_header_desktop_menu_label;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "wall_cards_interactive")) {
+    if (typeof body.wall_cards_interactive !== "boolean") return apiError(res, 400, "Invalid card interaction setting.");
+    update.wall_cards_interactive = body.wall_cards_interactive;
     changed = true;
   }
   if (!changed) return apiError(res, 400, "No settings to update");

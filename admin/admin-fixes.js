@@ -194,7 +194,8 @@
     original_header_size: 81,
     original_header_opacity: 98,
     original_header_language: "menu",
-    original_header_desktop_menu_label: true
+    original_header_desktop_menu_label: true,
+    wall_cards_interactive: true
   };
   var cached = null, cachedAt = 0, pending = null;
 
@@ -237,7 +238,8 @@
       original_header_size: Math.max(65, Math.min(100, originalSize)),
       original_header_opacity: Math.max(85, Math.min(100, originalOpacity)),
       original_header_language: value.original_header_language === "header" ? "header" : "menu",
-      original_header_desktop_menu_label: value.original_header_desktop_menu_label !== false
+      original_header_desktop_menu_label: value.original_header_desktop_menu_label !== false,
+      wall_cards_interactive: value.wall_cards_interactive !== false
     };
   }
 
@@ -311,16 +313,24 @@
       var t = app.t;
       view.innerHTML =
         '<div class="view-head"><div class="view-title"><p>AutoHaus</p><h1>' + esc(t("Настройки", "Settings")) + '</h1></div></div>' +
-        '<section class="panel"><div class="panel-head"><h2>' + esc(t("Воден знак върху снимките", "Photo watermark")) + '</h2></div><div id="ah-watermark-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
+        '<section class="panel ah-wall-panel"><div class="panel-head"><h2>' + esc(t("Карти на началната страница", "Homepage cards")) + '</h2></div><div id="ah-wall-settings" style="max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
+        '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Воден знак върху снимките", "Photo watermark")) + '</h2></div><div id="ah-watermark-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
         '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Формат и обработка на снимките", "Photo format and processing")) + '</h2></div><div id="ah-media-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
         '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Хедър на сайта", "Site header")) + '</h2></div><div id="ah-header-settings" style="padding:20px;max-width:920px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>';
 
       Promise.resolve(getSettings(true)).then(function (cfg) {
+        var wallBody = document.getElementById("ah-wall-settings");
         var watermarkBody = document.getElementById("ah-watermark-settings");
         var mediaBody = document.getElementById("ah-media-settings");
         var headerBody = document.getElementById("ah-header-settings");
-        if (!watermarkBody || !mediaBody || !headerBody || !watermarkBody.isConnected || !mediaBody.isConnected || !headerBody.isConnected) return;
+        if (!wallBody || !watermarkBody || !mediaBody || !headerBody || !wallBody.isConnected || !watermarkBody.isConnected || !mediaBody.isConnected || !headerBody.isConnected) return;
         var disabled = app.canWrite ? "" : " disabled";
+
+        wallBody.innerHTML =
+          '<form id="ah-wall-form" style="display:grid;gap:12px">' +
+          '<label class="check" style="align-items:flex-start"><input id="ah-wall-cards-interactive" type="checkbox"' + (cfg.wall_cards_interactive ? " checked" : "") + disabled + '><span><strong>' + esc(t("Отваряй картите при натискане", "Open cards when tapped or clicked")) + '</strong><br><small class="muted">' + esc(t("Изключено: картите остават само за разглеждане и превъртане. Връзките от менюто водят до съответната карта.", "Off: cards remain for browsing and scrolling only. Menu links lead to the corresponding card.")) + '</small></span></label>' +
+          (app.canWrite ? '<div><button class="primary" id="ah-wall-save" type="submit">' + esc(t("Запази картите", "Save cards")) + '</button></div>' : '') +
+          '<div id="ah-wall-status" class="muted" role="status"></div></form>';
 
         watermarkBody.innerHTML =
           '<form id="ah-watermark-form" style="display:grid;gap:22px">' +
@@ -461,6 +471,19 @@
           };
         });
         updateHeaderVisualState();
+
+        var wallForm = document.getElementById("ah-wall-form");
+        if (wallForm && app.canWrite) wallForm.onsubmit = async function (event) {
+          event.preventDefault();
+          var save = document.getElementById("ah-wall-save");
+          var message = document.getElementById("ah-wall-status");
+          save.disabled = true; message.textContent = t("Записване…", "Saving…");
+          try {
+            await saveSettings({ wall_cards_interactive: document.getElementById("ah-wall-cards-interactive").checked });
+            message.textContent = t("Настройката за картите е записана.", "Card setting saved.");
+          } catch (error) { message.textContent = error.message; }
+          finally { save.disabled = false; }
+        };
 
         var watermarkForm = document.getElementById("ah-watermark-form");
         if (watermarkForm && app.canWrite) watermarkForm.onsubmit = async function (event) {
