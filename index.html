@@ -21,6 +21,7 @@
     root.classList.toggle("ah-watermark-v4-on",s.watermark_enabled===true);
     root.dataset.ahScrollHeader="autohaus_original";
     root.dataset.ahOriginalMenuButton=s.original_header_menu_button_enabled===false?"0":"1";
+    root.dataset.ahWallCardsInteractive=s.wall_cards_interactive===false?"0":"1";
     var landingStandardMode=["hidden","top","sticky"].indexOf(s.landing_standard_header_mode)>=0?s.landing_standard_header_mode:(s.landing_standard_header===false?"hidden":s.landing_standard_header_sticky===true?"sticky":"top");
     var landingOriginalMode=["hidden","always","after_scroll"].indexOf(s.landing_original_header_mode)>=0?s.landing_original_header_mode:(s.landing_original_after_scroll===false?"hidden":"after_scroll");
     var productStandardMode=["hidden","top","sticky"].indexOf(s.product_standard_header_mode)>=0?s.product_standard_header_mode:(s.product_standard_header===false?"hidden":s.product_standard_header_sticky===false?"top":"sticky");
@@ -50,21 +51,21 @@
 <!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
 <link rel="preload" as="image" href="img/outside_autohaus-320.jpg" fetchpriority="high">
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=40cc9dc8425c" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=431b5161d9c5" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
 <link rel="stylesheet" href="catalog.min.css?v=af052dbe30ed" media="print" onload="this.media='all';this.onload=null">
 <noscript><link rel="stylesheet" href="catalog.min.css?v=af052dbe30ed"></noscript>
 <!-- Ordered deferred modules: inventory resolves before rendering. -->
-<script defer src="main.js?v=d2daf2187510"></script>
+<script defer src="main.js?v=5ae3fe6e5e55"></script>
 <script defer src="catalog.js?v=6f4a42cb4190"></script>
 <script defer src="catalog-prefetch.js?v=4b0cf3287ba8"></script>
 <script defer src="showroom.js?v=d4b7add5d1b4"></script>
 <script defer src="i18n.js?v=ff4ef8545597"></script>
 
 <script defer src="analytics.js?v=0bbdd49798ca"></script>
-<script defer src="watermark.js?v=7682267440ae"></script>
+<script defer src="watermark.js?v=23dd01d95025"></script>
 <script defer src="image-guard.js?v=fdc6606ccf15"></script>
 </head>
 <body class="ah">
@@ -477,19 +478,17 @@
        what this band is now for.
 
        Two cards carry the ids the rest of the site already links to —
-       #lizing from every header and footer, #care from three footers — so the
-       leasing calculator and the Auto Spa entry keep the anchors they had.
-       main.js opens the matching card when one of those links lands. -->
+       #lizing from every header and footer, #care from three footers — so
+       navigation keeps the anchors it had. main.js opens the matching card
+       only while card interaction is enabled in admin settings. -->
   <section class="wall" id="razdeli">
     <div class="wall-scroll" id="wall-scroll" style="--n:5">
 
-      <!-- 1. AUTOSPA — id="care", because three footers link to #care and
-           main.js opens the matching card when one of those links lands. -->
+      <!-- 1. AUTOSPA — id="care", because three footers link to #care. -->
       <div class="wcard-item" id="care" style="--i:0">
         <div class="wcard">
           <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_autospa-400.webp 400w, img/autohaus_autospa-800.webp 800w, img/autohaus_autospa-1080.webp 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/autohaus_autospa-800.jpg" srcset="img/autohaus_autospa-400.jpg 400w, img/autohaus_autospa-800.jpg 800w, img/autohaus_autospa-1080.jpg 1080w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил пред входа на автомивката в комплекса на AutoHaus"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label">В комплекса</span>
             <a class="wcard-anchor" href="#cw-care" aria-expanded="false" aria-controls="cw-care"><span class="h6 wcard-h" data-ah-bg="Автомивка" data-ah-en="Auto Spa">Автомивка</span></a>
             <span class="body-s wcard-body">Грижа за автомобила в комплекса на AutoHaus.</span>
           </span>
@@ -515,7 +514,6 @@
         <div class="wcard">
           <span class="wcard-photo"><picture><source type="image/webp" srcset="img/v/2026-07_1-16-400.webp 400w, img/v/2026-07_1-16-800.webp 800w, img/v/2026-07_1-16-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="768" height="480" src="img/v/2026-07_1-16-800.jpg" srcset="img/v/2026-07_1-16-400.jpg 400w, img/v/2026-07_1-16-800.jpg 800w, img/v/2026-07_1-16-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Автомобил след механична подготовка пред сервиза"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label">В комплекса</span>
             <a class="wcard-anchor" href="#cw-servis" aria-expanded="false" aria-controls="cw-servis"><span class="h6 wcard-h">Сервиз</span></a>
             <span class="body-s wcard-body">Обслужване и поддръжка в комплекса на AutoHaus.</span>
           </span>
@@ -549,7 +547,7 @@
       <div class="wcard-item" id="lizing" style="--i:2">
 <div class="wcard">
         <span class="wcard-photo"><picture><source type="image/webp" srcset="img/three-cars-400.webp 400w, img/three-cars-800.webp 800w, img/three-cars-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="1067" src="img/three-cars-800.jpg" srcset="img/three-cars-400.jpg 400w, img/three-cars-800.jpg 800w, img/three-cars-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Три автомобила в шоурума на AutoHaus"></picture></span>
-        <span class="wcard-text"><span class="wcard-label" data-ah-bg="Финансиране" data-ah-en="Financing">Финансиране</span><a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h" data-ah-bg="Лизинг" data-ah-en="Leasing">Лизинг</span></a><span class="body-s wcard-body" data-ah-bg="Лизинг при покупка на автомобил." data-ah-en="Leasing for a vehicle purchase.">Лизинг при покупка на автомобил.</span></span>
+        <span class="wcard-text"><a class="wcard-anchor" href="#cw-lizing" aria-expanded="false" aria-controls="cw-lizing"><span class="h6 wcard-h" data-ah-bg="Лизинг" data-ah-en="Leasing">Лизинг</span></a><span class="body-s wcard-body" data-ah-bg="Лизинг при покупка на автомобил." data-ah-en="Leasing for a vehicle purchase.">Лизинг при покупка на автомобил.</span></span>
       </div><div class="wcard-panel" id="cw-lizing" role="group" aria-label="Лизинг"><div class="wcard-panel-in">
         <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label" data-ah-bg="Затвори" data-ah-en="Close">Затвори</span></button>
         <div class="wcard-scroll"><h3 class="wcard-panel-h" data-ah-bg="Лизинг" data-ah-en="Leasing">Лизинг</h3><div class="body-s"><p data-ah-bg="Условията за лизинг се уточняват индивидуално при запитване." data-ah-en="Leasing terms are confirmed individually on enquiry.">Условията за лизинг се уточняват индивидуално при запитване.</p></div></div>
@@ -558,7 +556,7 @@
 </div>
       <div class="wcard-item" id="zastrahovki" style="--i:3"><div class="wcard">
       <span class="wcard-photo"><picture><source type="image/webp" srcset="img/autohaus_inside-320.webp 320w, img/autohaus_inside-768.webp 768w, img/autohaus_inside-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="800" src="img/autohaus_inside-768.jpg" srcset="img/autohaus_inside-320.jpg 320w, img/autohaus_inside-768.jpg 768w, img/autohaus_inside-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Шоурум AutoHaus"></picture></span>
-      <span class="wcard-text"><span class="wcard-label" data-ah-bg="Покритие" data-ah-en="Insurance">Покритие</span><a class="wcard-anchor" href="#cw-zastrahovki" aria-expanded="false" aria-controls="cw-zastrahovki"><span class="h6 wcard-h" data-ah-bg="Застраховки" data-ah-en="Insurance">Застраховки</span></a><span class="body-s wcard-body" data-ah-bg="Застраховане при покупка на автомобил." data-ah-en="Insurance for a vehicle purchase.">Застраховане при покупка на автомобил.</span></span>
+      <span class="wcard-text"><a class="wcard-anchor" href="#cw-zastrahovki" aria-expanded="false" aria-controls="cw-zastrahovki"><span class="h6 wcard-h" data-ah-bg="Застраховки" data-ah-en="Insurance">Застраховки</span></a><span class="body-s wcard-body" data-ah-bg="Застраховане при покупка на автомобил." data-ah-en="Insurance for a vehicle purchase.">Застраховане при покупка на автомобил.</span></span>
     </div><div class="wcard-panel" id="cw-zastrahovki" role="group" aria-label="Застраховки"><div class="wcard-panel-in">
       <button type="button" class="btn btn--l btn--tertiary wcard-close"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true"><use href="#ic-x"/></svg><span class="btn__label" data-ah-bg="Затвори" data-ah-en="Close">Затвори</span></button>
       <div class="wcard-scroll"><h3 class="wcard-panel-h" data-ah-bg="Застраховки" data-ah-en="Insurance">Застраховки</h3><div class="body-s"><p data-ah-bg="Условията за застраховане се уточняват индивидуално при запитване." data-ah-en="Insurance terms are confirmed individually on enquiry.">Условията за застраховане се уточняват индивидуално при запитване.</p></div></div>
@@ -571,7 +569,6 @@
         <div class="wcard">
           <span class="wcard-photo"><picture><source type="image/webp" srcset="img/coffee_bar-new-320.webp 320w, img/coffee_bar-new-768.webp 768w, img/coffee_bar-new-1280.webp 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw"><img loading="lazy" decoding="async" width="800" height="800" src="img/coffee_bar-new-768.jpg" srcset="img/coffee_bar-new-320.jpg 320w, img/coffee_bar-new-768.jpg 768w, img/coffee_bar-new-1280.jpg 1280w" sizes="(min-width:1440px) 30vw, (min-width:768px) 40vw, 76vw" alt="Терасата на кафе бара на AutoHaus с 3D графит на автомобил, пробиващ бетонна стена"></picture></span>
           <span class="wcard-text">
-            <span class="wcard-label">На терасата</span>
             <a class="wcard-anchor" href="#cw-cafe" aria-expanded="false" aria-controls="cw-cafe"><span class="h6 wcard-h">Кафе бар</span></a>
             <span class="body-s wcard-body">Кафе бар на терасата в комплекса.</span>
           </span>

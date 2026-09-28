@@ -117,6 +117,18 @@ test("mobile service dialog preserves photos and uses square, translucent chrome
   assert.match(css, /background:rgba\(5,5,5,\.48\);border:1px solid rgba\(255,255,255,\.55\);\s*border-radius:0;box-shadow:none/);
 });
 
+test("homepage service cards have no redundant badges and can become static", () => {
+  const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
+  const css = fs.readFileSync(path.join(__dirname, "../style.css"), "utf8");
+  const js = fs.readFileSync(path.join(__dirname, "../main.js"), "utf8");
+  assert.doesNotMatch(html, /wcard-label/);
+  assert.match(css, /\.wcard-anchor\{display:block;color:inherit;margin-top:auto\}/);
+  assert.match(css, /\[data-ah-wall-cards-interactive="0"\] \.wcard-anchor::after\{display:none\}/);
+  assert.match(html, /root\.dataset\.ahWallCardsInteractive=s\.wall_cards_interactive===false\?"0":"1"/);
+  assert.match(js, /if \(!wallCardsInteractive\) return;/);
+  assert.match(js, /entry\.anchor\.removeAttribute\("href"\)/);
+});
+
 test("light catalog and vehicle surfaces use neutral white and charcoal", () => {
   const css = fs.readFileSync(path.join(__dirname, "../style.css"), "utf8");
   const catalog = fs.readFileSync(path.join(__dirname, "../catalog.css"), "utf8");

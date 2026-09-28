@@ -85,6 +85,27 @@ test("retired compact header value controls only the original menu button",async
  assert.equal(updated.body.settings.scroll_header_style,"autohaus_original");
 });
 
+test("homepage card interaction defaults on and persists a validated admin choice",async()=>{
+ let row={scroll_header_style:"autohaus_original"};
+ mockFetch((url,options)=>{
+  assert.match(url,/admin_settings/);
+  if(options.method==="PATCH") {
+   row={...row,...JSON.parse(options.body)};
+   return response([row]);
+  }
+  return response([row]);
+ });
+ const before=await call("admin/vehicles",req("GET",{},{action:"settings"}));
+ assert.equal(before.body.settings.wall_cards_interactive,true);
+ assert.equal((await call("admin/vehicles",req("PATCH",{wall_cards_interactive:"false"},{action:"settings"}))).statusCode,400);
+ const changed=await call("admin/vehicles",req("PATCH",{wall_cards_interactive:false},{action:"settings"}));
+ assert.equal(changed.statusCode,200);
+ assert.equal(row.wall_cards_interactive,false);
+ assert.equal(changed.body.settings.wall_cards_interactive,false);
+ const publicResult=await call("public/vehicles",req("GET",{},{settings:"1"}));
+ assert.equal(publicResult.body.settings.wall_cards_interactive,false);
+});
+
 test("empty managed inventory stays empty; outage requests static fallback",async()=>{
  mockFetch(url=>response(url.includes("inventory_state")?[{initialized:true}]:[]));
  let output=await call("public/vehicles",req());assert.equal(output.body.authoritative,true);assert.deepEqual(output.body.vehicles,[]);
