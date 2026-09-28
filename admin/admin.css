@@ -246,3 +246,13 @@
   content:"BG  EN";position:absolute;z-index:3;right:66px;top:24px;
   color:rgba(255,255,255,.72);font-size:7px;font-weight:700;letter-spacing:.08em
 }
+
+/* Photo treatment belongs to the vehicle being edited, with its own live preview. */
+.vehicle-photo-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,220px) minmax(180px,1fr);align-items:end;gap:12px;padding:16px;margin-top:16px;border:1px solid var(--line);background:#f7f8f6}
+.vehicle-photo-controls>div:first-child{align-self:center;display:grid;gap:4px}
+.vehicle-photo-controls strong{font-size:14px}
+.vehicle-photo-controls small{font-size:12px;line-height:1.4;color:var(--muted)}
+.vehicle-photo-controls .field{margin:0}
+.vehicle-photo-controls input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--ink)}
+@media(max-width:1050px){.vehicle-photo-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.vehicle-photo-controls>div:first-child{grid-column:1/-1}}
+@media(max-width:480px){.vehicle-photo-controls{grid-template-columns:1fr;gap:10px;padding:14px}.vehicle-photo-controls>div:first-child{grid-column:1}}

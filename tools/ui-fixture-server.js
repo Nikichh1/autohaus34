@@ -6,7 +6,7 @@ const {createServer}=require('./dev-server');
 const lib=require('../server/admin-lib');
 let rows=require('../api/admin/vehicles').initialInventory().map((r,i)=>({...r,id:'00000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),created_at:'2026-09-09T10:00:00Z',updated_at:'2026-09-09T10:00:00Z'}));
 const localPhotos=new Set(rows.flatMap(row=>row.images.map(image=>image.original)));
-let settings={watermark_enabled:false,watermark_transparency:75,watermark_size:34,photo_aspect_ratio:'16:9',photo_filter:'none',photo_filter_strength:35,desktop_gallery_scale:84,scroll_header_style:'autohaus_original',landing_standard_header_mode:'top',landing_original_header_mode:'after_scroll',product_standard_header_mode:'sticky',product_original_header_mode:'hidden',original_header_size:81,original_header_opacity:98,original_header_language:'menu',original_header_desktop_menu_label:false,wall_cards_interactive:true};
+let settings={watermark_enabled:false,watermark_transparency:75,watermark_size:34,photo_aspect_ratio:'16:9',desktop_gallery_scale:84,scroll_header_style:'autohaus_original',landing_standard_header_mode:'top',landing_original_header_mode:'after_scroll',product_standard_header_mode:'sticky',product_original_header_mode:'hidden',original_header_size:81,original_header_opacity:98,original_header_language:'menu',original_header_desktop_menu_label:false,wall_cards_interactive:true,inquiry_enabled:true};
 const edgeSource=JSON.parse(JSON.stringify(rows.find(row=>row.images.length>=2)));
 const pageModule={exports:{}};
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../api/admin/page.js'),'utf8'),{process:{env:{}},module:pageModule,require:()=>({...lib,requireAdmin:async()=>({id:'ui-fixture',email:'preview@example.com',adminRole:'owner'})})});
@@ -48,6 +48,7 @@ server.on('request',async(req,res)=>{
  // in its message to exercise the recoverable error state instead of success.
  if(url.pathname==='/api/inquiry'){
   if(req.method!=='POST')return send(res,405,{ok:false,error:'Method not allowed'});
+  if(settings.inquiry_enabled===false)return send(res,403,{ok:false,error:'Inquiries are currently disabled.'});
   const body=await readBody(req),contact=body.contact||{};
   if(body.website)return send(res,200,{ok:true});
   if(body.kind==='vehicle'&&(!String(contact.name||'').trim()||!String(body.message||'').trim()||!(String(contact.phone||'').trim()||String(contact.email||'').trim())))return send(res,400,{ok:false,error:'Name, message and a phone number or email are required.'});

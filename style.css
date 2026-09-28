@@ -500,8 +500,8 @@ section[id],footer[id]{scroll-margin-top:96px}
   background-color:var(--primary);border-color:var(--primary);color:var(--primary-ink);
   --btn-fill:var(--primary-hover);
 }
-.btn--primary:hover:not(:disabled),.btn--primary:focus-visible{border-color:var(--primary-hover)}
-.btn--primary:active:not(:disabled){--btn-fill:var(--primary);border-color:var(--primary);color:var(--primary-hover)}
+.btn--primary:hover:not(:disabled),.btn--primary:focus-visible{border-color:var(--primary-hover);color:var(--primary-ink)}
+.btn--primary:active:not(:disabled){--btn-fill:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
 .btn--primary:disabled{background-color:var(--primary-hover);border-color:var(--primary-hover);opacity:.3}
 
 .btn--secondary{border-color:var(--white);--btn-fill:rgba(255,255,255,.22)}
@@ -1881,6 +1881,9 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
 .wcard-item.is-open .wcard{aspect-ratio:var(--card-aspect-open)}
 .wcard-photo{position:absolute;inset:0;display:block}
 .wcard-photo img{width:100%;height:100%;object-fit:cover}
+.wall-scroll .wcard-photo img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+.wall-scroll .wcard,.wall-scroll .wcard-text{-webkit-user-select:none;user-select:none}
+.wall-scroll .wcard-panel{-webkit-user-select:text;user-select:text}
 
 /* ============================================================
    THE PHOTOGRAPHIC TREATMENT
@@ -3208,6 +3211,15 @@ html:not(.js) .rv{opacity:1;transform:none}
 .focus-close svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.6;fill:none}
 .focus-media{position:relative;aspect-ratio:16/10;background:#111;overflow:hidden}
 .focus-media img{width:100%;height:100%;object-fit:cover}
+.focus-media img,.focus-thumbs img{filter:var(--ah-photo-filter-css,none)}
+
+/* The single admin toggle removes every route into the enquiry experience.
+   Direct visits are also redirected by main.js, and the mail API rejects them. */
+html[data-ah-inquiry-enabled="0"] a[href*="concierge.html"],
+html[data-ah-inquiry-enabled="0"] a[href="#vehicle-inquiry"],
+html[data-ah-inquiry-enabled="0"] #vehicle-inquiry,
+html[data-ah-inquiry-enabled="0"] li:has(> a[href*="concierge.html"]),
+html[data-ah-inquiry-enabled="0"] .wcard-cta:has(a[href*="concierge.html"]){display:none!important}
 .focus-thumbs{display:flex;gap:8px;padding:8px;overflow-x:auto;scrollbar-width:none;background:#111}
 .focus-thumbs::-webkit-scrollbar{display:none}
 .focus-thumbs button{flex:none;width:88px;aspect-ratio:318/459;overflow:hidden;opacity:.5}
@@ -6163,4 +6175,15 @@ html.shw-open.mob-open .mob{z-index:1400!important}
 html.shw-open.mob-open #plate{
   visibility:hidden!important;
   pointer-events:none!important
+}
+
+/* Unfolded phones commonly land between the phone and tablet breakpoints.
+   Keep the phone navigation, but size the hero and swipe cards like a compact
+   tablet instead of stretching a 76vw portrait card across the whole panel. */
+@media(min-width:600px) and (max-width:767px){
+  :root{--margin:24px;--gutter:16px;--item-pad-top:108px;--item-pad-bottom:32px;--card-w:clamp(270px,46vw,340px);--wall-pad:20px}
+  .stage-media{aspect-ratio:5 / 4}
+  .wcard-item{flex-basis:var(--card-w)}
+  .wcard{aspect-ratio:4 / 5}
+  .wall-scroll{scroll-padding-inline-start:var(--wall-pad)}
 }

@@ -16,7 +16,7 @@ const user = {id:"00000000-0000-4000-8000-000000000001",email:"staff@example.com
 function tokenFor(id=user.id){return "header."+Buffer.from(JSON.stringify({sub:id,email:user.email,app_metadata:user.app_metadata,session_id:"00000000-0000-4000-8000-000000000002"})).toString("base64url")+".verified-by-provider";}
 const token = tokenFor();
 function response(data,status=200){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json"}});}
-function res(){return {headers:{},statusCode:200,getHeader(k){return this.headers[k.toLowerCase()];},setHeader(k,v){this.headers[k.toLowerCase()]=v;},end(v){this.text=v;try{this.body=JSON.parse(v);}catch(_){};}};}
+function res(){return {headers:{},statusCode:200,getHeader(k){return this.headers[k.toLowerCase()];},setHeader(k,v){this.headers[k.toLowerCase()]=v;},status(code){this.statusCode=code;return this;},json(body){this.body=body;this.text=JSON.stringify(body);return this;},end(v){this.text=v;try{this.body=JSON.parse(v);}catch(_){};}};}
 function req(method="GET",body={},query={}){return {method,body,query,headers:{host:"example.com",origin:"https://example.com","content-type":"application/json","sec-fetch-site":"same-origin",cookie:"ah_admin_access="+token}};}
 function mockFetch(provider,active=true){global.fetch=async(url,options={})=>{url=String(url);if(url.endsWith("/auth/v1/user"))return response(user);if(url.endsWith("/rpc/current_admin_role"))return response(active ? "owner" : null);return provider(url,options);};}
 async function call(name,request){const output=res();const modulePath=require.resolve("../api/"+name);if(name==="public/vehicles")delete require.cache[modulePath];await require(modulePath)(request,output);return output;}
@@ -47,9 +47,10 @@ test("all admin data APIs and page deny unauthenticated access",async()=>{
 test("vehicle validation preserves unknown values and rejects invalid facts/photos",()=>{
  const base={make:"BMW",model:"Test",equipment_bg:[],equipment_en:[]};
  assert.equal(lib.normalizeVehicle(base).row.mileage,null);
- for(const invalid of [{mileage:"oops"},{mileage:-1},{horsepower:1.5},{fuel:"invented"},{first_registration_month:2},{equipment_bg:["A"]},{published:true},{images:[{original:"https://evil.example/car.jpg"}]}]) assert.ok(lib.normalizeVehicle({...base,...invalid}).error,JSON.stringify(invalid));
+ for(const invalid of [{mileage:"oops"},{mileage:-1},{horsepower:1.5},{fuel:"invented"},{first_registration_month:2},{equipment_bg:["A"]},{published:true},{images:[{original:"https://evil.example/car.jpg"}]},{photo_filter:"invented"},{photo_filter_strength:-1},{photo_filter_strength:101}]) assert.ok(lib.normalizeVehicle({...base,...invalid}).error,JSON.stringify(invalid));
  const row=lib.normalizeVehicle({...base,unregistered:true,first_registration_year:2024,first_registration_month:2}).row;
  assert.equal(row.first_registration_year,null);assert.equal(row.first_registration_month,null);
+ assert.equal(lib.normalizeVehicle({...base,photo_filter:"showroom",photo_filter_strength:62}).row.photo_filter_strength,62);
 });
 test("canonical import preserves all current cars, paired equipment and local photos",()=>{
  const rows=require("../api/admin/vehicles").initialInventory();assert.equal(rows.length,inventoryCount);assert.equal(new Set(rows.map(r=>r.slug)).size,inventoryCount);
@@ -104,6 +105,51 @@ test("homepage card interaction defaults on and persists a validated admin choic
  assert.equal(changed.body.settings.wall_cards_interactive,false);
  const publicResult=await call("public/vehicles",req("GET",{},{settings:"1"}));
  assert.equal(publicResult.body.settings.wall_cards_interactive,false);
+});
+
+test("inquiry toggle reaches public settings and blocks or permits mail delivery",async()=>{
+ let row={inquiry_enabled:true},delivered=0;
+ mockFetch((url,options)=>{
+  if(url.includes("admin_settings")){
+   if(options.method==="PATCH")row={...row,...JSON.parse(options.body)};
+   return response([row]);
+  }
+  if(url.includes("api.resend.com")){delivered++;return response({id:"fixture"});}
+  throw new Error("Unexpected request: "+url);
+ });
+ assert.equal((await call("admin/vehicles",req("PATCH",{inquiry_enabled:"false"},{action:"settings"}))).statusCode,400);
+ assert.equal((await call("admin/vehicles",req("PATCH",{inquiry_enabled:false},{action:"settings"}))).statusCode,200);
+ assert.equal((await call("public/vehicles",req("GET",{},{settings:"1"}))).body.settings.inquiry_enabled,false);
+ const blocked=await call("inquiry",req("POST",{kind:"other",text:"Fixture inquiry request"}));
+ assert.equal(blocked.statusCode,403);assert.equal(delivered,0);
+ assert.equal((await call("admin/vehicles",req("PATCH",{inquiry_enabled:true},{action:"settings"}))).statusCode,200);
+ const oldKey=process.env.RESEND_API_KEY,oldFrom=process.env.RESEND_FROM_EMAIL;
+ process.env.RESEND_API_KEY="fixture-key";process.env.RESEND_FROM_EMAIL="fixture@example.com";
+ try{
+  const accepted=await call("inquiry",req("POST",{kind:"other",text:"Fixture inquiry request"}));
+  assert.equal(accepted.statusCode,200);assert.equal(delivered,1);
+ }finally{
+  if(oldKey===undefined)delete process.env.RESEND_API_KEY;else process.env.RESEND_API_KEY=oldKey;
+  if(oldFrom===undefined)delete process.env.RESEND_FROM_EMAIL;else process.env.RESEND_FROM_EMAIL=oldFrom;
+ }
+});
+
+test("sitemap omits the inquiry page when disabled or its setting is unavailable",async()=>{
+ let enabled=false,settingsAvailable=true;
+ mockFetch(url=>{
+  if(url.includes("admin_settings"))return response(settingsAvailable?[{inquiry_enabled:enabled}]:[],settingsAvailable?200:503);
+  if(url.includes("vehicles?"))return response([{slug:"fixture-car"}]);
+  throw new Error("Unexpected request: "+url);
+ });
+ let output=await call("sitemap",req());
+ assert.doesNotMatch(output.text,/concierge\.html/);
+ assert.match(output.text,/vehicle\.html\?id=fixture-car/);
+ enabled=true;
+ output=await call("sitemap",req());
+ assert.match(output.text,/concierge\.html/);
+ settingsAvailable=false;
+ output=await call("sitemap",req());
+ assert.doesNotMatch(output.text,/concierge\.html/);
 });
 
 test("empty managed inventory stays empty; outage requests static fallback",async()=>{

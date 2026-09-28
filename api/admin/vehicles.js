@@ -119,8 +119,6 @@ function normalizedSettings(row) {
   const transparency = Number(row.watermark_transparency);
   const size = Number(row.watermark_size);
   const ratio = row.photo_aspect_ratio === "16:10" ? "16:10" : "16:9";
-  const filter = ["none", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none";
-  const strength = Number(row.photo_filter_strength);
   const galleryScale = Number(row.desktop_gallery_scale);
   /* The retired compact value is retained only as storage for the plate's
      menu-button toggle, avoiding a production schema change. */
@@ -140,8 +138,6 @@ function normalizedSettings(row) {
     watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75,
     watermark_size: Number.isFinite(size) ? Math.max(10, Math.min(60, Math.round(size))) : 34,
     photo_aspect_ratio: ratio,
-    photo_filter: filter,
-    photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35,
     desktop_gallery_scale: Number.isFinite(galleryScale) ? Math.max(70, Math.min(100, Math.round(galleryScale))) : 84,
     scroll_header_style: "autohaus_original",
     original_header_menu_button_enabled: plateMenuEnabled,
@@ -159,7 +155,8 @@ function normalizedSettings(row) {
     original_header_opacity: Number.isFinite(originalHeaderOpacity) ? Math.max(85, Math.min(100, Math.round(originalHeaderOpacity))) : 98,
     original_header_language: row.original_header_language === "header" ? "header" : "menu",
     original_header_desktop_menu_label: row.original_header_desktop_menu_label !== false,
-    wall_cards_interactive: row.wall_cards_interactive !== false
+    wall_cards_interactive: row.wall_cards_interactive !== false,
+    inquiry_enabled: row.inquiry_enabled !== false
   };
 }
 
@@ -195,17 +192,6 @@ async function settingsAction(req, res, db) {
   if (Object.prototype.hasOwnProperty.call(body, "photo_aspect_ratio")) {
     if (!["16:9", "16:10"].includes(body.photo_aspect_ratio)) return apiError(res, 400, "Invalid photo aspect ratio");
     update.photo_aspect_ratio = body.photo_aspect_ratio;
-    changed = true;
-  }
-  if (Object.prototype.hasOwnProperty.call(body, "photo_filter")) {
-    if (!["none", "balanced", "showroom"].includes(body.photo_filter)) return apiError(res, 400, "Invalid photo filter");
-    update.photo_filter = body.photo_filter;
-    changed = true;
-  }
-  if (Object.prototype.hasOwnProperty.call(body, "photo_filter_strength")) {
-    const strength = Number(body.photo_filter_strength);
-    if (!Number.isInteger(strength) || strength < 0 || strength > 100) return apiError(res, 400, "Photo filter strength must be between 0 and 100.");
-    update.photo_filter_strength = strength;
     changed = true;
   }
   if (Object.prototype.hasOwnProperty.call(body, "desktop_gallery_scale")) {
@@ -268,6 +254,11 @@ async function settingsAction(req, res, db) {
   if (Object.prototype.hasOwnProperty.call(body, "wall_cards_interactive")) {
     if (typeof body.wall_cards_interactive !== "boolean") return apiError(res, 400, "Invalid card interaction setting.");
     update.wall_cards_interactive = body.wall_cards_interactive;
+    changed = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "inquiry_enabled")) {
+    if (typeof body.inquiry_enabled !== "boolean") return apiError(res, 400, "Invalid inquiry setting.");
+    update.inquiry_enabled = body.inquiry_enabled;
     changed = true;
   }
   if (!changed) return apiError(res, 400, "No settings to update");

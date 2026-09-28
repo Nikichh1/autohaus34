@@ -144,7 +144,6 @@ async function publicSettings() {
   const row = rows[0] || {};
   const transparency = Number(row.watermark_transparency);
   const size = Number(row.watermark_size);
-  const strength = Number(row.photo_filter_strength);
   const galleryScale = Number(row.desktop_gallery_scale);
   const plateMenuEnabled = row.scroll_header_style !== "compact";
   const landingStandardMode = ["hidden","top","sticky"].includes(row.landing_standard_header_mode) ? row.landing_standard_header_mode :
@@ -162,8 +161,6 @@ async function publicSettings() {
     watermark_transparency: Number.isFinite(transparency) ? Math.max(0, Math.min(100, Math.round(transparency))) : 75,
     watermark_size: Number.isFinite(size) ? Math.max(10, Math.min(60, Math.round(size))) : 34,
     photo_aspect_ratio: row.photo_aspect_ratio === "16:10" ? "16:10" : "16:9",
-    photo_filter: ["none", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none",
-    photo_filter_strength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 35,
     desktop_gallery_scale: Number.isFinite(galleryScale) ? Math.max(70, Math.min(100, Math.round(galleryScale))) : 84,
     scroll_header_style: "autohaus_original",
     original_header_menu_button_enabled: plateMenuEnabled,
@@ -181,7 +178,8 @@ async function publicSettings() {
     original_header_opacity: Number.isFinite(originalHeaderOpacity) ? Math.max(85, Math.min(100, Math.round(originalHeaderOpacity))) : 98,
     original_header_language: row.original_header_language === "header" ? "header" : "menu",
     original_header_desktop_menu_label: row.original_header_desktop_menu_label !== false,
-    wall_cards_interactive: row.wall_cards_interactive !== false
+    wall_cards_interactive: row.wall_cards_interactive !== false,
+    inquiry_enabled: row.inquiry_enabled !== false
   };
 }
 
@@ -189,7 +187,7 @@ async function inventory(id, cacheKey) {
   const started = Date.now();
   const order = ++requestOrder;
   if (id) {
-    const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,notes_en,description_bg,description_en,equipment_bg,equipment_en,images,published,sort_order,updated_at&limit=1", { method: "GET" });
+    const r = await db("vehicles?published=eq.true&slug=eq." + encodeURIComponent(id) + "&select=id,slug,ref,make,model,full_name,body_type,colour,transmission,fuel,mileage,first_registration_year,first_registration_month,unregistered,horsepower,price,chapter,tags,notes,notes_en,description_bg,description_en,equipment_bg,equipment_en,images,photo_filter,photo_filter_strength,published,sort_order,updated_at&limit=1", { method: "GET" });
     const rows = await parse(r);
     if (!rows.length) {
       return { status: 404, body: remember(cacheKey, { ok: false, authoritative: true, vehicle: null, vehicles: [], error: "Vehicle not found" }, started, order, 404) };
@@ -200,7 +198,7 @@ async function inventory(id, cacheKey) {
   const fields = [
     "id", "slug", "ref", "make", "model", "full_name", "body_type", "colour",
     "transmission", "fuel", "mileage", "first_registration_year", "first_registration_month",
-    "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "sort_order", "updated_at"
+    "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "photo_filter", "photo_filter_strength", "sort_order", "updated_at"
   ].join(",");
   const r = await db("vehicles?published=eq.true&select=" + fields + "&order=updated_at.desc,sort_order.asc", { method: "GET" });
   const rows = await parse(r);
@@ -224,7 +222,7 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { ok: true, settings: await publicSettings() });
     } catch (err) {
       console.error("Public settings API failed", err);
-      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", photo_filter: "none", photo_filter_strength: 35, desktop_gallery_scale: 84, scroll_header_style: "autohaus_original", original_header_menu_button_enabled: true, landing_standard_header: true, landing_standard_header_sticky: false, landing_original_after_scroll: true, product_standard_header: true, product_standard_header_sticky: true, product_original_header: false, landing_standard_header_mode: "top", landing_original_header_mode: "after_scroll", product_standard_header_mode: "sticky", product_original_header_mode: "hidden", original_header_size: 81, original_header_opacity: 98, original_header_language: "menu", original_header_desktop_menu_label: true, wall_cards_interactive: true } });
+      return json(res, 200, { ok: true, settings: { watermark_enabled: false, watermark_transparency: 75, watermark_size: 34, photo_aspect_ratio: "16:9", desktop_gallery_scale: 84, scroll_header_style: "autohaus_original", original_header_menu_button_enabled: true, landing_standard_header: true, landing_standard_header_sticky: false, landing_original_after_scroll: true, product_standard_header: true, product_standard_header_sticky: true, product_original_header: false, landing_standard_header_mode: "top", landing_original_header_mode: "after_scroll", product_standard_header_mode: "sticky", product_original_header_mode: "hidden", original_header_size: 81, original_header_opacity: 98, original_header_language: "menu", original_header_desktop_menu_label: true, wall_cards_interactive: true, inquiry_enabled: true } });
     }
   }
 

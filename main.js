@@ -87,6 +87,10 @@
     ROOT.dataset.ahOriginalLanguage = language;
     ROOT.dataset.ahOriginalDesktopMenuLabel = desktopMenuLabel ? "1" : "0";
     ROOT.dataset.ahOriginalMenuButton = settings.original_header_menu_button_enabled === false ? "0" : "1";
+    ROOT.dataset.ahInquiryEnabled = settings.inquiry_enabled === false ? "0" : "1";
+    if (ROOT.dataset.ahInquiryEnabled === "0" && /(?:^|\/)concierge\.html$/.test(location.pathname)) {
+      location.replace("index.html");
+    }
     var wallCardsMode = settings.wall_cards_interactive === false ? "0" : "1";
     var previousWallCardsMode = ROOT.dataset.ahWallCardsInteractive;
     ROOT.dataset.ahWallCardsInteractive = wallCardsMode;
@@ -129,6 +133,18 @@
       if (window.AH_REFRESH_HEADER_SETTINGS) window.AH_REFRESH_HEADER_SETTINGS();
     } catch (_) {}
   });
+  /* Legal and enquiry pages do not load watermark.js. Keep their navigation
+     toggle fresh with one tiny settings read; the landing/product pages reuse
+     their existing presentation request instead of making another one. */
+  if (/(?:^|\/)(?:legal|concierge)\.html$/.test(location.pathname)) {
+    fetch("/api/public/vehicles?settings=1", { cache: "no-store", credentials: "omit" })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        if (!data || !data.settings) return;
+        applyHeaderSettings(data.settings);
+        try { localStorage.setItem(PRESENTATION_CACHE_KEY, JSON.stringify({ v: 1, at: Date.now(), settings: data.settings })); } catch (_) {}
+      }).catch(function () {});
+  }
   window.AH_APPLY_HEADER_SETTINGS = applyHeaderSettings;
   window.AH_APPLY_SCROLL_HEADER_STYLE = function (value) {
     var style = "autohaus_original";
@@ -291,6 +307,30 @@
   var priceTxt = function (v) { return v == null ? null : fmt(v) + " €"; };
   var kmTxt = function (v) { return v == null ? "—" : fmt(v) + " км"; };
   var yrTxt = function (v) { return v.unreg ? "Нов" : (v.year || "—"); };
+  function vehiclePhotoStyle(v) {
+    var strength = Math.max(0, Math.min(100, Number(v && v.photo_filter_strength) || 0));
+    var k = Math.sqrt(strength / 100), name = v && v.photo_filter;
+    var brightness = 1, contrast = 1, saturate = 1, vignette = 0;
+    if (name === "balanced") {
+      brightness -= .09 * k; contrast += .12 * k; saturate += .18 * k; vignette = .28 * k;
+    } else if (name === "showroom") {
+      brightness -= .14 * k; contrast += .18 * k; saturate += .26 * k; vignette = .38 * k;
+    }
+    return {
+      filter: "brightness(" + brightness + ") contrast(" + contrast + ") saturate(" + saturate + ")",
+      vignette: String(vignette)
+    };
+  }
+  function applyVehiclePhotoStyle(element, v) {
+    if (!element) return;
+    var p = vehiclePhotoStyle(v);
+    element.style.setProperty("--ah-photo-filter-css", p.filter);
+    element.style.setProperty("--ah-photo-vignette-opacity", p.vignette);
+  }
+  function vehiclePhotoAttribute(v) {
+    var p = vehiclePhotoStyle(v);
+    return ' style="--ah-photo-filter-css:' + p.filter + ';--ah-photo-vignette-opacity:' + p.vignette + '"';
+  }
   /* the lease() annuity helper was removed in the content audit: AutoHaus has
      not published a rate or a deposit, so any "from X €/month" figure was
      invented. Leasing is now stated as available, never quoted. */
@@ -299,6 +339,7 @@
     cfg: CFG, all: V, chapters: CHAPTERS, chapterName: CH_NAME, fuel: FUEL,
     fmt: fmt, price: priceTxt, km: kmTxt, yr: yrTxt, esc: esc,
     img: img, srcset: srcset, webpset: webpset, picture: picture, watermarkEmbedded: watermarkEmbedded,
+    photoStyle: vehiclePhotoAttribute, applyPhotoStyle: applyVehiclePhotoStyle,
     byId: function (id) { return V.filter(function (v) { return v.id === id; })[0] || null; },
     count: function (fn) { return V.filter(fn).length; },
     countOf: function (k) {
@@ -1475,6 +1516,9 @@
 
     if (!coarse) {
       var down = false, sx = 0, sl = 0, moved = false;
+      wall.addEventListener("dragstart", function (e) {
+        if (e.target.closest && e.target.closest(".wcard")) e.preventDefault();
+      });
       wall.addEventListener("pointerdown", function (e) {
         if (e.pointerType !== "mouse" || e.button !== 0) return;
         tweenId++;                                 /* the hand wins over any tween */
@@ -2218,6 +2262,7 @@
     AH.openFocus = function (id, opener) {
       var v = AH.byId(id); if (!v) return;
       fCar = v; fShot = 0; fOpener = opener || null;
+      AH.applyPhotoStyle(focus, v);
 
       fThumbs.innerHTML = v.shots.map(function (s, n) {
         return '<button type="button" aria-label="Кадър ' + (n + 1) + '">' +

@@ -16,6 +16,7 @@ function harness() {
   function node(id) {
     if (!nodes.has(id)) nodes.set(id, {
       value: "", checked: false, dataset: {}, textContent: "", innerHTML: "",
+      style: { setProperty() {} },
       classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
       setAttribute() {}, removeAttribute() {}, addEventListener() {}, focus() {},
       querySelectorAll() { return []; }, querySelector() { return node("heading"); }
@@ -25,12 +26,15 @@ function harness() {
   const form = node("car-form");
   form.elements = Object.fromEntries([
     "make", "model", "full_name", "slug", "ref", "body_type", "colour", "transmission", "fuel",
-    "mileage", "horsepower", "price", "first_registration_year", "first_registration_month", "unregistered", "notes"
+    "mileage", "horsepower", "price", "first_registration_year", "first_registration_month", "unregistered", "notes",
+    "photo_filter", "photo_filter_strength"
   ].map(name => [name, node(name)]));
   form.elements.make.value = "Mercedes-Benz";
   form.elements.model.value = "S 500 L";
   form.elements.fuel.value = "petrol";
   form.elements.transmission.value = "auto";
+  form.elements.photo_filter.value = "none";
+  form.elements.photo_filter_strength.value = "35";
   const body = node("body");
   body.dataset = { adminUser: "cleanup-test", adminRole: "owner" };
   const document = { readyState: "complete", body, documentElement: {}, getElementById: node, querySelectorAll: () => [], querySelector: () => null, addEventListener() {} };

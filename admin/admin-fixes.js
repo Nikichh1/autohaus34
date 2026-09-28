@@ -176,8 +176,6 @@
     watermark_transparency: 75,
     watermark_size: 34,
     photo_aspect_ratio: "16:9",
-    photo_filter: "none",
-    photo_filter_strength: 35,
     desktop_gallery_scale: 84,
     scroll_header_style: "autohaus_original",
     original_header_menu_button_enabled: true,
@@ -195,7 +193,8 @@
     original_header_opacity: 98,
     original_header_language: "menu",
     original_header_desktop_menu_label: true,
-    wall_cards_interactive: true
+    wall_cards_interactive: true,
+    inquiry_enabled: true
   };
   var cached = null, cachedAt = 0, pending = null;
 
@@ -207,8 +206,6 @@
     var s = Math.round(Number(value.watermark_size));
     if (!Number.isFinite(n)) n = 75;
     if (!Number.isFinite(s)) s = 34;
-    var strength = Math.round(Number(value.photo_filter_strength));
-    if (!Number.isFinite(strength)) strength = 35;
     var galleryScale = Math.round(Number(value.desktop_gallery_scale));
     if (!Number.isFinite(galleryScale)) galleryScale = 84;
     var originalSize = Math.round(Number(value.original_header_size));
@@ -220,8 +217,6 @@
       watermark_transparency: Math.max(0, Math.min(100, n)),
       watermark_size: Math.max(10, Math.min(60, s)),
       photo_aspect_ratio: value.photo_aspect_ratio === "16:10" ? "16:10" : "16:9",
-      photo_filter: ["none", "balanced", "showroom"].indexOf(value.photo_filter) >= 0 ? value.photo_filter : "none",
-      photo_filter_strength: Math.max(0, Math.min(100, strength)),
       desktop_gallery_scale: Math.max(70, Math.min(100, galleryScale)),
       scroll_header_style: "autohaus_original",
       original_header_menu_button_enabled: value.original_header_menu_button_enabled !== false,
@@ -239,27 +234,14 @@
       original_header_opacity: Math.max(85, Math.min(100, originalOpacity)),
       original_header_language: value.original_header_language === "header" ? "header" : "menu",
       original_header_desktop_menu_label: value.original_header_desktop_menu_label !== false,
-      wall_cards_interactive: value.wall_cards_interactive !== false
+      wall_cards_interactive: value.wall_cards_interactive !== false,
+      inquiry_enabled: value.inquiry_enabled !== false
     };
   }
 
-  function photoPreset(name, strength) {
-    var k = Math.sqrt(Math.max(0, Math.min(100, Number(strength) || 0)) / 100);
-    var presets = {
-      none: { brightness: 1, contrast: 1, saturate: 1, vignette: 0 },
-      balanced: { brightness: 1 - .09 * k, contrast: 1 + .12 * k, saturate: 1 + .18 * k, vignette: .28 * k },
-      showroom: { brightness: 1 - .14 * k, contrast: 1 + .18 * k, saturate: 1 + .26 * k, vignette: .38 * k }
-    };
-    return presets[name] || presets.none;
-  }
   function applyAdminPhotoPresentation(cfg) {
     cfg = normalize(cfg);
-    var p = photoPreset(cfg.photo_filter, cfg.photo_filter_strength);
     document.documentElement.style.setProperty("--ah-admin-photo-ratio", cfg.photo_aspect_ratio === "16:10" ? "16 / 10" : "16 / 9");
-    document.documentElement.style.setProperty("--ah-admin-photo-brightness", String(p.brightness));
-    document.documentElement.style.setProperty("--ah-admin-photo-contrast", String(p.contrast));
-    document.documentElement.style.setProperty("--ah-admin-photo-saturate", String(p.saturate));
-    document.documentElement.style.setProperty("--ah-admin-photo-vignette-opacity", String(p.vignette));
   }
 
   function getSettings(force) {
@@ -314,16 +296,18 @@
       view.innerHTML =
         '<div class="view-head"><div class="view-title"><p>AutoHaus</p><h1>' + esc(t("Настройки", "Settings")) + '</h1></div></div>' +
         '<section class="panel ah-wall-panel"><div class="panel-head"><h2>' + esc(t("Карти на началната страница", "Homepage cards")) + '</h2></div><div id="ah-wall-settings" style="max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
+        '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Запитвания", "Inquiries")) + '</h2></div><div id="ah-inquiry-settings" style="max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
         '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Воден знак върху снимките", "Photo watermark")) + '</h2></div><div id="ah-watermark-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
         '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Формат и обработка на снимките", "Photo format and processing")) + '</h2></div><div id="ah-media-settings" style="padding:20px;max-width:760px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>' +
         '<section class="panel" style="margin-top:20px"><div class="panel-head"><h2>' + esc(t("Хедър на сайта", "Site header")) + '</h2></div><div id="ah-header-settings" style="padding:20px;max-width:920px"><p class="muted">' + esc(t("Зареждане…", "Loading…")) + '</p></div></section>';
 
       Promise.resolve(getSettings(true)).then(function (cfg) {
         var wallBody = document.getElementById("ah-wall-settings");
+        var inquiryBody = document.getElementById("ah-inquiry-settings");
         var watermarkBody = document.getElementById("ah-watermark-settings");
         var mediaBody = document.getElementById("ah-media-settings");
         var headerBody = document.getElementById("ah-header-settings");
-        if (!wallBody || !watermarkBody || !mediaBody || !headerBody || !wallBody.isConnected || !watermarkBody.isConnected || !mediaBody.isConnected || !headerBody.isConnected) return;
+        if (!wallBody || !inquiryBody || !watermarkBody || !mediaBody || !headerBody || !wallBody.isConnected || !inquiryBody.isConnected || !watermarkBody.isConnected || !mediaBody.isConnected || !headerBody.isConnected) return;
         var disabled = app.canWrite ? "" : " disabled";
 
         wallBody.innerHTML =
@@ -331,6 +315,12 @@
           '<label class="check" style="align-items:flex-start"><input id="ah-wall-cards-interactive" type="checkbox"' + (cfg.wall_cards_interactive ? " checked" : "") + disabled + '><span><strong>' + esc(t("Отваряй картите при натискане", "Open cards when tapped or clicked")) + '</strong><br><small class="muted">' + esc(t("Изключено: картите остават само за разглеждане и превъртане. Връзките от менюто водят до съответната карта.", "Off: cards remain for browsing and scrolling only. Menu links lead to the corresponding card.")) + '</small></span></label>' +
           (app.canWrite ? '<div><button class="primary" id="ah-wall-save" type="submit">' + esc(t("Запази картите", "Save cards")) + '</button></div>' : '') +
           '<div id="ah-wall-status" class="muted" role="status"></div></form>';
+
+        inquiryBody.innerHTML =
+          '<form id="ah-inquiry-form" style="display:grid;gap:12px">' +
+          '<label class="check" style="align-items:flex-start"><input id="ah-inquiry-enabled" type="checkbox"' + (cfg.inquiry_enabled ? " checked" : "") + disabled + '><span><strong>' + esc(t("Показвай страницата и бутоните „Запитване“", "Show inquiry page and buttons")) + '</strong><br><small class="muted">' + esc(t("Изключено: скрива всички входове към запитванията, продуктовата форма и страницата. Телефонът и контактите остават достъпни.", "Off: hides inquiry entry points, the vehicle form and page. Phone and contacts remain available.")) + '</small></span></label>' +
+          (app.canWrite ? '<div><button class="primary" id="ah-inquiry-save" type="submit">' + esc(t("Запази запитванията", "Save inquiries")) + '</button></div>' : '') +
+          '<div id="ah-inquiry-status" class="muted" role="status"></div></form>';
 
         watermarkBody.innerHTML =
           '<form id="ah-watermark-form" style="display:grid;gap:22px">' +
@@ -347,14 +337,6 @@
           option("16:9", cfg.photo_aspect_ratio, "16:9") +
           option("16:10", cfg.photo_aspect_ratio, "16:10") +
           '</select></label>' +
-          '<label class="field" style="max-width:520px"><span><strong>' + esc(t("Филтър за снимките", "Photo filter")) + '</strong></span>' +
-          '<select id="ah-photo-filter"' + disabled + '>' +
-          option("none", cfg.photo_filter, t("Без", "None")) +
-          option("balanced", cfg.photo_filter, "Balanced") +
-          option("showroom", cfg.photo_filter, "Showroom") +
-          '</select></label>' +
-          '<label class="field" style="max-width:520px"><span>' + esc(t("Сила на филтъра", "Filter strength")) + ' — <b id="ah-photo-filter-strength-value">' + cfg.photo_filter_strength + '%</b></span>' +
-          '<input id="ah-photo-filter-strength" type="range" min="0" max="100" step="1" value="' + cfg.photo_filter_strength + '"' + disabled + '></label>' +
           '<label class="field" style="max-width:520px"><span>' + esc(t("Размер на галерията на компютър", "Desktop gallery size")) + ' — <b id="ah-desktop-gallery-scale-value">' + cfg.desktop_gallery_scale + '%</b></span>' +
           '<input id="ah-desktop-gallery-scale" type="range" min="70" max="100" step="1" value="' + cfg.desktop_gallery_scale + '"' + disabled + '></label>' +
           (app.canWrite ? '<div><button class="primary" id="ah-media-save" type="submit">' + esc(t("Запази обработката на снимките", "Save photo processing")) + '</button></div>' : '') +
@@ -421,9 +403,6 @@
         var sizeValue = document.getElementById("ah-watermark-size-value");
         if (range) range.oninput = function () { value.textContent = range.value + "%"; };
         if (sizeRange) sizeRange.oninput = function () { sizeValue.textContent = sizeRange.value + "%"; };
-        var filterStrength = document.getElementById("ah-photo-filter-strength");
-        var filterStrengthValue = document.getElementById("ah-photo-filter-strength-value");
-        if (filterStrength) filterStrength.oninput = function () { filterStrengthValue.textContent = filterStrength.value + "%"; };
         var desktopGalleryScale = document.getElementById("ah-desktop-gallery-scale");
         var desktopGalleryScaleValue = document.getElementById("ah-desktop-gallery-scale-value");
         if (desktopGalleryScale) desktopGalleryScale.oninput = function () { desktopGalleryScaleValue.textContent = desktopGalleryScale.value + "%"; };
@@ -485,6 +464,19 @@
           finally { save.disabled = false; }
         };
 
+        var inquiryForm = document.getElementById("ah-inquiry-form");
+        if (inquiryForm && app.canWrite) inquiryForm.onsubmit = async function (event) {
+          event.preventDefault();
+          var save = document.getElementById("ah-inquiry-save");
+          var message = document.getElementById("ah-inquiry-status");
+          save.disabled = true; message.textContent = t("Записване…", "Saving…");
+          try {
+            await saveSettings({ inquiry_enabled: document.getElementById("ah-inquiry-enabled").checked });
+            message.textContent = t("Настройката за запитванията е записана.", "Inquiry setting saved.");
+          } catch (error) { message.textContent = error.message; }
+          finally { save.disabled = false; }
+        };
+
         var watermarkForm = document.getElementById("ah-watermark-form");
         if (watermarkForm && app.canWrite) watermarkForm.onsubmit = async function (event) {
           event.preventDefault();
@@ -507,15 +499,13 @@
           event.preventDefault();
           var save = document.getElementById("ah-media-save");
           var message = document.getElementById("ah-media-status");
-          save.disabled = true; message.textContent = t("Прилагане върху всички снимки…", "Applying to all photos…");
+          save.disabled = true; message.textContent = t("Записване…", "Saving…");
           try {
             await saveSettings({
               photo_aspect_ratio: document.getElementById("ah-photo-ratio").value,
-              photo_filter: document.getElementById("ah-photo-filter").value,
-              photo_filter_strength: Number(document.getElementById("ah-photo-filter-strength").value),
               desktop_gallery_scale: Number(document.getElementById("ah-desktop-gallery-scale").value)
             });
-            message.textContent = t("Форматът и филтърът са активни за всички продуктови снимки.", "Format and filter are active for all product photos.");
+            message.textContent = t("Форматът и размерът на галерията са записани.", "Photo format and gallery size saved.");
           } catch (error) { message.textContent = error.message; }
           finally { save.disabled = false; }
         };

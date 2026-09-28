@@ -7,6 +7,7 @@
    No provider secret is ever exposed to the browser. */
 
 const crypto = require("crypto");
+const { configured, db } = require("../server/admin-lib");
 const DESTINATION = "autohaussale@gmail.com";
 const MAX_BODY_BYTES = 24 * 1024;
 const MAX_MESSAGE = 4000;
@@ -200,6 +201,25 @@ module.exports = async function handler(req, res) {
 
   const built = body.kind === "vehicle" ? buildVehicle(body) : buildConcierge(body);
   if (built.error) return json(res, 400, { ok: false, error: built.error });
+
+  /* A hidden form must not remain usable through a bookmarked URL or a
+     scripted POST. This check runs only on submission, never on page paint. */
+  if (configured()) {
+    try {
+      const setting = await db("admin_settings?singleton=eq.true&select=inquiry_enabled&limit=1", { method: "GET" });
+      if (!setting.ok) throw new Error("Inquiry setting unavailable");
+      const rows = await setting.json();
+      if (!Array.isArray(rows) || !rows[0] || typeof rows[0].inquiry_enabled !== "boolean") {
+        throw new Error("Inquiry setting missing");
+      }
+      if (rows[0].inquiry_enabled === false) {
+        return json(res, 403, { ok: false, error: "Inquiries are currently disabled." });
+      }
+    } catch (error) {
+      console.error("Could not verify inquiry setting", error);
+      return json(res, 503, { ok: false, error: "Inquiries are temporarily unavailable." });
+    }
+  }
 
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;

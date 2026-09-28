@@ -90,7 +90,7 @@
     return '' +
     '<article class="lc' + (opts.paper ? " lc--paper" : "") + '" data-id="' + AH.esc(v.id) + '">' +
       '<a class="lc__link" href="' + AH.vehicleUrl(v) + '">' +
-        '<span class="lc__pic"' + (AH.watermarkEmbedded && AH.watermarkEmbedded(v, 0, shots[0]) ? ' data-ah-watermark-embedded="1"' : '') + '>' +
+        '<span class="lc__pic"' + AH.photoStyle(v) + (AH.watermarkEmbedded && AH.watermarkEmbedded(v, 0, shots[0]) ? ' data-ah-watermark-embedded="1"' : '') + '>' +
           /* <picture>, not <img srcset>: the format switch has to be a
              <source type>, because a browser without WebP still picks a WebP
              candidate out of a srcset and then cannot decode it */
@@ -403,7 +403,7 @@
       /* the tile should show that marque's best car, not its first: the
          most expensive one is the closest thing the data has to "best" */
       var s = v.price == null ? 1e9 : v.price;
-      if (s > by[v.make].score) { by[v.make].score = s; by[v.make].shot = v.shots[0]; }
+      if (s > by[v.make].score) { by[v.make].score = s; by[v.make].shot = v.shots[0]; by[v.make].car = v; }
     });
     return Object.keys(by).map(function (k) { return by[k]; })
       .sort(function (a, b) { return b.n - a.n || a.make.localeCompare(b.make); })
@@ -413,7 +413,7 @@
   AH.marqueTile = function (m) {
     var href = "index.html?make=" + encodeURIComponent(m.make);
     return '<a class="mtile" href="' + href + '" data-catalog data-make="' + AH.esc(m.make) + '">' +
-      '<span class="mtile__pic">' +
+      '<span class="mtile__pic"' + AH.photoStyle(m.car) + '>' +
         AH.picture(m.shot, { width: 140, height: 107, widths: [400, 800],
                              sizes: "(min-width:1024px) 14vw, 45vw", src: 400, alt: m.make }) +
       "</span>" +

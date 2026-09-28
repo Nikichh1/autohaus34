@@ -261,7 +261,24 @@
     return { id: "", slug: "", ref: "", make: "", model: "", full_name: "", body_type: "", colour: "",
       transmission: "", fuel: "", mileage: null, first_registration_year: null, first_registration_month: null,
       unregistered: false, horsepower: null, price: null, chapter: "saloon", tags: [], notes: [],
-      description_bg: "", description_en: "", equipment_bg: [], equipment_en: [], images: [], source_url: "", published: false };
+      description_bg: "", description_en: "", equipment_bg: [], equipment_en: [], images: [], source_url: "", published: false,
+      photo_filter: "none", photo_filter_strength: 35 };
+  }
+  function photoValues(name, strength) {
+    var k = Math.sqrt(Math.max(0, Math.min(100, Number(strength) || 0)) / 100);
+    if (name === "balanced") return [1 - .09 * k, 1 + .12 * k, 1 + .18 * k, .28 * k];
+    if (name === "showroom") return [1 - .14 * k, 1 + .18 * k, 1 + .26 * k, .38 * k];
+    return [1, 1, 1, 0];
+  }
+  function updatePhotoPreview() {
+    var mode = D.getElementById("vehicle-photo-filter"), strength = D.getElementById("vehicle-photo-strength"), list = D.getElementById("image-list");
+    if (!mode || !strength || !list) return;
+    var values = photoValues(mode.value, strength.value);
+    ["brightness", "contrast", "saturate", "vignette-opacity"].forEach(function (part, i) {
+      list.style.setProperty("--ah-admin-photo-" + part, String(values[i]));
+    });
+    D.getElementById("vehicle-photo-strength-value").textContent = strength.value + "%";
+    strength.disabled = mode.value === "none" || role === "viewer";
   }
   function field(label, name, value, type, extra) {
     return '<label class="field"><span>' + esc(label) + '</span><input name="' + name + '" type="' + (type || "text") + '" value="' + esc(value) + '" ' +
@@ -294,7 +311,10 @@
       t("+ Добави снимки", "+ Add photos") + '</button><button type="button" class="secondary" id="take-photo">' + t("Камера", "Camera") + '</button></div>' +
       '<p>' + t("Изберете няколко снимки. Първата е главна. Новите снимки се изрязват автоматично до формата, избран в Настройки.", "Select multiple photos. The first is the cover. New photos are automatically cropped to the format selected in Settings.") +
       '</p><div class="upload-status" id="upload-status" role="status"></div><button type="button" class="secondary" id="retry-images" hidden>' + t("Опитай неуспешните отново", "Retry failed photos") +
-      '</button></div><p class="field-hint" id="photo-order-hint"><span class="desktop-order-hint">' + t("Подредете снимките чрез влачене на дръжката. Първата е главна. Запишете автомобила, за да запазите реда.", "Drag the handle to reorder photos. The first is the cover. Save the car to keep the new order.") + '</span><span class="mobile-order-hint">' + t("Подредете със стрелките. Първата снимка е главна. Запишете, за да запазите реда.", "Use the arrows to reorder. The first photo is the cover. Save to keep the order.") + '</span></p><div class="image-grid" id="image-list" aria-describedby="photo-order-hint"></div></section>' +
+      '</button></div><div class="vehicle-photo-controls"><div><strong>' + t("Вид на снимките", "Photo appearance") + '</strong><small>' + t("Само за този автомобил. Прегледът на снимките се обновява веднага.", "Only for this car. The photo preview updates immediately.") + '</small></div>' +
+      select(t("Филтър", "Filter"), "photo_filter", car.photo_filter || "none", [["none", t("Без филтър", "No filter")], ["balanced", "Balanced"], ["showroom", "Showroom"]]).replace('name="photo_filter"', 'name="photo_filter" id="vehicle-photo-filter"') +
+      '<label class="field"><span>' + t("Сила", "Strength") + ' — <b id="vehicle-photo-strength-value">' + (car.photo_filter_strength == null ? 35 : car.photo_filter_strength) + '%</b></span><input id="vehicle-photo-strength" name="photo_filter_strength" type="range" min="0" max="100" step="1" value="' + (car.photo_filter_strength == null ? 35 : Number(car.photo_filter_strength)) + '"></label></div>' +
+      '<p class="field-hint" id="photo-order-hint"><span class="desktop-order-hint">' + t("Подредете снимките чрез влачене на дръжката. Първата е главна. Запишете автомобила, за да запазите реда.", "Drag the handle to reorder photos. The first is the cover. Save the car to keep the new order.") + '</span><span class="mobile-order-hint">' + t("Подредете със стрелките. Първата снимка е главна. Запишете, за да запазите реда.", "Use the arrows to reorder. The first photo is the cover. Save to keep the order.") + '</span></p><div class="image-grid" id="image-list" aria-describedby="photo-order-hint"></div></section>' +
       '<section class="card"><h2>' + t("Характеристики", "Specifications") + '</h2><div class="field-grid">' +
       select(t("Купе", "Body type"), "body_type", car.body_type, [["", t("Изберете", "Select")], ["suv", "SUV"], ["passenger", t("Лек автомобил", "Passenger car")], ["sedan", t("Седан", "Saloon")], ["wagon", t("Комби", "Estate")], ["coupe", t("Купе", "Coupe")], ["cabrio", t("Кабрио", "Convertible")], ["van", t("Ван", "Van")], ["pickup", t("Пикап", "Pickup")]]) +
       field(t("Цвят", "Colour"), "colour", car.colour, "text", "maxlength=120") +
@@ -330,7 +350,7 @@
       (car.published ? "primary" : "secondary") + '" id="save-car"></button>' + (!car.published ? '<button type="button" class="primary" id="publish-car">' + t("Публикувай", "Publish") + '</button>' : "") +
       '</div><div class="editor-shortcuts"><a href="#photos" data-scroll="photos">' + t("Снимки", "Photos") + '</a><a href="#description" data-scroll="description">' + t("Оборудване", "Equipment") +
       '</a></div></div></aside></form>';
-    renderImages(); bindEditor(); updateSaveState();
+    renderImages(); bindEditor(); updatePhotoPreview(); updateSaveState();
   }
   function collectForm() {
     var form = D.getElementById("car-form"); if (!form || !state.current) return null;
@@ -351,7 +371,8 @@
       description_source: state.current.description_source || "", description_review_notes: clone(state.current.description_review_notes || []),
       description_bg: state.current.description_bg || "", description_en: state.current.description_en || "",
       equipment_bg: splitLines(D.getElementById("equipment-bg").value), equipment_en: splitLines(D.getElementById("equipment-en").value),
-      images: clone(state.current.images || []), source_url: state.current.source_url || "", published: !!state.current.published };
+      images: clone(state.current.images || []), source_url: state.current.source_url || "", published: !!state.current.published,
+      photo_filter: value("photo_filter"), photo_filter_strength: Number(value("photo_filter_strength")) };
   }
   function validateCar(data) {
     var form = D.getElementById("car-form"), invalid = [];
@@ -700,9 +721,10 @@
     form.oninput = function () { setDirty(); };
     form.addEventListener("input", function (event) {
       if (event.target.id === "equipment-bg") fitEquipmentFields();
+      if (event.target.id === "vehicle-photo-filter" || event.target.id === "vehicle-photo-strength") updatePhotoPreview();
     });
     form.addEventListener("ah:translation-updated", fitEquipmentFields);
-    form.onchange = function () { setDirty(); syncRegistration(); };
+    form.onchange = function () { setDirty(); syncRegistration(); updatePhotoPreview(); };
     form.onsubmit = function (event) { event.preventDefault(); saveCar(); };
     var publish = D.getElementById("publish-car"); if (publish) publish.onclick = function () { saveCar(true); };
     var remove = D.getElementById("delete-car"); if (remove) remove.onclick = deleteCar;
