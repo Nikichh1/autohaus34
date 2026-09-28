@@ -1097,7 +1097,7 @@
     var items = all(".wcard-item", wall);
     var openItem = null, settleT = 0, lockY = 0, locked = false, railLeft0 = 0;
 
-    /* Full-screen mode below 1024 has to freeze the page behind it, but
+    /* Open cards below 1024 have to freeze the page behind them, but
        `overflow:hidden` on <html> alone collapses the scroll position — open a
        card 1300px down the page and you were returned to 769px on close.
        Pin the body at its current offset instead and put it back afterwards. */
@@ -1219,7 +1219,15 @@
         if (p) { setPad(p.lead, p.trail); glide(p.target, WALL_DUR); }
         lockScroll(!wide);
         if (anchor) anchor.setAttribute("aria-expanded", "true");
-        if (panel) panel.removeAttribute("inert");
+        if (panel) {
+          panel.removeAttribute("inert");
+          if (innerWidth < 768) {
+            panel.setAttribute("role", "dialog");
+            panel.setAttribute("aria-modal", "true");
+            var heading = panel.querySelector(".wcard-panel-h");
+            if (heading) panel.setAttribute("aria-label", heading.textContent.trim());
+          }
+        }
         var close = item.querySelector(".wcard-close");
         if (close) close.focus({ preventScroll: true });
         settle();
@@ -1227,24 +1235,24 @@
       }
 
       if (anchor) anchor.setAttribute("aria-expanded", "false");
-      if (panel) panel.setAttribute("inert", "");
+      if (panel) {
+        panel.setAttribute("inert", "");
+        panel.setAttribute("role", "group");
+        panel.removeAttribute("aria-modal");
+      }
 
-      /* ---- THE CLOSE, ON A PHONE ----
-         The open card is a full-screen sheet OUT of the rail's flow, so the
-         rail behind it has slid its neighbours across. Tearing the sheet down
-         in one frame (a) snapped instead of easing and (b) let that neighbour
-         flash in from the left before the rail could be corrected — the "it
-         jumps to the next card" bug. So the CONTENT sinks out over the still-
-         opaque white sheet for 200ms, and only then is the sheet removed AND
-         the rail put back to railLeft0 in the SAME frame, so what it returns
-         to is the card you opened, never its neighbour. */
+      /* Keep the mobile dialog in place until its closing transition ends.
+         Then restore the rail in the same frame to avoid flashing a neighbour
+         card or returning to a different scroll position. */
       if (!wide) {
         var finishClose = function () {
           item.classList.remove("is-open", "cw-closing");
-          if (openItem === item) openItem = null;
-          wall.scrollLeft = railLeft0;
-          lockScroll(false);
-          if (focusBack && anchor) anchor.focus({ preventScroll: true });
+          if (openItem === item) {
+            openItem = null;
+            wall.scrollLeft = railLeft0;
+            lockScroll(false);
+            if (focusBack && anchor) anchor.focus({ preventScroll: true });
+          }
         };
         /* These paths have no closing animation in CSS, so there is no
            transition to wait for before restoring the rail and page. */
@@ -1335,6 +1343,18 @@
     });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && openItem) closeWallItem(openItem, true);
+      if (e.key !== "Tab" || !openItem || innerWidth >= 768) return;
+      var controls = all(".wcard-close,.wcard-cta a[href],.wcard-cta button:not(:disabled)", openItem);
+      if (!controls.length) return;
+      var first = controls[0], last = controls[controls.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !openItem.contains(document.activeElement))) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !openItem.contains(document.activeElement))) {
+        e.preventDefault(); first.focus();
+      }
+    });
+    document.addEventListener("click", function (e) {
+      if (openItem && innerWidth < 768 && e.target === document.body) closeWallItem(openItem, true);
     });
 
     /* ---- ARRIVING BY LINK ------------------------------------------------
@@ -1412,7 +1432,7 @@
        more than preserving it. */
     var lastW = innerWidth;
     addEventListener("resize", function () {
-      var crossed = (lastW < 1024) !== (innerWidth < 1024);
+      var crossed = (lastW < 1024) !== (innerWidth < 1024) || (lastW < 768) !== (innerWidth < 768);
       lastW = innerWidth;
       if (openItem && crossed) {
         if (innerWidth >= 1024) discardWallHistory();

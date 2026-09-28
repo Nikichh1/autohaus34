@@ -153,6 +153,9 @@
       if (session && session.type === "pointer" && event.key === "Escape") { event.preventDefault(); cancel(); }
     }
     function pointerDown(event) {
+      // A phone scroll must never turn into a reorder gesture. Mobile has
+      // explicit one-step controls instead of the drag handle.
+      if (event.pointerType === "touch" && win.matchMedia && win.matchMedia("(max-width:720px), (pointer:coarse)").matches) return;
       const handle = findHandle(event.target);
       if (!handle || session || event.isPrimary === false || (event.button !== undefined && event.button !== 0)) return;
       if (!begin(handle, "pointer")) return;

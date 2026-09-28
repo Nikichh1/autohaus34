@@ -188,6 +188,19 @@ test("pointer handle supports touch, live preview and a single committed drop", 
   h.api.destroy();
 });
 
+test("phone touch scroll cannot start a photo reorder", () => {
+  const h = harness();
+  h.win.matchMedia = () => ({ matches: true });
+  const down = h.pointer("pointerdown", 60, 240, { pointerType: "touch" });
+  h.pointer("pointermove", 280, 410, { pointerType: "touch" });
+  h.pointer("pointerup", 280, 410, { pointerType: "touch" });
+  assert.equal(down.prevented, false);
+  assert.equal(h.captured, null);
+  assert.deepEqual(h.order(), [0, 1, 2, 3, 4, 5]);
+  assert.deepEqual(h.moves, []);
+  h.api.destroy();
+});
+
 test("small pointer motion does not reorder and secondary pointers cannot hijack a drag", () => {
   const h = harness();
   h.pointer("pointerdown", 60, 240);

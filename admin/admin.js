@@ -129,7 +129,10 @@
     var fields = D.getElementById("editor-fields");
     if (fields) fields.disabled = !!state.saveBusy || role === "viewer";
     view.querySelectorAll(".image-actions button,.cover-button").forEach(function (button) {
-      button.disabled = busy || role === "viewer" || (button.classList.contains("image-drag-handle") && (state.current.images || []).length < 2);
+      var to = button.dataset.imgTo;
+      button.disabled = busy || role === "viewer" ||
+        (button.classList.contains("image-drag-handle") && (state.current.images || []).length < 2) ||
+        (to !== undefined && (Number(to) < 0 || Number(to) >= (state.current.images || []).length));
     });
     var form = D.getElementById("car-form");
     if (form) form.setAttribute("aria-busy", busy ? "true" : "false");
@@ -291,7 +294,7 @@
       t("+ Добави снимки", "+ Add photos") + '</button><button type="button" class="secondary" id="take-photo">' + t("Камера", "Camera") + '</button></div>' +
       '<p>' + t("Изберете няколко снимки. Първата е главна. Новите снимки се изрязват автоматично до формата, избран в Настройки.", "Select multiple photos. The first is the cover. New photos are automatically cropped to the format selected in Settings.") +
       '</p><div class="upload-status" id="upload-status" role="status"></div><button type="button" class="secondary" id="retry-images" hidden>' + t("Опитай неуспешните отново", "Retry failed photos") +
-      '</button></div><p class="field-hint" id="photo-order-hint">' + t("Подредете снимките чрез влачене на дръжката. Първата е главна. Запишете автомобила, за да запазите реда.", "Drag the handle to reorder photos. The first is the cover. Save the car to keep the new order.") + '</p><div class="image-grid" id="image-list" aria-describedby="photo-order-hint"></div></section>' +
+      '</button></div><p class="field-hint" id="photo-order-hint"><span class="desktop-order-hint">' + t("Подредете снимките чрез влачене на дръжката. Първата е главна. Запишете автомобила, за да запазите реда.", "Drag the handle to reorder photos. The first is the cover. Save the car to keep the new order.") + '</span><span class="mobile-order-hint">' + t("Подредете със стрелките. Първата снимка е главна. Запишете, за да запазите реда.", "Use the arrows to reorder. The first photo is the cover. Save to keep the order.") + '</span></p><div class="image-grid" id="image-list" aria-describedby="photo-order-hint"></div></section>' +
       '<section class="card"><h2>' + t("Характеристики", "Specifications") + '</h2><div class="field-grid">' +
       select(t("Купе", "Body type"), "body_type", car.body_type, [["", t("Изберете", "Select")], ["suv", "SUV"], ["passenger", t("Лек автомобил", "Passenger car")], ["sedan", t("Седан", "Saloon")], ["wagon", t("Комби", "Estate")], ["coupe", t("Купе", "Coupe")], ["cabrio", t("Кабрио", "Convertible")], ["van", t("Ван", "Van")], ["pickup", t("Пикап", "Pickup")]]) +
       field(t("Цвят", "Colour"), "colour", car.colour, "text", "maxlength=120") +
@@ -413,9 +416,15 @@
       return '<article class="image-card" data-image-index="' + i + '"><img src="' + esc(imageUrl(img, 800)) + '" alt="' + label +
         '" loading="lazy" decoding="async" draggable="false"><div class="image-heading"><span>' + (i === 0 ? t("Главна снимка", "Cover photo") : label) +
         '</span>' + (i ? '<button type="button" class="cover-button" data-img-cover="' + i + '" aria-label="' + esc(t("Направи главна снимка ", "Make cover photo ") + (i + 1)) + '">' + t("Главна", "Set cover") + '</button>' : "") +
-        '</div><div class="image-actions"><button type="button" class="image-drag-handle" data-img-drag="' + i + '" aria-label="' + esc(t("Подреди снимка ", "Reorder photo ") + (i + 1)) + '"' + (images.length < 2 ? ' disabled' : '') + '><span aria-hidden="true">⠿</span> ' + t("Премести", "Move") + '</button><button type="button" class="image-remove" data-img-remove="' + i + '" aria-label="' + esc(t("Премахни снимка ", "Remove photo ") + (i + 1)) + '">×</button></div></article>';
+        '</div><div class="image-actions"><button type="button" class="image-drag-handle" data-img-drag="' + i + '" aria-label="' + esc(t("Подреди снимка ", "Reorder photo ") + (i + 1)) + '"' + (images.length < 2 ? ' disabled' : '') + '><span aria-hidden="true">⠿</span> ' + t("Премести", "Move") + '</button>' +
+        '<button type="button" class="image-move" data-img-move="' + i + '" data-img-to="' + (i - 1) + '" aria-label="' + esc(t("Премести снимка ", "Move photo ") + (i + 1) + t(" една позиция напред", " one position earlier")) + '"' + (i === 0 ? ' disabled' : '') + '>↑ <span>' + t("Напред", "Earlier") + '</span></button>' +
+        '<button type="button" class="image-move" data-img-move="' + i + '" data-img-to="' + (i + 1) + '" aria-label="' + esc(t("Премести снимка ", "Move photo ") + (i + 1) + t(" една позиция назад", " one position later")) + '"' + (i === images.length - 1 ? ' disabled' : '') + '>↓ <span>' + t("Назад", "Later") + '</span></button>' +
+        '<button type="button" class="image-remove" data-img-remove="' + i + '" aria-label="' + esc(t("Премахни снимка ", "Remove photo ") + (i + 1)) + '">×</button></div></article>';
     }).join("");
     list.querySelectorAll("[data-img-cover]").forEach(function (button) { button.onclick = function () { moveImage(Number(button.dataset.imgCover), 0); }; });
+    list.querySelectorAll("[data-img-move]").forEach(function (button) { button.onclick = function () {
+      moveImage(Number(button.dataset.imgMove), Number(button.dataset.imgTo));
+    }; });
     list.querySelectorAll("[data-img-remove]").forEach(function (button) { button.onclick = function () {
       var index = Number(button.dataset.imgRemove);
       if (isBusy() || role === "viewer" || !confirm(t("Да премахнем тази снимка?", "Remove this photo?"))) return;
@@ -647,6 +656,7 @@
         view.querySelectorAll('[data-admin-lang-panel="' + group + '"]').forEach(function (panel) {
           panel.hidden = panel.id !== targetId;
         });
+        if (group === "equipment") fitEquipmentFields();
       }
       buttons.forEach(function (button, index) {
         button.onclick = function () { show(button.dataset.adminLangTarget); };
@@ -661,6 +671,23 @@
       if (buttons.length) show(buttons[0].dataset.adminLangTarget);
     });
   }
+  function fitEquipmentFields() {
+    ["equipment-bg", "equipment-en"].forEach(function (id) {
+      var field = D.getElementById(id);
+      if (!field) return;
+      if (!window.matchMedia("(max-width:720px)").matches) {
+        field.setAttribute("rows", "10");
+        field.style.height = "";
+        field.style.overflowY = "";
+      } else if (!field.closest("[hidden]")) {
+        field.setAttribute("rows", "3");
+        field.style.height = "auto";
+        field.style.overflowY = "hidden";
+        field.style.height = Math.max(110, field.scrollHeight + 2) + "px";
+      }
+    });
+  }
+  window.addEventListener("resize", fitEquipmentFields);
   function bindEditor() {
     var form = D.getElementById("car-form");
     var priceInput = form && form.elements && form.elements.price;
@@ -671,6 +698,10 @@
       });
     }
     form.oninput = function () { setDirty(); };
+    form.addEventListener("input", function (event) {
+      if (event.target.id === "equipment-bg") fitEquipmentFields();
+    });
+    form.addEventListener("ah:translation-updated", fitEquipmentFields);
     form.onchange = function () { setDirty(); syncRegistration(); };
     form.onsubmit = function (event) { event.preventDefault(); saveCar(); };
     var publish = D.getElementById("publish-car"); if (publish) publish.onclick = function () { saveCar(true); };

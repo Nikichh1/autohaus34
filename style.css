@@ -389,6 +389,8 @@ ul,ol{list-style:none}
 p{text-wrap:pretty}
 ::selection{background:var(--primary);color:var(--primary-ink)}
 :focus-visible{outline:2px solid var(--primary-hover);outline-offset:2px}
+/* Keep touch feedback quiet without removing the visible keyboard focus ring. */
+a,button,input,select,textarea,summary,[role="button"]{-webkit-tap-highlight-color:rgba(135,135,135,.12)}
 section[id],footer[id]{scroll-margin-top:96px}
 /* two cards on the service rail carry page-level ids (#lizing, #care), so an
    anchor can land on one — and it must not land under the header */
@@ -2149,11 +2151,8 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
 /* fill supplied by --btn-fill above; only the hairline reacts here */
 .wcard-cta .btn--secondary:hover,.wcard-cta .btn--secondary:focus-visible{border-color:var(--panel-ink)}
 
-/* Below 1024 the source stops expanding inline and takes the screen instead:
-   the open item goes fixed at 100dvh, the photo becomes a 375/243 banner with
-   the panel beneath it, the page behind locks, and the close button pins to
-   the top corner and drops its label. Expanding a 300px card sideways on a
-   phone would be unusable, which is exactly why they switch. */
+/* Below 1024 the card leaves the horizontal rail. Tablets retain the existing
+   full-screen sheet; phones use the compact dialog below. */
 @media(max-width:1023px){
   .wcard-item.is-open{
     position:fixed;inset:0;z-index:60;margin:0;
@@ -2187,6 +2186,47 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
   .wcard-item.is-open .wcard-close .btn__label{display:none}
   html.cw-open{overflow:hidden}
   html.cw-open body{position:fixed;left:0;right:0;width:100%;overflow:hidden}
+}
+@media(max-width:767px){
+  html.cw-open body::before{
+    content:"";position:fixed;inset:0;z-index:79;
+    background:rgba(7,9,8,.68);
+  }
+  .wcard-item.is-open{
+    --mobile-card-image-height:clamp(116px,19dvh,154px);
+    --mobile-dialog-max-height:min(550px,66dvh,calc(100dvh - 32px));
+    inset:50% auto auto 50%;z-index:80;
+    width:min(440px,calc(100vw - 28px));
+    height:auto;max-height:var(--mobile-dialog-max-height);
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:var(--mobile-card-image-height) auto;
+    transform:translate(-50%,-50%);
+    border-radius:12px;overflow:hidden;
+    box-shadow:0 28px 80px rgba(0,0,0,.35);
+  }
+  .wcard-item.is-open .wcard{
+    width:100%;height:var(--mobile-card-image-height);aspect-ratio:auto;
+  }
+  .wcard-item.is-open .wcard-panel{
+    min-height:0;max-height:calc(var(--mobile-dialog-max-height) - var(--mobile-card-image-height));
+  }
+  .wcard-item.is-open .wcard-panel-in{position:relative;inset:auto;max-height:inherit;padding:20px 20px 22px}
+  .wcard-item.is-open .wcard-scroll{
+    height:auto;max-height:calc(var(--mobile-dialog-max-height) - var(--mobile-card-image-height) - 42px);
+    min-height:0;padding-bottom:0;overscroll-behavior:contain;
+  }
+  .wcard-item.is-open .wcard-panel-in:has(.wcard-cta) .wcard-scroll{padding-bottom:74px}
+  .wcard-item.is-open .wcard-panel-h{margin-bottom:12px}
+  .wcard-item.is-open .wcard-cta{padding:12px 20px 16px;gap:8px}
+  .wcard-item.is-open .wcard-cta .btn{min-height:44px}
+  .wcard-item.is-open .wcard-close{
+    position:absolute;top:calc(12px - var(--mobile-card-image-height));right:12px;
+    min-width:44px;min-height:44px;padding:12px;
+    background:#171a18;border:1px solid rgba(255,255,255,.55);
+    border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,.28);
+  }
+  .wcard-item.is-open .wcard-close:hover,
+  .wcard-item.is-open .wcard-close:focus-visible{background:#292d2a}
 }
 @keyframes cw-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes cw-sink{from{opacity:1;transform:none}to{opacity:0;transform:translateY(12px)}}

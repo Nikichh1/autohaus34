@@ -263,6 +263,7 @@ textarea{min-height:106px}
 @media(max-width:720px){
   :root{--side:0px}
   .workspace{margin-left:0;padding:22px 14px 150px;background:#efefed}
+  .save-card{gap:4px;padding:7px max(14px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
   .workspace::before{height:50px;width:46vw}
   .mobile-head{display:flex;position:sticky;top:0;z-index:31;min-height:64px;padding:10px 14px}
   .side{width:min(84vw,310px);padding-inline:18px;transform:translate3d(-102%,0,0);transition:transform 240ms var(--ah-ease);will-change:transform}
