@@ -23,8 +23,6 @@
           watermark_transparency: settings.watermark_transparency,
           watermark_size: settings.watermark_size,
           photo_aspect_ratio: settings.photo_aspect_ratio,
-          photo_filter: settings.photo_filter,
-          photo_filter_strength: settings.photo_filter_strength,
           desktop_gallery_scale: settings.desktop_gallery_scale,
           scroll_header_style: settings.scroll_header_style === "autohaus_original" ? "autohaus_original" : "compact",
           landing_standard_header: settings.landing_standard_header !== false,
@@ -41,7 +39,8 @@
           original_header_opacity: clamp(settings.original_header_opacity,85,100,98),
           original_header_language: settings.original_header_language === "header" ? "header" : "menu",
           original_header_desktop_menu_label: settings.original_header_desktop_menu_label !== false,
-          wall_cards_interactive: settings.wall_cards_interactive !== false
+          wall_cards_interactive: settings.wall_cards_interactive !== false,
+          inquiry_enabled: settings.inquiry_enabled !== false
         }
       }));
     } catch (_) {}
@@ -123,8 +122,6 @@
     var size = clamp(settings.watermark_size, 10, 60, 34);
     var opacity = (100 - transparency) / 100;
     var ratio = settings.photo_aspect_ratio === "16:10" ? "16:10" : "16:9";
-    var filterName = ["none", "balanced", "showroom"].indexOf(settings.photo_filter) >= 0 ? settings.photo_filter : "none";
-    var strength = clamp(settings.photo_filter_strength, 0, 100, 35);
     var galleryScale = clamp(settings.desktop_gallery_scale, 70, 100, 84);
     var scrollHeaderStyle = "autohaus_original";
     var originalHeaderMenuButton = settings.original_header_menu_button_enabled !== false;
@@ -143,17 +140,6 @@
     var originalHeaderLanguage = settings.original_header_language === "header" ? "header" : "menu";
     var originalHeaderDesktopMenuLabel = settings.original_header_desktop_menu_label !== false;
     var wallCardsInteractive = settings.wall_cards_interactive !== false;
-    /* Human-facing strength should feel useful through the whole slider.
-       sqrt() gives the lower/middle range real authority while preserving
-       exact zero and a controlled 100% ceiling. */
-    var k = Math.sqrt(strength / 100);
-    var presets = {
-      none: { brightness: 1, contrast: 1, saturate: 1, vignette: 0 },
-      balanced: { brightness: 1 - .09 * k, contrast: 1 + .12 * k, saturate: 1 + .18 * k, vignette: .28 * k },
-      showroom: { brightness: 1 - .14 * k, contrast: 1 + .18 * k, saturate: 1 + .26 * k, vignette: .38 * k }
-    };
-    var preset = presets[filterName] || presets.none;
-    var filterCss = "brightness(" + preset.brightness + ") contrast(" + preset.contrast + ") saturate(" + preset.saturate + ")";
 
     enabled = settings.watermark_enabled === true;
     ROOT.style.setProperty("--ah-watermark-opacity", String(opacity));
@@ -161,14 +147,9 @@
     ROOT.style.setProperty("--ah-photo-ratio", ratio === "16:10" ? "16 / 10" : "16 / 9");
     ROOT.style.setProperty("--ah-gallery-ratio", ratio === "16:10" ? "12 / 5" : "8 / 3");
     ROOT.style.setProperty("--ah-gallery-desktop-scale", String(galleryScale) + "%");
-    ROOT.style.setProperty("--ah-photo-brightness", String(preset.brightness));
-    ROOT.style.setProperty("--ah-photo-contrast", String(preset.contrast));
-    ROOT.style.setProperty("--ah-photo-saturate", String(preset.saturate));
-    ROOT.style.setProperty("--ah-photo-vignette-opacity", String(preset.vignette));
-    ROOT.style.setProperty("--ah-photo-filter-css", filterCss);
     ROOT.style.setProperty("--cat-ratio", ratio === "16:10" ? "1.6" : "1.7777778");
     ROOT.dataset.ahPhotoRatio = ratio;
-    ROOT.dataset.ahPhotoFilter = filterName;
+    ROOT.dataset.ahInquiryEnabled = settings.inquiry_enabled === false ? "0" : "1";
     ROOT.dataset.ahScrollHeader = scrollHeaderStyle;
     ROOT.dataset.ahOriginalMenuButton = originalHeaderMenuButton ? "1" : "0";
     ROOT.dataset.ahLandingStandardHeader = landingStandardHeader ? "1" : "0";
@@ -197,8 +178,6 @@
       opacity: opacity,
       size: size,
       photo_aspect_ratio: ratio,
-      photo_filter: filterName,
-      photo_filter_strength: strength,
       desktop_gallery_scale: galleryScale,
       scroll_header_style: scrollHeaderStyle,
       original_header_menu_button_enabled: originalHeaderMenuButton,
@@ -216,12 +195,11 @@
       original_header_opacity: originalHeaderOpacity,
       original_header_language: originalHeaderLanguage,
       original_header_desktop_menu_label: originalHeaderDesktopMenuLabel,
-      wall_cards_interactive: wallCardsInteractive
+      wall_cards_interactive: wallCardsInteractive,
+      inquiry_enabled: settings.inquiry_enabled !== false
     }}));
     window.dispatchEvent(new CustomEvent("ah:photosettingschange", { detail: {
       photo_aspect_ratio: ratio,
-      photo_filter: filterName,
-      photo_filter_strength: strength,
       desktop_gallery_scale: galleryScale,
       scroll_header_style: scrollHeaderStyle,
       original_header_menu_button_enabled: originalHeaderMenuButton,
@@ -233,7 +211,8 @@
       original_header_opacity: originalHeaderOpacity,
       original_header_language: originalHeaderLanguage,
       original_header_desktop_menu_label: originalHeaderDesktopMenuLabel,
-      wall_cards_interactive: wallCardsInteractive
+      wall_cards_interactive: wallCardsInteractive,
+      inquiry_enabled: settings.inquiry_enabled !== false
     }}));
   }
 

@@ -10,6 +10,7 @@
   var bar = D.getElementById("dbar");
   var id = new URLSearchParams(location.search).get("id");
   var v = id ? AH.byId(id) : null;
+  if (v) AH.applyPhotoStyle(root, v);
 
   /* ---- sold or mistyped: never a dead end, and never a sticky bar ---- */
   if (!v) {
@@ -797,6 +798,7 @@
      ============================================================ */
   var lb = D.getElementById("lb"), lbImg = D.getElementById("lb-img");
   var lbStage = D.getElementById("lb-stage"), lbCount = D.getElementById("lb-count");
+  if (lbStage) AH.applyPhotoStyle(lbStage, v);
   var shot = 0, opener = null, lockY = 0, lightboxVersion = 0;
   var lightboxSizes = '88vw';
   function fitLightboxMargins() {

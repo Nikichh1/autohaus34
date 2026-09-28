@@ -63,13 +63,15 @@ function harness({ hash = "#dashboard", fetch: fetchImpl, language = "en", Image
   });
   const form = node("car-form");
   form.elements = {};
-  const fields = ["make", "model", "full_name", "slug", "ref", "body_type", "colour", "transmission", "fuel", "mileage", "horsepower", "price", "first_registration_year", "first_registration_month", "unregistered", "chapter", "tags", "notes", "source_url"];
+  const fields = ["make", "model", "full_name", "slug", "ref", "body_type", "colour", "transmission", "fuel", "mileage", "horsepower", "price", "first_registration_year", "first_registration_month", "unregistered", "chapter", "tags", "notes", "source_url", "photo_filter", "photo_filter_strength"];
   fields.forEach(name => { form.elements[name] = element(name); });
   Object.assign(form.elements.make, { value: "Mercedes-Benz" });
   Object.assign(form.elements.model, { value: "S 500 L" });
   Object.assign(form.elements.fuel, { value: "petrol" });
   Object.assign(form.elements.transmission, { value: "automatic" });
   Object.assign(form.elements.chapter, { value: "saloon" });
+  Object.assign(form.elements.photo_filter, { value: "none" });
+  Object.assign(form.elements.photo_filter_strength, { value: "35" });
   const reviewFields = ["desc-bg", "desc-en", "equipment-bg", "equipment-en"].map(id => {
     const field = node(id);
     field.lang = id.endsWith("bg") ? "bg" : "en";
@@ -318,6 +320,16 @@ test("hidden legacy descriptions and review notes survive ordinary edits", () =>
   assert.equal(data.description_en,"Preserved");
   assert.equal(data.description_source,"Source");
   assert.deepEqual(Array.from(data.description_review_notes),["Review note"]);
+});
+
+test("vehicle photo treatment is collected per car without global settings", () => {
+  const h = harness();
+  h.admin.state.current = car();
+  h.form.elements.photo_filter.value = "showroom";
+  h.form.elements.photo_filter_strength.value = "68";
+  const data = h.admin.collectForm();
+  assert.equal(data.photo_filter, "showroom");
+  assert.equal(data.photo_filter_strength, 68);
 });
 
 test("VAT selection survives form collection for draft recovery without removing other VAT notes", () => {

@@ -22,6 +22,7 @@
     root.dataset.ahScrollHeader="autohaus_original";
     root.dataset.ahOriginalMenuButton=s.original_header_menu_button_enabled===false?"0":"1";
     root.dataset.ahWallCardsInteractive=s.wall_cards_interactive===false?"0":"1";
+    root.dataset.ahInquiryEnabled=s.inquiry_enabled===false?"0":"1";
     var landingStandardMode=["hidden","top","sticky"].indexOf(s.landing_standard_header_mode)>=0?s.landing_standard_header_mode:(s.landing_standard_header===false?"hidden":s.landing_standard_header_sticky===true?"sticky":"top");
     var landingOriginalMode=["hidden","always","after_scroll"].indexOf(s.landing_original_header_mode)>=0?s.landing_original_header_mode:(s.landing_original_after_scroll===false?"hidden":"after_scroll");
     var productStandardMode=["hidden","top","sticky"].indexOf(s.product_standard_header_mode)>=0?s.product_standard_header_mode:(s.product_standard_header===false?"hidden":s.product_standard_header_sticky===false?"top":"sticky");
@@ -51,21 +52,21 @@
 <!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
 <link rel="preload" as="image" href="img/outside_autohaus-320.jpg" fetchpriority="high">
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=431b5161d9c5" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=c3c139290f85" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
 <link rel="stylesheet" href="catalog.min.css?v=af052dbe30ed" media="print" onload="this.media='all';this.onload=null">
 <noscript><link rel="stylesheet" href="catalog.min.css?v=af052dbe30ed"></noscript>
 <!-- Ordered deferred modules: inventory resolves before rendering. -->
-<script defer src="main.js?v=5ae3fe6e5e55"></script>
-<script defer src="catalog.js?v=6f4a42cb4190"></script>
+<script defer src="main.js?v=3a06e2b41ce8"></script>
+<script defer src="catalog.js?v=0a0110ec0967"></script>
 <script defer src="catalog-prefetch.js?v=4b0cf3287ba8"></script>
 <script defer src="showroom.js?v=d4b7add5d1b4"></script>
 <script defer src="i18n.js?v=ff4ef8545597"></script>
 
 <script defer src="analytics.js?v=0bbdd49798ca"></script>
-<script defer src="watermark.js?v=23dd01d95025"></script>
+<script defer src="watermark.js?v=306e5cd94012"></script>
 <script defer src="image-guard.js?v=fdc6606ccf15"></script>
 </head>
 <body class="ah">

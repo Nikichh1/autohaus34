@@ -347,6 +347,8 @@ function normalizeVehicle(body) {
     equipment_bg: stringArray(body.equipment_bg, 600),
     equipment_en: stringArray(body.equipment_en, 600),
     images: sanitizeImages(body.images),
+    photo_filter: body.photo_filter == null ? "none" : clean(body.photo_filter, 20),
+    photo_filter_strength: body.photo_filter_strength == null ? 35 : Number(body.photo_filter_strength),
     /* The production catalogue is self-owned. Never persist a legacy source
        dependency back into an edited vehicle. */
     source_url: "",
@@ -354,6 +356,10 @@ function normalizeVehicle(body) {
     updated_at: new Date().toISOString()
   };
   if (!row.slug || !row.make || !row.model) return { error: "Brand, model and slug are required." };
+  if (!["none", "balanced", "showroom"].includes(row.photo_filter)) return { error: "Invalid photo filter." };
+  if (!Number.isInteger(row.photo_filter_strength) || row.photo_filter_strength < 0 || row.photo_filter_strength > 100) {
+    return { error: "Photo filter strength must be between 0 and 100." };
+  }
   for (const [key, max] of Object.entries({ description_bg: 20000, description_en: 20000, description_source: 30000 })) {
     if (body[key] != null && (typeof body[key] !== "string" || body[key].length > max)) {
       return { error: key + " is too long (maximum " + max + " characters)." };
@@ -438,6 +444,8 @@ function legacyVehicle(row) {
     notes: Array.isArray(row.notes) ? row.notes : [],
     shots,
     managed_images: images,
+    photo_filter: ["none", "balanced", "showroom"].includes(row.photo_filter) ? row.photo_filter : "none",
+    photo_filter_strength: Number.isInteger(Number(row.photo_filter_strength)) ? Math.max(0, Math.min(100, Number(row.photo_filter_strength))) : 35,
     description_bg: row.description_bg || "",
     description_en: row.description_en || "",
     equipment_bg: Array.isArray(row.equipment_bg) ? row.equipment_bg : [],

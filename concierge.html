@@ -13,6 +13,8 @@
       settings&&settings.original_header_menu_button_enabled===false?"0":"1";
     document.documentElement.dataset.ahOriginalDesktopMenuLabel=
       settings&&settings.original_header_desktop_menu_label===false?"0":"1";
+    document.documentElement.dataset.ahInquiryEnabled=settings&&settings.inquiry_enabled===false?"0":"1";
+    if(settings&&settings.inquiry_enabled===false)location.replace("index.html");
   }catch(_){document.documentElement.dataset.ahScrollHeader="autohaus_original";}
 })();
 </script>
@@ -43,7 +45,7 @@
      stylesheet and pushed first paint 150ms LATER. font-display:swap covers
      the gap. -->
 <link rel="preload" as="image" href="img/autohaus_inside2-1280.webp" type="image/webp" imagesrcset="img/autohaus_inside2-768.webp 768w, img/autohaus_inside2-1280.webp 1280w, img/autohaus_inside2-1920.webp 1920w" imagesizes="100vw">
-<link rel="stylesheet" href="style.min.css?v=431b5161d9c5" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=c3c139290f85" id="ah-css">
 <meta name="robots" content="noindex">
 <!-- DEFERRED, NOT DEFERRED-BY-LOADER — and this page is the exception.
      index/vehicle/legal start their scripts only once the stylesheet is
@@ -55,7 +57,7 @@
      without it.  runs them after parsing and before first paint, so
      the furniture is there from the first frame. The page can afford it:
      18KB of CSS, no hero photograph to compete with. -->
-<script defer src="main.js?v=5ae3fe6e5e55"></script>
+<script defer src="main.js?v=3a06e2b41ce8"></script>
 <script defer src="concierge.js?v=791d7a33a4a4"></script>
 <script defer src="i18n.js?v=ff4ef8545597"></script>
 <script>
