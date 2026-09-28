@@ -535,7 +535,7 @@
 .fsheet__panel{
   position:absolute;inset:auto 0 0 0;max-height:88svh;max-height:88vh;
   display:flex;flex-direction:column;
-  background:var(--paper,#f7f6f2);
+  background:var(--paper,#fff);
   box-shadow:0 -24px 60px rgba(0,0,0,.34);
   transform:translateY(100%);
   transition:transform var(--t-in) var(--e-exit);
@@ -1105,11 +1105,11 @@
   position:fixed;inset:auto 0 0 0;z-index:80;
   gap:8px;padding:10px var(--margin);
   padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
-  background:rgba(247,246,242,.96);border-top:1px solid var(--line);
+  background:rgba(255,255,255,.96);border-top:1px solid var(--line);
   transform:translateY(110%);transition:transform var(--t-in) var(--e-exit);
 }
 @supports (backdrop-filter:blur(12px)){
-  .dbar{background:rgba(247,246,242,.82);backdrop-filter:blur(12px)}
+  .dbar{background:rgba(255,255,255,.82);backdrop-filter:blur(12px)}
 }
 .dbar.show{transform:none;transition:transform var(--t-move) var(--e-mass)}
 .dbar .btn-primary{flex:1;min-height:44px}
@@ -1145,22 +1145,26 @@
    carries its own copy of the palette and is self-contained. The values are
    the same ones style.css uses, so the detail page is unaffected. */
 .pale{
-  --paper:#f7f6f2;
-  --paper-2:#efece7;
-  --ink:#141312;
-  --ink-2:#4e4a45;
-  --ink-3:#6a645c;
-  --line:rgba(20,19,18,.14);
-  --line-2:rgba(20,19,18,.28);
-  --line-d:rgba(20,19,18,.14);   /* the hairline the system draws with */
-  background:#f7f6f2;
-  color:#4e4a45;
+  --paper:#fff;
+  --paper-2:#f2f2f2;
+  --ink:#101010;
+  --ink-2:#414141;
+  --ink-3:#626262;
+  --line:rgba(16,16,16,.14);
+  --line-2:rgba(16,16,16,.28);
+  --line-d:rgba(16,16,16,.14);
+  --primary:#171a18;
+  --primary-hover:#303432;
+  --primary-ink:#fff;
+  background:var(--paper);
+  color:var(--ink-2);
 }
+.pale :focus-visible{outline-color:var(--ink)}
 
 /* --- section furniture --- */
 .pale .csec__h{color:var(--ink)}
 .pale .csec__sub{color:var(--ink-2)}
-.pale .csec__all{color:#8a6a24}
+.pale .csec__all{color:var(--ink)}
 .pale .csec__all:hover{color:var(--ink)}
 
 /* --- the card --- */
@@ -1169,7 +1173,7 @@
 .pale .lc__price--ask{color:var(--ink-2)}
 .pale .lc__name{color:var(--ink)}
 .pale .lc__meta{color:var(--ink-3)}
-.pale .lc__act{color:#8a6a24}
+.pale .lc__act{color:var(--ink)}
 .pale .lc__act:hover{color:var(--ink)}
 /* --- marque tiles --- */
 .pale .mtile__name{color:var(--ink)}
@@ -1185,12 +1189,12 @@
 .pale .fsel{border-color:var(--line-2);color:var(--ink)}
 .pale .fsel:hover:not(:disabled){background-color:rgba(20,19,18,.05);border-color:var(--ink-3)}
 .pale .fsel::after{background:linear-gradient(90deg,rgba(20,19,18,.14),rgba(20,19,18,.04) 56%,transparent 88%)}
-.pale .fsel.is-set{border-color:rgba(138,106,36,.55);color:var(--ink)}
-.pale .fsel.is-open{border-color:#8a6a24;background-color:rgba(201,162,90,.12)}
+.pale .fsel.is-set{border-color:rgba(23,26,24,.55);color:var(--ink)}
+.pale .fsel.is-open{border-color:var(--primary);background-color:rgba(23,26,24,.08)}
 .pale .fsel--clear{color:var(--ink-3);border-color:transparent}
 .pale .fsel--clear:hover:not(:disabled){color:var(--ink);background-color:transparent}
-.pale .fsel--all{border-color:#8a6a24;background-color:rgba(201,162,90,.14)}
-.pale .fsel__f{stroke:#8a6a24}
+.pale .fsel--all{border-color:var(--primary);background-color:rgba(23,26,24,.08)}
+.pale .fsel__f{stroke:var(--primary)}
 
 /* --- count + sort --- */
 .pale .chead__count{color:var(--ink-2)}
@@ -1213,14 +1217,14 @@
 .pale .fpop__f{border-top-color:var(--line)}
 .pale .fpop__reset{color:var(--ink-3)}
 .pale .fpop__reset:hover{color:var(--ink)}
-.pale .fpop__n{color:#8a6a24}
+.pale .fpop__n{color:var(--ink)}
 .pale .fpop__none{color:var(--ink-3)}
 .pale .fopt{color:var(--ink)}
 .pale .fopt:hover:not(:disabled){background-color:rgba(20,19,18,.06)}
 .pale .fopt__c{color:var(--ink-3)}
-.pale .fopt__k{stroke:#8a6a24}
-.pale .fopt.is-on{color:#8a6a24}
-.pale .fopt.is-on .fopt__c{color:rgba(138,106,36,.7)}
+.pale .fopt__k{stroke:var(--ink)}
+.pale .fopt.is-on{color:var(--ink)}
+.pale .fopt.is-on .fopt__c{color:var(--ink-2)}
 .pale .frng__read{color:var(--ink)}
 .pale .frng__read em{color:var(--ink-3)}
 .pale .frng__track::before{background:var(--line-2)}
@@ -1228,7 +1232,7 @@
 .pale .frng__track input[type=range]::-moz-range-thumb{box-shadow:0 0 0 3px #fff}
 .pale .frng__io span{color:var(--ink-3)}
 .pale .frng__io input{border-color:var(--line-2);color:var(--ink);background:#fff}
-.pale .frng__io input::placeholder{color:rgba(106,100,92,.6)}
+.pale .frng__io input::placeholder{color:rgba(98,98,98,.7)}
 .pale .frng__io input:hover{border-color:var(--ink-3)}
 
 /* --- the sheet, on paper --- */
@@ -1251,7 +1255,12 @@
    near-black type on a near-black surface — the one control in the room a
    visitor must be able to find at a glance was the hardest thing to read. */
 .cat--pale .cat__x{color:var(--white)}
-.cat--pale .cat__x:hover,.cat--pale .cat__x:focus-visible{color:var(--primary)}
+.cat--pale .cat__x:hover,.cat--pale .cat__x:focus-visible{color:#d4d4d4}
+.cat--pale .cat__x:focus-visible{outline-color:#fff}
+/* Catalog filter popovers are portaled beside the pale panel, not inside it.
+   Keep their black surface, but replace the inherited gold slider/count accents. */
+.cat--pale > .fpop{--primary:#e5e5e5;--primary-hover:#fff;--primary-ink:#101010}
+.cat--pale > .fpop :focus-visible{outline-color:#fff}
 
 /* --- pagination + empty --- */
 .pale .cpag__more{border-color:var(--line-2);color:var(--ink)}

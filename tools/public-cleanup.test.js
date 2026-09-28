@@ -98,12 +98,33 @@ test("wide hero CTA is anchored at the right inset, not centred in a spare colum
   assert.doesNotMatch(css, /\.btn-group--stage\{flex-direction:row;justify-content:center;padding-inline-start:32px\}/);
 });
 
-test("first mobile hero backdrop is preloaded and not delayed by entrance motion", () => {
+test("first mobile hero backdrop does not restart its entrance after settling", () => {
   const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
   const css = fs.readFileSync(path.join(__dirname, "../style.css"), "utf8");
   assert.match(html, /<link rel="preload" as="image" href="img\/outside_autohaus-320\.jpg" fetchpriority="high">/);
   assert.match(html, /<div class="stage-bg"><img width="320" height="161" decoding="sync"/);
-  assert.match(css, /@media\(max-width:767px\)\{\s*\.stage:not\(\.is-settled\) \.stage-item\[data-i="0"\] \.stage-bg\{\s*animation:none;\s*transition:none;/);
+  assert.match(css, /@media\(max-width:767px\)\{\s*\.stage-item\[data-i="0"\] \.stage-bg\{animation:none\}/);
+  assert.match(css, /\.stage:not\(\.is-settled\) \.stage-item\[data-i="0"\] \.stage-bg\{\s*transition:none;/);
+  assert.match(css, /\.lo-fx \.stage-item\.is-active \.stage-bg\{opacity:1\}/);
+  assert.match(css, /@media\(hover:none\)\{\s*\.stage-bg\{filter:none\}/);
+});
+
+test("mobile service dialog preserves photos and uses square, translucent chrome", () => {
+  const css = fs.readFileSync(path.join(__dirname, "../style.css"), "utf8");
+  assert.match(css, /\.wcard-item\.is-open \.wcard-photo img\{object-fit:contain;filter:none\}/);
+  assert.match(css, /\.wcard-item\.is-open \.wcard-photo::after,\s*\.wcard-item\.is-open \.wcard-text\{display:none\}/);
+  assert.match(css, /border-radius:0;overflow:hidden;\s*box-shadow:0 28px 80px/);
+  assert.match(css, /background:rgba\(5,5,5,\.48\);border:1px solid rgba\(255,255,255,\.55\);\s*border-radius:0;box-shadow:none/);
+});
+
+test("light catalog and vehicle surfaces use neutral white and charcoal", () => {
+  const css = fs.readFileSync(path.join(__dirname, "../style.css"), "utf8");
+  const catalog = fs.readFileSync(path.join(__dirname, "../catalog.css"), "utf8");
+  assert.match(css, /body:not\(\.ah\)\{\s*--paper:#fff;\s*--paper-2:#f2f2f2;\s*--ink:#101010;/);
+  assert.match(catalog, /\.pale\{\s*--paper:#fff;\s*--paper-2:#f2f2f2;\s*--ink:#101010;/);
+  assert.match(catalog, /\.pale \.fsel\.is-open\{border-color:var\(--primary\);background-color:rgba\(23,26,24,\.08\)\}/);
+  assert.match(catalog, /\.cat--pale > \.fpop\{--primary:#e5e5e5;--primary-hover:#fff;--primary-ink:#101010\}/);
+  assert.match(catalog, /\.pale :focus-visible\{outline-color:var\(--ink\)\}/);
 });
 
 test("view-all control has no detached decorative arrow", () => {

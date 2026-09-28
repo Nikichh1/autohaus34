@@ -796,6 +796,7 @@ body:not(.ah) .btn--secondary:active:not(:disabled){--btn-fill:rgba(20,19,18,.16
 /* on the dossier's paper bar the same control reads dark-on-light */
 .nav .lang::before{background:var(--line-2)}
 .nav .lang__o{color:var(--ink)}
+body:not(.ah) .nav .lang__ind{background:var(--ink)}
 @media(prefers-reduced-motion:reduce){.lang__ind{transition:none}}
 
 /* ============================================================
@@ -2193,7 +2194,7 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
     background:rgba(7,9,8,.68);
   }
   .wcard-item.is-open{
-    --mobile-card-image-height:clamp(116px,19dvh,154px);
+    --mobile-card-image-height:clamp(180px,29dvh,232px);
     --mobile-dialog-max-height:min(550px,66dvh,calc(100dvh - 32px));
     inset:50% auto auto 50%;z-index:80;
     width:min(440px,calc(100vw - 28px));
@@ -2201,12 +2202,15 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
     grid-template-columns:minmax(0,1fr);
     grid-template-rows:var(--mobile-card-image-height) auto;
     transform:translate(-50%,-50%);
-    border-radius:12px;overflow:hidden;
+    border-radius:0;overflow:hidden;
     box-shadow:0 28px 80px rgba(0,0,0,.35);
   }
   .wcard-item.is-open .wcard{
     width:100%;height:var(--mobile-card-image-height);aspect-ratio:auto;
   }
+  .wcard-item.is-open .wcard-photo img{object-fit:contain;filter:none}
+  .wcard-item.is-open .wcard-photo::after,
+  .wcard-item.is-open .wcard-text{display:none}
   .wcard-item.is-open .wcard-panel{
     min-height:0;max-height:calc(var(--mobile-dialog-max-height) - var(--mobile-card-image-height));
   }
@@ -2222,11 +2226,12 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
   .wcard-item.is-open .wcard-close{
     position:absolute;top:calc(12px - var(--mobile-card-image-height));right:12px;
     min-width:44px;min-height:44px;padding:12px;
-    background:#171a18;border:1px solid rgba(255,255,255,.55);
-    border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,.28);
+    background:rgba(5,5,5,.48);border:1px solid rgba(255,255,255,.55);
+    border-radius:0;box-shadow:none;
   }
   .wcard-item.is-open .wcard-close:hover,
-  .wcard-item.is-open .wcard-close:focus-visible{background:#292d2a}
+  .wcard-item.is-open .wcard-close:focus-visible{background:rgba(5,5,5,.68)}
+  .wcard-item.is-open .wcard-close:focus-visible{outline:2px solid #fff;outline-offset:2px}
 }
 @keyframes cw-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes cw-sink{from{opacity:1;transform:none}to{opacity:0;transform:translateY(12px)}}
@@ -2624,13 +2629,13 @@ html:not(.js) [data-reveal],html:not(.js) .wcard-item{opacity:1;transform:none}
    webfont that was downloaded but never used.
    ============================================================ */
 body:not(.ah){
-  --paper:#f7f6f2;
-  --paper-2:#efece7;
-  --ink:#141312;                 /* warm near-black, same family as --page-bottom */
-  --ink-2:#4e4a45;
-  --ink-3:#6a645c;
-  --line:rgba(20,19,18,.14);
-  --line-2:rgba(20,19,18,.28);
+  --paper:#fff;
+  --paper-2:#f2f2f2;
+  --ink:#101010;
+  --ink-2:#414141;
+  --ink-3:#626262;
+  --line:rgba(16,16,16,.14);
+  --line-2:rgba(16,16,16,.28);
   --line-d:rgba(255,255,255,.14);
   --nav-h:72px;
   background:var(--paper);color:var(--ink-2);
@@ -2667,7 +2672,7 @@ html.lb-open body{position:fixed;left:0;right:0;width:100%}
    resolves to transparent. That happens to look right — body's background
    then propagates to the canvas — but only by accident, and the accident
    would end the moment html was given any other background. */
-html:has(body:not(.ah)){background:#f7f6f2}
+html:has(body:not(.ah)){background:#fff}
 body:not(.ah) h1,body:not(.ah) h2,body:not(.ah) h3{font-weight:300;letter-spacing:normal;text-wrap:balance}
 /* WAS 72px over 2400ms, which is not a reveal — it is a section arriving
    after the reader has already started looking for it, and on a fast scroll
@@ -2689,7 +2694,7 @@ html:not(.js) .rv{opacity:1;transform:none}
 .nav{
   position:fixed;top:0;left:0;right:0;z-index:50;
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:var(--nav-h);
-  background:rgba(247,246,242,.86);border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.9);border-bottom:1px solid var(--line);
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
 }
 .nav .links{display:flex;gap:32px;justify-self:start;align-items:center}
@@ -2717,9 +2722,10 @@ html:not(.js) .rv{opacity:1;transform:none}
   font-size:16px;line-height:16px;font-weight:600;letter-spacing:1.6px;
   text-transform:uppercase;white-space:nowrap;
 }
-.btn-primary{background-color:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
-.btn-primary:hover,.btn-primary:focus-visible{background-color:var(--primary-hover);border-color:var(--primary-hover);color:var(--primary-ink)}
-.btn-primary:active{background-color:var(--primary);border-color:var(--primary);color:var(--primary-hover)}
+.btn-primary{background-color:var(--ink);border-color:var(--ink);color:#fff}
+.btn-primary:hover,.btn-primary:focus-visible{background-color:#303030;border-color:#303030;color:#fff}
+.btn-primary:focus-visible{outline-color:var(--ink)}
+.btn-primary:active{background-color:var(--ink);border-color:var(--ink);color:#fff}
 /* the source tints its light-surface secondary with the brand colour; gold on
    cream measures 2.2:1, so ink carries the outline and gold stays the fill */
 .btn-ghost{background-color:transparent;border-color:var(--ink);color:var(--ink)}
@@ -2771,7 +2777,7 @@ html:not(.js) .rv{opacity:1;transform:none}
 .gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gutter);margin-top:40px}
 .gallery button{aspect-ratio:4/3;overflow:hidden;background:var(--paper-2);padding:0;cursor:zoom-in;position:relative;border-radius:0}
 .gallery button::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px var(--line)}
-.gallery button:hover::after,.gallery button:focus-visible::after{box-shadow:inset 0 0 0 1px var(--primary)}
+.gallery button:hover::after,.gallery button:focus-visible::after{box-shadow:inset 0 0 0 1px var(--ink)}
 .gallery img{width:100%;height:100%;object-fit:cover}
 /* Product photography stays colour-stable on hover. The frame/button may
    remain interactive, but the actual image must never wash out or brighten. */
@@ -2794,7 +2800,7 @@ html:not(.js) .rv{opacity:1;transform:none}
 .vd-sticky{
   position:fixed;left:0;right:0;bottom:0;z-index:40;display:none;
   grid-template-columns:1fr 1fr;gap:var(--gutter);
-  background:rgba(247,246,242,.94);border-top:1px solid var(--line);
+  background:rgba(255,255,255,.94);border-top:1px solid var(--line);
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   padding:var(--gutter) var(--margin);
   transform:translateY(110%);transition:transform var(--t-in) var(--e-exit);
@@ -3109,7 +3115,7 @@ html:not(.js) .rv{opacity:1;transform:none}
 /* one scrim, two palettes: .pale carries the paper value wherever it happens
    to sit — on the filter bar itself on the collection page, on the panel in
    the layer. Hard-coding both meant two rules to keep in step. */
-.pale{--scrim-rgb:247,246,244}
+.pale{--scrim-rgb:255,255,255}
 
 /* The pill row scrolls 279px on a phone with nothing to say so. A fade on the
    trailing edge is the whole affordance — it reads as "this continues". */
@@ -3272,7 +3278,7 @@ html:not(.js) .rv{opacity:1;transform:none}
 /* ---------- vehicle page additions (light surface) ---------- */
 .vd-flag{
   display:inline-flex;align-items:center;min-height:32px;padding:8px 12px;
-  border:1px solid var(--primary);color:var(--primary-ink);background:var(--primary);
+  border:1px solid var(--ink);color:#fff;background:var(--ink);
   font-size:11px;line-height:16px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;
   margin-bottom:16px;
 }
@@ -3287,7 +3293,7 @@ html:not(.js) .rv{opacity:1;transform:none}
   font-size:13px;font-weight:600;letter-spacing:.06em;font-variant-numeric:tabular-nums;
 }
 .vd-term:hover{background-color:rgba(20,19,18,.08)}
-.vd-term.is-on{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+.vd-term.is-on{background:var(--ink);border-color:var(--ink);color:#fff}
 .vd-out{font-size:var(--fs-h6);line-height:var(--lh-h6);font-weight:300;color:var(--ink);font-variant-numeric:tabular-nums}
 
 /* an attribute-hidden element must not be resurrected by a class that
@@ -3426,8 +3432,14 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
    The layout, palette and timing are untouched; the blurs become flat
    tints of the same value, which is the whole cost. */
 .lo-fx .stage-bg{filter:none;opacity:0}
-.lo-fx .stage-item.is-active .stage-bg{opacity:.55}
-.lo-fx .stage-bg img{filter:brightness(.34) saturate(.7)}
+.lo-fx .stage-item.is-active .stage-bg{opacity:1}
+.lo-fx .stage-bg img{filter:brightness(.5) saturate(.86)}
+/* Match the low-power backdrop before deferred JavaScript runs on touch
+   devices, so the first frame never swaps from blurred to sharply dimmed. */
+@media(hover:none){
+  .stage-bg{filter:none}
+  .stage-bg img{filter:brightness(.5) saturate(.86)}
+}
 
 .lo-fx .teaser-content{
   backdrop-filter:none;-webkit-backdrop-filter:none;
@@ -5656,12 +5668,12 @@ body.cg-room .ah-skip{background:var(--r-ink);color:var(--r-paper)}
 .stage-item[data-i="0"] .stage-media{animation-duration:.55s}
 .stage-item[data-i="0"] .stage-content{animation-duration:.45s;animation-delay:0s}
 
-/* The mobile backdrop is a tiny, preloaded image. Show it as soon as it
-   decodes instead of fading it in from near-black while the sharp frame is
-   already visible. Later slide changes retain the normal crossfade. */
+/* The mobile backdrop is preloaded. Its first-frame entrance must stay off:
+   turning the animation back on when is-settled arrived restarted it after
+   900ms and made the background disappear and reappear. */
 @media(max-width:767px){
+  .stage-item[data-i="0"] .stage-bg{animation:none}
   .stage:not(.is-settled) .stage-item[data-i="0"] .stage-bg{
-    animation:none;
     transition:none;
   }
 }

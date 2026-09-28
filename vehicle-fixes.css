@@ -2,8 +2,8 @@
    The selected global product ratio owns the frame. Photos are center-cropped
    rather than stretched, matching desktop and the catalog. */
 @media (max-width:1023px){
-  .dgal__main{aspect-ratio:var(--ah-photo-ratio,16 / 9);background:#f3f2ee}
-  .dgal__f img{object-fit:cover;object-position:center;background:#f3f2ee}
+  .dgal__main{aspect-ratio:var(--ah-photo-ratio,16 / 9);background:var(--paper-2,#f2f2f2)}
+  .dgal__f img{object-fit:cover;object-position:center;background:var(--paper-2,#f2f2f2)}
   .dthumb{aspect-ratio:var(--ah-photo-ratio,16 / 9)}
-  .dthumb img{object-fit:cover;object-position:center;background:#f3f2ee}
+  .dthumb img{object-fit:cover;object-position:center;background:var(--paper-2,#f2f2f2)}
 }
