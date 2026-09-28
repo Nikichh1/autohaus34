@@ -249,6 +249,7 @@
       var raw = source.value;
       if (!source.value.trim()) {
         target.value = "";
+        if (key === "equipment") target.dispatchEvent(new Event("ah:translation-updated", { bubbles: true }));
         setStatus(key, "");
         return;
       }
@@ -261,6 +262,7 @@
           if (retries++ < 2) timer = setTimeout(run, result.retryAfter || 3500);
         } else {
           target.value = result.lines.join("\n");
+          if (key === "equipment") target.dispatchEvent(new Event("ah:translation-updated", { bubbles: true }));
           setStatus(key, "English preview е обновен.");
         }
       }).catch(function () {
