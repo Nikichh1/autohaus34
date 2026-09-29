@@ -134,12 +134,16 @@
     var started = Date.now();
     pending[requestKey] = timedJson(url, prefetch ? 4500 : 8000, refresh).then(function (data) {
       /* A navigation or brief network failure can abort this one GET. Retry
-         promptly before presenting a permanent error, but never delay a
-         valid empty/removed listing or repeat an already slow timeout. */
+         promptly before presenting a permanent error. A browser may also
+         replay an expired HTTP response when restoring navigation history;
+         "authoritative" alone does not make that response fresh. Never delay
+         a valid empty/removed listing or repeat an already slow timeout. */
       if (prefetch || validPayload(data, id, false) ||
-          (data && data.authoritative === true) ||
+          (id && data && data.authoritative === true && data.vehicle === null) ||
           revision() !== currentRevision || Date.now() - started > 2500) return data;
-      return timedJson(url, 2500, true);
+      var retryUrl = "/api/public/vehicles" + (id ? "?id=" + encodeURIComponent(id) + "&" : "?") +
+        "fresh=" + Date.now();
+      return timedJson(retryUrl, 2500, true);
     }).then(function (data) {
       if (revision() !== currentRevision) return prefetch ? null : loadInventory(id, false);
       if (validPayload(data, id, false)) cachePut(key, data, currentRevision);

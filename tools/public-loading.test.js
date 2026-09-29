@@ -88,6 +88,22 @@ test("one transient catalog failure recovers without showing an unavailable inve
   assert.equal(page.AH_VEHICLES.length, 1);
 });
 
+test("expired authoritative browser response is revalidated before declaring the catalog unavailable", async () => {
+  const time = { now: 1789450000000 };
+  let calls = 0;
+  const page = browser({ path: '/', time, fetch: async (url, options) => {
+    calls++;
+    if (calls === 1) return response({ authoritative: true, vehicles: [vehicle()], fresh_until: time.now - 1 });
+    assert.equal(options.cache, 'no-cache');
+    assert.match(url, /fresh=1789450000000/);
+    return response({ authoritative: true, vehicles: [vehicle()], fresh_until: time.now + 30000 });
+  } });
+  await page.AH_INVENTORY_READY;
+  assert.equal(calls, 2);
+  assert.equal(page.AH_INVENTORY_SOURCE, 'managed');
+  assert.equal(page.AH_VEHICLES.length, 1);
+});
+
 test("a response near its server deadline does not get a fresh client TTL or survive an outage", async () => {
   const session = storage(), time = { now: 1789450000000 };
   const first = browser({ session, time, fetch: async () => response({ authoritative: true, vehicle: vehicle(), fresh_until: time.now + 1000 }) });
