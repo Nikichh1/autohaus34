@@ -66,11 +66,26 @@ test("async loader settles pre-subscribed renderers only after inventory and var
 });
 
 test("early subscribers are also released after a network failure", async () => {
-  let observed = false;
-  const page = browser({ path: '/', earlyConsumer: () => { observed = true; }, fetch: async () => { throw Error('offline'); } });
+  let observed = false, calls = 0;
+  const page = browser({ path: '/', earlyConsumer: () => { observed = true; }, fetch: async () => { calls++; throw Error('offline'); } });
   await page.AH_INVENTORY_READY;
   assert.equal(observed, true);
+  assert.equal(calls, 2);
   assert.equal(page.AH_INVENTORY_SOURCE, 'static');
+});
+
+test("one transient catalog failure recovers without showing an unavailable inventory", async () => {
+  let calls = 0;
+  const page = browser({ path: '/', fetch: async (_, options) => {
+    calls++;
+    if (calls === 1) throw Error('navigation interrupted the request');
+    assert.equal(options.cache, 'no-cache');
+    return response({ authoritative: true, vehicles: [vehicle()], fresh_until: 1789450030000 });
+  } });
+  await page.AH_INVENTORY_READY;
+  assert.equal(calls, 2);
+  assert.equal(page.AH_INVENTORY_SOURCE, 'managed');
+  assert.equal(page.AH_VEHICLES.length, 1);
 });
 
 test("a response near its server deadline does not get a fresh client TTL or survive an outage", async () => {
@@ -81,7 +96,7 @@ test("a response near its server deadline does not get a fresh client TTL or sur
   let calls = 0;
   const next = browser({ session, time, path: "/vehicle.html", search: "?id=test-car", fetch: async () => { calls++; throw Error("offline"); } });
   await next.AH_INVENTORY_READY;
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   assert.equal(next.AH_VEHICLES.length, 0);
   assert.equal(next.AH_INVENTORY_SOURCE, "static");
 });
@@ -91,13 +106,15 @@ test("admin mutation invalidates prefetched details and bypasses server caches",
   const first = browser({ session, local, time, fetch: async () => response({ authoritative: true, vehicle: vehicle(), fresh_until: time.now + 30000 }) });
   await first.AH_PREFETCH_VEHICLE("test-car");
   local.setItem("autohaus-inventory-changed", String(time.now));
-  let requested;
+  let requested, calls = 0;
   const next = browser({ session, local, time, path: "/vehicle.html", search: "?id=test-car", fetch: async (url, options) => {
+    calls++;
     requested = url;
     assert.equal(options.cache, "no-cache");
     return response({ authoritative: true, vehicle: null, vehicles: [] }, 404);
   } });
   await next.AH_INVENTORY_READY;
+  assert.equal(calls, 1);
   assert.match(requested, /fresh=1789450000000/);
   assert.equal(next.AH_VEHICLES.length, 0);
   assert.equal(next.AH_INVENTORY_SOURCE, "managed");

@@ -114,7 +114,6 @@
       headers: { Accept: "application/json" },
       credentials: "omit",
       cache: refresh ? "no-cache" : "default",
-      keepalive: true,
       signal: controller ? controller.signal : undefined
     }).then(function (response) {
       return response.ok || response.status === 404 ? response.json() : null;
@@ -132,7 +131,16 @@
     var refresh = refreshedAt > 0 && Date.now() - refreshedAt < MAX_AGE;
     var url = "/api/public/vehicles" + (id ? "?id=" + encodeURIComponent(id) : "");
     if (refresh) url += (id ? "&" : "?") + "fresh=" + encodeURIComponent(currentRevision);
+    var started = Date.now();
     pending[requestKey] = timedJson(url, prefetch ? 4500 : 8000, refresh).then(function (data) {
+      /* A navigation or brief network failure can abort this one GET. Retry
+         promptly before presenting a permanent error, but never delay a
+         valid empty/removed listing or repeat an already slow timeout. */
+      if (prefetch || validPayload(data, id, false) ||
+          (data && data.authoritative === true) ||
+          revision() !== currentRevision || Date.now() - started > 2500) return data;
+      return timedJson(url, 2500, true);
+    }).then(function (data) {
       if (revision() !== currentRevision) return prefetch ? null : loadInventory(id, false);
       if (validPayload(data, id, false)) cachePut(key, data, currentRevision);
       return data;
