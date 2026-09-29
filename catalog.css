@@ -1264,7 +1264,9 @@
 
 /* --- pagination + empty --- */
 .pale .cpag__more{border-color:var(--line-2);color:var(--ink)}
-.pale .cpag__more:hover{background-color:rgba(20,19,18,.06);border-color:var(--primary)}
+.pale .cpag__more:hover,.pale .cpag__more:focus-visible{
+  border-color:var(--primary);color:#fff;
+}
 .pale .cpag__note{color:var(--ink-3)}
 .pale .cempty h3{color:var(--ink)}
 .pale .cempty p{color:var(--ink-2)}

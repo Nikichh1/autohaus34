@@ -1346,13 +1346,14 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
 .stage-item.is-active .stage-bg{opacity:1}
 .stage-bg img{width:100%;height:100%;object-fit:cover}
 
-/* mobile: the media is a SQUARE in flow and the copy sits below it.
+/* On mobile the media stays in flow and the copy sits below it.
    From 768 up it becomes an absolute cover layer and the copy overlays. */
 .stage-media{
   position:relative;aspect-ratio:1 / 1;overflow:hidden;
   --appear-start-y:-24px;--appear-start-scale:1.2;--appear-start-opacity:.001;
 }
 .stage-media img{width:100%;height:100%;object-fit:cover}
+.stage-media-fill{display:none}
 
 /* ENTRANCE — first slide only, and it runs exactly once. Binding these to
    .is-active (as an earlier pass did) replayed the whole 2.4s zoom and the
@@ -3739,18 +3740,16 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
      to find and is exactly the sort of thing this file exists to record. */
   .js .stage{--slide-dur:1.05s}
 
-  /* ---- THE FRAME IS TALLER THAN IT IS WIDE ----
-     The reference holds a 1/1 media box and fills 778 of an 812 screen with
-     it. Ours was square too and reached 689, because two of the things
-     stacked under it — a paragraph and a second button — are gone. Square
-     was never the point; FILLING THE SCREEN is, and a hero that stops 123px
-     short reads as a banner with a gap under it rather than as the first
-     room of the building.
-     4/5 now, not 5/6: the picture also starts 30px higher than it used to
-     (see THE DEAD BAND, CLOSED), so it can afford to be a little taller
-     without pushing the headline off the screen. The crop stays gentle
-     enough that the showroom still reads as architecture. */
-  .stage-media{aspect-ratio:4 / 5}
+  /* A landscape frame keeps phone and drone uploads visible in full. A
+     dimmed low-resolution copy fills the unused edges for square photos;
+     the sharp original is never cropped on a phone. */
+  .stage-media{aspect-ratio:4 / 3}
+  .stage-media .stage-media-fill{
+    display:block;position:absolute;inset:0;object-fit:cover;
+    filter:brightness(.4) saturate(.8);
+  }
+  .stage-media picture{position:relative;z-index:1;display:block;width:100%;height:100%}
+  .stage-media picture img{object-fit:contain}
 
   /* ---- AND THE HEADLINE STOPS FLOATING ----
      32px under .stage-text plus 16px under the h3 is 48px of space that
