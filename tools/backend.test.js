@@ -52,6 +52,19 @@ test("vehicle validation preserves unknown values and rejects invalid facts/phot
  assert.equal(row.first_registration_year,null);assert.equal(row.first_registration_month,null);
  assert.equal(lib.normalizeVehicle({...base,photo_filter:"showroom",photo_filter_strength:62}).row.photo_filter_strength,62);
 });
+test("editing an existing vehicle preserves valid 1920px image variants",()=>{
+ const base = "https://ajoiqomflplhadyhxvfe.supabase.co/storage/v1/object/public/vehicle-images/vehicles/test";
+ const image = { id:"existing-photo", original:base+"-1280.jpg", variants:{
+  jpg1280:base+"-1280.jpg", jpg1920:base+"-1920.jpg", webp1920:base+"-1920.webp", unknown:base+"-extra.jpg"
+ } };
+ const result = lib.normalizeVehicle({make:"Cadillac",model:"Escalade",images:[image]});
+ assert.equal(result.error,undefined);
+ assert.equal(result.row.images[0].variants.jpg1920,image.variants.jpg1920);
+ assert.equal(result.row.images[0].variants.webp1920,image.variants.webp1920);
+ assert.equal(result.row.images[0].variants.unknown,undefined);
+ image.variants.webp1920 = "https://evil.example/photo.webp";
+ assert.equal(lib.normalizeVehicle({make:"Cadillac",model:"Escalade",images:[image]}).row.images[0].variants.webp1920,undefined);
+});
 test("canonical import preserves all current cars, paired equipment and local photos",()=>{
  const rows=require("../api/admin/vehicles").initialInventory();assert.equal(rows.length,inventoryCount);assert.equal(new Set(rows.map(r=>r.slug)).size,inventoryCount);
  for(const row of rows){assert.equal(row.equipment_bg.length,row.equipment_en.length);assert.equal(row.published,true);for(const image of row.images){assert.equal(Object.keys(image.variants).length,6);for(const url of Object.values(image.variants)) assert.ok(fs.existsSync(path.join(__dirname,"..",url)));}}

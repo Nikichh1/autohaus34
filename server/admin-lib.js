@@ -286,6 +286,11 @@ function ownedMasterPath(value) {
   return /^owned-v1\/[a-z0-9-]{1,180}\/\d{2}\.(?:jpe?g|png|webp)$/i.test(s) ? s : "";
 }
 
+function optionalImageVariant(variants, key) {
+  const url = safeUrl(variants && variants[key], true);
+  return url ? { [key]: url } : {};
+}
+
 function sanitizeImages(v) {
   const a = Array.isArray(v) ? v : [];
   return a.slice(0, 80).map((img, i) => ({
@@ -303,9 +308,11 @@ function sanitizeImages(v) {
       jpg400: safeUrl(img.variants.jpg400, true),
       jpg800: safeUrl(img.variants.jpg800, true),
       jpg1280: safeUrl(img.variants.jpg1280, true),
+      ...optionalImageVariant(img.variants, "jpg1920"),
       webp400: safeUrl(img.variants.webp400, true),
       webp800: safeUrl(img.variants.webp800, true),
-      webp1280: safeUrl(img.variants.webp1280, true)
+      webp1280: safeUrl(img.variants.webp1280, true),
+      ...optionalImageVariant(img.variants, "webp1920")
     } : {}
   })).filter((img) => img.original || img.variants.jpg1280);
 }
