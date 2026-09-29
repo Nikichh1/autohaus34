@@ -102,7 +102,7 @@ test("first mobile hero backdrop does not restart its entrance after settling", 
   const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
   const css = fs.readFileSync(path.join(__dirname, "../style.css"), "utf8");
   assert.match(html, /<link rel="preload" as="image" href="img\/outside_autohaus-320\.jpg" fetchpriority="high">/);
-  assert.match(html, /<div class="stage-bg"><img width="320" height="161" decoding="sync"/);
+  assert.match(html, /<div class="stage-bg"><img width="320" height="180" decoding="sync"/);
   assert.match(css, /@media\(max-width:767px\)\{\s*\.stage-item\[data-i="0"\] \.stage-bg\{animation:none\}/);
   assert.match(css, /\.stage:not\(\.is-settled\) \.stage-item\[data-i="0"\] \.stage-bg\{\s*transition:none;/);
   assert.match(css, /\.lo-fx \.stage-item\.is-active \.stage-bg\{opacity:1\}/);
