@@ -1936,10 +1936,6 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
       rgba(4,4,4,.13) 68%,
       rgba(4,4,4,.34) 100%);
 }
-/* Documentary stock photos retain their original light and colour. The text
-   scrim below still provides contrast without grading the entire image. */
-.wcard-photo--natural img{filter:none}
-.wcard-photo--natural::after{display:none}
 /* a filter is a raster pass the compositor cannot skip, and on a device
    that already told us it is short of memory the grade is the first thing
    worth giving up — the wash and the vignette are plain paint and stay */
