@@ -238,6 +238,9 @@
    below the fold, so that everything which moves afterwards moves where nobody
    is looking. */
 .cgrid:empty{min-height:120vh}
+/* The live inventory may take a moment on a cold mobile connection. Keep
+   the same space reserved while showing a useful status instead of a void. */
+#pv-grid[aria-busy="true"]{min-height:120vh}
 /* same story, smaller: the pill row is built by JS too, and an unreserved 34px
    row shifted the results under it on a phone */
 .fbar2:empty{min-height:var(--cat-pill-h)}
@@ -937,6 +940,7 @@
 @media(prefers-reduced-motion:reduce){.cpag__more::after{transition:none}}
 .cpag__note{font-size:13px;line-height:20px;color:rgba(255,255,255,.5);font-variant-numeric:tabular-nums}
 .catalog-status{grid-column:1/-1;min-height:40vh;margin:0;padding:32px 0;color:inherit}
+.catalog-status .cpag__more{width:auto;min-height:48px;margin-top:20px}
 
 /* empty state */
 .cempty{padding-block:var(--sp-m);text-align:center;max-width:52ch;margin-inline:auto}

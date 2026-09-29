@@ -59,14 +59,14 @@
 </script>
 <script async src="data/vehicles.js?v=977e6244b677" onerror="window.AH_INVENTORY_RESOLVE()"></script>
 <!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
-<link rel="stylesheet" href="style.min.css?v=0474b2ed9022" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=5888a80a4ab0" id="ah-css">
 <!-- BLOCKING here, unlike the landing page. On index.html this stylesheet
      draws the inventory grid (below the hero) and the catalog layer
      (closed), so it can arrive late. On THIS page it draws the dossier
      itself — .dtitle, .dsec, .dgal, .dprose are all defined in it — and
      letting it arrive late reflowed the title by a whole 42px line at
      ~1.9s: 0.097 CLS, measured. -->
-<link rel="stylesheet" href="catalog.min.css?v=c15d7f88a9f4">
+<link rel="stylesheet" href="catalog.min.css?v=95ed2d9f49ec">
 <link rel="stylesheet" href="vehicle-fixes.css?v=ad5092418f0b">
 <!-- Rendering awaits the early inventory request; UI modules stay ordered. -->
 <script defer src="main.js?v=356d74c507b5"></script>
