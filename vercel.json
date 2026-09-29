@@ -3,6 +3,9 @@
   "outputDirectory": "dist",
   "framework": null,
   "functions": {
+    "api/public/vehicles.js": {
+      "regions": ["fra1"]
+    },
     "api/admin/vehicles.js": {
       "includeFiles": "data/{inventory.snapshot.json,inventory-manifest.json,eq/**}",
       "maxDuration": 60
