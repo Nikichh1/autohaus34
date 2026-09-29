@@ -184,19 +184,29 @@
 
   function paintPreview() {
     if (!pvGrid || !inventoryReady) return;
+    pvGrid.removeAttribute("aria-busy");
+    if (window.AH_INVENTORY_SOURCE !== "managed") {
+      pvGrid.innerHTML = '<div class="catalog-status" role="status">' +
+        '<p data-ah-bg="Каталогът временно е недостъпен. Моля, опитайте отново." data-ah-en="The catalogue is temporarily unavailable. Please try again.">Каталогът временно е недостъпен. Моля, опитайте отново.</p>' +
+        '<button type="button" class="cpag__more" data-inventory-retry data-ah-bg="Опитай отново" data-ah-en="Try again">Опитай отново</button></div>';
+      return;
+    }
     var S = AH.newFilterState();
     S.sort = pvSortKey;
     var list = AH.filterResults(S);
-    /* NOT eager. `eager` means fetchpriority="high" and no lazy attribute,
-       which is right for the layer — its first row IS the first screen — and
-       exactly wrong here: this grid sits below a full-height hero, so on a
-       phone the first three cards are off screen at load. Measured on a
-       1.6Mbps link they pulled 206KB at high priority against the 49KB of
-       render-blocking CSS that gates first paint. Below the fold, so lazy. */
+    if (!list.length) {
+      pvGrid.innerHTML = '<p class="catalog-status" role="status" data-ah-bg="В момента няма автомобили в наличност." data-ah-en="There are currently no vehicles in stock.">В момента няма автомобили в наличност.</p>';
+      return;
+    }
+    /* Below the hero: cards should paint as soon as inventory arrives, but
+       their photos remain lazy so they never compete with the first slide. */
     pvGrid.innerHTML = list.slice(0, PREVIEW).map(function (v) {
       return AH.card(v, {});
     }).join("");
   }
+  if (pvGrid) pvGrid.addEventListener("click", function (event) {
+    if (event.target.closest("[data-inventory-retry]")) location.reload();
+  });
 
   /* The landing preview used to render the full pill row — every marque, then
      the chapters — above its twelve cards. Two problems, one cause: it was a
@@ -214,18 +224,8 @@
   }
   if (pvMore) pvMore.firstChild.textContent = "Виж всички";
 
-  /* The first paint of this grid is the single longest task on the landing
-     page: filter 87 records, sort them, build six cards of markup, parse it
-     into ~90 nodes and lay them out — measured at 226-251ms on a 4x-
-     throttled phone, all of it inside the window that decides whether the
-     page feels responsive. And every pixel of it is below the hero.
-
-     So it waits for the first idle moment. The `timeout` is what makes this
-     safe rather than optimistic: on a device that never goes idle it runs
-     anyway, a quarter-second in, still long before anyone has scrolled a
-     full screen. Re-sorting later calls paintPreview() directly — that IS
-     the user waiting for something, and it must not be deferred. */
-  // The catalogue controls are ready immediately; the data resolves below.
+  /* Data-dependent cards are painted on inventory readiness below. Deferring
+     them to an idle callback left a visible empty section on fast scrolls. */
 
   /* ============================================================
      3. THE LAYER
@@ -798,9 +798,6 @@
   (window.AH_INVENTORY_READY || Promise.resolve()).then(function () {
     inventoryReady = true;
     if (isOpen) apply(true);
-    var previewVisible = pvGrid && pvGrid.getBoundingClientRect().top < innerHeight + 100;
-    if (previewVisible) paintPreview();
-    else if (typeof requestIdleCallback === "function") requestIdleCallback(paintPreview, { timeout: 250 });
-    else setTimeout(paintPreview, 1);
+    paintPreview();
   });
 })();

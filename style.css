@@ -1353,7 +1353,6 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
   --appear-start-y:-24px;--appear-start-scale:1.2;--appear-start-opacity:.001;
 }
 .stage-media img{width:100%;height:100%;object-fit:cover}
-.stage-media-fill{display:none}
 
 /* ENTRANCE — first slide only, and it runs exactly once. Binding these to
    .is-active (as an earlier pass did) replayed the whole 2.4s zoom and the
@@ -3740,16 +3739,11 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
      to find and is exactly the sort of thing this file exists to record. */
   .js .stage{--slide-dur:1.05s}
 
-  /* A landscape frame keeps phone and drone uploads visible in full. A
-     dimmed low-resolution copy fills the unused edges for square photos;
-     the sharp original is never cropped on a phone. */
+  /* Keep one edge-to-edge image in the phone frame. Wide and square slides
+     crop at their existing focal point instead of exposing empty bands. */
   .stage-media{aspect-ratio:4 / 3}
-  .stage-media .stage-media-fill{
-    display:block;position:absolute;inset:0;object-fit:cover;
-    filter:brightness(.4) saturate(.8);
-  }
   .stage-media picture{position:relative;z-index:1;display:block;width:100%;height:100%}
-  .stage-media picture img{object-fit:contain}
+  .stage-media picture img{display:block;object-fit:cover}
 
   /* ---- AND THE HEADLINE STOPS FLOATING ----
      32px under .stage-text plus 16px under the h3 is 48px of space that
