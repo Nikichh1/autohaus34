@@ -1349,11 +1349,10 @@ html.ctc-open body{position:fixed;left:0;right:0;width:100%}
 /* On mobile the media stays in flow and the copy sits below it.
    From 768 up it becomes an absolute cover layer and the copy overlays. */
 .stage-media{
-  position:relative;aspect-ratio:1 / 1;overflow:hidden;
+  position:relative;aspect-ratio:16 / 9;overflow:hidden;background:var(--stage-bg);
   --appear-start-y:-24px;--appear-start-scale:1.2;--appear-start-opacity:.001;
 }
-.stage-media img{width:100%;height:100%;object-fit:cover}
-.stage-media-fill{display:none}
+.stage-media img{width:100%;height:100%;object-fit:contain}
 
 /* ENTRANCE — first slide only, and it runs exactly once. Binding these to
    .is-active (as an earlier pass did) replayed the whole 2.4s zoom and the
@@ -3740,14 +3739,8 @@ body:not(.ah) .btn-group{display:flex;flex-wrap:wrap;gap:16px}
      to find and is exactly the sort of thing this file exists to record. */
   .js .stage{--slide-dur:1.05s}
 
-  /* A landscape frame keeps phone and drone uploads visible in full. A
-     dimmed low-resolution copy fills the unused edges for square photos;
-     the sharp original is never cropped on a phone. */
-  .stage-media{aspect-ratio:4 / 3}
-  .stage-media .stage-media-fill{
-    display:block;position:absolute;inset:0;object-fit:cover;
-    filter:brightness(.4) saturate(.8);
-  }
+  /* Every upload lives in the same 16:9 window. Containment preserves the
+     full photograph without a synthetic blurred copy behind square shots. */
   .stage-media picture{position:relative;z-index:1;display:block;width:100%;height:100%}
   .stage-media picture img{object-fit:contain}
 
@@ -6181,7 +6174,7 @@ html.shw-open.mob-open #plate{
    tablet instead of stretching a 76vw portrait card across the whole panel. */
 @media(min-width:600px) and (max-width:767px){
   :root{--margin:24px;--gutter:16px;--item-pad-top:108px;--item-pad-bottom:32px;--card-w:clamp(270px,46vw,340px);--wall-pad:20px}
-  .stage-media{aspect-ratio:5 / 4}
+  .stage-media{aspect-ratio:16 / 9}
   .wcard-item{flex-basis:var(--card-w)}
   .wcard{aspect-ratio:4 / 5}
   .wall-scroll{scroll-padding-inline-start:var(--wall-pad)}
