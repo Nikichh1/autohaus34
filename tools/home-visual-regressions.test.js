@@ -12,14 +12,13 @@ test("the pale catalogue CTA has readable text over its dark hover fill", () => 
   assert.match(css, /\.cpag__more::after\s*\{[^}]*background:var\(--primary\)/s);
 });
 
-test("hero keeps every photograph contained in one clean 16:9 window", () => {
+test("mobile hero keeps the whole photograph with a lightweight edge fill", () => {
   const html = read("index.html");
   const css = read("style.css");
-  assert.equal((html.match(/class="stage-media-fill"/g) || []).length, 0);
-  assert.match(css, /\.stage-media img\{width:100%;height:100%;object-fit:contain\}/);
-  assert.match(css, /\.stage-media\{[^}]*aspect-ratio:16 \/ 9/);
-  assert.match(css, /\.stage-media\{[^}]*background:var\(--stage-bg\)/);
-  assert.doesNotMatch(css, /\.stage-media \.stage-media-fill/);
+  assert.equal((html.match(/class="stage-media-fill"/g) || []).length, 5);
+  assert.match(css, /\.stage-media picture img\{object-fit:contain\}/);
+  assert.match(css, /\.stage-media\{aspect-ratio:4 \/ 3\}/);
+  assert.match(css, /\.stage-media-fill\{display:none\}/);
 });
 
 test("service, leasing and insurance cards use optimized local photographs", () => {
