@@ -6,9 +6,20 @@
   var t=app.t, rows=[], generation=0, busy=false, activeDialog=null;
   function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
   function bytes(n){return n>=1048576?(n/1048576).toFixed(1)+" MB":Math.round(n/1024)+" KB";}
+  async function transfer(url,options,upload){
+    var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},60000);
+    try{
+      var response=await fetch(url,Object.assign({},options,{signal:controller.signal}));
+      var data=upload&&response.ok?{}:await response.json().catch(function(error){if(controller.signal.aborted)throw error;return {};});
+      return {response:response,data:data};
+    }catch(error){
+      if(controller.signal.aborted)throw new Error(t("Връзката отне твърде дълго. Опитайте отново. Ако сте публикували, проверете снимката и архива след презареждане.","The connection timed out. Please retry. If you were publishing, reload to check the photo and archive."));
+      throw error;
+    }finally{clearTimeout(timer);}
+  }
   async function api(action,body){
-    var response=await fetch("/api/admin/site-media"+(action?"?action="+action:""),{method:body?"POST":"GET",credentials:"same-origin",cache:"no-store",headers:{"Accept":"application/json","Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
-    var data=await response.json().catch(function(){return {};});
+    var result=await transfer("/api/admin/site-media"+(action?"?action="+action:""),{method:body?"POST":"GET",credentials:"same-origin",cache:"no-store",headers:{"Accept":"application/json","Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+    var response=result.response,data=result.data;
     if(!response.ok) throw new Error(data.code==="STALE_IMAGE"?t("Снимката вече е променена от друг администратор. Презаредете страницата.","Another administrator changed this photo. Reload the page."):data.code==="IMAGE_ACTIVE"?t("Снимката още се използва. Първо я сменете.","This photo is in use. Replace it first."):data.code==="IMAGE_BUSY"?t("За безопасно изтриване изчакайте 2 часа и 5 минути от качването; временният адрес за качване още може да е активен.","Wait 2 hours and 5 minutes after upload before deleting; its temporary upload URL may still be active."):t("Операцията не успя. Сегашната снимка е запазена. Опитайте отново.","The operation failed. The current photo is safe. Please try again."));
     return data;
   }
@@ -96,8 +107,8 @@
         // Sequential uploads bound phone memory/network contention; retry uses the same immutable paths.
         for(var i=0;i<pending.uploads.length;i++){
           status(box.element,t("Качване… ","Uploading… ")+(i+1)+' / '+pending.uploads.length);
-          var response=await fetch(pending.uploads[i].upload_url,{method:'PUT',credentials:'omit',headers:Object.assign({},pending.headers,{'Content-Type':blobs[i].type,'cache-control':'31536000'}),body:blobs[i]});
-          if(!response.ok){var detail=await response.json().catch(function(){return {};});if(!/duplicate|already exists/i.test(detail.message||detail.error||''))throw new Error(t("Качването прекъсна. Натиснете отново, за да опитате пак. Сегашната снимка остава.","Upload interrupted. Press again to retry. The current photo remains."));}
+          var upload=await transfer(pending.uploads[i].upload_url,{method:'PUT',credentials:'omit',headers:Object.assign({},pending.headers,{'Content-Type':blobs[i].type,'cache-control':'31536000'}),body:blobs[i]},true);
+          if(!upload.response.ok){var detail=upload.data;if(!/duplicate|already exists/i.test(detail.message||detail.error||''))throw new Error(t("Качването прекъсна. Натиснете отново, за да опитате пак. Сегашната снимка остава.","Upload interrupted. Press again to retry. The current photo remains."));}
           uploaded+=blobs[i].size;box.element.querySelector('progress').value=Math.round(uploaded/total*95);
         }
         status(box.element,t("Проверка и публикуване…","Verifying and publishing…"));

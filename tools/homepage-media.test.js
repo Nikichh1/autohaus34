@@ -76,6 +76,31 @@ test("all verified formats activate together with expected-id conflict protectio
  provider(url=>url.includes("/homepage_images?")?response([{...row,state:"ready"}]):response({message:"STALE_IMAGE"},400));
  assert.equal((await call(req("restore",{id}))).statusCode,409);
 });
+test("a retried completion acknowledges its already-active photo without overwriting a newer photo",async()=>{
+ let writes=0;
+ provider(url=>{
+  if(url.includes("/homepage_images?"))return response([{...row,state:"ready",is_active:true,byte_count:7000}]);
+  writes++;throw new Error("Already published photos must not be activated again");
+ });
+ const result=await call(req("complete",{id}));assert.equal(result.statusCode,200);assert.equal(result.body.byte_count,7000);assert.equal(writes,0);
+ provider(url=>url.includes("/homepage_images?")?response([{...row,state:"ready",is_active:false}]):Promise.reject(new Error("No write expected")));
+ assert.equal((await call(req("complete",{id}))).statusCode,409);
+});
+test("media transfers time out safely, cover slow response bodies, and clear their timers",async()=>{
+ const source=fs.readFileSync(path.join(__dirname,"../admin/site-media.js"),"utf8");
+ const implementation=source.slice(source.indexOf("  async function transfer("),source.indexOf("  async function api("));
+ const vm=require("node:vm");let timeout,cleared=false;
+ const context={AbortController,t:(bg,en)=>en,setTimeout:(fn,ms)=>{assert.equal(ms,60000);timeout=fn;return 1;},clearTimeout:()=>{cleared=true;}};
+ context.fetch=(url,options)=>new Promise((resolve,reject)=>options.signal.addEventListener("abort",()=>reject(new Error("aborted"))));
+ vm.createContext(context);vm.runInContext(implementation,context);
+ for(const upload of [false,true]){
+  cleared=false;const request=context.transfer("https://example.com",{},upload);timeout();await assert.rejects(request,/connection timed out/);assert.equal(cleared,true);
+ }
+ cleared=false;context.fetch=async()=>({ok:false,json:async()=>{assert.equal(cleared,false);return {error:"failed"};}});
+ const failure=await context.transfer("https://example.com",{},true);assert.equal(failure.data.error,"failed");assert.equal(cleared,true);
+ cleared=false;context.fetch=async(url,options)=>({ok:true,json:()=>new Promise((resolve,reject)=>options.signal.addEventListener("abort",()=>reject(new Error("body aborted"))))});
+ const slowBody=context.transfer("https://example.com",{},false);await new Promise(setImmediate);timeout();await assert.rejects(slowBody,/connection timed out/);assert.equal(cleared,true);
+});
 test("archive deletion needs confirmation, atomically blocks active photos and derives exact file paths",async()=>{
  let paths, finished=false;
  provider((url,options)=>{

@@ -61,11 +61,13 @@ module.exports = async function handler(req, res) {
     }
     let bytes = 0;
     if (action === "complete") {
+      // A lost HTTP reply must not make a successful publication look like a failed upload.
+      if (row.created_by === user.id && row.state === "ready" && row.is_active) return json(res, 200, { ok: true, image: publicImage(row), byte_count: row.byte_count });
       if (row.created_by !== user.id || row.state !== "pending") return json(res, 409, { ok: false, error: "Photo has already been processed. Reload the archive." });
       const checks = await Promise.all(assetPlan(row).map(async asset => {
         const r = await timedFetch(STORAGE_URL + "/storage/v1/object/public/" + BUCKET + "/" + asset.path, { method: "HEAD", cache: "no-store" });
         const size = Number(r.headers.get("content-length"));
-        if (!r.ok || r.headers.get("content-type").split(";")[0] !== asset.type || !Number.isInteger(size) || size <= 0 || size > 4 * 1024 * 1024) throw new Error("Photo upload could not be verified. The previous photo is unchanged.");
+        if (!r.ok || (r.headers.get("content-type") || "").split(";")[0] !== asset.type || !Number.isInteger(size) || size <= 0 || size > 4 * 1024 * 1024) throw new Error("Photo upload could not be verified. The previous photo is unchanged.");
         return size;
       }));
       bytes = checks.reduce((sum, n) => sum + n, 0);
