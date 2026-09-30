@@ -430,7 +430,7 @@
     if (!inventoryReady) {
       catCount.textContent = "";
       catGrid.setAttribute("aria-busy", "true");
-      catGrid.innerHTML = '<p class="catalog-status" role="status" data-ah-bg="Зареждане на автомобилите…" data-ah-en="Loading vehicles…">Зареждане на автомобилите…</p>';
+      catGrid.innerHTML = '<p class="catalog-status inventory-pending" role="status" data-ah-bg="Зареждане на автомобилите…" data-ah-en="Loading vehicles…">Зареждане на автомобилите…</p>';
       catPag.hidden = true;
       catEmpty.hidden = true;
       return;

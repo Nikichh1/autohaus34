@@ -52,7 +52,7 @@
 <!-- Self-hosted fonts and responsive photos retain the existing visual identity. -->
 <link rel="preload" as="image" href="img/outside_autohaus-320.jpg" fetchpriority="high">
 <link rel="preload" as="image" type="image/webp" href="img/outside_autohaus-1280.webp" imagesrcset="img/outside_autohaus-768.webp 768w, img/outside_autohaus-1280.webp 1280w, img/outside_autohaus-1920.webp 1920w" imagesizes="(min-width:1920px) 88vw, (min-width:768px) 92vw, 100vw" fetchpriority="high">
-<link rel="stylesheet" href="style.min.css?v=5888a80a4ab0" id="ah-css">
+<link rel="stylesheet" href="style.min.css?v=3e2d9818da0a" id="ah-css">
 <!-- the catalog system: the card atom, the grid, the filter rail with its
      panels, and the expanding layer. Measured off JamesEdition, see
      SPEC-JAMESEDITION.md. -->
@@ -62,7 +62,7 @@
 <script defer src="main.js?v=356d74c507b5"></script>
 <script defer src="catalog.js?v=0a0110ec0967"></script>
 <script defer src="catalog-prefetch.js?v=4b0cf3287ba8"></script>
-<script defer src="showroom.js?v=5cbb45f521d5"></script>
+<script defer src="showroom.js?v=8b4cb767050e"></script>
 <script defer src="i18n.js?v=82f359435809"></script>
 
 <script defer src="analytics.js?v=0bbdd49798ca"></script>
@@ -456,7 +456,7 @@
          where the ordering only means anything over all eighty-seven — and
          the catalogue those cards open into had its own copy of both. -->
 
-    <div class="cgrid" id="pv-grid" aria-busy="true"><p class="catalog-status" role="status" data-ah-bg="Зареждане на автомобилите…" data-ah-en="Loading vehicles…">Зареждане на автомобилите…</p></div>
+    <div class="cgrid" id="pv-grid" aria-busy="true"><p class="catalog-status inventory-pending" role="status" data-ah-bg="Зареждане на автомобилите…" data-ah-en="Loading vehicles…">Зареждане на автомобилите…</p></div>
 
     <div class="cpag">
       <a class="cpag__more" href="#avtomobili" id="pv-more" data-catalog>Виж всички</a>

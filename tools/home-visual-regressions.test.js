@@ -22,11 +22,11 @@ test("mobile hero fills the frame with every slide, without an extra edge-fill i
   assert.doesNotMatch(css, /\.stage-media picture img\{object-fit:contain\}/);
 });
 
-test("inventory preview is never a blank reserved region and paints at readiness", () => {
+test("inventory preview retains an accessible status and paints at readiness", () => {
   const html = read("index.html");
   const js = read("showroom.js");
   const css = read("catalog.css");
-  assert.match(html, /id="pv-grid" aria-busy="true"><p class="catalog-status" role="status"/);
+  assert.match(html, /id="pv-grid" aria-busy="true"><p class="catalog-status(?: [^"]+)?" role="status"/);
   assert.match(css, /#pv-grid\[aria-busy="true"\]\{min-height:120vh\}/);
   assert.match(js, /window\.AH_INVENTORY_SOURCE !== "managed"/);
   assert.match(js, /data-inventory-retry/);
