@@ -74,6 +74,42 @@ test("retired bootstrap cannot replace live inventory",async()=>{
  assert.equal((await call("admin/vehicles",req("POST",{vehicles:[]},{action:"bootstrap"}))).statusCode,410);
 });
 
+test("public and admin catalogs use the same stable source order, not edit time",async()=>{
+ const rows = [
+  {id:user.id,slug:"source-first",sort_order:1,created_at:"2026-09-01",updated_at:"2026-09-01",published:true,images:[]},
+  {id:"00000000-0000-4000-8000-000000000003",slug:"source-second",sort_order:2,created_at:"2026-09-02",updated_at:"2026-09-30",published:true,images:[]}
+ ];
+ mockFetch(url=>{
+  assert.match(url,/order=sort_order.asc,created_at.desc,id.asc/);
+  assert.doesNotMatch(url,/order=updated_at/);
+  return response(rows);
+ });
+ const publicResult=await call("public/vehicles",req());
+ const adminResult=await call("admin/vehicles",req());
+ assert.deepEqual(publicResult.body.vehicles.map(v=>v.id),["source-first","source-second"]);
+ assert.deepEqual(adminResult.body.vehicles.map(v=>v.slug),["source-first","source-second"]);
+});
+
+test("new listings go first while saves preserve an existing source rank",async()=>{
+ let inserted, saved;
+ mockFetch((url,options)=>{
+  if(options.method==="POST") {
+   inserted=JSON.parse(options.body);return response([{id:user.id,...inserted}]);
+  }
+  if(options.method==="GET")return response([{id:user.id,make:"BMW",model:"Test",sort_order:42,created_at:"2026-09-01",images:[]}]);
+  saved=JSON.parse(options.body);return response([{id:user.id,sort_order:42,...saved}]);
+ });
+ const created=await call("admin/vehicles",req("POST",{make:"BMW",model:"New",equipment_bg:[],equipment_en:[]}));
+ assert.equal(created.statusCode,201);
+ assert.equal(inserted.sort_order,-Math.min(2147483647,Math.floor(Date.parse(inserted.created_at)/1000)));
+ assert.ok(inserted.sort_order<0);
+ const edited=await call("admin/vehicles",req("PATCH",{model:"Edited",sort_order:999},{id:user.id}));
+ assert.equal(edited.statusCode,200);
+ assert.equal(edited.body.vehicle.sort_order,42);
+ assert.equal(Object.hasOwn(saved,"sort_order"),false);
+ assert.equal(Object.hasOwn(saved,"created_at"),false);
+});
+
 test("retired compact header value controls only the original menu button",async()=>{
  let saved;
  mockFetch((url,options)=>{

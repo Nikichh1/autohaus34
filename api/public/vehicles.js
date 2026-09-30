@@ -200,7 +200,8 @@ async function inventory(id, cacheKey) {
     "transmission", "fuel", "mileage", "first_registration_year", "first_registration_month",
     "unregistered", "horsepower", "price", "chapter", "tags", "cover:images->0", "photo_filter", "photo_filter_strength", "sort_order", "updated_at"
   ].join(",");
-  const r = await db("vehicles?published=eq.true&select=" + fields + "&order=updated_at.desc,sort_order.asc", { method: "GET" });
+  // Preserve the source catalog order: changing a price or photo is not a new listing.
+  const r = await db("vehicles?published=eq.true&select=" + fields + "&order=sort_order.asc,created_at.desc,id.asc", { method: "GET" });
   const rows = await parse(r);
   if (!rows.length) {
     const stateResponse = await db("inventory_state?select=initialized&singleton=eq.true", { method: "GET" });

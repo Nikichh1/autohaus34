@@ -296,7 +296,7 @@ module.exports = async function handler(req, res) {
         return json(res, 200, { ok: true, vehicle: data[0] });
       }
 
-      const r = await db("vehicles?select=id,slug,ref,make,model,full_name,price,mileage,fuel,transmission,published,updated_at,cover:images->0&order=updated_at.desc", { method: "GET" });
+      const r = await db("vehicles?select=id,slug,ref,make,model,full_name,price,mileage,fuel,transmission,published,sort_order,created_at,updated_at,cover:images->0&order=sort_order.asc,created_at.desc,id.asc", { method: "GET" });
       const data = await readJson(r);
       if (!r.ok) return apiError(res, r.status, "Could not load vehicles", data);
       if (!Array.isArray(data)) throw new Error("Invalid inventory response");
@@ -312,9 +312,10 @@ module.exports = async function handler(req, res) {
     if (req.method === "POST") {
       const normalized = normalizeWithTranslations(req.body);
       if (normalized.error) return apiError(res, 400, normalized.error);
-      // Public ordering is updated_at DESC; using epoch seconds avoids an extra
-      // database read solely to allocate a cosmetic tie-breaker.
-      const row = Object.assign({ created_at: new Date().toISOString(), sort_order: Math.min(2147483647, Math.floor(Date.now() / 1000)) }, normalized.row);
+      // New admin listings go above the positive source-catalog ranks. Negative
+      // epoch seconds put newer listings first without an allocation query.
+      // Normal edits never rewrite sort_order, so the order remains stable.
+      const row = Object.assign({ created_at: new Date().toISOString(), sort_order: -Math.min(2147483647, Math.floor(Date.now() / 1000)) }, normalized.row);
       const r = await db("vehicles", {
         method: "POST",
         headers: { Prefer: "return=representation" },

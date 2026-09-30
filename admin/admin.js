@@ -211,12 +211,13 @@
   function pill(published) { return '<span class="pill ' + (published ? "pill--live" : "pill--draft") + '">' + (published ? t("Публикуван", "Published") : t("Чернова", "Draft")) + '</span>'; }
   function dashboard() {
     var published = state.vehicles.filter(function (v) { return v.published; }).length;
+    var recent = state.vehicles.slice().sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); }).slice(0, 6);
     view.innerHTML = '<div class="view-head"><div class="view-title"><p>AutoHaus</p><h1>' + t("Начало", "Overview") + '</h1></div><button class="primary" data-go="new">' + t("+ Добави автомобил", "+ Add car") + '</button></div>' +
       bootstrapBanner() + '<div class="stat-grid">' +
       [[t("Всички", "All cars"), state.vehicles.length, "all"], [t("Публикувани", "Published"), published, "published"], [t("Чернови", "Drafts"), state.vehicles.length - published, "draft"]].map(function (item) {
         return '<button class="stat-card" data-stat-filter="' + item[2] + '"><span>' + item[0] + '</span><strong>' + item[1] + '</strong></button>';
       }).join("") + '</div><section class="panel"><div class="panel-head"><h2>' + t("Последно редактирани", "Recently edited") + '</h2><button class="button button--quiet" data-go="cars">' + t("Виж всички", "View all") +
-      '</button></div>' + inventoryCards(state.vehicles.slice(0, 6)) + '</section>';
+      '</button></div>' + inventoryCards(recent) + '</section>';
     bindCommon();
     D.querySelectorAll("[data-stat-filter]").forEach(function (button) { button.onclick = function () { state.filter = button.dataset.statFilter; go("cars"); }; });
   }
