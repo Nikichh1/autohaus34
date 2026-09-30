@@ -14,7 +14,8 @@ function assetPlan(row) {
   if (!UUID.test(row.id || "") || !SLOTS.includes(row.slot) || !dimensions(row.width, row.height)) throw new Error("Invalid homepage image");
   const root = "site-media/" + row.id;
   const widths = [...new Set([640, 1280, 1920].map(w => Math.min(w, row.width)))].sort((a, b) => a - b);
-  return [{ key: "background", path: root + "/bg.jpg", width: Math.min(320, row.width), type: "image/jpeg" }].concat(widths.flatMap(width => [
+  const background = row.slot.startsWith("hero-") ? [{ key: "background", path: root + "/bg.jpg", width: Math.min(320, row.width), type: "image/jpeg" }] : [];
+  return background.concat(widths.flatMap(width => [
     { key: "jpg" + width, path: root + "/" + width + ".jpg", width, type: "image/jpeg" },
     { key: "webp" + width, path: root + "/" + width + ".webp", width, type: "image/webp" }
   ]));
@@ -23,7 +24,7 @@ function publicImage(row) {
   const plan = assetPlan(row), urls = Object.fromEntries(plan.map(a => [a.key, STORAGE_URL + "/storage/v1/object/public/" + BUCKET + "/" + a.path]));
   const widths = plan.filter(a => a.type === "image/jpeg" && a.key !== "background").map(a => a.width);
   const largest = widths[widths.length - 1];
-  return { id: row.id, slot: row.slot, width: row.width, height: row.height, background: urls.background,
+  return { id: row.id, slot: row.slot, width: row.width, height: row.height, background: urls.background || urls["jpg" + widths[0]],
     src: urls["jpg" + largest], jpg: widths.map(w => urls["jpg" + w] + " " + w + "w").join(", "),
     webp: widths.map(w => urls["webp" + w] + " " + w + "w").join(", "), preview: urls["jpg" + widths[0]] };
 }
@@ -56,7 +57,8 @@ function renderHTML(html, media) {
         tag = attr(tag, lazy ? "data-src" : "src", image.src);
         tag = attr(attr(tag, "width", image.width), "height", image.height);
         // Uploaded content is not necessarily the same scene as the factory photo.
-        tag = attr(tag, "alt", slot.startsWith("hero-") ? "AutoHaus" : "AutoHaus — " + slot.slice(5));
+        const titles = {"wall-care":"Автомивка","wall-servis":"Сервиз","wall-lizing":"Лизинг","wall-zastrahovki":"Застраховки","wall-cafe":"Кафе бар"};
+        tag = attr(tag, "alt", slot.startsWith("hero-") ? "AutoHaus" : "AutoHaus — " + titles[slot]);
         if (/style="[^"]*object-position:/.test(tag)) tag = tag.replace(/object-position:[^";]+/, "object-position:50% 50%");
       }
       return tag;

@@ -16,6 +16,7 @@ test("homepage image plans deduplicate small images and never escape their famil
  assert.equal(media.assetPlan(row).length,7);
  assert.equal(media.assetPlan({...row,width:480,height:640}).length,3);
  assert.equal(media.assetPlan({...row,width:1080,height:1920}).length,5);
+ assert.equal(media.assetPlan({...row,slot:"wall-servis"}).length,6);
  for(const change of [{id:"../../vehicles/1"},{slot:"unknown"},{width:1921},{height:0}])assert.throws(()=>media.assetPlan({...row,...change}));
  for(const a of media.assetPlan(row))assert.match(a.path,new RegExp("^site-media/"+id+"/"));
 });

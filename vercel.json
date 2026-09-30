@@ -5,7 +5,7 @@
   "functions": {
     "api/public/vehicles.js": {
       "regions": ["fra1"],
-      "includeFiles": "dist/index.html"
+      "includeFiles": "index.html"
     },
     "api/admin/vehicles.js": {
       "includeFiles": "data/{inventory.snapshot.json,inventory-manifest.json,eq/**}",

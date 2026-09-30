@@ -48,6 +48,7 @@ for (const car of cars) {
     equipment++;
   }
 }
+const deploymentConfig = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
 for (const file of ["index.html", "vehicle.html", "concierge.html", "legal.html"]) {
   const html = fs.readFileSync(path.join(root, file), "utf8");
   assert.ok(!/Auto House|Auto Hause/i.test(html), file + " has incorrect brand");
@@ -56,6 +57,11 @@ for (const file of ["index.html", "vehicle.html", "concierge.html", "legal.html"
     if (/^(?:https?:|\/\/|mailto:|tel:|data:|#)/.test(target)) continue;
     assert.ok(fs.existsSync(path.resolve(root, target.replace(/^\//, ""))), file + " missing local asset " + target);
     if (fs.existsSync(path.join(root, "dist", file))) {
+      if (target === "index.html" && !fs.existsSync(path.join(root, "dist/index.html"))) {
+        assert.ok(deploymentConfig.rewrites.some(route => route.source === "/index.html" && route.destination === "/api/public/vehicles?home=1"), "Managed homepage must have a deployed route");
+        assert.equal(deploymentConfig.functions["api/public/vehicles.js"].includeFiles, "index.html", "Homepage template must be included in the function");
+        continue;
+      }
       assert.ok(fs.existsSync(path.resolve(root, "dist", target.replace(/^\//, ""))), file + " missing deployed asset " + target);
     }
   }

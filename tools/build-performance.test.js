@@ -77,7 +77,9 @@ test("equipment changes update only independent page metadata, including renamed
 test("dist retains the public allowlist and excludes private sources", t => {
   const f = fixture(t); f.run();
   for (const file of [".env", "server/private.js", "api/admin/page.js", "data/inventory.snapshot.json", "build.js"]) assert.equal(fs.existsSync(path.join(f.root, "dist", file)), false, file);
-  for (const file of ["index.html", "admin/admin.js", "admin/image-sorter.js", "admin/image-sorter.css", "data/photo-insets.js", "img/test.webp", "fonts/test.woff2", "data/eq/test.js"]) assert.equal(fs.existsSync(path.join(f.root, "dist", file)), true, file);
+  for (const file of ["vehicle.html", "admin/admin.js", "admin/image-sorter.js", "admin/image-sorter.css", "data/photo-insets.js", "img/test.webp", "fonts/test.woff2", "data/eq/test.js"]) assert.equal(fs.existsSync(path.join(f.root, "dist", file)), true, file);
+  assert.equal(fs.existsSync(path.join(f.root,"dist/index.html")),false,"Static homepage must not shadow the managed image renderer");
+  assert.equal(fs.existsSync(path.join(f.root,"index.html")),true,"Stamped server template remains available");
 });
 
 test("font URL deduplication preserves exact font bytes and weight declarations", () => {

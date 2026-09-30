@@ -123,6 +123,9 @@ function build(options = {}) {
   fs.mkdirSync(dist, { recursive: true });
   for (const file of PUBLIC_FILES) {
     if (!fs.existsSync(path.join(root, file))) continue;
+    // An existing static index takes priority over Vercel's fallback rewrites.
+    // Keep the stamped source as the server template, not a stale public home.
+    if (file === "index.html" && options.staticHome !== true) continue;
     fs.mkdirSync(path.dirname(path.join(dist, file)), { recursive: true });
     if (file === "admin/admin.css") fs.writeFileSync(path.join(dist, file), adminCss, "utf8");
     else fs.copyFileSync(path.join(root, file), path.join(dist, file));
