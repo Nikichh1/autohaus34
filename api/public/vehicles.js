@@ -2,6 +2,7 @@
 
 const crypto = require("crypto");
 const { configured, json, db, legacyVehicle, clean } = require("../../server/admin-lib");
+const { settingsRow, publicMedia, serveHome } = require("../../server/homepage-media");
 
 const memory = new Map();
 const pending = new Map();
@@ -139,9 +140,7 @@ function remember(key, body, started, order, status = 200) {
 }
 
 async function publicSettings() {
-  const response = await db("admin_settings?singleton=eq.true&select=*&limit=1", { method: "GET" });
-  const rows = await parse(response);
-  const row = rows[0] || {};
+  const row = await settingsRow();
   const transparency = Number(row.watermark_transparency);
   const size = Number(row.watermark_size);
   const galleryScale = Number(row.desktop_gallery_scale);
@@ -179,7 +178,8 @@ async function publicSettings() {
     original_header_language: row.original_header_language === "header" ? "header" : "menu",
     original_header_desktop_menu_label: row.original_header_desktop_menu_label !== false,
     wall_cards_interactive: row.wall_cards_interactive !== false,
-    inquiry_enabled: row.inquiry_enabled !== false
+    inquiry_enabled: row.inquiry_enabled !== false,
+    homepage_media: publicMedia(row.homepage_media)
   };
 }
 
@@ -214,6 +214,7 @@ async function inventory(id, cacheKey) {
 
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") return json(res, 405, { ok: false, error: "Method not allowed" });
+  if (req.query && req.query.home === "1") return serveHome(req, res);
   if (!configured()) return json(res, 200, { ok: true, authoritative: false, vehicles: [] });
 
   const settingsOnly = clean((req.query && req.query.settings) || "", 8) === "1";

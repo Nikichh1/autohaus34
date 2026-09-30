@@ -146,6 +146,7 @@
   }
   function requestedRoute() { var h = location.hash.slice(1); return h || "dashboard"; }
   function canLeave() {
+    if (window.AH_SITE_MEDIA_BUSY) { toast(t("Изчакайте снимката да се качи.", "Wait for the photo upload to finish.")); return false; }
     if (isBusy()) { toast(t("Изчакайте текущата операция да завърши.", "Wait for the current operation to finish.")); return false; }
     return !state.dirty || confirm(t("Имате незаписани промени. Да ги отхвърлим?", "You have unsaved changes. Discard them?"));
   }
@@ -172,7 +173,7 @@
     if (savedDraft) {
       state.route = savedDraft.route;
       editor(savedDraft.vehicle, !savedDraft.vehicle.id, savedDraft);
-    } else if (initialRoute === "new" || initialRoute.indexOf("edit=") === 0) renderRoute(initialRoute);
+    } else if (initialRoute === "new" || initialRoute === "media" || initialRoute.indexOf("edit=") === 0) renderRoute(initialRoute);
     else view.innerHTML = '<div class="empty"><strong>' + t("Зареждане…", "Loading…") + '</strong></div>';
     try {
       var data = await request;
@@ -181,9 +182,9 @@
         var index = state.vehicles.findIndex(function (vehicle) { return vehicle.id === cached.vehicle.id; });
         if (index >= 0 && String(cached.vehicle.updated_at) >= String(state.vehicles[index].updated_at)) state.vehicles[index] = cached.vehicle;
       });
-      if (!state.current && state.route.indexOf("edit=") !== 0) renderRoute(requestedRoute());
+      if (!state.current && state.route !== "media" && state.route.indexOf("edit=") !== 0) renderRoute(requestedRoute());
     } catch (error) {
-      if (state.current || state.route.indexOf("edit=") === 0) { toast(error.message, true); return; }
+      if (state.current || state.route === "media" || state.route.indexOf("edit=") === 0) { toast(error.message, true); return; }
       view.innerHTML = '<section class="card empty"><h1>' + t("Автомобилите не са достъпни", "Inventory unavailable") + '</h1><p>' + esc(error.message) +
         '</p><button class="primary" id="reload-inventory">' + t("Опитай отново", "Try again") + '</button></section>';
       D.getElementById("reload-inventory").onclick = function () { loadVehicles(true); };

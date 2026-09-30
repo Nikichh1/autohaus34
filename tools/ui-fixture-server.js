@@ -6,6 +6,10 @@ const {createServer}=require('./dev-server');
 const lib=require('../server/admin-lib');
 let rows=require('../api/admin/vehicles').initialInventory().map((r,i)=>({...r,id:'00000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),created_at:'2026-09-09T10:00:00Z',updated_at:'2026-09-09T10:00:00Z'}));
 const localPhotos=new Set(rows.flatMap(row=>row.images.map(image=>image.original)));
+const homepageMedia=require('../server/homepage-media');
+let mediaRows=[];const mediaFiles=new Map();
+function fixtureMedia(row){const image=homepageMedia.publicImage(row);for(const key of ['src','preview','background','jpg','webp'])image[key]=image[key].replaceAll(homepageMedia.STORAGE_URL+'/storage/v1/object/public/'+homepageMedia.BUCKET+'/site-media/','/fixture-media/');return image;}
+function activeMedia(){return Object.fromEntries(mediaRows.filter(r=>r.is_active).map(r=>[r.slot,fixtureMedia(r)]));}
 let settings={watermark_enabled:false,watermark_transparency:75,watermark_size:34,photo_aspect_ratio:'16:9',desktop_gallery_scale:84,scroll_header_style:'autohaus_original',landing_standard_header_mode:'top',landing_original_header_mode:'after_scroll',product_standard_header_mode:'sticky',product_original_header_mode:'hidden',original_header_size:81,original_header_opacity:98,original_header_language:'menu',original_header_desktop_menu_label:false,wall_cards_interactive:true,inquiry_enabled:true};
 const edgeSource=JSON.parse(JSON.stringify(rows.find(row=>row.images.length>=2)));
 const pageModule={exports:{}};
@@ -32,11 +36,15 @@ async function readBody(req){let raw='';for await(const chunk of req){raw+=chunk
 server.on('request',async(req,res)=>{
  try{
  const url=new URL(req.url,'http://localhost');
+ if(url.pathname.startsWith('/fixture-media/')){
+  if(req.method==='PUT'){const chunks=[];for await(const chunk of req)chunks.push(chunk);mediaFiles.set(url.pathname,{bytes:Buffer.concat(chunks),type:req.headers['content-type']});return send(res,200,{ok:true});}
+  const file=mediaFiles.get(url.pathname);if(!file){res.writeHead(404).end();return;}res.writeHead(200,{'Content-Type':file.type,'Content-Length':file.bytes.length});res.end(req.method==='HEAD'?undefined:file.bytes);return;
+ }
  if(url.pathname.startsWith('/fixture-upload/')){for await(const chunk of req){}return send(res,200,{ok:true});}
  if(url.pathname==='/admin'||url.pathname==='/api/admin/page')return pageModule.exports(req,res);
  if(url.pathname==='/api/public/vehicles'){
   if(req.method!=='GET')return send(res,405,{ok:false,error:'Method not allowed'});
-  if(url.searchParams.get('settings')==='1')return send(res,200,{ok:true,settings});
+  if(url.searchParams.get('settings')==='1')return send(res,200,{ok:true,settings:{...settings,homepage_media:activeMedia()}});
   const id=url.searchParams.get('id');
   if(id&&!/^[a-z0-9-]+$/.test(id))return send(res,400,{ok:false,error:'Invalid vehicle ID'});
   const published=rows.filter(r=>r.published);
@@ -60,6 +68,15 @@ server.on('request',async(req,res)=>{
  if(url.pathname==='/api/admin/auth')return send(res,200,{ok:true,authenticated:true,user:{email:'preview@example.com'}});
  if(url.pathname.startsWith('/api/admin/')){
   const body=await readBody(req);
+  if(url.pathname==='/api/admin/site-media'){
+   if(req.method==='GET')return send(res,200,{ok:true,images:mediaRows.map(r=>({...r,image:fixtureMedia(r)})),slots:homepageMedia.SLOTS});
+   const action=url.searchParams.get('action'),current=mediaRows.find(r=>r.slot===body.slot&&r.is_active),selected=mediaRows.find(r=>r.id===body.id);
+   if(action==='sign'){const row={id:crypto.randomUUID(),slot:body.slot,width:body.width,height:body.height,file_name:body.file_name,state:'pending',is_active:false,byte_count:0,created_at:new Date().toISOString()};mediaRows.unshift(row);return send(res,200,{ok:true,id:row.id,uploads:homepageMedia.assetPlan(row).map(a=>({...a,upload_url:'/fixture-media/'+row.id+'/'+a.path.split('/').pop()})),headers:{}});}
+   if(action==='delete'){if(!selected)return send(res,404,{ok:false});if(selected.is_active)return send(res,409,{ok:false,code:'IMAGE_ACTIVE'});for(const a of homepageMedia.assetPlan(selected))mediaFiles.delete('/fixture-media/'+selected.id+'/'+a.path.split('/').pop());mediaRows=mediaRows.filter(r=>r.id!==selected.id);return send(res,200,{ok:true});}
+   if((current?current.id:null)!==body.expected_id)return send(res,409,{ok:false,code:'STALE_IMAGE'});
+   if(action==='complete'){if(!selected)return send(res,404,{ok:false});selected.byte_count=homepageMedia.assetPlan(selected).reduce((sum,a)=>{const f=mediaFiles.get('/fixture-media/'+selected.id+'/'+a.path.split('/').pop());if(!f)throw Error('Incomplete fixture upload');return sum+f.bytes.length;},0);selected.state='ready';}
+   if(current)current.is_active=false;if(selected)selected.is_active=true;return send(res,200,{ok:true});
+  }
   if(url.pathname==='/api/admin/settings'){
    if(req.method==='PATCH')settings={...settings,...body};
    return send(res,200,{ok:true,settings});

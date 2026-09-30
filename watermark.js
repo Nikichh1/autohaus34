@@ -196,7 +196,8 @@
       original_header_language: originalHeaderLanguage,
       original_header_desktop_menu_label: originalHeaderDesktopMenuLabel,
       wall_cards_interactive: wallCardsInteractive,
-      inquiry_enabled: settings.inquiry_enabled !== false
+      inquiry_enabled: settings.inquiry_enabled !== false,
+      homepage_media: settings.homepage_media
     }}));
     window.dispatchEvent(new CustomEvent("ah:photosettingschange", { detail: {
       photo_aspect_ratio: ratio,
@@ -212,7 +213,8 @@
       original_header_language: originalHeaderLanguage,
       original_header_desktop_menu_label: originalHeaderDesktopMenuLabel,
       wall_cards_interactive: wallCardsInteractive,
-      inquiry_enabled: settings.inquiry_enabled !== false
+      inquiry_enabled: settings.inquiry_enabled !== false,
+      homepage_media: settings.homepage_media
     }}));
   }
 

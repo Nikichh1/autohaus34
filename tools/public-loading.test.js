@@ -173,7 +173,7 @@ test("supplied variants are indexed even for a bundled original and its local 12
 function api(db, time) {
   const context = { module: { exports: {} }, __dirname: path.join(__dirname, "../api/public"),
     console: { error() {} }, Date: { now: () => time.now }, URL,
-    require: name => name === "../../server/admin-lib" ? { ...realLib, configured: () => true, db } : require(name) };
+    require: name => name === "../../server/admin-lib" ? { ...realLib, configured: () => true, db } : name === "../../server/homepage-media" ? require("../server/homepage-media") : require(name) };
   vm.runInNewContext(apiSource, context);
   return async (query = {}, headers = {host:'example.com',referer:'https://example.com/admin','sec-fetch-site':'same-origin'}) => {
     const result = { headers: {}, setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, end(text) { if (text) this.body = JSON.parse(text); } };

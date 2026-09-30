@@ -4,7 +4,8 @@
   "framework": null,
   "functions": {
     "api/public/vehicles.js": {
-      "regions": ["fra1"]
+      "regions": ["fra1"],
+      "includeFiles": "dist/index.html"
     },
     "api/admin/vehicles.js": {
       "includeFiles": "data/{inventory.snapshot.json,inventory-manifest.json,eq/**}",
@@ -15,6 +16,14 @@
     }
   },
   "rewrites": [
+    {
+      "source": "/",
+      "destination": "/api/public/vehicles?home=1"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/api/public/vehicles?home=1"
+    },
     {
       "source": "/api/admin/settings",
       "destination": "/api/admin/vehicles?action=settings"

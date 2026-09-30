@@ -16,7 +16,7 @@ test("mobile hero fills the frame with every slide, without an extra edge-fill i
   const html = read("index.html");
   const css = read("style.css");
   assert.equal((html.match(/class="stage-media-fill"/g) || []).length, 0);
-  assert.equal((html.match(/<picture><source type="image\/webp" data-srcset="img\/(?:indoor_cars|autospa_night|outside-flags|coffee_bar-new)/g) || []).length, 4);
+  assert.equal((html.match(/<picture\b[^>]*><source type="image\/webp" data-srcset="img\/(?:indoor_cars|autospa_night|outside-flags|coffee_bar-new)/g) || []).length, 4);
   assert.match(css, /\.stage-media picture img\{display:block;object-fit:cover\}/);
   assert.match(css, /\.stage-media\{aspect-ratio:4 \/ 3\}/);
   assert.doesNotMatch(css, /\.stage-media picture img\{object-fit:contain\}/);
