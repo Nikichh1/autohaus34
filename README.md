@@ -1,38 +1,44 @@
-# AutoHaus
+# AutoHaus — cPanel edition
 
-The existing AutoHaus public website, in Bulgarian and English, with a phone-first inventory admin. The public design keeps the original Exo 2 typography, gold accents, dark landing page and light vehicle pages.
+Отделна версия на [Nikichh1/autohaus34](https://github.com/Nikichh1/autohaus34)
+за **Namecheap / SuperHosting с Node.js 22 или 24 и Passenger**.
+Дизайнът, BG/EN сайтът, админ панелът, Supabase данните, роли и Storage се
+запазват. Не се копира и не се reset-ва реалната база.
 
-## Run and check
-
-Node.js 22 or later is sufficient; the deployed application has no package dependencies.
+**Качване стъпка по стъпка: [CPANEL.md](CPANEL.md).**
 
 ```sh
-node build.js
-node tools/check.js
-node --test tools/backend.test.js
-node tools/dev-server.js
+npm run build
+npm run check
+npm test
+npm start
 ```
 
-Open `http://127.0.0.1:3010`. This preview runs the actual API handlers, so `/admin` requires configured Supabase authentication. Service environment variables are described in [ADMIN.md](ADMIN.md).
+Локално: `http://127.0.0.1:3217`. В production стартовият файл е **`app.js`**,
+управляван от cPanel → Setup Node.js App. Няма production npm зависимости.
+Не използвайте `tools/dev-server.js` на хостинга.
 
-`build.js` regenerates the minified CSS, updates asset versions and produces `dist/` containing browser assets only. Backend code, credentials, SQL and tests are excluded from the public output. The project uses plain JavaScript, so there is no TypeScript compiler or framework lint task to run. `tools/check.js` checks all JavaScript syntax, HTML asset references, the 84-car snapshot and its photo/equipment files.
+```sh
+npm run package:cpanel
+```
 
-## Structure
+Произвежда `artifacts/cpanel/autohaus34-cnpanel.tar.gz`: готов runtime архив
+с precompressed Brotli/gzip assets. Качва се **извън `public_html`**;
+HTTP сървърът излага само `dist/` и разрешените API маршрути.
+Тайни ключове, SQL, tests и Git metadata не влизат в архива.
 
-- `index.html`, `main.js`, `catalog.js`, `showroom.js`: landing page, services, contacts, search and vehicle listing.
-- `vehicle.html`, `vehicle.js`: gallery, structured facts, bilingual equipment/description and direct inquiry.
-- `concierge.html`, `concierge.js`: general inquiries.
-- `legal.html`, `i18n.js`: company information, policy content and shared BG/EN translation.
-- `style.css`, `catalog.css`: authored styles. The `.min.css` copies are generated.
-- `data/vehicles.base.js`: empty public bootstrap; managed inventory is authoritative. `data/inventory.snapshot.json` is the private 84-car verification fixture. `data/eq/` contains 84 verified equipment lists with aligned English translations.
-- `data/vehicles.js`: asynchronous managed-inventory loader. Every inventory renderer waits for this result; backend outages never resurrect sold cars. An intentionally empty managed inventory stays empty.
-- `admin/`: mobile inventory editor, login and database schema.
-- `api/`, `server/`: protected Vercel handlers, Supabase sessions/data, signed Supabase Storage uploads and server-side Gemini Flash-Lite.
+`/` и `/index.html` използват същия managed homepage renderer. `/admin` остава
+защитен с реална Supabase сесия и текуща активна роля. Автомобилите, снимките,
+настройките, екипът, analytics, преводът, sitemap и robots се запазват.
 
-The previous phase-specific DOM patches, synchronous network loading and downloaded-code evaluation have been removed. Changes now live in the markup, renderers and authored styles that own them.
+`npm test` проверява cPanel сървъра и dependency-free regression тестовете с
+изолирани fixtures/mocked услуги. Optional database/image suites са отделни;
+нито един тест не трябва да използва production база или реална поща.
+Тестовете не заменят staging deployment и операторско приемане.
 
-## Facts and publishing
+Оригиналният `vercel.json` се пази за сравнение/regression checks, но cPanel
+**не го чете**. Новото репо не публикува към Vercel, няма auto-deploy hook
+и не променя DNS, поща или PHP.
 
-Use the project vehicle records and official [AutoHaus contact page](https://autohaus.bg/контакти/) as factual sources. The brand is AutoHaus; the legal entity is Аутохаус България ЕООД / Autohaus Bulgaria Ltd., ЕИК 200771286, VAT BG200771286. Vehicle inquiries use Иван Манев, +359 884 777 045 and `autohaussale@gmail.com`.
-
-The existing GitHub `main` branch is connected to the Vercel project. See [DEPLOY.md](DEPLOY.md) for deployment and [ADMIN.md](ADMIN.md) for the credentials and database setup. Inquiry-email configuration is intentionally deferred at this stage.
+Старата PHP програма не е в това репо и се запазва/мигрира отделно.
+Supabase остава отделна услуга със своя регион и абонамент.

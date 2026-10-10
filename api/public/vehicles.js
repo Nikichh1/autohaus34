@@ -245,6 +245,6 @@ module.exports = async function handler(req, res) {
     return send(req, res, result.status, result.body);
   } catch (err) {
     console.error("Public inventory API failed", err);
-    return json(res, 200, { ok: true, authoritative: false, vehicles: [] });
+    return json(res, 503, { ok: false, authoritative: false, vehicles: [], error: "Inventory temporarily unavailable" });
   }
 };

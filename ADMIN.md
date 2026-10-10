@@ -1,5 +1,10 @@
 # AutoHaus admin
 
+> cPanel edition: see [CPANEL.md](CPANEL.md). Node now hosts these same protected
+> handlers instead of Vercel; the existing Supabase project and applied migrations
+> remain unchanged. Older Vercel/Gemini setup notes below are historical, not
+> instructions to provision services or reapply SQL for this host migration.
+
 The existing `autohaus34` Supabase project supplies email/password authentication, inventory and free Supabase Storage. Vercel hosts the protected APIs. The public Supabase project URL/key are identifiers, not privileged credentials. Gemini credentials remain server-side.
 
 ## Staff workflow

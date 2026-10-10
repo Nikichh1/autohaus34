@@ -2,9 +2,10 @@
 "use strict";
 // Production deploy trigger: admin tabs + stable 16:9 vehicle media
 const fs = require("fs"), path = require("path"), crypto = require("crypto");
+const { writeBuildInfo } = require("./server/build-info");
 
 const SHEETS = ["style.css", "catalog.css"];
-const ADMIN_STYLES = ["admin/admin.css", "admin/brand.css", "admin/brand-fallback.css"];
+const ADMIN_STYLES = ["admin/admin-base.css", "admin/brand.css", "admin/brand-fallback.css"];
 const PAGES = ["index.html", "concierge.html", "vehicle.html", "legal.html", "admin/login.html", "admin/setup.html", "api/admin/page.js"];
 const PUBLIC_FILES = [
   "index.html", "vehicle.html", "concierge.html", "legal.html", "style.min.css", "catalog.min.css", "vehicle-fixes.css",
@@ -60,6 +61,9 @@ function build(options = {}) {
   }
 
   const adminCss = ADMIN_STYLES.map(file => fs.readFileSync(path.join(root, file), "utf8")).join("\n");
+  // Apache/LiteSpeed may serve existing source files before Passenger. Keep
+  // this compatibility asset identical to dist, generated from one set of inputs.
+  fs.writeFileSync(path.join(root, "admin/admin.css"), adminCss, "utf8");
   const versions = new Map();
   for (const file of PUBLIC_FILES) {
     if (!/\.(?:css|js|svg)$/.test(file) || !fs.existsSync(path.join(root, file))) continue;
@@ -74,11 +78,17 @@ function build(options = {}) {
     }
   }
   const equipmentVersion = equipmentHash.digest("hex").slice(0, 12);
+  const adminVersion = digest(JSON.stringify([...versions].filter(([file]) =>
+    file.startsWith("admin/") || file === "homepage-slots.js" || file === "autohaus.svg")));
   let stamped = 0;
   for (const page of PAGES) {
     const file = path.join(root, page);
     if (!fs.existsSync(file)) continue;
     let source = fs.readFileSync(file, "utf8"), before = source;
+    if (page === "api/admin/page.js") {
+      source = source.replace(/const BUILD_ASSET_VERSION = "[\w-]+";/,
+        'const BUILD_ASSET_VERSION = "' + adminVersion + '";');
+    }
     source = source.replace(/(["'(])((?:[\w./-]*\/)?[\w.-]+\.(?:css|js|svg))\?v=[\w-]+/g, (match, quote, url) => {
       const asset = path.posix.normalize(url.startsWith("/") ? url.slice(1) : path.posix.join(path.posix.dirname(page), url));
       const version = versions.get(asset);
@@ -139,12 +149,13 @@ function build(options = {}) {
 
   /* Product images are pre-generated and watermarked in Storage.
      Production builds perform no image processing or remote media migration. */
+  const buildInfo = writeBuildInfo(root, versions);
 
   log("AutoHaus build");
   built.forEach(item => log("  " + item.file.padEnd(14) + size(item.before) + " -> " + item.dest.padEnd(18) + size(item.after) + "   (-" + Math.round((1 - item.after / item.before) * 100) + "%)"));
   log("  Asset hashes   " + versions.size + " independent versions; stamped " + stamped + " page(s)");
   log("  Public assets prepared in dist/");
-  return { versions: Object.fromEntries(versions), equipmentVersion, stamped };
+  return { versions: Object.fromEntries(versions), equipmentVersion, stamped, buildInfo };
 }
 
 if (require.main === module) build();

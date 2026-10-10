@@ -4,6 +4,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs"), path = require("node:path"), os = require("node:os"), crypto = require("node:crypto");
 const { build } = require("../build.js");
+const { verifyBuild } = require("../server/build-info");
 
 function fixture(t) {
   const parent = fs.realpathSync(os.tmpdir());
@@ -18,7 +19,7 @@ function fixture(t) {
     fs.rmSync(target, { recursive: true, force: true });
   });
   for (const file of ["main.js", "catalog.js", "showroom.js", "vehicle.js", "concierge.js", "i18n.js", "analytics.js", "data/vehicles.base.js", "data/vehicles.js", "data/photo-insets.js", "admin/admin.js", "admin/login.js", "admin/advanced.js", "admin/image-sorter.js"]) write(file, "/* " + file + " */\nwindow.loaded = true;");
-  for (const file of ["style.css", "catalog.css", "admin/admin.css", "admin/brand.css", "admin/brand-fallback.css", "admin/image-sorter.css"]) write(file, "/* " + file + " */\nbody { color: #111; }");
+  for (const file of ["style.css", "catalog.css", "admin/admin-base.css", "admin/brand.css", "admin/brand-fallback.css", "admin/image-sorter.css"]) write(file, "/* " + file + " */\nbody { color: #111; }");
   for (const file of ["watermark.js", "image-guard.js", "catalog-prefetch.js", "vehicle-i18n-runtime.js"]) write(file, "/* fixture */");
   write("vehicle-fixes.css", "/* fixture */");
   write("autohaus.svg", "<svg></svg>"); write("favicon.jpg", "image"); write("_headers", "/*\n  X-Content-Type-Options: nosniff");
@@ -28,7 +29,7 @@ function fixture(t) {
   for (const file of ["index.html", "vehicle.html", "concierge.html", "legal.html"]) write(file, "<!doctype html><head>" + head + "</head><body></body>");
   write("admin/login.html", '<head><link href="/admin/admin.css?v=old"><script src="/admin/login.js?v=old"></script></head>');
   write("admin/setup.html", "<head></head>");
-  write("api/admin/page.js", 'module.exports = "<head><link href=\'/admin/admin.css?v=old\'><link href=\'/admin/image-sorter.css?v=old\'><script src=\'/admin/admin.js?v=old\'></script><script src=\'/admin/image-sorter.js?v=old\'></script></head>";');
+  write("api/admin/page.js", 'const BUILD_ASSET_VERSION = "build-required";\nmodule.exports = "<head><link href=\'/admin/admin.css?v=old\'><link href=\'/admin/image-sorter.css?v=old\'><script src=\'/admin/admin.js?v=old\'></script><script src=\'/admin/image-sorter.js?v=old\'></script></head>";');
   return { root, write, read: file => fs.readFileSync(path.join(root, file), "utf8"), run: () => build({ root, log() {} }) };
 }
 
@@ -48,7 +49,8 @@ test("admin CSS version covers the exact concatenated bytes delivered in dist", 
   const second = f.run(), output = f.read("dist/admin/admin.css");
   assert.notEqual(first.versions["admin/admin.css"], second.versions["admin/admin.css"]);
   assert.equal(second.versions["admin/admin.css"], crypto.createHash("sha256").update(output).digest("hex").slice(0, 12));
-  assert.equal(output, ["admin/admin.css", "admin/brand.css", "admin/brand-fallback.css"].map(f.read).join("\n"));
+  assert.equal(output, ["admin/admin-base.css", "admin/brand.css", "admin/brand-fallback.css"].map(f.read).join("\n"));
+  assert.equal(f.read("admin/admin.css"), output, "LiteSpeed's source-file fast path must retain the current branding");
   assert.match(f.read("admin/login.html"), new RegExp("admin/admin.css\\?v=" + second.versions["admin/admin.css"]));
   assert.equal(first.versions["style.min.css"], second.versions["style.min.css"]);
 });
@@ -97,4 +99,25 @@ test("font URL deduplication preserves exact font bytes and weight declarations"
   }
   assert.equal(total - unique, 120984);
   assert.equal((css.match(/src:url\("fonts\/exo2-(?:400|600)-/g) || []).length, 0);
+});
+
+test("production detects a mixed build and changed branding before serving an obsolete admin", t => {
+  const f = fixture(t), first = f.run();
+  assert.equal(verifyBuild(f.root).buildId, first.buildInfo.buildId);
+  f.write("admin/brand.css", ".side { background: black; }");
+  assert.throws(() => verifyBuild(f.root), /Stale or missing build file: admin\/brand.css/);
+  const second = f.run();
+  assert.notEqual(second.buildInfo.buildId, first.buildInfo.buildId);
+  assert.equal(verifyBuild(f.root).buildId, second.buildInfo.buildId);
+  f.write("dist/admin/admin.css", f.read("admin/admin-base.css"));
+  assert.throws(() => verifyBuild(f.root), /Stale or missing build file: dist\/admin\/admin.css/);
+});
+
+test("cPanel admin asset versions change on edits and stay stable on an identical rebuild", t => {
+  const f = fixture(t); f.run();
+  const before = f.read("api/admin/page.js").match(/BUILD_ASSET_VERSION = "([a-f0-9]{12})"/)[1];
+  f.write("admin/admin.js", "window.adminChanged = true;"); f.run();
+  const after = f.read("api/admin/page.js").match(/BUILD_ASSET_VERSION = "([a-f0-9]{12})"/)[1];
+  assert.notEqual(before, after);
+  assert.equal(f.run().stamped, 0);
 });
