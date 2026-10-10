@@ -28,31 +28,55 @@ cPanel admin assets използват content версия. `build-info.json` �
 | Node.js | 24.x (поддържа се и 22.x) |
 | Application mode | Production |
 | Application URL | `https://autotest.autohaus.bg`, път `/` |
-| Application root | `test-autohaus.bg`, ако това е действителната папка с `app.js` |
+| Application root (потвърден от cPanel снимките) | `repositories/autohaus34-cnpanel` |
 | Startup file | `app.js` |
-| Domains → Document Root | `/home/CPANEL_USER/test-autohaus.bg/public` |
+| Domains → Document Root (цел; първо проверете текущата стойност) | `/home/autohaus/repositories/autohaus34-cnpanel/public` |
 
 `public/` съдържа само `.htaccess` и евентуално ACME `.well-known/`.
 Passenger препраща към Node; Node сервира `dist/`, защитения `/admin` и API.
 
 **Document Root не трябва да е checkout, application root или dist.**
-Обновяване на Git копието в `test.autohaus.bg` не обновява Node приложението
-в `test-autohaus.bg`. Не изтривайте тези папки; проверете полетата в cPanel.
+Снимките от 10 октомври потвърждават работещия Node Application root:
+`/home/autohaus/repositories/autohaus34-cnpanel`, Git branch `main`, commit
+`3e6367b3546eba41cee9d9bd4c2f294f6d8d9b03`. Папките `test-autohaus.bg` и
+`test.autohaus.bg` са отделни копия. Не използвайте тях за обновяване на
+това приложение. Document Root на `autotest.autohaus.bg` още не е показан;
+проверете го в Domains преди промяна. Startup file `app.js`, Production,
+Node 24 и PUBLIC_ORIGIN са потвърдени от снимките.
 Не публикувайте `.git`, `.env`, SQL, server/API код или runtime архиви.
 
 ## Обновяване от GitHub
 
-Първо изпълнете activate командата, показана в **Setup Node.js App**.
-Следните команди предполагат Git checkout в действителния Application root:
+Първо изпълнете само read-only диагностиката в Terminal и прегледайте
+локалните промени. Не изпращайте environment стойности или ключове.
 
 ```sh
-cd "$HOME/test-autohaus.bg"
+source /home/autohaus/nodevenv/repositories/autohaus34-cnpanel/24/bin/activate
+cd /home/autohaus/repositories/autohaus34-cnpanel
+git status --short
+git log -1 --format='%h %s'
+node --version
+```
+
+За следващото обновяване checkout-ът трябва да е проверен и без непазени
+промени по tracked файлове. Блокът спира при грешка и пази стария commit
+в отделен backup branch. Той не променя GitHub origin/main:
+
+```sh
+( 
+set -e
+source /home/autohaus/nodevenv/repositories/autohaus34-cnpanel/24/bin/activate
+cd /home/autohaus/repositories/autohaus34-cnpanel
+git diff --quiet
+git diff --cached --quiet
+git branch "backup/cpanel-$(date +%Y%m%d-%H%M%S)" HEAD
 git fetch https://github.com/Nikichh1/autohaus34.git fix/cpanel-current-admin-20261010
-git switch --detach FETCH_HEAD
+git switch -c "deploy/cpanel-$(date +%Y%m%d-%H%M%S)" --no-track FETCH_HEAD
 npm ci --ignore-scripts
 node tools/cpanel-build.js
 node tools/cpanel-public-root.js
 node tools/cpanel-doctor.js --document-root "$PWD/public" --origin https://autotest.autohaus.bg
+)
 ```
 
 Ако application root няма `.git`, използвайте runtime архив или нов checkout
