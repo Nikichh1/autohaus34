@@ -1,0 +1,16 @@
+{
+  "name": "autohaus34-cnpanel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AutoHaus website and protected Supabase admin for cPanel Node.js hosting",
+  "engines": { "node": ">=22 <25" },
+  "scripts": {
+    "start": "node app.js",
+    "build": "node tools/cpanel-build.js",
+    "package:cpanel": "node tools/cpanel-build.js --package",
+    "check": "node tools/check.js",
+    "test": "node tools/run-tests.js",
+    "test:cpanel": "node --test tools/cpanel-server.test.js tools/cpanel-build.test.js",
+    "test:database": "node --test tools/schema.test.js tools/security.test.js tools/wall-settings-migration.test.js tools/homepage-media-migration.test.js"
+  }
+}

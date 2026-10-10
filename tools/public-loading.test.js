@@ -222,6 +222,8 @@ test("expired API data is never returned after failure; fresh requests bypass va
   time.now += 30001;
   current = null;
   const failed = await handler({ id: "test-car" });
+  assert.equal(failed.statusCode, 503);
+  assert.equal(failed.body.ok, false);
   assert.equal(failed.body.authoritative, false);
   assert.equal(failed.headers["cache-control"], "no-store");
 });

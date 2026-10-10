@@ -1,6 +1,7 @@
 "use strict";
 const { requireAdmin } = require("../../server/admin-lib");
-const ASSET_VERSION = String(process.env.VERCEL_GIT_COMMIT_SHA || process.env.VERCEL_DEPLOYMENT_ID || "current").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64) || "current";
+const BUILD_ASSET_VERSION = "f0ae276244cb";
+const ASSET_VERSION = String(process.env.VERCEL_GIT_COMMIT_SHA || process.env.VERCEL_DEPLOYMENT_ID || BUILD_ASSET_VERSION).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64) || BUILD_ASSET_VERSION;
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Robots-Tag", "noindex, nofollow");

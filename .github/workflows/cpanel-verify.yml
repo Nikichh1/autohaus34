@@ -1,0 +1,34 @@
+name: AutoHaus platform verification
+on:
+  pull_request:
+  push:
+    branches: ["fix/cpanel-current-admin-20261010"]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - name: Vercel build
+        run: node build.js
+      - name: cPanel build and current admin parity
+        run: |
+          node tools/cpanel-build.js
+          cmp admin/admin.css dist/admin/admin.css
+          node tools/cpanel-doctor.js --origin https://autotest.autohaus.bg
+      - run: npm run check
+      - run: npm test
+      - name: Isolated browser comparison with approved admin
+        run: |
+          npm install --no-save --package-lock=false --ignore-scripts playwright@1.62.1
+          npx playwright install --with-deps chromium
+          git worktree add --detach "$RUNNER_TEMP/autohaus-reference" 82bf95aa000d2a8925afca2470d87e367bce47de
+          node "$RUNNER_TEMP/autohaus-reference/build.js"
+          node tools/cpanel-ui-verify.js --reference "$RUNNER_TEMP/autohaus-reference"

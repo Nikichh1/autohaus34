@@ -2,7 +2,7 @@
    This tools-only server is never copied to dist or invoked by production. */
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),crypto=require('node:crypto');
-const {createServer}=require('./dev-server');
+const {createServer}=process.env.AH_UI_PLATFORM==='cpanel'?require('../server/cpanel-server'):require('./dev-server');
 const lib=require('../server/admin-lib');
 let rows=require('../api/admin/vehicles').initialInventory().map((r,i)=>({...r,id:'00000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),created_at:'2026-09-09T10:00:00Z',updated_at:'2026-09-09T10:00:00Z'}));
 const localPhotos=new Set(rows.flatMap(row=>row.images.map(image=>image.original)));
@@ -14,7 +14,8 @@ let settings={watermark_enabled:false,watermark_transparency:75,watermark_size:3
 const edgeSource=JSON.parse(JSON.stringify(rows.find(row=>row.images.length>=2)));
 const pageModule={exports:{}};
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../api/admin/page.js'),'utf8'),{process:{env:{}},module:pageModule,require:()=>({...lib,requireAdmin:async()=>({id:'ui-fixture',email:'preview@example.com',adminRole:'owner'})})});
-const server=createServer(),base=server.listeners('request')[0]; server.removeAllListeners('request');
+const server=createServer({production:false,origin:''}),base=server.listeners('request')[0]; server.removeAllListeners('request');
+global.fetch=async()=>{throw new Error('External provider requests are forbidden in the isolated UI fixture');};
 function send(res,status,data){res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
 function publicVehicle(row,compact){
  const vehicle=lib.legacyVehicle(compact?{...row,images:(row.images||[]).slice(0,1)}:row);
@@ -41,7 +42,8 @@ server.on('request',async(req,res)=>{
   const file=mediaFiles.get(url.pathname);if(!file){res.writeHead(404).end();return;}res.writeHead(200,{'Content-Type':file.type,'Content-Length':file.bytes.length});res.end(req.method==='HEAD'?undefined:file.bytes);return;
  }
  if(url.pathname.startsWith('/fixture-upload/')){for await(const chunk of req){}return send(res,200,{ok:true});}
- if(url.pathname==='/admin'||url.pathname==='/api/admin/page')return pageModule.exports(req,res);
+ if(url.pathname==='/admin'||url.pathname==='/admin/'||url.pathname==='/api/admin/page')return pageModule.exports(req,res);
+ if(url.pathname==='/'||url.pathname==='/index.html'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(fs.readFileSync(path.join(__dirname,'../index.html'),'utf8'));}
  if(url.pathname==='/api/public/vehicles'){
   if(req.method!=='GET')return send(res,405,{ok:false,error:'Method not allowed'});
   if(url.searchParams.get('settings')==='1')return send(res,200,{ok:true,settings:{...settings,homepage_media:activeMedia()}});

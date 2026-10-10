@@ -1,11 +1,5 @@
-# This is a static site — no Node build. The files below are local tooling
-# only (used to generate responsive image derivatives with `sharp`) and must
-# not be committed: node_modules carries platform-specific native binaries,
-# and a stray package.json makes Vercel attempt a Node build instead of
-# serving the files statically.
+# Dependencies and private local configuration must never be published.
 node_modules/
-package.json
-package-lock.json
 
 # scratch: the one-shot image-derivative generator, recreated when needed
 _gen-derivs.js
@@ -19,3 +13,8 @@ dist/
 artifacts/
 playwright-report/
 test-results/
+tmp/
+*.log
+
+build-info.json
+public/
